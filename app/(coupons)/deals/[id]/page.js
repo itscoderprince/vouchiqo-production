@@ -1,8 +1,8 @@
+import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
 import { getCouponById } from "@/modules/coupon/coupon.service";
 import DealDetailsClient from "./deal-details-client";
-import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }) {
   const { id } = await params;
   await connectDB();
-  
+
   try {
     const coupon = await getCouponById(id);
     const brandName = coupon.merchantId?.businessName || "Verified Partner";
@@ -22,7 +22,9 @@ export async function generateMetadata({ params }) {
         : `₹${coupon.discountValue} OFF`;
 
     const title = `${discountText} ${brandName} Coupon - ${coupon.title} | Vouchiqo`;
-    const description = coupon.description || `Get ${discountText} at ${brandName} with Vouchiqo's verified coupon code: ${coupon.code}. 100% working and community tested.`;
+    const description =
+      coupon.description ||
+      `Get ${discountText} at ${brandName} with Vouchiqo's verified coupon code: ${coupon.code}. 100% working and community tested.`;
 
     return {
       title,
@@ -36,7 +38,8 @@ export async function generateMetadata({ params }) {
   } catch (err) {
     return {
       title: "Coupon Deal Not Found | Vouchiqo",
-      description: "The requested discount code could not be found or has expired.",
+      description:
+        "The requested discount code could not be found or has expired.",
     };
   }
 }
@@ -53,7 +56,7 @@ export default async function CouponPage({ params }) {
 
   try {
     coupon = await getCouponById(id);
-    
+
     // Fetch up to 3 similar coupons in the same category
     const rawRelated = await Coupon.find({
       category: coupon.category,
@@ -72,27 +75,28 @@ export default async function CouponPage({ params }) {
   }
 
   const brandName = coupon.merchantId?.businessName || "Verified Partner";
-  
+
   // JSON-LD structured data Schema
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Offer",
-    "name": coupon.title,
-    "description": coupon.description || `Claim ${coupon.title} coupon code on Vouchiqo.`,
-    "price": "0",
-    "priceCurrency": "INR",
-    "eligibleRegion": {
+    name: coupon.title,
+    description:
+      coupon.description || `Claim ${coupon.title} coupon code on Vouchiqo.`,
+    price: "0",
+    priceCurrency: "INR",
+    eligibleRegion: {
       "@type": "Place",
-      "name": coupon.location?.city || "India",
+      name: coupon.location?.city || "India",
     },
-    "offeredBy": {
+    offeredBy: {
       "@type": "Merchant",
-      "name": brandName,
+      name: brandName,
     },
-    "seller": {
+    seller: {
       "@type": "Organization",
-      "name": "Vouchiqo",
-      "url": "https://vouchiqo.com",
+      name: "Vouchiqo",
+      url: "https://vouchiqo.com",
     },
   };
 

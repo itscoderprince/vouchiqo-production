@@ -1,6 +1,6 @@
+import { containsMongoOperator, sanitizeObject } from "@/lib/security";
 import { handleError } from "@/utils/api-response";
 import { AppError } from "@/utils/app-error";
-import { containsMongoOperator, sanitizeObject } from "@/lib/security";
 
 /**
  * Wraps an async Next.js App Router route handler with centralized error handling.
@@ -25,7 +25,11 @@ export function asyncHandler(fn) {
 
           // Check for MongoDB operators (NoSQL injection prevention)
           if (containsMongoOperator(body)) {
-            throw new AppError("Invalid input parameters: MongoDB operators are not allowed", 400, "BAD_REQUEST");
+            throw new AppError(
+              "Invalid input parameters: MongoDB operators are not allowed",
+              400,
+              "BAD_REQUEST",
+            );
           }
 
           // Recursively sanitize all HTML tags from strings (XSS prevention)

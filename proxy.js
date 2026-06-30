@@ -1,31 +1,33 @@
 import { NextResponse } from "next/server";
+import {
+  getRedirectForRole,
+  isAuthorizedForRoute,
+  isProtectedRoute,
+  ROUTES,
+} from "./utils/routes";
 
 /**
  * Next.js Middleware/Proxy for authentication redirects and route protection.
- * Performs a fast, zero-database synchronous check on cookies first.
- * Then fetches session info to enforce role-based routes.
+ * Utilizes centralized routing and role-based redirect rules from utils/routes.js.
  */
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
-  // 1. Synchronous check: is session token cookie present?
-  const hasSession = request.cookies.has("better-auth.session_token") ||
-                     request.cookies.has("__secure-better-auth.session_token");
+  // 1. Fast synchronous check on cookies first to minimize overhead
+  const hasSession =
+    request.cookies.has("better-auth.session_token") ||
+    request.cookies.has("__secure-better-auth.session_token");
 
   if (!hasSession) {
-    // Redirect unauthenticated requests attempting to access protected dashboards
-    if (pathname.startsWith("/admin") ||
-        pathname.startsWith("/merchant") ||
-        pathname.startsWith("/customer") ||
-        pathname.startsWith("/profile")) {
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (isProtectedRoute(pathname)) {
+      return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, request.url));
     }
     return NextResponse.next();
   }
 
-  // 2. Session cookie exists. Verify validity and retrieve user role from API route.
+  // 2. Cookie is present. Fetch session validation via the centralized API endpoint.
   try {
-    const response = await fetch(new URL("/api/auth/get-session", request.url), {
+    const response = await fetch(new URL(ROUTES.API.GET_SESSION, request.url), {
       headers: {
         cookie: request.headers.get("cookie") || "",
       },
@@ -36,28 +38,15 @@ export async function proxy(request) {
       if (session?.user) {
         const { role } = session.user;
 
-        // Logged-in users should not access auth forms (login, signup, forgot password, otp verification)
-        // Allow /auth/callback to pass through — it performs the role-based redirect itself
-        if (pathname.startsWith("/auth") && pathname !== "/auth/callback") {
-          const dest = role === "admin"
-            ? "/admin/dashboard"
-            : role === "merchant"
-              ? "/merchant/dashboard"
-              : "/customer/dashboard";
+        // Redirect logged-in users away from auth forms (e.g. login, register)
+        if (pathname.startsWith("/auth") && pathname !== ROUTES.AUTH.CALLBACK) {
+          const dest = getRedirectForRole(role);
           return NextResponse.redirect(new URL(dest, request.url));
         }
 
-        // Enforce role-based dashboard protection
-        if (pathname.startsWith("/admin") && role !== "admin") {
-          return NextResponse.redirect(new URL("/customer/dashboard", request.url));
-        }
-        if (pathname.startsWith("/merchant") && role !== "merchant") {
-          return NextResponse.redirect(new URL("/customer/dashboard", request.url));
-        }
-        if (pathname.startsWith("/customer") && role !== "customer") {
-          const dest = role === "admin"
-            ? "/admin/dashboard"
-            : "/merchant/dashboard";
+        // Enforce centralized authorization rules on protected path folders
+        if (!isAuthorizedForRoute(pathname, role)) {
+          const dest = getRedirectForRole(role);
           return NextResponse.redirect(new URL(dest, request.url));
         }
 
@@ -68,18 +57,14 @@ export async function proxy(request) {
     console.error("Middleware session verification failed:", error);
   }
 
-  // Fallback: If session lookup failed/expired, redirect from protected routes to login
-  if (pathname.startsWith("/admin") ||
-      pathname.startsWith("/merchant") ||
-      pathname.startsWith("/customer") ||
-      pathname.startsWith("/profile")) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+  // Fallback: If verification failed/expired, redirect from protected routes to login
+  if (isProtectedRoute(pathname)) {
+    return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, request.url));
   }
 
   return NextResponse.next();
 }
 
-// Export both named middleware and named proxy and default to support all Next.js 16/15 patterns
 export const middleware = proxy;
 export default proxy;
 

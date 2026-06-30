@@ -30,7 +30,7 @@ export const GET = asyncHandler(async () => {
 
   return ok({
     verifiedBrands: Math.max(verifiedBrands, 12), // Fallback to 12 if db is fresh
-    activeDeals: Math.max(activeDeals, 40),       // Fallback to 40 if db is fresh
+    activeDeals: Math.max(activeDeals, 40), // Fallback to 40 if db is fresh
     totalSavings,
   });
 });

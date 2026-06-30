@@ -36,7 +36,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
-const isBuild = process.env.NEXT_PHASE === "phase-production-build" || process.env.CI;
+const isBuild =
+  process.env.NEXT_PHASE === "phase-production-build" || process.env.CI;
 
 const envToValidate = { ...process.env };
 
@@ -49,7 +50,8 @@ if (isBuild) {
     envToValidate.REDIS_URL = "redis://localhost:6379";
   }
   if (!envToValidate.BETTER_AUTH_SECRET) {
-    envToValidate.BETTER_AUTH_SECRET = "a_32_character_dummy_secret_value_for_build";
+    envToValidate.BETTER_AUTH_SECRET =
+      "a_32_character_dummy_secret_value_for_build";
   }
   if (!envToValidate.BETTER_AUTH_URL) {
     envToValidate.BETTER_AUTH_URL = "http://localhost:3000";

@@ -1,5 +1,8 @@
 import { connectDB } from "@/lib/mongodb";
-import { listAllCoupons, updateCouponModerationState } from "@/modules/admin/admin.service";
+import {
+  listAllCoupons,
+  updateCouponModerationState,
+} from "@/modules/admin/admin.service";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
@@ -28,7 +31,8 @@ export const PUT = asyncHandler(async (request) => {
   await connectDB();
   await requireRole(request, ROLES.ADMIN);
 
-  const { couponId, isFeatured, isHot, isVerified, status, rejectionReason } = await request.json();
+  const { couponId, isFeatured, isHot, isVerified, status, rejectionReason } =
+    await request.json();
 
   const update = {};
   if (isFeatured !== undefined) update.isFeatured = isFeatured;

@@ -1,5 +1,8 @@
 import { connectDB } from "@/lib/mongodb";
-import { getRevenueSummary, updatePayoutStatus } from "@/modules/admin/revenue.service";
+import {
+  getRevenueSummary,
+  updatePayoutStatus,
+} from "@/modules/admin/revenue.service";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
@@ -28,9 +31,12 @@ export const PUT = asyncHandler(async (request) => {
   await requireRole(request, ROLES.ADMIN);
 
   const { payoutId, status } = await request.json();
-  
+
   if (!payoutId || !status) {
-    return Response.json({ status: "error", message: "Payout ID and status are required" }, { status: 400 });
+    return Response.json(
+      { status: "error", message: "Payout ID and status are required" },
+      { status: 400 },
+    );
   }
 
   const updatedPayout = await updatePayoutStatus(payoutId, status);

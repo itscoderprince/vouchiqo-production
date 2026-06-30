@@ -1,5 +1,8 @@
 import { connectDB } from "@/lib/mongodb";
-import { getPlatformSettings, savePlatformSetting } from "@/modules/admin/settings.service";
+import {
+  getPlatformSettings,
+  savePlatformSetting,
+} from "@/modules/admin/settings.service";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";

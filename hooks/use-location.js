@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 
@@ -18,13 +18,24 @@ export function useLocation() {
   const [city, setCityState] = useState(null);
   const [status, setStatus] = useState("idle"); // idle | detecting | ready | denied | unavailable
 
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // Hydrate location from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem("vouchiqo_city");
       if (saved) {
-        setCityState(saved);
-        setStatus("ready");
+        if (isMountedRef.current) {
+          setCityState(saved);
+          setStatus("ready");
+        }
       }
     } catch (e) {
       console.error("Failed to read location from localStorage:", e);
@@ -32,6 +43,7 @@ export function useLocation() {
   }, []);
 
   const setCity = useCallback((newCity) => {
+    if (!isMountedRef.current) return;
     setCityState(newCity);
     try {
       if (newCity) {
@@ -48,11 +60,11 @@ export function useLocation() {
 
   const detect = useCallback(() => {
     if (!navigator.geolocation) {
-      setStatus("unavailable");
+      if (isMountedRef.current) setStatus("unavailable");
       return;
     }
 
-    setStatus("detecting");
+    if (isMountedRef.current) setStatus("detecting");
 
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
@@ -71,15 +83,16 @@ export function useLocation() {
             data.address?.county ||
             null;
 
-          setCity(detected);
-          setStatus(detected ? "ready" : "unavailable");
+          if (isMountedRef.current) {
+            setCity(detected);
+            setStatus(detected ? "ready" : "unavailable");
+          }
         } catch {
-          setStatus("unavailable");
+          if (isMountedRef.current) setStatus("unavailable");
         }
       },
       () => {
-        // User denied or timed out
-        setStatus("denied");
+        if (isMountedRef.current) setStatus("denied");
       },
       { timeout: 8000, maximumAge: 5 * 60 * 1000 }, // cache position 5 min
     );
@@ -91,7 +104,9 @@ export function useLocation() {
       ?.query({ name: "geolocation" })
       .then(({ state }) => {
         // Only auto-detect if already granted — never auto-prompt
-        if (state === "granted" && !localStorage.getItem("vouchiqo_city")) detect();
+        if (state === "granted" && !localStorage.getItem("vouchiqo_city")) {
+          detect();
+        }
       })
       .catch(() => {}); // permissions API not available in all browsers
   }, [detect]);

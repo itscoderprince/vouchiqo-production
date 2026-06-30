@@ -2,9 +2,9 @@ import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
 import { ok } from "@/utils/api-response";
+import { NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
-import { NotFoundError } from "@/utils/app-error";
 
 /**
  * POST /api/merchants/me/upgrade
@@ -27,7 +27,7 @@ export const POST = asyncHandler(async (request) => {
   if (type === "subscription") {
     merchant.plan = plan;
     merchant.planExpiry = expiryDate;
-    
+
     // Set default revival credits if upgraded to pro
     if (plan === "pro") {
       merchant.revivalCredits = 50;
@@ -36,18 +36,18 @@ export const POST = asyncHandler(async (request) => {
       merchant.revivalCredits = 999999; // Represents unlimited
       merchant.revivalCreditsUsed = 0;
     }
-    
+
     await merchant.save();
     return ok(merchant, `Successfully upgraded to ${plan} plan!`);
-  } 
-  
+  }
+
   if (type === "addon") {
     if (addOnId === "revival_pack") {
       merchant.revivalCredits = (merchant.revivalCredits || 0) + 25;
       await merchant.save();
       return ok(merchant, "Successfully purchased 25 revival credits!");
     }
-    
+
     return ok(merchant, "Add-on purchased successfully!");
   }
 

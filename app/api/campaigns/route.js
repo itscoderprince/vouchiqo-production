@@ -1,11 +1,11 @@
 import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
-import Merchant from "@/modules/merchant/merchant.model";
 import Campaign from "@/modules/merchant/campaign.model";
+import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
+import { ForbiddenError, NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
-import { ForbiddenError, NotFoundError } from "@/utils/app-error";
 
 /**
  * GET /api/campaigns
@@ -39,11 +39,23 @@ export const POST = asyncHandler(async (request) => {
 
   // Gate campaigns to Growth+ plans
   if (merchant.plan === "starter") {
-    throw new ForbiddenError("Campaign Manager is only available on Growth plans and above.");
+    throw new ForbiddenError(
+      "Campaign Manager is only available on Growth plans and above.",
+    );
   }
 
   const body = await request.json();
-  const { name, type, objective, description, couponIds, settings, status, startDate, endDate } = body;
+  const {
+    name,
+    type,
+    objective,
+    description,
+    couponIds,
+    settings,
+    status,
+    startDate,
+    endDate,
+  } = body;
 
   if (!name) {
     throw new Error("Campaign name is required");

@@ -38,7 +38,7 @@ export const GET = asyncHandler(async (request) => {
   coupons.sort((a, b) => {
     const pA = getPriority(a);
     const pB = getPriority(b);
-    
+
     // Sort by priority tier ascending (1 is highest priority)
     if (pA !== pB) return pA - pB;
 

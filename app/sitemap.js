@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
-import Merchant from "@/modules/merchant/merchant.model";
-import Coupon from "@/modules/coupon/coupon.model";
 import PlatformSetting from "@/modules/admin/settings.model";
+import Coupon from "@/modules/coupon/coupon.model";
+import Merchant from "@/modules/merchant/merchant.model";
 
 export const dynamic = "force-dynamic";
 
@@ -16,21 +16,61 @@ export default async function sitemap() {
 
   // 1. Static Routes
   const staticRoutes = [
-    { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
-    { url: `${baseUrl}/deals`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/expired-coupon-revival`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/nearby-offers`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    {
+      url: `${baseUrl}`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/expired-coupon-revival`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/nearby-offers`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/campaigns`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/faq`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
   ];
 
   // 2. Dynamic Categories
   let categories = [];
   try {
     const setting = await PlatformSetting.findOne({ key: "categories" }).lean();
-    if (setting && setting.value) {
+    if (setting?.value) {
       categories = setting.value.filter((c) => c.active);
     }
   } catch (err) {
@@ -47,7 +87,9 @@ export default async function sitemap() {
   // 3. Dynamic Merchant Brand Stores
   let brands = [];
   try {
-    brands = await Merchant.find({ status: "approved" }).select("slug updatedAt").lean();
+    brands = await Merchant.find({ status: "approved" })
+      .select("slug updatedAt")
+      .lean();
   } catch (err) {
     console.error("Failed to load merchants for sitemap:", err);
   }

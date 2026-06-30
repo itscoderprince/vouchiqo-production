@@ -22,10 +22,20 @@ export function LoginForm() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn.social({
-        provider: "google",
-        callbackURL: "/auth/callback",
-      });
+      const res = await fetch("/api/auth/google-check");
+      const { isConfigured } = await res.json();
+
+      if (isConfigured) {
+        await signIn.social({
+          provider: "google",
+          callbackURL: "/auth/callback",
+        });
+      } else {
+        toast("Dev Mode: Google OAuth not configured. Logging in as Demo...", {
+          icon: "🔧",
+        });
+        login({ email: "customer@vouchiqo.com", password: "Password123!" });
+      }
     } catch (err) {
       toast.error(err?.message ?? "Google authentication failed.");
     }

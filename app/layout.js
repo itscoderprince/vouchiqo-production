@@ -1,7 +1,7 @@
 import { Geist, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-import QueryProvider from "@/components/QueryProvider";
+import QueryProvider from "@/components/shared/QueryProvider";
 
 const inter = Inter({
   variable: "--font-inter",
