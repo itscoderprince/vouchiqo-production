@@ -1,0 +1,561 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.tab-bar{display:flex;gap:8px;margin-bottom:20px;padding:4px;background:var(--surface-1);border-radius:10px;border:0.5px solid var(--border)}
+.tab{flex:1;padding:8px 0;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all .2s}
+.tab.active{background:var(--surface-2);color:var(--text-primary);border:0.5px solid var(--border-strong)}
+.flow{display:none}
+.flow.active{display:block}
+.step-row{display:flex;gap:0;margin-bottom:0}
+.step-line{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px}
+.step-connector{width:1.5px;background:var(--border-strong);flex:1;min-height:16px;margin:4px 0}
+.step-content{flex:1;padding-bottom:20px;padding-left:8px}
+.step-label{font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px;line-height:1.3}
+.step-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.step-sub{margin-top:6px;padding:8px 10px;border-radius:6px;background:var(--surface-1);border:0.5px solid var(--border)}
+.step-sub-item{font-size:11px;color:var(--text-secondary);padding:2px 0;line-height:1.4;display:flex;gap:6px}
+.step-sub-item:before{content:"→";color:var(--text-muted);flex-shrink:0}
+.decision{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.d-yes{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg-success);color:var(--text-success);font-weight:500}
+.d-no{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg-danger);color:var(--text-danger);font-weight:500}
+.d-alt{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg-warning);color:var(--text-warning);font-weight:500}
+.phase-header{font-size:11px;font-weight:500;letter-spacing:.04em;color:var(--text-muted);text-transform:uppercase;margin:20px 0 12px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+.phase-header:first-child{margin-top:0}
+.end-box{margin-top:4px;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:500;text-align:center}
+</style>
+
+<h2 class="sr-only">Vouchiqo complete user flows for customer, merchant, and admin</h2>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('customer',this)">Customer journey</button>
+  <button class="tab" onclick="switchTab('merchant',this)">Merchant journey</button>
+  <button class="tab" onclick="switchTab('admin',this)">Admin journey</button>
+  <button class="tab" onclick="switchTab('revival',this)">Revival flow</button>
+</div>
+
+<!-- ═══ CUSTOMER ═══ -->
+<div class="flow active" id="flow-customer">
+
+  <div class="phase-header">Phase 1 — Discovery (first visit)</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">1</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Lands on homepage</div>
+      <div class="step-desc">Arrives from Google / social / word-of-mouth. No account yet.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Sees the Hot Deals ticker scrolling at the top — premium merchants first</div>
+        <div class="step-sub-item">Location bar prompts "Set your city to see nearby deals"</div>
+        <div class="step-sub-item">After 10s or 40% scroll — interest selection banner slides in from bottom</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">2</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Sets location + interests (anonymous)</div>
+      <div class="step-desc">Both saved to localStorage — no account needed. Feed reorders instantly.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Picks city from dropdown or uses GPS — deals feed shows "Near Ranchi" tab</div>
+        <div class="step-sub-item">Selects interest categories (e.g. Electronics, Fashion) — grid reorders</div>
+        <div class="step-sub-item">Local businesses get "Local Deal" badge on their coupon cards</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">3</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Browses deals — finds something interesting</div>
+      <div class="step-desc">Clicks a deal card on homepage, or navigates to /deals with filters, or lands on a brand page.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">/deals page — filter sidebar: location, category, discount %, expiry</div>
+        <div class="step-sub-item">/brand/[name] — full merchant profile: all deals, map, hours, reviews</div>
+        <div class="step-sub-item">Expired deals show "Request Revival" button on the brand page</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Phase 2 — Registration</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">4</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Triggers signup (optional but incentivised)</div>
+      <div class="step-desc">To save deals, unlock cashback, or submit a revival, customer creates an account.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Step 1 — email + password or Google/Apple OAuth</div>
+        <div class="step-sub-item">Step 2 — interest selection (16 categories, multi-select) — feeds personalisation</div>
+        <div class="step-sub-item">Location saved from their anonymous session carries over</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Phase 3 — Engagement (logged-in)</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">5</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Homepage now personalised</div>
+      <div class="step-desc">Section heading reads "Your Personalised Deals, [Name]" with an Edit Preferences link.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Deals from selected interest categories float to top</div>
+        <div class="step-sub-item">"More Deals" section below shows all other categories</div>
+        <div class="step-sub-item">Follow Brand button on /brand pages sends deal alerts for that merchant</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">6</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Redeems a coupon</div>
+      <div class="step-desc">Opens /deal/:id — sees full details, copies code, clicks through to merchant site.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Code copied → customer makes purchase on merchant's website</div>
+        <div class="step-sub-item">If affiliate-tracked: transaction recorded in Vouchiqo's system</div>
+        <div class="step-sub-item">Savings amount added to their dashboard automatically</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-accent);color:var(--text-accent)">7</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Savings dashboard grows</div>
+      <div class="step-desc">/profile → My Savings tab shows their running financial picture.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">KPI cards: saved this month, all-time, savings rate %, total spend tracked</div>
+        <div class="step-sub-item">12-month line chart: savings vs spend dual-axis</div>
+        <div class="step-sub-item">Milestone badges unlock (₹500, ₹1k, ₹5k saved) with confetti animation</div>
+        <div class="step-sub-item">Share My Savings → WhatsApp/Instagram card (viral loop)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-success);color:var(--text-success)">✓</div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Retained customer</div>
+      <div class="step-desc">Returns weekly for new deals. Weekly email digest (interest-filtered). Push notifications for followed brands.</div>
+      <div class="end-box" style="background:var(--bg-success);color:var(--text-success)">Customer keeps saving → platform grows → more merchants join</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MERCHANT ═══ -->
+<div class="flow" id="flow-merchant">
+
+  <div class="phase-header">Phase 1 — Discovery and signup</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">1</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Merchant finds Vouchiqo</div>
+      <div class="step-desc">Direct outreach by Vouchiqo team, or merchant discovers platform while browsing.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Goes to merchant signup page — separate flow from customer auth</div>
+        <div class="step-sub-item">Enters business name, email, category, website, GSTIN (optional)</div>
+        <div class="step-sub-item">Email verified → access to dashboard with "Starter" plan by default</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">2</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Chooses a subscription plan</div>
+      <div class="step-desc">Four tiers with different visibility levels and features.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Starter — basic listing, low priority in feeds and ticker</div>
+        <div class="step-sub-item">Growth — higher ticker priority, click-through rate sorting</div>
+        <div class="step-sub-item">Pro — auto-appears in ticker, sorted by redemption rate, "Pro Partner" badge</div>
+        <div class="step-sub-item">Enterprise — always in ticker, "Enterprise Partner" badge, full analytics</div>
+      </div>
+      <div class="decision">
+        <span class="d-yes">Pays → activates</span>
+        <span class="d-no">Stays Starter → limited visibility</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Phase 2 — Setting up the brand page</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">3</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Builds their public brand profile</div>
+      <div class="step-desc">Everything on their /brand/[name] page is set from Account Settings → Business Profile.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Uploads cover banner (1200×300px) and brand logo (80px circle)</div>
+        <div class="step-sub-item">Fills short description (300 chars) and long description (1000 chars)</div>
+        <div class="step-sub-item">Enters full address — Google Maps embed auto-appears on their public page</div>
+        <div class="step-sub-item">Sets operating hours (Mon–Sun) — "Open Now" badge shown live to customers</div>
+        <div class="step-sub-item">Business type: Online / Physical / Both — controls whether map shows</div>
+        <div class="step-sub-item">"Preview My Brand Page" button shows exactly what customers see</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Phase 3 — Publishing deals</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">4</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Creates coupons and deals</div>
+      <div class="step-desc">Dashboard → Deal Management → New Deal.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Sets: deal title, coupon code, discount type (% or flat ₹), original price</div>
+        <div class="step-sub-item">Sets validity dates — expired deals auto-move to the Expired tab</div>
+        <div class="step-sub-item">Selects category — determines which customers see it in personalised feeds</div>
+        <div class="step-sub-item">Marks as Online / In-Store — affects location filtering</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">5</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Deal goes live and enters priority engine</div>
+      <div class="step-desc">Immediately visible on /deals and their /brand page. Priority in ticker depends on plan.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Starter: ticker only if slots unfilled</div>
+        <div class="step-sub-item">Growth: fills remaining ticker slots, sorted by CTR</div>
+        <div class="step-sub-item">Pro: ticker fills after Enterprise, sorted by redemption rate</div>
+        <div class="step-sub-item">Enterprise: always in ticker, automatic and continuous</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Phase 4 — Boosting visibility (paid add-ons)</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">6</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Purchases a featured placement add-on</div>
+      <div class="step-desc">Subscription → Add-Ons section shows two options.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Homepage Featured Slot — ₹999 / 3 days → jumps to Priority 1 in ticker</div>
+        <div class="step-sub-item">Flash Campaign Boost — ₹799 / campaign → elevated for campaign duration</div>
+        <div class="step-sub-item">No manual admin action needed — system auto-elevates on purchase</div>
+        <div class="step-sub-item">Analytics card shows "Ticker Impressions this month"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Phase 5 — Monitoring performance</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-warning);color:var(--text-warning)">7</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Reviews analytics dashboard</div>
+      <div class="step-desc">Dashboard → Analytics shows everything that matters.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">KPIs: deal clicks, coupon uses, ticker impressions, brand page views</div>
+        <div class="step-sub-item">Top performing deals: sorted by redemption rate and CTR</div>
+        <div class="step-sub-item">Monthly trends: compare this month vs last month</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-success);color:var(--text-success)">✓</div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Renews and upgrades</div>
+      <div class="step-desc">Good ROI → upgrades to higher plan or buys more add-ons → more Vouchiqo revenue.</div>
+      <div class="end-box" style="background:var(--bg-success);color:var(--text-success)">Higher plan → more ticker visibility → more redemptions → ROI justifies renewal</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ ADMIN ═══ -->
+<div class="flow" id="flow-admin">
+
+  <div class="phase-header">Daily operations</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-danger);color:var(--text-danger)">1</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">New merchant signs up</div>
+      <div class="step-desc">Admin is notified. Reviews application — verifies business is legitimate.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Checks business name, website, category, GSTIN if provided</div>
+        <div class="step-sub-item">Approves → merchant gets full dashboard access</div>
+        <div class="step-sub-item">Rejects → sends reason, merchant can reapply</div>
+      </div>
+      <div class="decision">
+        <span class="d-yes">Approve → live</span>
+        <span class="d-no">Reject → notified</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-danger);color:var(--text-danger)">2</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Manages the Hot Deals ticker</div>
+      <div class="step-desc">Ticker Management section — the platform's most valuable real estate.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Views current ticker order: paid slots → Enterprise → Pro → Growth → Starter</div>
+        <div class="step-sub-item">Can manually pin or unpin any specific deal, overriding auto-priority</div>
+        <div class="step-sub-item">Sees which merchants have paid for featured placement + expiry dates</div>
+        <div class="step-sub-item">Can override the automatic order for specific campaigns or partnerships</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-danger);color:var(--text-danger)">3</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Processes expired coupon revival requests</div>
+      <div class="step-desc">The Revival queue is admin's most time-sensitive task.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Revival request arrives with: coupon code, brand name, customer email</div>
+        <div class="step-sub-item">Admin contacts the merchant (email / dashboard notification)</div>
+        <div class="step-sub-item">Merchant decides within 48 hours — approve, reject, or offer alternative</div>
+        <div class="step-sub-item">Admin relays outcome to customer and updates revival status</div>
+      </div>
+      <div class="decision">
+        <span class="d-yes">Approved → customer gets working code</span>
+        <span class="d-alt">Alternative → merchant sends new offer</span>
+        <span class="d-no">Rejected → customer notified</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Content and quality control</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-danger);color:var(--text-danger)">4</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Monitors deal quality</div>
+      <div class="step-desc">Ensures coupons are accurate, not fraudulent, and expire correctly.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Flags deals with unusually high "code not working" reports</div>
+        <div class="step-sub-item">Removes deals that violate T&Cs (too good to be true, fake discounts)</div>
+        <div class="step-sub-item">Expired deals auto-move to Expired tab — no manual action needed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-danger);color:var(--text-danger)">5</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Updates platform stats (shown to customers)</div>
+      <div class="step-desc">Several marketing numbers are editable from admin panel.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Revival section stats: "5,000+ Revivals Processed | ₹25L+ Recovered | 78% Approval Rate"</div>
+        <div class="step-sub-item">These are updatable placeholders — admin keeps them current</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-header">Revenue monitoring</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-danger);color:var(--text-danger)">6</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Tracks all revenue streams</div>
+      <div class="step-desc">Admin analytics dashboard shows the full commercial picture.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Subscriptions: MRR by plan tier, churn rate, upgrade/downgrade events</div>
+        <div class="step-sub-item">Add-ons: Featured Slot and Flash Boost purchases this month</div>
+        <div class="step-sub-item">Affiliate: commissions on tracked customer purchases</div>
+        <div class="step-sub-item">Top merchants by revenue contribution</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-success);color:var(--text-success)">✓</div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Ongoing growth loop</div>
+      <div class="step-desc">More customers → more redemptions → merchants see ROI → more merchants subscribe → better deals → more customers.</div>
+      <div class="end-box" style="background:var(--bg-success);color:var(--text-success)">Platform flywheel: deals quality improves → customer retention grows → merchant revenue justifies higher plans</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ REVIVAL FLOW ═══ -->
+<div class="flow" id="flow-revival">
+
+  <div class="phase-header">The expired coupon revival — step by step</div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-pro);color:var(--text-pro)">1</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Customer finds an expired coupon</div>
+      <div class="step-desc">Could be from anywhere — Google search, old email, a friend, or even the Expired tab on a brand page.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">On /brand/[name] → Expired tab: each expired deal has "Request Revival" button</div>
+        <div class="step-sub-item">On homepage: dedicated Revival section with inline mini-form</div>
+        <div class="step-sub-item">Navbar: "Revive Coupon" link takes them to /expired-coupon-revival</div>
+        <div class="step-sub-item">Footer: "Expired Coupon Revival" is the first Quick Links item</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-pro);color:var(--text-pro)">2</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Submits the revival form</div>
+      <div class="step-desc">Three fields — zero cost to the customer.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Expired coupon code (text input)</div>
+        <div class="step-sub-item">Brand / store name (with autocomplete from merchant database)</div>
+        <div class="step-sub-item">Customer email (to receive the outcome)</div>
+        <div class="step-sub-item">On submit: "Submitted! We'll reach out within 48 hours" inline success state</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-pro);color:var(--text-pro)">3</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Vouchiqo admin receives the request</div>
+      <div class="step-desc">Appears in admin revival queue with customer details and the expired code.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Admin looks up the merchant in the system</div>
+        <div class="step-sub-item">Contacts merchant via dashboard notification or direct email</div>
+        <div class="step-sub-item">Explains: "A customer has this expired code and wants to complete a purchase"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-pro);color:var(--text-pro)">4</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Merchant receives revival request</div>
+      <div class="step-desc">Gets a notification in their merchant dashboard. Has 48 hours to decide.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Sees: customer's intended purchase, the expired code, request date</div>
+        <div class="step-sub-item">Business decision: this is a near-lost sale — good incentive to say yes</div>
+      </div>
+      <div class="decision">
+        <span class="d-yes">Approve: extend the code</span>
+        <span class="d-alt">Counter: offer a different deal</span>
+        <span class="d-no">Reject: no extension possible</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-pro);color:var(--text-pro)">5</div>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Outcome delivered to customer (within 48h)</div>
+      <div class="step-desc">Email sent to the address provided. Three possible results.</div>
+      <div class="step-sub">
+        <div class="step-sub-item">Approved → customer gets a fresh working code, valid for a short window</div>
+        <div class="step-sub-item">Counter → merchant sends an alternative discount or newer offer</div>
+        <div class="step-sub-item">Rejected → customer notified, encouraged to check active deals instead</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-line">
+      <div class="step-dot" style="background:var(--bg-success);color:var(--text-success)">✓</div>
+    </div>
+    <div class="step-content">
+      <div class="step-label">Everyone wins (78% of the time)</div>
+      <div class="step-desc">Customer saves money. Merchant recovers a sale they would have lost. Vouchiqo builds trust and loyalty as the platform that "went further".</div>
+      <div class="end-box" style="background:var(--bg-success);color:var(--text-success)">This flow is Vouchiqo's strongest retention hook — no other coupon platform does this</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.flow').forEach(f => f.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('flow-' + id).classList.add('active');
+}
+</script>

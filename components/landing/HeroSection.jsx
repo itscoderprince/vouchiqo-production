@@ -1,357 +1,367 @@
 "use client";
 
-import {
-  ChevronRight,
-  Compass,
-  Home,
-  MapPin,
-  Play,
-  RotateCcw,
-  Search,
-  Sparkles,
-  User,
-  Wifi,
-} from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useState } from "react";
+
+const LEFT_BRANDS = [
+  {
+    id: 0,
+    name: "Hostinger",
+    slug: "hostinger",
+    title: "Power your website with premium hosting",
+    subtitle: "Hostinger Premium Web Hosting - Up to 75% OFF",
+    buttonText: "Grab Coupon",
+    image:
+      "https://cdn.grabon.in/gograbon/images/banners/banner-1773810900601/Offer%20Code.jpg",
+    link: "/brand/hostinger",
+  },
+  {
+    id: 1,
+    name: "Redrail",
+    slug: "redrail",
+    title: "Book bus and train tickets across India online",
+    subtitle: "Redrail Exclusive - Flat ₹500 OFF Ticket Bookings",
+    buttonText: "Claim Discount",
+    image:
+      "https://cdn.grabon.in/gograbon/images/banners/banner-1781007250960/Coupon%20Codes.jpg",
+    link: "/brand/redrail",
+  },
+  {
+    id: 2,
+    name: "Coursera",
+    slug: "coursera",
+    title: "Meet new goals with midyear savings",
+    subtitle: "Coursera Plus - Limited Time 40% OFF",
+    buttonText: "Explore Offer",
+    image:
+      "https://cdn.grabon.in/gograbon/images/banners/banner-1781613909772/Discount%20Codes.jpg",
+    link: "/brand/redrail",
+  },
+  {
+    id: 3,
+    name: "Dell",
+    slug: "dell",
+    title: "Upgrade your productivity gear today",
+    subtitle: "Dell XPS & Inspiron Laptops - Up to 45% OFF",
+    buttonText: "Save Now",
+    image:
+      "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/dell",
+  },
+  {
+    id: 4,
+    name: "Ulta Host",
+    slug: "ultahost",
+    title: "Fastest managed VPS hosting solutions",
+    subtitle: "UltaHost Hosting Plans - Flat 25% OFF sitewide",
+    buttonText: "Explore Plans",
+    image:
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/ultahost",
+  },
+  {
+    id: 5,
+    name: "Google Workspace",
+    slug: "google",
+    title: "Google Workspace with Gemini",
+    subtitle: "UP TO 15% OFF On Your Subscription Purchase For First 3 Months",
+    buttonText: "Start Free Trial",
+    image:
+      "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/google",
+  },
+  {
+    id: 6,
+    name: "Ajio",
+    slug: "ajio",
+    title: "Giant Fashion Sale is live now",
+    subtitle: "AJIO Giant Fashion Sale - Flat 22% OFF",
+    buttonText: "Grab Now",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/ajio",
+  },
+  {
+    id: 7,
+    name: "Amazon",
+    slug: "amazon",
+    title: "Prime Day Sale is live now",
+    subtitle: "Amazon Deals - Up to 80% OFF + 10% Bank Discount",
+    buttonText: "View Deals",
+    image:
+      "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/amazon",
+  },
+  {
+    id: 8,
+    name: "Klook",
+    slug: "klook",
+    title: "Explore popular travel destinations",
+    subtitle: "Klook Travel Deals - Up to 50% OFF activities",
+    buttonText: "Book Now",
+    image:
+      "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/klook",
+  },
+  {
+    id: 9,
+    name: "Adidas",
+    slug: "adidas",
+    title: "End of season sports fashion sale",
+    subtitle: "Adidas Apparel & Shoes - Flat 30% OFF + Extra 15%",
+    buttonText: "Grab Offer",
+    image:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop",
+    link: "/brand/adidas",
+  },
+];
+
+const RIGHT_BRANDS = [
+  {
+    id: 0,
+    name: "UBER",
+    slug: "uber",
+    title: "UBER PROMO",
+    headline: "FLAT 50% OFF",
+    description:
+      "Flat 50% OFF First 3 Uber Rides — Up to ₹100 Per Ride. Valid for new users.",
+    image:
+      "https://images.unsplash.com/photo-1619551734325-81aaf323686c?q=80&w=600&auto=format&fit=crop",
+    buttonText: "GRAB NOW",
+    link: "/brand/uber",
+  },
+  {
+    id: 1,
+    name: "Udemy",
+    slug: "udemy",
+    title: "UDEMY COURSES",
+    headline: "UP TO 97% OFF",
+    description:
+      "Grab Up To 97% OFF Best-Selling Online Courses in programming and business.",
+    image:
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop",
+    buttonText: "GRAB NOW",
+    link: "/brand/udemy",
+  },
+  {
+    id: 2,
+    name: "Google Workspace",
+    slug: "google",
+    title: "GOOGLE WORKSPACE",
+    headline: "14-DAY FREE TRIAL",
+    description:
+      "Start your free Google Workspace trial today and boost your productivity with Gemini AI.",
+    image:
+      "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop",
+    buttonText: "GRAB NOW",
+    link: "/brand/google",
+  },
+];
 
 export function HeroSection() {
-  // Typewriter effect
-  const categories = [
-    "Fashion",
-    "Electronics",
-    "Dining",
-    "Travel & Stays",
-    "SaaS Tools",
-    "Home Improvement",
-  ];
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [typedText, setTypedText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [typingSpeed, setTypingSpeed] = useState(150);
+  const [currentLeftSlide, setCurrentLeftSlide] = useState(5); // Default to Google Workspace (index 5)
+  const [currentRightCard, setCurrentRightCard] = useState(0); // Default to UBER (index 0)
+  const [autoRotate, setAutoRotate] = useState(true);
 
-  // Stats from DB
-  const [stats, setStats] = useState({
-    verifiedBrands: 16,
-    activeDeals: 120,
-    totalSavings: 4500000,
-  });
-
+  // Auto rotate slides
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch("/api/stats");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data) {
-            setStats(json.data);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch stats:", err);
-      }
-    }
-    fetchStats();
+    if (!autoRotate) return;
+    const timer = setInterval(() => {
+      setCurrentLeftSlide((prev) => (prev + 1) % LEFT_BRANDS.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [autoRotate]);
+
+  const handlePrev = useCallback(() => {
+    setAutoRotate(false);
+    setCurrentLeftSlide(
+      (prev) => (prev - 1 + LEFT_BRANDS.length) % LEFT_BRANDS.length,
+    );
   }, []);
 
-  useEffect(() => {
-    const activeWord = categories[currentWordIndex];
-    let timer;
+  const handleNext = useCallback(() => {
+    setAutoRotate(false);
+    setCurrentLeftSlide((prev) => (prev + 1) % LEFT_BRANDS.length);
+  }, []);
 
-    if (isDeleting) {
-      timer = setTimeout(() => {
-        setTypedText(activeWord.substring(0, typedText.length - 1));
-        setTypingSpeed(50);
-      }, typingSpeed);
-    } else {
-      timer = setTimeout(() => {
-        setTypedText(activeWord.substring(0, typedText.length + 1));
-        setTypingSpeed(100);
-      }, typingSpeed);
-    }
+  const handleLeftBrandClick = (idx) => {
+    setAutoRotate(false);
+    setCurrentLeftSlide(idx);
+  };
 
-    if (!isDeleting && typedText === activeWord) {
-      timer = setTimeout(() => setIsDeleting(true), 2000); // Wait 2s at full word
-    } else if (isDeleting && typedText === "") {
-      setIsDeleting(false);
-      setCurrentWordIndex((prev) => (prev + 1) % categories.length);
-      setTypingSpeed(150);
-    }
+  const handleRightBrandClick = (idx) => {
+    setCurrentRightCard(idx);
+  };
 
-    return () => clearTimeout(timer);
-  }, [typedText, isDeleting, currentWordIndex, typingSpeed]);
+  const activeLeft = LEFT_BRANDS[currentLeftSlide];
+  const activeRight = RIGHT_BRANDS[currentRightCard];
 
   return (
-    <section className="bg-[#1A3C5E] text-white py-6 md:py-10 px-4 relative overflow-hidden select-none border-b border-white/5">
-      {/* Background radial overlay and blurs */}
-      <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-blue/20 rounded-full blur-3xl"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"></div>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start relative z-10">
-        {/* Left Column: Copy & Actions */}
-        <div className="space-y-4 text-left animate-fade-in-up stagger-1 lg:pt-[34px]">
-          <Badge className="bg-white/10 text-brand-warning hover:bg-white/15 border border-white/10 rounded-full px-3 py-1 font-bold text-xs shadow-none gap-1.5 w-fit animate-float">
-            <Sparkles className="w-3.5 h-3.5 fill-current" />
-            <span>India's 1st Expired Coupon Revival Platform</span>
-          </Badge>
-
-          <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-heading tracking-tight leading-tight">
-              Save More on Everything You Love
-              <br />
-              <span className="inline-block min-h-[50px] md:min-h-[60px] text-brand-gradient">
-                {typedText}
-                <span className="animate-pulse ml-0.5 font-light">|</span>
-              </span>
-            </h1>
-            <p className="text-sm md:text-base text-slate-300 max-w-xl leading-relaxed font-medium">
-              Vouchiqo eliminates expired offers through merchant-authorized
-              verification. Search real active coupons, or request to revive
-              expired ones you love.
-            </p>
+    <div className="w-full flex flex-col select-none">
+      {/* Upper Banners Row */}
+      <section className="flex flex-col md:flex-row gap-4 select-none w-full text-left">
+        {/* Left Column: Banners Carousel (75% Width) */}
+        <div
+          className="md:w-3/4 rounded-lg overflow-hidden shadow-sm relative w-full max-w-[904px] group border border-brand-border bg-slate-900"
+          style={{ height: "430px" }}
+        >
+          {/* Viewport for horizontal sliding */}
+          <div className="w-full h-full overflow-hidden">
+            <div
+              className="flex h-full transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentLeftSlide * 100}%)` }}
+            >
+              {LEFT_BRANDS.map((slide) => (
+                <div
+                  key={slide.id}
+                  className="w-full h-full flex-shrink-0 min-w-full relative"
+                >
+                  <Link href={slide.link} className="block w-full h-full">
+                    <img
+                      src={slide.image}
+                      alt={slide.title}
+                      className="w-full h-full object-cover cursor-pointer"
+                    />
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Two CTAs */}
-          <div className="flex flex-wrap gap-4 pt-0">
-            <Button
-              asChild
-              className="btn-primary py-2.5 px-6 text-sm font-bold border-0 h-auto cursor-pointer flex items-center gap-1.5"
-            >
-              <Link href="/deals">
-                <span>Explore Deals</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="btn-tertiary border-white/20 text-white hover:bg-white/10 hover:text-white py-2.5 px-6 text-sm font-bold h-auto cursor-pointer flex items-center gap-2"
-            >
-              <Link href="#how-it-works">
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>How It Works</span>
-              </Link>
-            </Button>
-          </div>
-
-          {/* Trust Row Stats */}
-          <div className="border-t border-white/10 pt-4 grid grid-cols-3 gap-4 md:gap-8 max-w-lg">
-            <div>
-              <span className="block text-2xl md:text-3xl font-black text-white tracking-tight">
-                {stats.verifiedBrands}+
-              </span>
-              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wide">
-                Verified Brands
-              </span>
-            </div>
-            <div>
-              <span className="block text-2xl md:text-3xl font-black text-white tracking-tight">
-                {stats.activeDeals}+
-              </span>
-              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wide">
-                Active Deals
-              </span>
-            </div>
-            <div>
-              <span className="block text-2xl md:text-3xl font-black text-[#00B67A] tracking-tight">
-                ₹{(stats.totalSavings / 100000).toFixed(1)}L+
-              </span>
-              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wide">
-                Total Saved
-              </span>
-            </div>
+          {/* Pagination Dots */}
+          <div className="absolute bottom-4 right-4 z-20 flex gap-1.5">
+            {LEFT_BRANDS.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleLeftBrandClick(idx)}
+                className={`w-2 h-2 rounded-full transition-all border-0 cursor-pointer ${
+                  idx === currentLeftSlide ? "bg-white w-4" : "bg-white/40"
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Right Column: Phone Mockup (Desktop only) */}
-        <div className="hidden lg:flex justify-center items-center relative select-none animate-fade-in-scale stagger-2">
-          {/* Decorative glows behind phone */}
-          <div className="absolute w-72 h-72 bg-gradient-to-tr from-[#FF7A18] to-[#FF3D77] rounded-full opacity-20 blur-3xl z-0" />
-
-          {/* Physical Buttons Wrapper */}
-          <div className="relative p-4">
-            {/* Volume Up Button */}
-            <div className="absolute left-2.5 top-28 w-1 h-10 bg-slate-800 rounded-l-[2px]" />
-            {/* Volume Down Button */}
-            <div className="absolute left-2.5 top-42 w-1 h-10 bg-slate-800 rounded-l-[2px]" />
-            {/* Power Button */}
-            <div className="absolute right-2.5 top-34 w-1 h-14 bg-slate-800 rounded-r-[2px]" />
-
-            {/* Outer phone frame */}
-            <div className="w-[300px] h-[580px] border-[10px] border-slate-800 bg-slate-950 rounded-[44px] relative shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden p-[6px] flex flex-col z-10 ring-1 ring-white/20">
-              {/* Screen Content Wrapper */}
-              <div className="bg-[#070A13] flex-1 rounded-[34px] overflow-hidden flex flex-col p-4 relative pt-10 text-left space-y-3.5 border border-white/5">
-                {/* Glossy diagonal highlight */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/2 to-white/8 pointer-events-none z-30 rounded-[34px]" />
-
-                {/* Dynamic Island */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-40 flex items-center justify-between px-3">
-                  {/* Camera lens reflection */}
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
-                    <div className="w-1 h-1 rounded-full bg-[#1A3C5E]" />
-                  </div>
-                  {/* Green active dot */}
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                </div>
-
-                {/* iOS Status Bar */}
-                <div className="absolute top-0.5 left-0 right-0 px-6 flex items-center justify-between text-[10px] text-white font-semibold tracking-tight z-30 select-none">
-                  <span>9:41</span>
-                  <div className="flex items-center gap-1.5">
-                    {/* Signal bars */}
-                    <div className="flex items-end gap-[1px] h-2">
-                      <div className="w-[2px] h-[3px] bg-white rounded-[0.5px]" />
-                      <div className="w-[2px] h-[5px] bg-white rounded-[0.5px]" />
-                      <div className="w-[2px] h-[7px] bg-white rounded-[0.5px]" />
-                      <div className="w-[2px] h-[9px] bg-white rounded-[0.5px]" />
-                    </div>
-                    {/* Wifi Icon */}
-                    <Wifi className="w-2.5 h-2.5 text-white stroke-[3]" />
-                    {/* Battery */}
-                    <div className="w-5 h-2.5 border border-white/60 rounded-[3px] p-[1px] flex items-center">
-                      <div className="w-full h-full bg-white rounded-[1.5px]" />
-                      <div className="w-[1px] h-1 bg-white/60 rounded-r-[1px] -mr-[2px]" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* App Header */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-sm font-black tracking-tight bg-gradient-to-r from-[#FF7A18] to-[#FF3D77] bg-clip-text text-transparent">
-                    Vouchiqo
-                  </span>
-                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-[9px] font-bold text-slate-300">
-                    <MapPin className="w-2.5 h-2.5 text-brand-warning fill-brand-warning/10" />
-                    <span>Ranchi</span>
-                  </div>
-                </div>
-
-                {/* Search box */}
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-2 text-slate-400">
-                  <Search className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-[10px] font-medium">
-                    Search 1,200+ coupons...
-                  </span>
-                </div>
-
-                {/* Categories strip */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none py-0.5">
-                  <span className="bg-gradient-to-r from-[#FF7A18] to-[#FF3D77] text-white text-[9px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
-                    🍔 Food
-                  </span>
-                  <span className="bg-white/5 border border-white/10 text-slate-300 text-[9px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
-                    🛍️ Style
-                  </span>
-                  <span className="bg-white/5 border border-white/10 text-slate-300 text-[9px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
-                    ✈️ Travel
-                  </span>
-                </div>
-
-                {/* Demo Voucher 1 (Starbucks) */}
-                <div className="bg-[#0E1524] border border-white/5 text-white rounded-2xl p-3.5 shadow-xl space-y-2.5 relative overflow-hidden animate-float">
-                  {/* Left & Right Ticket Notch Cutouts */}
-                  <div className="absolute w-3 h-5 rounded-full bg-[#070A13] -left-1.5 top-1/2 -translate-y-1/2 border-r border-white/5" />
-                  <div className="absolute w-3 h-5 rounded-full bg-[#070A13] -right-1.5 top-1/2 -translate-y-1/2 border-l border-white/5" />
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-4 h-4 rounded-full bg-[#006241] flex items-center justify-center text-[9px] font-black text-white">
-                        ★
+        {/* Right Column: Banners Carousel (25% Width) */}
+        <div
+          className="md:w-1/4 rounded-lg overflow-hidden shadow-sm relative w-full border border-brand-border bg-slate-900"
+          style={{ height: "430px" }}
+        >
+          {/* Viewport for horizontal sliding */}
+          <div className="w-full h-full overflow-hidden">
+            <div
+              className="flex h-full transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentRightCard * 100}%)` }}
+            >
+              {RIGHT_BRANDS.map((slide, idx) => {
+                const isActive = idx === currentRightCard;
+                return (
+                  <div
+                    key={slide.id}
+                    className="w-full h-full flex-shrink-0 min-w-full relative"
+                  >
+                    <Link
+                      href={slide.link}
+                      className="block w-full h-full relative overflow-hidden"
+                    >
+                      <img
+                        src={slide.image}
+                        alt={slide.name}
+                        className="w-full h-full object-cover cursor-pointer"
+                      />
+                      {/* Floating card overlay that slides up smoothly when active */}
+                      <div
+                        className={`absolute bottom-5 left-4 right-4 bg-white rounded-2xl p-5 shadow-lg text-left transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                          isActive
+                            ? "translate-y-0 opacity-100 delay-150"
+                            : "translate-y-16 opacity-0"
+                        }`}
+                      >
+                        <h3 className="font-extrabold text-[#191F2E] text-[15px] leading-snug mb-1">
+                          {slide.headline}
+                        </h3>
+                        <p className="text-[12px] text-[#4A5568] leading-relaxed mb-3 line-clamp-2">
+                          {slide.description}
+                        </p>
+                        <span className="text-[12px] font-bold uppercase tracking-wider text-[#3E80DD]">
+                          {slide.buttonText}
+                        </span>
                       </div>
-                      <span className="text-[9px] text-slate-300 font-extrabold uppercase tracking-wide">
-                        Starbucks
-                      </span>
-                    </div>
-                    <span className="text-[8px] bg-[#00B67A]/10 text-[#00B67A] border border-[#00B67A]/20 font-black px-1.5 py-0.5 rounded-full">
-                      99% Success
-                    </span>
+                    </Link>
                   </div>
-                  <div>
-                    <h3 className="font-black text-xs text-white">
-                      Buy 1 Get 1 Free
-                    </h3>
-                    <p className="text-[8.5px] text-slate-400 leading-tight mt-0.5">
-                      Verified BOGO coffee voucher. Worked 4m ago.
-                    </p>
-                  </div>
-                  <div className="border-t border-dashed border-white/10 pt-2.5 flex items-center justify-between">
-                    <span className="font-mono text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[#FF7A18] font-bold">
-                      SBXCOFFEE
-                    </span>
-                    <span className="text-[8px] text-[#00B67A] font-black tracking-wider flex items-center gap-1">
-                      <span className="w-1 h-1 rounded-full bg-[#00B67A] animate-ping" />
-                      ACTIVE
-                    </span>
-                  </div>
-                </div>
-
-                {/* Demo Voucher 2 (Marbella Ranchi) */}
-                <div
-                  className="bg-[#0E1524] border border-white/5 text-white rounded-2xl p-3.5 shadow-xl space-y-2.5 relative overflow-hidden animate-float"
-                  style={{ animationDelay: "1.5s" }}
-                >
-                  {/* Left & Right Ticket Notch Cutouts */}
-                  <div className="absolute w-3 h-5 rounded-full bg-[#070A13] -left-1.5 top-1/2 -translate-y-1/2 border-r border-white/5" />
-                  <div className="absolute w-3 h-5 rounded-full bg-[#070A13] -right-1.5 top-1/2 -translate-y-1/2 border-l border-white/5" />
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-[#FF7A18] to-[#FF3D77] flex items-center justify-center text-[9px] font-black text-white">
-                        M
-                      </div>
-                      <span className="text-[9px] text-slate-300 font-extrabold uppercase tracking-wide">
-                        Marbella
-                      </span>
-                    </div>
-                    <span className="text-[8px] bg-brand-warning/10 text-brand-warning border border-brand-warning/20 font-black px-1.5 py-0.5 rounded-full">
-                      🔴 Local Deal
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-black text-xs text-white">
-                      Flat ₹5,000 Off
-                    </h3>
-                    <p className="text-[8.5px] text-slate-400 leading-tight mt-0.5">
-                      Premium Tiles, Sanitary & Flooring in Ranchi.
-                    </p>
-                  </div>
-                  <div className="border-t border-dashed border-white/10 pt-2.5 flex items-center justify-between">
-                    <span className="font-mono text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[#FF7A18] font-bold">
-                      MARBELLA5K
-                    </span>
-
-                    {/* Barcode representation */}
-                    <div className="flex gap-[1.5px] items-center h-3 opacity-30">
-                      <div className="w-[1px] h-full bg-white" />
-                      <div className="w-[2px] h-full bg-white" />
-                      <div className="w-[1px] h-full bg-white" />
-                      <div className="w-[3px] h-full bg-white" />
-                      <div className="w-[1px] h-full bg-white" />
-                      <div className="w-[2px] h-full bg-white" />
-                      <div className="w-[1px] h-full bg-white" />
-                      <div className="w-[3px] h-full bg-white" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Navigation Bar */}
-                <div className="absolute bottom-0 left-0 right-0 bg-[#0A0E1A]/90 backdrop-blur-md border-t border-white/5 px-6 py-2.5 flex justify-between items-center text-slate-400 z-30">
-                  <Home className="w-4 h-4 text-brand-blue stroke-[2.5]" />
-                  <Compass className="w-4 h-4 hover:text-white transition-colors" />
-                  <RotateCcw className="w-4 h-4 hover:text-white transition-colors" />
-                  <User className="w-4 h-4 hover:text-white transition-colors" />
-                </div>
-
-                {/* Screen Footer Indicator */}
-                <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-20 h-1 bg-white/20 rounded-full z-40" />
-              </div>
+                );
+              })}
             </div>
           </div>
+
+          {/* Pagination Dots */}
+          <div className="absolute bottom-4 right-4 z-20 flex gap-1.5">
+            {RIGHT_BRANDS.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleRightBrandClick(idx)}
+                className={`w-2 h-2 rounded-full transition-all border-0 cursor-pointer ${
+                  idx === currentRightCard ? "bg-white w-4" : "bg-white/40"
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Brands List (Synchronized directly with slider) */}
+      <div className="flex flex-col md:flex-row gap-4 mt-2 select-none w-full text-left">
+        {/* Left brand list (75% width) */}
+        <div className="md:w-3/4 flex justify-between items-center overflow-x-auto scrollbar-hide py-3 gap-6 text-[11px] font-black text-brand-subtext px-4 border-b border-brand-border">
+          {LEFT_BRANDS.map((brand) => {
+            const isActive = brand.id === currentLeftSlide;
+            return (
+              <button
+                key={brand.id}
+                onClick={() => handleLeftBrandClick(brand.id)}
+                type="button"
+                className={`relative whitespace-nowrap uppercase tracking-wider cursor-pointer border-0 bg-transparent py-1 transition-colors ${
+                  isActive ? "text-brand-blue" : "hover:text-brand-blue"
+                }`}
+              >
+                <span>{brand.name}</span>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 bg-brand-blue rounded-full absolute -bottom-1 left-1/2 -translate-x-1/2" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Divider (Vertical line aligned with gap) */}
+        <div className="hidden md:block w-px h-6 bg-brand-border self-center" />
+
+        {/* Right brand list (25% width) */}
+        <div className="md:w-1/4 flex justify-around items-center py-3 gap-4 text-[11px] font-black text-brand-subtext px-2 border-b border-brand-border">
+          {RIGHT_BRANDS.map((brand) => {
+            const isActive = brand.id === currentRightCard;
+            return (
+              <button
+                key={brand.id}
+                onClick={() => handleRightBrandClick(brand.id)}
+                type="button"
+                className={`relative whitespace-nowrap uppercase tracking-wider cursor-pointer border-0 bg-transparent py-1 transition-colors ${
+                  isActive ? "text-brand-blue" : "hover:text-brand-blue"
+                }`}
+              >
+                <span>{brand.name}</span>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 bg-brand-blue rounded-full absolute -bottom-1 left-1/2 -translate-x-1/2" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

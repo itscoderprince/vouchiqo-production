@@ -105,21 +105,21 @@ export default function UserDropdown({
           type="button"
           className="flex items-center gap-2 focus:outline-none cursor-pointer group"
         >
-          <Avatar className="h-8 w-8 border border-white/20 group-hover:border-white/50 transition-colors">
+          <Avatar className="h-8 w-8 border border-brand-border group-hover:border-brand-blue/30 transition-colors">
             <AvatarImage src={user.image} alt={user.name} />
             <AvatarFallback className="bg-brand-blue text-white font-bold text-xs uppercase">
               {user.name ? user.name[0] : "U"}
             </AvatarFallback>
           </Avatar>
           <div className="hidden xl:flex flex-col text-left">
-            <span className="text-xs font-semibold text-white leading-none">
+            <span className="text-xs font-semibold text-brand-text leading-none group-hover:text-brand-blue transition-colors">
               {user.name}
             </span>
-            <span className="text-[10px] text-slate-300 capitalize leading-none mt-1">
+            <span className="text-[10px] text-brand-subtext capitalize leading-none mt-1">
               {user.role}
             </span>
           </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
+          <ChevronDown className="w-3.5 h-3.5 text-brand-subtext group-hover:text-brand-blue transition-colors" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

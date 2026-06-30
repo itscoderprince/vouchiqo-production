@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, ChevronDown, Search, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -8,13 +9,19 @@ import { useUser } from "@/hooks/use-user";
 
 export default function Topbar({ title = "Dashboard", user: propUser = null }) {
   const { user: authUser } = useUser();
+  const [mounted, setMounted] = useState(false);
 
-  const user = authUser
-    ? {
-        name: authUser.name,
-        role: authUser.role,
-      }
-    : propUser;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const user =
+    mounted && authUser
+      ? {
+          name: authUser.name,
+          role: authUser.role,
+        }
+      : propUser;
   return (
     <header className="h-[72px] bg-brand-bg border-b border-brand-border flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
       {/* Left section: Sidebar Trigger and title */}

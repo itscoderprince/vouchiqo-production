@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLogin } from "@/features/auth/hooks/use-login";
 import { useRegister } from "@/features/auth/hooks/use-register";
 import { signIn } from "@/lib/auth-client";
 import { AuthCard } from "./auth-card";
@@ -26,13 +27,34 @@ export function RegisterForm() {
   const [agreed, setAgreed] = useState(false);
 
   const { mutate: register, isPending } = useRegister();
+  const { mutate: login } = useLogin();
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn.social({
-        provider: "google",
-        callbackURL: `/auth/callback?role=${role}`,
-      });
+      const res = await fetch("/api/auth/google-check");
+      const { isConfigured } = await res.json();
+
+      if (isConfigured) {
+        await signIn.social({
+          provider: "google",
+          callbackURL: `/auth/callback?role=${role}`,
+        });
+      } else {
+        const demoEmail =
+          role === "merchant"
+            ? "merchant@vouchiqo.com"
+            : "customer@vouchiqo.com";
+        const demoPassword =
+          role === "merchant" ? "Merchant@123!" : "Password123!";
+
+        toast(
+          `Dev Mode: Google OAuth not configured. Logging in as Demo ${role}...`,
+          {
+            icon: "🔧",
+          },
+        );
+        login({ email: demoEmail, password: demoPassword });
+      }
     } catch (err) {
       toast.error(err?.message ?? "Google authentication failed.");
     }

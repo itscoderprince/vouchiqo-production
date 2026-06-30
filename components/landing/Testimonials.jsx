@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CUSTOMER_TESTIMONIALS } from "@/utils/home-data";
 
@@ -10,12 +10,12 @@ export function Testimonials() {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
 
-  const startAutoPlay = () => {
+  const startAutoPlay = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % CUSTOMER_TESTIMONIALS.length);
     }, 4500);
-  };
+  }, []);
 
   useEffect(() => {
     if (!isPaused) {
@@ -41,6 +41,7 @@ export function Testimonials() {
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Hover interaction is for pausing auto-scroll
     <section
       className="py-20 bg-brand-surface border-t border-brand-border px-4 max-w-7xl mx-auto w-full select-none"
       onMouseEnter={() => setIsPaused(true)}

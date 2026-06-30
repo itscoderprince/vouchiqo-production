@@ -1,159 +1,339 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Headphones, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-navy text-slate-300 border-t border-white/10 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          {/* Logo & About */}
-          <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="flex flex-col">
-              <span className="text-xl font-bold font-heading text-white tracking-tight flex items-center gap-1.5">
-                <span className="text-brand-gradient">Vouchiqo</span>
-                <CheckCircle2 className="w-5 h-5 text-brand-success fill-brand-success/10" />
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">
-                Verified Deals. Real Savings.
-              </span>
+    <footer className="bg-[#191F2E] text-slate-300 pt-16 pb-8 border-t border-slate-800 mt-auto select-none text-left font-sans">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* 6-Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
+          {/* Brand Info Block (spans 2 columns on desktop) */}
+          <div className="lg:col-span-2 space-y-5">
+            <Link
+              href="/"
+              className="inline-block text-3xl font-bold text-white tracking-tighter"
+            >
+              Vouchiqo
             </Link>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Helping businesses turn promotional offers into recurring
-              customers with 100% verified, reliable voucher codes.
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm font-medium">
+              Striving towards making the world a better place to shop with
+              great savings! We help you turn verified promotional offers into
+              instant value.
+            </p>
+            {/* Social Icons Strip */}
+            <div className="flex flex-wrap gap-2.5 pt-2">
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="WhatsApp"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.403.002 9.803-4.394 9.807-9.805.002-2.622-1.01-5.086-2.854-6.931-1.845-1.843-4.299-2.856-6.924-2.857-5.407 0-9.809 4.399-9.813 9.809-.001 1.77.475 3.5 1.379 5.017L1.811 21.8l5.836-1.53c-.567-.3-.815-.434-.99-.516z" />
+                </svg>
+              </a>
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="Facebook"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M9 8H7v3h2v9h4v-9h3.6l.4-3H13V6c0-.5.5-1 1-1h2V1H13c-2.8 0-5 2.2-5 5v2z" />
+                </svg>
+              </a>
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="Twitter"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M18.2 2H22l-8.3 9.5L23.4 22h-7.6l-5.9-7.7L3.1 22H.8l8.9-10.2L.2 2h7.8l5.2 6.8L18.2 2zm-1.3 17.6h2.1L7.1 4.7H4.9l12 14.9z" />
+                </svg>
+              </a>
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-[#0A66C2] flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="LinkedIn"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                </svg>
+              </a>
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-[#E1306C] flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="Instagram"
+              >
+                <svg
+                  className="w-4 h-4 stroke-white fill-none"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </a>
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="YouTube"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M23.498 6.163c-.272-1.022-1.074-1.826-2.099-2.098C19.539 3.5 12 3.5 12 3.5s-7.54 0-9.399.565c-1.025.272-1.827 1.076-2.1 2.098C0 8.021 0 12 0 12s0 3.979.502 5.837c.273 1.022 1.074 1.826 2.1 2.098C4.46 20.5 12 20.5 12 20.5s7.54 0 9.399-.565c1.025-.272 1.827-1.076 2.1-2.098C24 15.979 24 12 24 12s0-3.979-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+              </a>
+              <a
+                href="/"
+                className="w-8 h-8 rounded-full bg-[#0088cc] flex items-center justify-center text-white hover:opacity-85 transition-opacity"
+                aria-label="Telegram"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.73 7.59-3.25 3.61-1.48 4.36-1.74 4.85-1.75.11 0 .35.03.5.16.13.11.17.26.18.38.01.07.01.15 0 .22z" />
+                </svg>
+              </a>
+            </div>
+            <p className="text-[10px] text-slate-500 leading-normal max-w-xs font-semibold">
+              We may earn a commission if you buy through links on Vouchiqo. For
+              more details refer to our{" "}
+              <Link
+                href="/terms"
+                className="text-slate-400 hover:text-white underline font-bold"
+              >
+                terms of use
+              </Link>
+              .
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Col 3: Speciality Pages */}
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
-              Platform
-            </h3>
-            <ul className="space-y-2.5 text-sm">
+            <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
+              <span className="relative z-10 bg-[#191F2E] pr-2">
+                Speciality Pages
+              </span>
+              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+            </h4>
+            <ul className="space-y-2 text-xs font-bold text-slate-400">
               <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  AI Tools
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Surge 2025
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Product Deals
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Charities
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Offers */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
+              <span className="relative z-10 bg-[#191F2E] pr-2">Offers</span>
+              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+            </h4>
+            <ul className="space-y-2 text-xs font-bold text-slate-400">
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  City Offers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Brand Offers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Bank Offers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Festival Offers
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 5: Company */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
+              <span className="relative z-10 bg-[#191F2E] pr-2">Company</span>
+              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+            </h4>
+            <ul className="space-y-2 text-xs font-bold text-slate-400">
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/privacy"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/terms"
+                >
+                  Terms of Use
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Branding
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Partner With Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Sitemap
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/deals"
+                >
+                  Feedback
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 6: Contact Us */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
+              <span className="relative z-10 bg-[#191F2E] pr-2">
+                Contact Us
+              </span>
+              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+            </h4>
+            <ul className="space-y-3.5 text-xs font-bold text-slate-400">
+              <li className="flex items-start">
+                <Mail className="w-4 h-4 mr-2.5 text-slate-500 mt-0.5" />
+                <a
+                  className="hover:text-white transition-colors"
+                  href="mailto:contact@vouchiqo.com"
+                >
+                  contact@vouchiqo.com
+                </a>
+              </li>
+              <li className="flex items-start">
+                <Phone className="w-4 h-4 mr-2.5 text-slate-500 mt-0.5" />
+                <span>+91-7997443334</span>
+              </li>
+              <li className="flex items-start">
+                <MapPin className="w-4 h-4 mr-2.5 text-slate-500 mt-0.5 flex-shrink-0" />
+                <span className="text-[11px] leading-normal">
+                  Vouchiqo Corp,
+                  <br />
+                  Inspirelabs Solutions Ltd,
+                  <br />
+                  OneWest Building, Gachibowli,
+                  <br />
+                  Hyderabad, TG, 500032
+                </span>
+              </li>
+              <li className="pt-2">
                 <Link
                   href="/deals"
-                  className="hover:text-white transition-colors"
+                  className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 rounded text-[10px] uppercase tracking-wider font-extrabold transition-all flex items-center gap-1.5 w-fit cursor-pointer shadow-sm"
                 >
-                  Browse Verified Deals
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/revival"
-                  className="hover:text-white transition-colors"
-                >
-                  Expired Coupon Revival
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/campaigns"
-                  className="hover:text-white transition-colors"
-                >
-                  Featured Campaigns
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/faq"
-                  className="hover:text-white transition-colors"
-                >
-                  Customer Help & FAQ
+                  <Headphones className="w-3.5 h-3.5" />
+                  <span>Support Center</span>
                 </Link>
               </li>
             </ul>
-          </div>
-
-          {/* Merchant Links */}
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
-              For Merchants
-            </h3>
-            <ul className="space-y-2.5 text-sm">
-              <li>
-                <Link
-                  href="/auth/register?role=merchant"
-                  className="hover:text-white transition-colors"
-                >
-                  List Your Business
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/merchant/dashboard"
-                  className="hover:text-white transition-colors"
-                >
-                  Merchant Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/merchant/billing"
-                  className="hover:text-white transition-colors"
-                >
-                  Growth Subscriptions
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/merchant/analytics"
-                  className="hover:text-white transition-colors"
-                >
-                  Merchant Analytics
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Newsletter / CTA */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Stay Updated
-            </h3>
-            <p className="text-sm text-slate-400">
-              Subscribe to get notified about verified flash sales and merchant
-              campaigns.
-            </p>
-            <div className="flex bg-white/10 rounded-lg p-1.5 border border-white/20 focus-within:border-white/40">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="bg-transparent text-sm w-full focus:outline-none px-2 text-white placeholder-slate-400"
-              />
-              <button className="bg-brand-blue text-white p-2 rounded-[10px] hover:opacity-90 transition-opacity cursor-pointer">
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
 
-        <hr className="border-white/10 my-8" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>
-            &copy; {new Date().getFullYear()} Vouchiqo Corp. All rights
-            reserved.
+        {/* Footer Bottom Block */}
+        <div className="text-center pt-8 border-t border-slate-800 flex flex-col items-center select-none">
+          <h2 className="text-2xl font-black text-[#b4d633] mb-1 tracking-widest uppercase">
+            #SaveOnVouchiqo
+          </h2>
+          <p className="text-xs text-slate-400 mb-6 font-semibold">
+            We Help You Save On Everything
           </p>
-          <div className="flex gap-6">
-            <Link
-              href="/privacy"
-              className="hover:text-slate-300 transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms"
-              className="hover:text-slate-300 transition-colors"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-slate-300 transition-colors"
-            >
-              Contact Support
-            </Link>
-          </div>
+          <p className="text-[10px] text-slate-500 font-bold leading-normal">
+            &copy; {new Date().getFullYear()} Vouchiqo is Registered Trademark
+            Of Inspirelabs Solutions Ltd. - All Rights Reserved.
+          </p>
         </div>
       </div>
     </footer>

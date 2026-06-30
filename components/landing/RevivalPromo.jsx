@@ -49,10 +49,10 @@ export function RevivalPromo() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#0c1a2c] via-[#11243b] to-[#0c1a2c] py-20 px-4 border-t border-b border-white/5 select-none">
+    <section className="relative overflow-hidden bg-gradient-to-br from-brand-surface via-white to-brand-surface py-20 px-4 border-t border-b border-brand-border select-none">
       {/* Decorative background glows */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl z-0" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl z-0" />
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 bg-brand-success/5 rounded-full blur-3xl z-0" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-brand-blue/5 rounded-full blur-3xl z-0" />
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
         {/* Left Column: Form & Details (55%) */}
@@ -63,12 +63,12 @@ export function RevivalPromo() {
           </Badge>
 
           <div className="space-y-3">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black font-heading text-white tracking-tight leading-tight">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black font-heading text-brand-text tracking-tight leading-tight">
               Your Expired Coupon Has Value.
               <br />
               <span className="text-brand-gradient">Claim It.</span>
             </h2>
-            <p className="text-sm md:text-base text-slate-300 max-w-xl leading-relaxed font-medium">
+            <p className="text-sm md:text-base text-brand-subtext max-w-xl leading-relaxed font-medium">
               Don&apos;t throw away your expired discount codes. Vouchiqo&apos;s
               Revival system reconnects you with the merchant and recovers your
               savings — 48 hours, zero cost to you.
@@ -76,12 +76,12 @@ export function RevivalPromo() {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 md:gap-4 py-3 border-t border-b border-white/10 max-w-lg">
+          <div className="grid grid-cols-3 gap-2 md:gap-4 py-3 border-t border-b border-brand-border max-w-lg">
             <div>
-              <span className="block text-lg md:text-xl font-black text-white">
+              <span className="block text-lg md:text-xl font-black text-brand-text">
                 5,000+
               </span>
-              <span className="text-[9px] md:text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <span className="text-[9px] md:text-xs text-brand-subtext font-bold uppercase tracking-wider">
                 Revivals Processed
               </span>
             </div>
@@ -89,7 +89,7 @@ export function RevivalPromo() {
               <span className="block text-lg md:text-xl font-black text-[#00B67A]">
                 ₹25L+
               </span>
-              <span className="text-[9px] md:text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <span className="text-[9px] md:text-xs text-brand-subtext font-bold uppercase tracking-wider">
                 Recovered Savings
               </span>
             </div>
@@ -97,23 +97,23 @@ export function RevivalPromo() {
               <span className="block text-lg md:text-xl font-black text-brand-warning">
                 78%
               </span>
-              <span className="text-[9px] md:text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <span className="text-[9px] md:text-xs text-brand-subtext font-bold uppercase tracking-wider">
                 Approval Rate
               </span>
             </div>
           </div>
 
           {/* Inline mini-form */}
-          <div className="max-w-xl bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-md shadow-2xl relative">
+          <div className="max-w-xl bg-white border border-brand-border rounded-2xl p-6 md:p-8 shadow-xl relative">
             {success ? (
               <div className="text-center py-6 space-y-4 animate-fade-in-scale">
                 <div className="w-12 h-12 rounded-full bg-brand-success/20 text-brand-success flex items-center justify-center mx-auto border border-brand-success/30">
                   <Sparkles className="w-6 h-6 fill-current" />
                 </div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-bold text-brand-text">
                   Submission Successful!
                 </h3>
-                <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs text-brand-subtext max-w-sm mx-auto leading-relaxed">
                   We have registered your request. Our system will contact the
                   merchant to negotiate a revival. We will reach out to you
                   within 48 hours.
@@ -121,7 +121,7 @@ export function RevivalPromo() {
                 <Button
                   onClick={() => setSuccess(false)}
                   variant="ghost"
-                  className="text-xs font-bold text-brand-blue hover:text-white hover:bg-white/5 mt-2 cursor-pointer"
+                  className="text-xs font-bold text-brand-blue hover:text-brand-blue hover:bg-brand-surface mt-2 cursor-pointer"
                 >
                   Revive Another Coupon
                 </Button>
@@ -130,7 +130,7 @@ export function RevivalPromo() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    <label className="text-xs font-bold text-brand-subtext uppercase tracking-wider">
                       Expired Code
                     </label>
                     <Input
@@ -139,11 +139,11 @@ export function RevivalPromo() {
                       onChange={(e) =>
                         setForm({ ...form, code: e.target.value })
                       }
-                      className="bg-white/10 border-white/20 text-white placeholder-slate-500 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
+                      className="bg-brand-bg border-brand-border text-brand-text placeholder-brand-subtext/60 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    <label className="text-xs font-bold text-brand-subtext uppercase tracking-wider">
                       Brand Name
                     </label>
                     <Input
@@ -152,13 +152,13 @@ export function RevivalPromo() {
                       onChange={(e) =>
                         setForm({ ...form, brandName: e.target.value })
                       }
-                      className="bg-white/10 border-white/20 text-white placeholder-slate-500 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
+                      className="bg-brand-bg border-brand-border text-brand-text placeholder-brand-subtext/60 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-brand-subtext uppercase tracking-wider">
                     Your Email
                   </label>
                   <Input
@@ -168,7 +168,7 @@ export function RevivalPromo() {
                     onChange={(e) =>
                       setForm({ ...form, email: e.target.value })
                     }
-                    className="bg-white/10 border-white/20 text-white placeholder-slate-500 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
+                    className="bg-brand-bg border-brand-border text-brand-text placeholder-brand-subtext/60 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
                   />
                 </div>
 
@@ -215,36 +215,38 @@ export function RevivalPromo() {
           {/* Transforming coupon CSS visual */}
           <div className="w-[320px] h-[220px] relative flex items-center justify-center">
             {/* Background glowing ring */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF7A18]/20 to-[#00B67A]/20 rounded-2xl blur-2xl animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF7A18]/10 to-[#00B67A]/10 rounded-2xl blur-2xl animate-pulse" />
 
             {/* Glowing active success border */}
-            <div className="absolute inset-2 border border-brand-success/20 rounded-xl animate-pulse z-0" />
+            <div className="absolute inset-2 border border-brand-success/15 rounded-xl animate-pulse z-0" />
 
             {/* Expired cracked coupon (sliding left, fading out) */}
-            <div className="absolute left-4 w-52 h-32 bg-slate-900/80 border border-brand-error/30 rounded-xl p-4 flex flex-col justify-between shadow-2xl transform -rotate-6 animate-float z-10 opacity-40 hover:opacity-50 transition-opacity">
+            <div className="absolute left-4 w-52 h-32 bg-white border border-brand-error/20 rounded-xl p-4 flex flex-col justify-between shadow-lg transform -rotate-6 animate-float z-10 opacity-60 hover:opacity-80 transition-opacity">
               <div className="flex justify-between items-start">
-                <span className="text-[8px] font-black text-brand-error border border-brand-error/30 px-1 py-0.5 rounded">
+                <span className="text-[8px] font-black text-brand-error border border-brand-error/30 px-1 py-0.5 rounded bg-brand-error/5">
                   EXPIRED
                 </span>
-                <span className="text-[14px] text-slate-600 font-bold">✂️</span>
+                <span className="text-[14px] text-brand-subtext font-bold">
+                  ✂️
+                </span>
               </div>
               <div className="text-left space-y-1">
-                <h4 className="text-xs font-bold text-slate-400 line-through">
+                <h4 className="text-xs font-bold text-brand-subtext line-through">
                   Flat 30% OFF
                 </h4>
-                <div className="w-full h-1 bg-white/10 rounded-full" />
+                <div className="w-full h-1 bg-brand-border rounded-full" />
               </div>
               {/* Crack overlay line */}
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_45%,#E5484D_48%,#E5484D_52%,transparent_55%)] opacity-30 pointer-events-none" />
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_45%,#E5484D_48%,#E5484D_52%,transparent_55%)] opacity-20 pointer-events-none" />
             </div>
 
             {/* Fresh revived coupon (sliding right, glowing checkmark) */}
             <div
-              className="absolute right-4 w-52 h-32 bg-slate-900 border border-brand-success/40 rounded-xl p-4 flex flex-col justify-between shadow-2xl transform rotate-3 animate-float z-20"
+              className="absolute right-4 w-52 h-32 bg-white border border-brand-success/30 rounded-xl p-4 flex flex-col justify-between shadow-xl transform rotate-3 animate-float z-20"
               style={{ animationDelay: "1.5s" }}
             >
               <div className="flex justify-between items-start">
-                <span className="text-[8px] font-black text-brand-success border border-brand-success/30 px-1.5 py-0.5 rounded bg-brand-success/10 animate-pulse">
+                <span className="text-[8px] font-black text-brand-success border border-brand-success/20 px-1.5 py-0.5 rounded bg-brand-success/10 animate-pulse">
                   REVIVED
                 </span>
                 {/* Green checkmark circle */}
@@ -253,16 +255,18 @@ export function RevivalPromo() {
                 </div>
               </div>
               <div className="text-left space-y-1">
-                <h4 className="text-xs font-black text-white">Flat 30% OFF</h4>
+                <h4 className="text-xs font-black text-brand-text">
+                  Flat 30% OFF
+                </h4>
                 <span className="text-[9px] text-[#00B67A] font-bold">
                   Successfully Verified Code!
                 </span>
               </div>
-              <div className="border-t border-dashed border-white/10 pt-2 flex items-center justify-between">
+              <div className="border-t border-dashed border-brand-border pt-2 flex items-center justify-between">
                 <span className="text-[10px] font-mono text-[#00B67A] font-black">
                   ACTIVE NOW
                 </span>
-                <span className="text-[9px] text-slate-500">→</span>
+                <span className="text-[9px] text-brand-subtext">→</span>
               </div>
             </div>
           </div>

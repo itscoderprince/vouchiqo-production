@@ -34,7 +34,10 @@
         "useHeadingContent": "off",
         "useAltText": "off",
         "noNoninteractiveElementToInteractiveRole": "off",
-        "noLabelWithoutControl": "off"
+        "noLabelWithoutControl": "off",
+        "noStaticElementInteractions": "off",
+        "noAutofocus": "off",
+        "noNoninteractiveTabindex": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"

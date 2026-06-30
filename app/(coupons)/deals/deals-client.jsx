@@ -12,7 +12,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/navbar";
 import ConfirmationModal from "@/components/shared/ConfirmationModal";
 import CouponCard from "@/components/shared/CouponCard";
 import { Badge } from "@/components/ui/badge";

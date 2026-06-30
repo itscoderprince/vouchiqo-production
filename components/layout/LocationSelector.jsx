@@ -69,9 +69,9 @@ export default function LocationSelector({
         <button
           type="button"
           onClick={() => setShowLocationPanel((v) => !v)}
-          className="flex items-center gap-1 text-xs font-semibold text-white bg-white/10 border border-white/20 rounded-md px-2 py-1.5 cursor-pointer"
+          className="flex items-center gap-1 text-xs font-semibold text-brand-text bg-brand-surface border border-brand-border rounded-md px-2 py-1.5 cursor-pointer hover:bg-brand-surface/80 transition-all"
         >
-          <MapPin className="w-3 h-3 text-brand-warning" />
+          <MapPin className="w-3.5 h-3.5 text-brand-warning" />
           <span className="max-w-[60px] truncate">{city || "Location"}</span>
         </button>
 
@@ -137,7 +137,7 @@ export default function LocationSelector({
       <button
         type="button"
         onClick={() => setShowLocationPanel((v) => !v)}
-        className="flex items-center gap-1.5 text-sm font-semibold text-white hover:text-slate-300 transition-colors bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 hover:bg-white/15"
+        className="flex items-center gap-1.5 text-xs md:text-sm font-semibold text-brand-text hover:text-brand-blue bg-brand-surface border border-brand-border rounded-lg px-3 py-1.5 hover:bg-brand-surface/80 transition-all"
         aria-label="Set location"
       >
         <MapPin className="w-3.5 h-3.5 text-brand-warning flex-shrink-0" />

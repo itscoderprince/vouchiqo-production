@@ -19,19 +19,21 @@ import {
 import { usePathname } from "next/navigation";
 import { NavMain } from "@/components/layout/NavMain";
 import { NavUser } from "@/components/layout/NavUser";
-import { TeamSwitcher } from "@/components/layout/TeamSwitcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/use-user";
 
 export function AppSidebar({ ...props }) {
   const pathname = usePathname();
   const { user: authUser, role: authRole } = useUser();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   // Dynamically resolve role from pathname or user session
   const role = authUser
@@ -50,199 +52,226 @@ export function AppSidebar({ ...props }) {
         avatar: authUser.image || `/avatars/${role}.jpg`,
       }
     : {
-        name: "Loading...",
-        email: "",
+        name: "Aigars S.",
+        email: "admin@zenith.com",
         avatar: `/avatars/${role}.jpg`,
       };
 
-  // Brand Switcher items
-  const getBrandDetails = () => {
+  // Grouped Navigation Items matching Zenith structure
+  const getNavGroups = () => {
     switch (role) {
       case "admin":
         return [
           {
-            name: "Admin Console",
-            logo: <CheckSquare className="size-4" />,
-            plan: "Root Operations",
+            title: "Overview",
+            items: [
+              {
+                title: "Dashboard",
+                url: "/admin/dashboard",
+                icon: LayoutDashboard,
+              },
+              {
+                title: "Merchant Approvals",
+                url: "/admin/approvals/merchants",
+                icon: Store,
+              },
+              {
+                title: "Coupon Moderation",
+                url: "/admin/approvals/coupons",
+                icon: CheckSquare,
+              },
+              {
+                title: "User Management",
+                url: "/admin/users",
+                icon: Users,
+              },
+            ],
+          },
+          {
+            title: "System",
+            items: [
+              {
+                title: "Featured Deals",
+                url: "/admin/featured",
+                icon: Tag,
+              },
+              {
+                title: "Homepage Ticker",
+                url: "/admin/ticker",
+                icon: TrendingUp,
+              },
+              {
+                title: "Revival Requests",
+                url: "/admin/revivals",
+                icon: AlertCircle,
+              },
+              {
+                title: "Platform Revenue",
+                url: "/admin/revenue",
+                icon: CreditCard,
+              },
+              {
+                title: "Platform Content",
+                url: "/admin/content",
+                icon: Settings,
+              },
+            ],
           },
         ];
       case "merchant":
         return [
           {
-            name: "Zomato Partner",
-            logo: <Store className="size-4" />,
-            plan: "Merchant Growth Plan",
+            title: "Overview",
+            items: [
+              {
+                title: "Dashboard",
+                url: "/merchant/dashboard",
+                icon: LayoutDashboard,
+              },
+              {
+                title: "Business Analytics",
+                url: "/merchant/analytics",
+                icon: TrendingUp,
+              },
+              {
+                title: "Business Profile",
+                url: "/merchant/profile",
+                icon: Store,
+              },
+            ],
           },
           {
-            name: "Uber Partner",
-            logo: <Store className="size-4" />,
-            plan: "Merchant Startup Plan",
+            title: "Commerce",
+            items: [
+              {
+                title: "My Coupons",
+                url: "/merchant/coupons",
+                icon: Tag,
+              },
+              {
+                title: "Create Coupon",
+                url: "/merchant/coupons/new",
+                icon: PlusCircle,
+              },
+              {
+                title: "Campaigns",
+                url: "/merchant/campaigns",
+                icon: Sparkles,
+              },
+              {
+                title: "Billing & Plans",
+                url: "/merchant/billing",
+                icon: CreditCard,
+              },
+            ],
           },
         ];
       default:
         return [
           {
-            name: "Vouchiqo App",
-            logo: <Tag className="size-4" />,
-            plan: "Verified Savings",
+            title: "Overview",
+            items: [
+              {
+                title: "Dashboard",
+                url: "/customer/dashboard",
+                icon: LayoutDashboard,
+              },
+              {
+                title: "My Savings",
+                url: "/profile?tab=savings",
+                icon: TrendingUp,
+              },
+              {
+                title: "Saved Deals",
+                url: "/profile?tab=saved",
+                icon: Bookmark,
+              },
+              {
+                title: "Cashback Wallet",
+                url: "/profile?tab=wallet",
+                icon: CreditCard,
+              },
+            ],
+          },
+          {
+            title: "Apps",
+            items: [
+              {
+                title: "My Activity",
+                url: "/profile?tab=activity",
+                icon: History,
+              },
+              {
+                title: "Nearby Offers",
+                url: "/profile?tab=nearby",
+                icon: MapPin,
+              },
+              {
+                title: "Settings",
+                url: "/profile?tab=settings",
+                icon: Settings,
+              },
+            ],
           },
         ];
     }
   };
 
-  // Navigation Items
-  const getNavMain = () => {
-    switch (role) {
-      case "admin":
-        return [
-          {
-            title: "Dashboard",
-            url: "/admin/dashboard",
-            icon: <LayoutDashboard className="size-4" />,
-          },
-          {
-            title: "Merchant Approvals",
-            url: "/admin/approvals/merchants",
-            icon: <Store className="size-4" />,
-          },
-          {
-            title: "Coupon Moderation",
-            url: "/admin/approvals/coupons",
-            icon: <CheckSquare className="size-4" />,
-          },
-          {
-            title: "User Management",
-            url: "/admin/users",
-            icon: <Users className="size-4" />,
-          },
-          {
-            title: "Featured Deals",
-            url: "/admin/featured",
-            icon: <Tag className="size-4" />,
-          },
-          {
-            title: "Homepage Ticker",
-            url: "/admin/ticker",
-            icon: <TrendingUp className="size-4" />,
-          },
-          {
-            title: "Revival Requests",
-            url: "/admin/revivals",
-            icon: <AlertCircle className="size-4" />,
-          },
-          {
-            title: "Platform Revenue",
-            url: "/admin/revenue",
-            icon: <CreditCard className="size-4" />,
-          },
-          {
-            title: "Platform Content",
-            url: "/admin/content",
-            icon: <Settings className="size-4" />,
-          },
-        ];
-      case "merchant":
-        return [
-          {
-            title: "Dashboard",
-            url: "/merchant/dashboard",
-            icon: <LayoutDashboard className="size-4" />,
-          },
-          {
-            title: "My Coupons",
-            url: "/merchant/coupons",
-            icon: <Tag className="size-4" />,
-          },
-          {
-            title: "Create Coupon",
-            url: "/merchant/coupons/new",
-            icon: <PlusCircle className="size-4" />,
-          },
-          {
-            title: "Campaigns",
-            url: "/merchant/campaigns",
-            icon: <Sparkles className="size-4" />,
-          },
-          {
-            title: "Business Analytics",
-            url: "/merchant/analytics",
-            icon: <TrendingUp className="size-4" />,
-          },
-          {
-            title: "Business Profile",
-            url: "/merchant/profile",
-            icon: <Store className="size-4" />,
-          },
-          {
-            title: "Billing & Plans",
-            url: "/merchant/billing",
-            icon: <CreditCard className="size-4" />,
-          },
-        ];
-      default:
-        return [
-          {
-            title: "Dashboard",
-            url: "/customer/dashboard",
-            icon: <LayoutDashboard className="size-4" />,
-          },
-          {
-            title: "My Savings",
-            url: "/profile?tab=savings",
-            icon: <TrendingUp className="size-4" />,
-          },
-          {
-            title: "Saved Deals",
-            url: "/profile?tab=saved",
-            icon: <Bookmark className="size-4" />,
-          },
-          {
-            title: "Cashback Wallet",
-            url: "/profile?tab=wallet",
-            icon: <CreditCard className="size-4" />,
-          },
-          {
-            title: "My Activity",
-            url: "/profile?tab=activity",
-            icon: <History className="size-4" />,
-          },
-          {
-            title: "Nearby Offers",
-            url: "/profile?tab=nearby",
-            icon: <MapPin className="size-4" />,
-          },
-          {
-            title: "Settings",
-            url: "/profile?tab=settings",
-            icon: <Settings className="size-4" />,
-          },
-        ];
-    }
-  };
-
-  const teams = getBrandDetails();
-  const navMain = getNavMain();
+  const groups = getNavGroups();
 
   return (
     <Sidebar
       collapsible="icon"
       style={{
-        "--sidebar": "var(--brand-navy)",
-        "--sidebar-foreground": "#cbd5e1",
-        "--sidebar-border": "rgba(255, 255, 255, 0.1)",
-        "--sidebar-accent": "rgba(255, 255, 255, 0.05)",
-        "--sidebar-accent-foreground": "#ffffff",
+        "--sidebar": "#ffffff",
+        "--sidebar-foreground": "#64748b",
+        "--sidebar-border": "#e2e8f0",
+        "--sidebar-accent": "#f1f5f9",
+        "--sidebar-accent-foreground": "#0f172a",
       }}
       {...props}
     >
-      <SidebarHeader>
-        <TeamSwitcher teams={teams} />
+      <SidebarHeader className="p-0 border-b border-sidebar-border">
+        <div
+          className={`flex h-16 items-center gap-3 ${isCollapsed ? "justify-center px-0" : "px-4"}`}
+        >
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0f172a] text-white">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4 text-white"
+            >
+              <path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z" />
+            </svg>
+          </div>
+          {!isCollapsed && (
+            <div className="flex flex-col text-left">
+              <span className="text-sm font-bold tracking-tight text-slate-800">
+                Zenith
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">
+                Dashboard
+              </span>
+            </div>
+          )}
+        </div>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={navMain} />
+      <SidebarContent
+        className={`py-4 ${isCollapsed ? "px-1" : "px-3"} space-y-3`}
+      >
+        <NavMain groups={groups} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={user} />
+      <SidebarFooter
+        className={`border-t border-sidebar-border ${isCollapsed ? "p-1.5 flex justify-center" : "p-3"}`}
+      >
+        <NavUser user={user} role={role} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

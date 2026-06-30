@@ -1,112 +1,101 @@
 "use client";
 
-import { ChevronRightIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@/components/ui/sidebar";
+import { useState } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 
-export function NavMain({ items }) {
+export function NavMain({ groups }) {
   const pathname = usePathname();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  // Keep track of which menu groups are expanded
+  const [openGroups, setOpenGroups] = useState({
+    Overview: true,
+    Commerce: true,
+    Apps: true,
+    System: true,
+  });
+
+  const toggleGroup = (title) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel className="text-white/40 uppercase tracking-wider text-[9px] font-bold">
-        Navigation
-      </SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => {
-          const hasSubItems = item.items && item.items.length > 0;
-          const isActive =
-            pathname === item.url ||
-            (hasSubItems && item.items.some((sub) => pathname === sub.url));
+    <div className="space-y-4">
+      {groups.map((group) => {
+        const isOpen = openGroups[group.title] !== false;
 
-          if (!hasSubItems) {
-            return (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  tooltip={item.title}
-                  isActive={isActive}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all group ${
-                    isActive
-                      ? "bg-brand-blue text-white font-semibold shadow-sm"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+        return (
+          <div key={group.title} className="space-y-1">
+            {/* Group Label / Collapse Button */}
+            {!isCollapsed && (
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.title)}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors border-0 bg-transparent cursor-pointer"
+              >
+                <span className="flex-1 text-start">{group.title}</span>
+                <ChevronRight
+                  className={`size-3 transition-transform duration-200 text-slate-400 ${
+                    isOpen ? "rotate-90" : "rotate-0"
                   }`}
-                >
-                  <Link href={item.url}>
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          }
+                />
+              </button>
+            )}
 
-          return (
-            <Collapsible
-              key={item.title}
-              asChild
-              defaultOpen={item.isActive || isActive}
-              className="group/collapsible"
+            {/* Group Items container */}
+            <div
+              className={`transition-all duration-200 ease-in-out overflow-hidden ${
+                isOpen || isCollapsed
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0 h-0"
+              }`}
             >
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    isActive={isActive}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all group ${
-                      isActive
-                        ? "bg-white/10 text-white font-semibold"
-                        : "text-slate-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.title}</span>
-                    <ChevronRightIcon className="ml-auto size-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarMenuSub className="border-white/10 mx-3 pl-2.5">
-                    {item.items.map((subItem) => {
-                      const isSubActive = pathname === subItem.url;
-                      return (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={isSubActive}>
-                            <Link
-                              href={subItem.url}
-                              className={`text-xs block py-1.5 transition-colors ${
-                                isSubActive
-                                  ? "text-brand-warning font-semibold"
-                                  : "text-slate-400 hover:text-white"
-                              }`}
-                            >
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      );
-                    })}
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
+              <div className="mt-1 space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.url;
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.title}
+                      href={item.url}
+                      className={`group relative flex items-center transition-all duration-200 ${
+                        isCollapsed
+                          ? "justify-center p-2 rounded-lg"
+                          : "gap-3 rounded-lg px-3 py-2 text-sm font-medium"
+                      } ${
+                        isActive
+                          ? "bg-[#f1f5f9] text-[#0f172a]"
+                          : "text-slate-600 hover:bg-[#f8fafc] hover:text-[#0f172a]"
+                      }`}
+                    >
+                      {Icon && (
+                        <Icon
+                          className={`h-[18px] w-[18px] shrink-0 transition-colors ${
+                            isActive
+                              ? "text-[#0f172a]"
+                              : "text-slate-400 group-hover:text-slate-600"
+                          }`}
+                        />
+                      )}
+                      {!isCollapsed && (
+                        <span className="flex-1 text-left">{item.title}</span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

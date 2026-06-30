@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/navbar";
 import CouponCard from "@/components/shared/CouponCard";
 import { Badge } from "@/components/ui/badge";
 import { connectDB } from "@/lib/mongodb";

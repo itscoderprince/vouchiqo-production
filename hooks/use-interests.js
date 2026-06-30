@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 
 /**
@@ -16,7 +16,17 @@ export function useInterests() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const loadInterests = useCallback(async () => {
+    if (!isMountedRef.current) return;
     setLoading(true);
     if (user) {
       try {
@@ -24,8 +34,10 @@ export function useInterests() {
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data?.profile?.interests) {
-            setInterests(json.data.profile.interests);
-            setLoading(false);
+            if (isMountedRef.current) {
+              setInterests(json.data.profile.interests);
+              setLoading(false);
+            }
             return;
           }
         }
@@ -39,15 +51,15 @@ export function useInterests() {
       const local = localStorage.getItem("vouchiqo_interests");
       if (local) {
         try {
-          setInterests(JSON.parse(local));
+          if (isMountedRef.current) setInterests(JSON.parse(local));
         } catch {
-          setInterests([]);
+          if (isMountedRef.current) setInterests([]);
         }
       } else {
-        setInterests([]);
+        if (isMountedRef.current) setInterests([]);
       }
     }
-    setLoading(false);
+    if (isMountedRef.current) setLoading(false);
   }, [user]);
 
   useEffect(() => {
@@ -55,10 +67,10 @@ export function useInterests() {
   }, [loadInterests]);
 
   const saveInterests = async (newInterests) => {
-    setInterests(newInterests);
-    
+    if (isMountedRef.current) setInterests(newInterests);
+
     if (user) {
-      setSyncing(true);
+      if (isMountedRef.current) setSyncing(true);
       try {
         await fetch("/api/users", {
           method: "PUT",
@@ -68,11 +80,14 @@ export function useInterests() {
       } catch (err) {
         console.error("Failed to sync interests to database:", err);
       } finally {
-        setSyncing(false);
+        if (isMountedRef.current) setSyncing(false);
       }
     } else {
       if (typeof window !== "undefined") {
-        localStorage.setItem("vouchiqo_interests", JSON.stringify(newInterests));
+        localStorage.setItem(
+          "vouchiqo_interests",
+          JSON.stringify(newInterests),
+        );
       }
     }
   };
