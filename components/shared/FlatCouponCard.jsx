@@ -89,6 +89,7 @@ export default function FlatCouponCard({ coupon }) {
         transition: "box-shadow 250ms ease, transform 250ms ease",
         overflow: "hidden",
         textAlign: "left",
+        position: "relative",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
@@ -99,6 +100,27 @@ export default function FlatCouponCard({ coupon }) {
         e.currentTarget.style.transform = "translateY(0)";
       }}
     >
+      {coupon.isLocal && (
+        <div
+          style={{
+            position: "absolute",
+            top: "8px",
+            right: "8px",
+            backgroundColor: "#FF7A18",
+            color: "#ffffff",
+            fontSize: "9px",
+            fontWeight: 800,
+            padding: "2px 8px",
+            borderRadius: "9999px",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            zIndex: 10,
+          }}
+        >
+          Local Business
+        </div>
+      )}
       {/* ── TOP SECTION (amt) ── */}
       <div
         className="amt"

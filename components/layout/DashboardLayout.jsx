@@ -13,9 +13,7 @@ export default function DashboardLayout({ title, user, children }) {
           <AppSidebar />
           <SidebarInset className="bg-brand-surface flex-1 flex flex-col min-w-0">
             <Topbar title={title} user={user} />
-            <main className="p-6 space-y-6 w-full flex-grow">
-              {children}
-            </main>
+            <main className="p-6 space-y-6 w-full flex-grow">{children}</main>
           </SidebarInset>
         </div>
       </SidebarProvider>

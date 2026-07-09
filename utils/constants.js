@@ -33,6 +33,15 @@ export const COUPON_CATEGORIES = [
   "home",
   "entertainment",
   "services",
+  "home-improvement",
+  "education",
+  "finance",
+  "gaming",
+  "automotive",
+  "kids-baby",
+  "pets",
+  "organic",
+  "grocery",
   "other",
 ];
 

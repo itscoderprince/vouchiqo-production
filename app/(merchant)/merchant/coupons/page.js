@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircle2,
   Edit,
+  Loader2,
   Plus,
   Search,
   Trash2,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDeleteCoupon } from "@/hooks/use-coupons";
 
 const TableSkeleton = () => (
   <TableRow className="animate-pulse border-b border-brand-border">
@@ -56,6 +59,8 @@ const TableSkeleton = () => (
 
 export default function MerchantCoupons() {
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const deleteMutation = useDeleteCoupon();
 
   const mockCoupons = [
     {
@@ -247,6 +252,9 @@ export default function MerchantCoupons() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              onClick={() =>
+                                router.push(`/merchant/coupons/${coupon._id}`)
+                              }
                               className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-blue hover:bg-brand-surface cursor-pointer shadow-none"
                             >
                               <Edit className="w-3.5 h-3.5" />
@@ -254,9 +262,21 @@ export default function MerchantCoupons() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-error hover:bg-brand-surface cursor-pointer shadow-none"
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    "Are you sure you want to delete this coupon?",
+                                  )
+                                ) {
+                                  deleteMutation.mutate(coupon._id);
+                                }
+                              }}
+                              disabled={deleteMutation.isPending}
+                              className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-error hover:bg-brand-surface cursor-pointer shadow-none disabled:opacity-50"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              {deleteMutation.isPending
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Trash2 className="w-3.5 h-3.5" />}
                             </Button>
                           </div>
                         </TableCell>

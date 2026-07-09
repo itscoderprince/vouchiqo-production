@@ -1,1134 +1,862 @@
-# Vouchiqo — Full Architecture & Project Flow
-
-> **Read this file first.** It is the single source of truth for how Vouchiqo works —
-> what every screen does, how every actor moves through the system, and how all the
-> pieces connect. Read it alongside `SRD v1.0` and `SRD Amendment v1.1`.
+# VOUCHIQO — ARCHITECTURE & IMPLEMENTATION GUIDE
+> Derived from: `SRD_Requirement_Phase_1.pdf` (v1.0, May 2026)
+> Purpose: single source-of-truth for any code editor / AI coding assistant (Cursor, Claude Code, Copilot, Windsurf, etc.) to understand the full scope, structure, data model, and feature set of Vouchiqo **before writing code**.
 
 ---
 
-## Table of Contents
+## 0. How to use this document
 
-1. [What is Vouchiqo?](#1-what-is-vouchiqo)
-2. [Three Actors](#2-three-actors)
-3. [Platform URL Map](#3-platform-url-map)
-4. [System Layers](#4-system-layers)
-5. [Homepage — Full Breakdown](#5-homepage--full-breakdown)
-6. [Customer Flow — Start to End](#6-customer-flow--start-to-end)
-7. [Merchant Flow — Start to End](#7-merchant-flow--start-to-end)
-8. [Admin Flow — Start to End](#8-admin-flow--start-to-end)
-9. [Expired Coupon Revival Flow](#9-expired-coupon-revival-flow)
-10. [Hot Deals Ticker — Priority Engine](#10-hot-deals-ticker--priority-engine)
-11. [Personalisation Engine](#11-personalisation-engine)
-12. [Location System](#12-location-system)
-13. [Brand / Merchant Page](#13-brand--merchant-page)
-14. [Customer Savings Dashboard](#14-customer-savings-dashboard)
-15. [Revenue Model](#15-revenue-model)
-16. [Data Models — Key Entities](#16-data-models--key-entities)
-17. [State Machines](#17-state-machines)
-18. [Feature Dependency Map](#18-feature-dependency-map)
-19. [Developer Notes & Constraints](#19-developer-notes--constraints)
+- Read this file **fully** before generating or modifying code in this repo.
+- Treat every item tagged `MUST` as in-scope for MVP. Items tagged `SHOULD` are nice-to-have. Items tagged `Phase 2` are explicitly out of scope for MVP — do not build them unless asked.
+- Section 9 (Feature Status Tracker) has checkboxes. **Keep them updated** as features are implemented — this is how an editor/agent should determine "what already exists" vs "what's left to build" in this codebase.
+- Section 5 (Data Model) and Section 6 (API Route Map) are the contract between frontend and backend. If you change a schema or route, update this file in the same commit.
+- Anything marked **[DECISION NEEDED]** is not specified in the SRD and was inferred for architectural consistency — confirm with the project owner before treating it as final, or flag it explicitly in a PR.
 
 ---
 
-## 1. What is Vouchiqo?
+## 1. Project Summary
 
-Vouchiqo is an Indian coupon and deal aggregation platform. It connects three groups:
+**Vouchiqo** is a verified-coupon/savings platform for India with one core differentiator: an **Expired Offer Revival** flow — customers can request a merchant to regenerate a dead coupon code. It is a three-sided system:
 
-- **Customers** who browse, save, and redeem discount coupons — for free.
-- **Merchants** who pay a monthly subscription to list their deals and gain customer visibility.
-- **Vouchiqo (Admin)** which runs the platform, manages quality, and monetises through subscriptions, paid placements, and affiliate commissions.
+1. **Customer platform** (public, SEO-critical) — browse/search/save verified offers.
+2. **Merchant Portal** (`/merchant/*`) — authenticated dashboard where businesses post offers, run campaigns, pay for subscriptions, and manage revivals. **This is the revenue engine.**
+3. **Admin Panel** (`/admin/*`) — internal ops console for the founder to approve merchants, verify offers, and manage the business.
 
-**Core differentiator:** The *Expired Coupon Revival* system. Customers submit expired discount codes; Vouchiqo contacts the merchant and negotiates reactivation within 48 hours. No other Indian coupon platform offers this. It is the platform's primary retention and trust hook.
+All three share **one MongoDB database** and (per SRD) **one Express REST API**, with a single Next.js frontend serving all three surfaces under different route groups.
 
 ---
 
-## 2. Three Actors
+## 2. Confirmed Tech Stack (SRD Section 1.2)
 
-| Actor | Access | Primary Goal |
+| Layer | Technology | Notes |
 |---|---|---|
-| **Customer** | Public site + `/profile` | Find deals, save money, track savings |
-| **Merchant** | `/merchant/dashboard` | List coupons, gain visibility, track redemptions |
-| **Admin (Vouchiqo)** | `/admin` panel | Approve merchants, manage ticker, process revivals, track revenue |
+| Frontend | **Next.js (React)** | SSR/SSG mandatory on all customer-facing pages for SEO. No CSR-only public pages. |
+| Backend | **Node.js + Express** | RESTful API, documented via Postman collection. Decoupled from Next.js (not Next API routes). |
+| Database | **MongoDB (Atlas)** | Multi-tenant merchant data isolation required in schema design. |
+| Auth | **JWT + NextAuth.js** | Three *separate* auth flows: customer, merchant, admin. RBAC mandatory. |
+| Payments | **Razorpay only** (not PhonePe) | Needed for recurring subscription billing. |
+| File storage | Cloudinary **or** AWS S3 | Merchant logos, coupon images, banners. **[DECISION NEEDED: pick one before Sprint 1 — Cloudinary recommended for built-in image transforms.]** |
+| Email | SendGrid | Transactional: OTP, approvals, expiry alerts, weekly digest. |
+| Maps | Google Maps JavaScript API | Nearby Offers feature, GPS + manual location. |
+| Push | Firebase Cloud Messaging (FCM) | Web push only for MVP. |
+| Hosting | Hostinger VPS (4 vCPU / 8GB RAM / 100GB SSD) | NGINX reverse proxy, Let's Encrypt SSL, PM2. |
+| Source control | GitHub (private repo) | Founder must be Owner/Admin from day 1. |
 
-Customers and merchants use separate auth systems. Admin is internal only.
-
----
-
-## 3. Platform URL Map
-
-```
-/ ................................ Homepage
-/deals ........................... All deals — filterable by location, category, discount
-/deal/:id ........................ Individual deal page
-/brand/:slug-coupons-deals ....... Merchant public profile page
-/expired-coupon-revival .......... Expired coupon revival — full page
-/categories ...................... Category listing
-/nearby .......................... Nearby offers (map-based)
-
-/auth/signup ..................... Customer registration (2 steps)
-/auth/login ...................... Customer login
-/profile ......................... Customer profile hub
-  /profile#savings ............... My Savings dashboard (NEW — first tab)
-  /profile#saved-deals ........... Saved/bookmarked deals
-  /profile#cashback .............. Cashback wallet
-  /profile#activity .............. Redemption history
-  /profile#settings .............. Preferences, location, interests, auth
-
-/merchant/signup ................. Merchant registration
-/merchant/login .................. Merchant login
-/merchant/dashboard .............. Merchant hub
-  /merchant/dashboard/deals ....... Deal management (create/edit/delete)
-  /merchant/dashboard/analytics ... Performance analytics
-  /merchant/dashboard/profile ..... Business profile editor (feeds /brand page)
-  /merchant/dashboard/billing ..... Subscription plan + add-ons
-  /merchant/dashboard/revivals .... Incoming revival requests
-
-/admin ........................... Admin panel
-  /admin/merchants ................ Merchant approvals and management
-  /admin/ticker ................... Ticker management (pin/unpin/order)
-  /admin/revivals ................. Revival request queue
-  /admin/deals .................... Deal quality control
-  /admin/revenue .................. Revenue dashboard
-```
+**[DECISION NEEDED]** Language: SRD doesn't specify JS vs TypeScript. Given multi-tenant RBAC, plan-gating, and a large schema surface, **TypeScript is strongly recommended** on both `apps/web` and `apps/api` — assume TS in all folder/file examples below unless told otherwise.
 
 ---
 
-## 4. System Layers
+## 3. High-Level System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  CUSTOMER-FACING FRONTEND                                        │
-│  Homepage · /deals · /deal/:id · /brand/:slug · /profile        │
-├─────────────────────────────────────────────────────────────────┤
-│  MERCHANT DASHBOARD FRONTEND                                     │
-│  Deal management · Analytics · Brand profile editor · Billing   │
-├─────────────────────────────────────────────────────────────────┤
-│  ADMIN PANEL FRONTEND                                            │
-│  Merchant approvals · Ticker control · Revival queue · Revenue  │
-├──────────────────────┬──────────────────────────────────────────┤
-│  PRIORITY ENGINE     │  PERSONALISATION ENGINE                  │
-│  Ticker order logic  │  Interest + location filtering           │
-├──────────────────────┴──────────────────────────────────────────┤
-│  APPLICATION BACKEND / API                                       │
-│  Auth · Deals · Merchants · Revivals · Payments · Analytics     │
-├─────────────────────────────────────────────────────────────────┤
-│  DATABASE                                                        │
-│  Users · Merchants · Deals · Revivals · Transactions · Sessions │
-├─────────────────────────────────────────────────────────────────┤
-│  EXTERNAL SERVICES                                               │
-│  Google Maps · Payment gateway · Email · Push notifications     │
-│  Affiliate tracking (CoupX) · OAuth (Google / Apple)           │
-└─────────────────────────────────────────────────────────────────┘
+                         ┌───────────────────────────┐
+                         │        Next.js App        │
+                         │  (apps/web) — SSR/SSG      │
+                         │                            │
+                         │  /            (customer)   │
+                         │  /deals, /deal/:slug       │
+                         │  /brand/:name              │
+                         │  /category/:name           │
+                         │  /nearby-offers            │
+                         │  /expired-coupon-revival   │
+                         │  /auth/*, /profile         │
+                         │                            │
+                         │  /merchant/*  (portal)     │
+                         │  /admin/*     (internal)   │
+                         └─────────────┬──────────────┘
+                                       │ REST (JSON) over HTTPS
+                                       ▼
+                         ┌───────────────────────────┐
+                         │     Express REST API       │
+                         │       (apps/api)           │
+                         │                            │
+                         │  /api/auth/*               │
+                         │  /api/offers, /api/brands  │
+                         │  /api/customer/*           │
+                         │  /api/merchant/*           │
+                         │  /api/admin/*              │
+                         │  /api/webhooks/razorpay    │
+                         └─────────────┬──────────────┘
+                                       │
+              ┌────────────────────────┼───────────────────────┐
+              ▼                        ▼                       ▼
+      ┌───────────────┐      ┌──────────────────┐    ┌───────────────────┐
+      │ MongoDB Atlas  │      │ Razorpay API     │    │ SendGrid / FCM /   │
+      │ (single DB,    │      │ (subs, webhooks) │    │ Cloudinary /       │
+      │  tenant-scoped)│      │                  │    │ Google Maps        │
+      └───────────────┘      └──────────────────┘    └───────────────────┘
 ```
+
+**Key architectural rule (SRD 3.13 / Section 7):** every plan-gated feature (Revival, Campaigns, Analytics, API access, Homepage Featured) **must be enforced server-side** in Express middleware, never only hidden in the UI. The frontend hiding a button is a UX nicety, not a security boundary.
 
 ---
 
-## 5. Homepage — Full Breakdown
+## 4. Repository Structure
 
-The homepage is the most complex screen. It serves anonymous visitors, logged-in customers, and acts as the primary acquisition surface for merchants (via the ticker).
-
-### 5.1 Layout — Top to Bottom
+**[DECISION NEEDED]** SRD doesn't mandate monorepo vs polyrepo. Recommended: **monorepo** (npm/pnpm workspaces) since frontend and backend ship together per milestone and share types.
 
 ```
-[NAVBAR]
-  Logo | Search | Location Badge | Revive Coupon | Categories | Login/Avatar
-
-[HOT DEALS TICKER BAR]          ← fixed/sticky, always visible on scroll
-  🔴 HOT DEALS | [deal items scrolling right-to-left] | View All Hot Deals →
-
-[HERO SECTION]
-  Main headline · CTA · Search bar
-
-[LOCATION PROMPT BAR]           ← shown only when no location is set
-  📍 See deals near you — set your location  [Set Location]
-
-[CATEGORY STRIP]
-  16 category chips — interest-selected ones highlighted in orange, shown first
-
-[PERSONALISED DEALS FEED]
-  Heading: "Today's Top Deals"            ← anonymous
-  Heading: "Your Personalised Deals, [Name]"  ← logged-in
-  [Edit Preferences] link next to heading (logged-in only)
-  
-  Tab switcher (when location is set):
-    [🔴 Near Ranchi]  [🔴 All India]
-  
-  Deal card grid — ordered by interests + location
-
-[EXPIRED COUPON REVIVAL SECTION]
-  Full-width section between "How It Works" and "Trending Categories"
-  Left: headline + stats + inline mini-form
-  Right: animated SVG (expired → revived coupon)
-
-[HOW IT WORKS SECTION]
-
-[TRENDING CATEGORIES GRID]
-
-[FOOTER]
-  Quick Links: Expired Coupon Revival (FIRST link) | ...
-```
-
-### 5.2 Homepage State Machine
-
-```
-Visitor arrives
-      │
-      ├── Has saved location? ──NO──► Show location prompt bar
-      │         │YES
-      │         └──► Show "Near [City]" tab as default active
-      │
-      ├── Has account + logged in?
-      │         │NO ──► Anonymous session
-      │         │         └── Has localStorage interests?
-      │         │                   │NO ──► After 10s / 40% scroll: show interest banner
-      │         │                   │YES ──► Reorder feed from localStorage
-      │         │
-      │         │YES ──► Load interests from DB profile
-      │                   └── Show "Your Personalised Deals, [Name]"
-      │                   └── Show "Edit Preferences" link
-      │
-      └── Interest banner dismissed?
-                │YES ──► Set 30-day dismissal cookie; do not show again
-                │NO  ──► Show again on next visit (within 30 days)
-```
-
-### 5.3 Interest Capture Banner (Anonymous)
-
-- Appears: after 10 seconds OR after 40% scroll — whichever is first.
-- Does NOT appear for logged-in users.
-- Dismissed state stored in `localStorage` — suppressed for 30 days.
-- On selection: `localStorage.set('interests', [...categories])` → feed reorders instantly without reload.
-- "No thanks" link dismisses with no selection; still stores dismissal to prevent re-showing.
-
----
-
-## 6. Customer Flow — Start to End
-
-### 6.1 First Visit (Anonymous)
-
-```
-1. LAND on homepage
-   └── Ticker bar scrolls above-the-fold deals (paid/premium first)
-   └── Location prompt bar appears (no location saved)
-   └── After 10s / 40% scroll → interest banner slides in from bottom
-
-2. SET LOCATION (optional, zero friction)
-   └── Click location badge in navbar → dropdown appears
-   └── Options: "Use My GPS" | Search city | State dropdown
-   └── Selection → saved to localStorage → feed shows "Near [City]" tab
-   └── "Local Deal" badge appears on cards from nearby merchants
-
-3. SELECT INTERESTS (optional, zero friction)
-   └── Multi-select from 16 category chips
-   └── "Show Me Deals →" button
-   └── Feed reorders — selected categories float to top
-   └── Banner dismisses; stored in localStorage for 30 days
-
-4. BROWSE DEALS
-   └── Via homepage feed → click card → /deal/:id
-   └── Via /deals page → apply filters (location, category, discount %, expiry)
-   └── Via /brand/:slug → full merchant profile page
-   └── Via ticker → any item is a link → /deal/:id
-
-5. ENCOUNTER EXPIRED COUPON
-   └── Expired tab on /brand/:slug → "Request Revival" button on each card
-   └── Homepage revival section → inline mini-form
-   └── /expired-coupon-revival page → full form
-   └── Submits: code + brand name + email → sees inline success message
-```
-
-### 6.2 Registration
-
-```
-TRIGGER: Customer tries to save a deal, access cashback wallet, or submit a revival
-
-STEP 1 — Credentials
-   └── Email + Password  OR  Google OAuth  OR  Apple OAuth
-   └── Email verification link sent (email/password flow)
-
-STEP 2 — Interest Selection
-   └── 16 category chips, multi-select
-   └── Saved to DB → feeds ALL personalisation surfaces
-   └── Pre-fills from localStorage if set during anonymous session
-
-POST-SIGNUP
-   └── Location from anonymous session carried over to DB profile
-   └── Redirected to original destination (deal page / profile / etc.)
-```
-
-### 6.3 Logged-In Experience
-
-```
-HOMEPAGE (logged in)
-   └── Section heading: "Your Personalised Deals, [First Name]"
-   └── "Edit Preferences" link → side panel → update interests → feed refreshes instantly
-   └── Non-selected categories appear in "More Deals" section below
-   └── If no interests set: nudge card → "Tell us what you like →" → /profile#settings
-
-BROWSING
-   └── "Follow Brand" button on /brand pages → stores followed brands
-   └── Deal alerts: push notifications for followed brands' new deals
-   └── Weekly email digest: only deals from selected interest categories
-
-REDEEMING A DEAL
-   └── Open /deal/:id
-   └── Copy coupon code (button) → code copied to clipboard
-   └── Click "Get Deal" → redirects to merchant website (new tab)
-   └── If affiliate-tracked: purchase recorded in Vouchiqo system
-   └── Savings amount auto-calculated and added to Savings Dashboard
-
-SAVINGS DASHBOARD (/profile#savings)
-   └── KPI cards: Saved This Month | Total Lifetime Savings | Spend Tracked | Savings Rate %
-   └── 12-month chart: savings line (orange) vs spending line (navy)
-   └── Category donut: where I save most — click slice to filter table below
-   └── Top 5 Brands bar chart: ₹ saved per brand with brand logos
-   └── Transaction table: every tracked use — sortable, filterable, exportable to CSV
-   └── Milestone badges: ₹500 / ₹1k / ₹5k / ₹10k saved → confetti animation on unlock
-   └── "Share My Savings" → generates image card → shareable to WhatsApp / Instagram / Twitter
+vouchiqo/
+├── apps/
+│   ├── web/                              # Next.js app (all 3 surfaces)
+│   │   ├── app/
+│   │   │   ├── (customer)/
+│   │   │   │   ├── page.tsx                        → /
+│   │   │   │   ├── deals/page.tsx                  → /deals
+│   │   │   │   ├── deal/[slug]/page.tsx             → /deal/:id
+│   │   │   │   ├── brand/[brandSlug]/page.tsx       → /brand/:brandname
+│   │   │   │   ├── category/[categorySlug]/page.tsx → /category/:categoryname
+│   │   │   │   ├── deals/[city]/page.tsx            → /deals/[city-name]
+│   │   │   │   ├── nearby-offers/page.tsx
+│   │   │   │   ├── expired-coupon-revival/page.tsx
+│   │   │   │   ├── auth/login/page.tsx
+│   │   │   │   ├── auth/signup/page.tsx
+│   │   │   │   └── profile/
+│   │   │   │       ├── layout.tsx                  (tab nav: Saves/Wallet/Activity/Nearby/Settings)
+│   │   │   │       ├── saves/page.tsx
+│   │   │   │       ├── wallet/page.tsx
+│   │   │   │       ├── activity/page.tsx
+│   │   │   │       └── settings/page.tsx
+│   │   │   ├── merchant/
+│   │   │   │   ├── login/page.tsx
+│   │   │   │   ├── register/page.tsx
+│   │   │   │   └── dashboard/
+│   │   │   │       ├── layout.tsx                  (sidebar shell, plan badge, top header)
+│   │   │   │       ├── page.tsx                    (overview / KPIs)
+│   │   │   │       ├── post/page.tsx                (3 tabs: Coupon / Deal / Special Offer)
+│   │   │   │       ├── listings/page.tsx
+│   │   │   │       ├── listings/expired/page.tsx    (Revival management)
+│   │   │   │       ├── analytics/page.tsx
+│   │   │   │       ├── campaigns/page.tsx
+│   │   │   │       ├── campaigns/[id]/edit/page.tsx
+│   │   │   │       ├── subscription/page.tsx
+│   │   │   │       ├── affiliate/page.tsx
+│   │   │   │       ├── notifications/page.tsx
+│   │   │   │       ├── settings/page.tsx            (5 sub-tabs)
+│   │   │   │       └── support/page.tsx
+│   │   │   ├── admin/
+│   │   │   │   ├── login/page.tsx
+│   │   │   │   ├── page.tsx                        (dashboard)
+│   │   │   │   ├── merchants/page.tsx
+│   │   │   │   ├── merchants/[id]/page.tsx
+│   │   │   │   ├── offers/verification/page.tsx
+│   │   │   │   ├── revivals/page.tsx
+│   │   │   │   ├── subscriptions/page.tsx
+│   │   │   │   ├── content/page.tsx
+│   │   │   │   └── users/page.tsx
+│   │   │   ├── sitemap.xml/route.ts
+│   │   │   └── robots.txt/route.ts
+│   │   ├── components/
+│   │   │   ├── customer/    (OfferCard, SearchBar, CategoryStrip, FlashDealsRail, FeaturedBrands, HowItWorks, TestimonialsCarousel, NearbyTeaser, NewsletterForm)
+│   │   │   ├── merchant/    (Sidebar, KPICard, PlanBadge, PostListingForm/*, ListingsTable, CampaignCard, PlanComparisonCard, AddOnCard)
+│   │   │   ├── admin/       (MerchantApprovalQueue, VerificationQueueRow, RevenueChart)
+│   │   │   └── ui/          (shared primitives: Button, Modal, Badge, Tabs, Toast — see Section 8.4)
+│   │   ├── lib/             (apiClient.ts, auth.ts, seo.ts, razorpayClient.ts, geolocation.ts)
+│   │   ├── hooks/           (useAuth, useSavedOffers, usePlanGate, useDebouncedSearch)
+│   │   ├── middleware.ts    (Next middleware: route protection for /merchant, /admin)
+│   │   └── next.config.js
+│   │
+│   └── api/                              # Express backend
+│       ├── src/
+│       │   ├── config/       (db.ts, razorpay.ts, sendgrid.ts, cloudinary.ts, firebase.ts, env.ts)
+│       │   ├── models/       (Mongoose schemas — see Section 5)
+│       │   ├── routes/       (one router file per domain — see Section 6)
+│       │   ├── controllers/
+│       │   ├── middleware/   (auth.middleware.ts, rbac.middleware.ts, planGate.middleware.ts, rateLimiter.middleware.ts, errorHandler.ts, validate.middleware.ts)
+│       │   ├── services/     (razorpay.service.ts, sendgrid.service.ts, revival.service.ts, seo.service.ts, upload.service.ts)
+│       │   ├── jobs/         (cron: expiryReminder.job.ts, weeklyDigest.job.ts, subscriptionExpiryCheck.job.ts)
+│       │   ├── utils/
+│       │   ├── app.ts
+│       │   └── server.ts
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── packages/
+│   └── shared-types/         (TS interfaces shared by web + api: Offer, Merchant, User, Plan, etc.)
+│
+├── docs/
+│   ├── ARCHITECTURE.md       (this file)
+│   ├── API_POSTMAN_COLLECTION.json   (deliverable per SRD 6.5)
+│   └── DB_SCHEMA.md
+│
+├── .env.example
+└── package.json              (workspace root)
 ```
 
 ---
 
-## 7. Merchant Flow — Start to End
+## 5. Data Model (MongoDB / Mongoose)
 
-### 7.1 Signup and Onboarding
+Multi-tenant isolation rule: every document owned by a merchant carries `merchantId`; every query from merchant-authenticated routes **must** filter by the authenticated merchant's own `merchantId` — enforced in middleware, not left to controller discipline.
 
+### 5.1 `User` (customer)
 ```
-1. MERCHANT DISCOVERS VOUCHIQO
-   └── Direct outreach by Vouchiqo sales team
-   └── Or self-discovery via platform
-
-2. MERCHANT SIGNUP (/merchant/signup)
-   └── Business name, email, category (one of 16), website, GSTIN (optional)
-   └── Email verified → dashboard access with Starter plan
-
-3. PLAN SELECTION (/merchant/dashboard/billing)
-   └── Starter  → basic listing, ticker only if slots unfilled
-   └── Growth   → higher ticker priority (CTR-sorted), blue "Growth Partner" badge
-   └── Pro      → always in ticker (redemption-rate sorted), purple "Pro Partner" badge
-   └── Enterprise → always first in tier, orange "Enterprise Partner" badge, full analytics
-
-   Payment processed → plan activates → priority engine updates automatically
+_id, fullName, email (unique, indexed), passwordHash, mobile,
+city, state, interests: [String],
+authProvider: 'local' | 'google' | 'facebook', oauthId,
+isEmailVerified: Boolean, otpCode, otpExpiresAt,
+resetPasswordToken, resetPasswordExpiresAt,
+notificationPrefs: { email: {...}, push: {...} },
+role: 'customer',
+createdAt, updatedAt
 ```
 
-### 7.2 Building the Brand Page
-
+### 5.2 `Merchant`
 ```
-/merchant/dashboard/profile → feeds /brand/[slug]-coupons-deals
+_id, businessName, category, categoryTags: [String],
+websiteUrl, gstNumber, businessType,
+contactPerson: { name, designation },
+businessEmail (unique, indexed), mobile, passwordHash,
+status: 'pending' | 'active' | 'suspended' | 'rejected',
+plan: 'starter' | 'growth' | 'pro' | 'enterprise',
+planExpiresAt, trialEndsAt,
+city, state, address, geo: { lat, lng },
+logoUrl, description, socialLinks: {...},
+twoFactorEnabled: Boolean,
+apiKey, apiKeyRegeneratedAt,               // Pro/Enterprise only
+razorpayCustomerId, razorpaySubscriptionId,
+commissionModel: 'CPA' | 'CPA_CPC' | 'CPA_CPC_CPL' | 'custom',
+bankDetails: { accountHolder, bankName, accountNumberMasked, ifsc },
+createdAt, updatedAt
 
-BRAND PROFILE FIELDS:
-   ├── Cover image (1200×300px) — fallback: auto-generated gradient from brand colour
-   ├── Brand logo (80px circle)
-   ├── Short description (300 chars)
-   ├── Long description (1000 chars, optional, collapsible on public page)
-   ├── Full business address → Street, City, State, Pincode, Country
-   ├── Google Maps embed auto-appears for physical businesses
-   ├── Contact: Phone (click-to-call) | WhatsApp number | Business email
-   ├── Operating hours: Mon–Sun per day, Open/Close time, "Closed" toggle per day
-   └── Business type: "Online Store" | "Physical Store" | "Online + Physical"
-       └── Map section hidden for "Online Store" merchants
-
-"Preview My Brand Page" button → opens /brand/[slug] in new tab
-```
-
-### 7.3 Creating and Publishing Deals
-
-```
-/merchant/dashboard/deals → New Deal
-
-DEAL FIELDS:
-   ├── Title (short, customer-facing)
-   ├── Coupon code (the actual code customers copy)
-   ├── Discount type: Percentage (%) or Flat (₹)
-   ├── Discount value
-   ├── Original / MRP price (used for savings calculation)
-   ├── Validity dates (start → end)
-   ├── Category (one of 16 — determines personalisation targeting)
-   ├── Deal type: Online | In-Store | Both
-   └── Terms & conditions (optional)
-
-ON PUBLISH:
-   └── Deal enters priority engine immediately
-   └── Appears on /deals, /brand/[slug], and homepage feed
-   └── Ticker placement based on plan tier (automatic, no manual action)
-   └── Expired at end date → auto-moves to Expired tab on /brand page
+// Indexes: merchantId-style lookups, category, status, city+state (multi-tenant + Section 6.1)
 ```
 
-### 7.4 Buying Paid Placement Add-Ons
-
+### 5.3 `Offer` (unifies Coupon / Deal / Special Offer — `type` discriminates)
 ```
-/merchant/dashboard/billing → Add-Ons
+_id, merchantId (ref, indexed), type: 'coupon' | 'deal' | 'special_offer',
+title, slug (unique, SEO), description, shortDescription, termsAndConditions, internalNote,
 
-AVAILABLE ADD-ONS:
-   ├── Homepage Featured Slot — ₹999 / 3 days
-   │     └── Elevates merchant to Priority 1 in ticker (above all plan-based order)
-   │     └── Auto-activates on payment — no admin action needed
-   │     └── Card text: "Your deals appear first in the Hot Deals ticker bar for 3 consecutive days"
-   │
-   └── Flash Campaign Boost — ₹799 / campaign duration
-         └── Elevated for the campaign's active period
-         └── Auto-activates on payment
+// coupon-specific
+code, 
 
-TICKER IMPRESSIONS (Analytics page):
-   └── KPI card: "Ticker Impressions this month — how many times your deals appeared in the ticker"
-```
+// deal-specific
+dealUrl, dealImageUrl, originalPrice, salePrice,
 
-### 7.5 Monitoring Analytics
+// special-offer-specific
+offerType: 'gift' | 'bogo' | 'loyalty' | 'referral' | 'bundle',
+redemptionMethod: 'auto' | 'show_to_cashier' | 'enter_code' | 'visit_store',
 
-```
-/merchant/dashboard/analytics
+discountType: 'percent' | 'flat' | 'free_shipping' | 'bogo',
+discountValue, maxDiscountCap, minOrderValue,
 
-KPI CARDS:
-   ├── Deal clicks (total and per deal)
-   ├── Coupon uses / redemptions
-   ├── Ticker Impressions (NEW — how often deal appeared in ticker)
-   ├── Brand Page Views (monthly unique visitors to /brand/[slug])
-   └── Avg discount offered
+categories: [ref Category], applicableFor: 'all' | 'new_users' | 'returning' | 'app_only',
+geoRestriction: { allIndia: Boolean, states: [String] },
+featuredOnHomepage: Boolean, includeInNewsletter: Boolean, campaignId (ref),
 
-PERFORMANCE TABLE:
-   └── Per-deal: clicks, uses, CTR, redemption rate, days remaining
+startAt, endAt, totalUsageLimit, perUserLimit, usageCount,
 
-TREND CHARTS:
-   └── Monthly: clicks vs redemptions vs impressions
-   └── Top performing deals by redemption rate
+status: 'draft' | 'pending_review' | 'active' | 'paused' | 'expired' | 'rejected',
+rejectionReason, verifiedAt, verifiedByAdminId,
+
+clicks, redemptions, helpfulVotes: { up, down },
+createdAt, updatedAt
+
+// Indexes (SRD 6.1): merchantId, category, status, expiry_date(endAt), city (via merchant)
 ```
 
----
-
-## 8. Admin Flow — Start to End
-
-### 8.1 Merchant Approval
-
+### 5.4 `Category`
 ```
-NEW MERCHANT SIGNUP EVENT
-      │
-      ▼
-Admin notified → /admin/merchants → review application
-      │
-      ├── Checks: business name, website (live?), category, GSTIN
-      │
-      ├── APPROVE
-      │     └── Merchant gets full dashboard access
-      │     └── Plan activates (Starter by default until payment)
-      │
-      └── REJECT
-            └── Reason recorded and sent to merchant
-            └── Merchant can reapply with corrections
+_id, name, slug, emoji, parentCategoryId (optional, for sub-categories), isActive
 ```
 
-### 8.2 Ticker Management
-
+### 5.5 `RevivalRequest`
 ```
-/admin/ticker
-
-VIEWS:
-   ├── Current ticker order (live preview of what customers see)
-   ├── Priority breakdown: Paid slots | Enterprise | Pro | Growth | Starter
-   ├── Which merchants have active paid Featured Slots (+ expiry dates)
-   └── Per-deal: impressions, clicks, current position
-
-ACTIONS:
-   ├── Manually PIN a deal → forces it to top regardless of automatic order
-   ├── UNPIN a pinned deal → returns to automatic priority
-   └── OVERRIDE order for specific deals or campaigns
+_id, source: 'customer_form' | 'merchant_manual',
+customerEmail, customerName,
+brandRequested, merchantId (ref, resolved after matching),
+originalOfferId (ref, optional), couponCodeRequested, customerNote,
+status: 'new' | 'forwarded' | 'approved' | 'declined' | 'resolved',
+revivalOption: 'keep_same_discount' | 'adjust_discount' | 'new_expiry',
+newOfferId (ref, the regenerated live offer),
+autoApproved: Boolean,
+createdAt, resolvedAt
 ```
 
-### 8.3 Revival Queue Management
-
+### 5.6 `RevivalStory` (admin-managed social proof feed, SRD 2.7)
 ```
-/admin/revivals
-
-INCOMING REQUEST CONTAINS:
-   ├── Customer email
-   ├── Expired coupon code
-   └── Brand / store name (auto-matched to merchant in DB if registered)
-
-ADMIN WORKFLOW:
-   1. Open request in queue
-   2. Identify merchant (registered on Vouchiqo or external)
-   3. Contact merchant via:
-         └── Dashboard notification (if registered merchant)
-         └── Direct email (if not on platform — opportunity to pitch)
-   4. Wait for merchant response (48-hour SLA)
-   5. Relay outcome to customer by email
-
-OUTCOMES:
-   ├── APPROVED
-   │     └── Merchant provides new/extended code
-   │     └── Admin sends code to customer
-   │     └── Revival marked "Successful" — counted in platform stats
-   │
-   ├── COUNTER OFFER
-   │     └── Merchant offers alternative deal
-   │     └── Admin forwards offer to customer
-   │     └── Revival marked "Counter Offered"
-   │
-   └── REJECTED
-         └── Merchant declines
-         └── Admin notifies customer with apology + link to active deals
-         └── Revival marked "Rejected"
+_id, customerNameAnon, city, brand, amountSaved, timeAgoLabel, isActive, sortOrder
 ```
 
-### 8.4 Platform Stats Update
-
+### 5.7 `Subscription`
 ```
-/admin/settings → Platform Stats
-
-EDITABLE STATS (shown on homepage Revival section):
-   ├── "X+ Revivals Processed" → update as milestone crossed
-   ├── "₹XL+ Recovered" → update monthly
-   └── "X% Approval Rate" → update monthly based on actual data
+_id, merchantId (ref), plan, billingCycle: 'monthly' | 'annual',
+razorpaySubscriptionId, razorpayPlanId,
+status: 'active' | 'expiring' | 'expired' | 'cancelled',
+startedAt, currentPeriodEnd, prorationCreditsApplied,
+createdAt
 ```
 
-### 8.5 Revenue Monitoring
-
+### 5.8 `Transaction` (billing history + GST invoices, SRD 3.9)
 ```
-/admin/revenue
+_id, merchantId (ref), type: 'subscription' | 'addon',
+description, amount, gstAmount, totalAmount,
+status: 'paid' | 'pending' | 'failed',
+razorpayPaymentId, invoicePdfUrl, hsnCode,
+createdAt
+```
 
-STREAMS:
-   ├── Subscriptions: MRR by plan tier, churn rate, upgrades/downgrades
-   ├── Add-Ons: Featured Slot + Flash Boost purchases this period
-   ├── Affiliate: commissions on tracked purchase transactions (via CoupX)
-   └── Revival (future stream): potential fee to merchants for successful revivals
+### 5.9 `AddOnPurchase`
+```
+_id, merchantId (ref),
+addOnType: 'revival_pack' | 'campaign_boost' | 'homepage_slot' | 'push_notification' | 'festival_package' | 'analytics_report',
+quantity, amount, purchasedAt, usageRemaining, expiresAt
+```
 
-TOP MERCHANT TABLE:
-   └── By subscription revenue | By add-on spend | By affiliate contribution
+### 5.10 `Campaign`
+```
+_id, merchantId (ref), name,
+type: 'flash_sale' | 'festival' | 'seasonal' | 'new_user_drive' | 'clearance' | 'custom',
+objective, description,
+attachedOfferIds: [ref Offer],
+promotionSettings: {
+  homepageSlot: Boolean, pushNotification: { enabled, copy },
+  newsletter: Boolean, targetAudience, socialShare: Boolean
+},
+status: 'draft' | 'scheduled' | 'live' | 'ended',
+scheduledAt, launchedAt, endedAt,
+stats: { clicks, redemptions, revenue },
+createdAt
+```
+
+### 5.11 `CommissionEarning`
+```
+_id, merchantId (ref), listingOrCampaignId,
+type: 'CPA' | 'CPC' | 'CPL', quantity, rate, earnings,
+status: 'pending' | 'confirmed' | 'paid', periodMonth, createdAt
+```
+
+### 5.12 `MerchantNotification`
+```
+_id, merchantId (ref),
+type: 'listing_approved' | 'expiring_soon' | 'listing_rejected' | 'weekly_report' | 'billing' | 'campaign_ended' | 'milestone' | 'action_required',
+message, isRead: Boolean, createdAt
+```
+
+### 5.13 `SupportTicket`
+```
+_id, merchantId (ref), subject, message, attachmentUrl,
+status: 'open' | 'in_progress' | 'resolved',
+thread: [{ sender, text, createdAt }],
+createdAt, updatedAt
+```
+
+### 5.14 `SavedOffer` (customer)
+```
+_id, userId (ref), offerId (ref), savedAt
+```
+
+### 5.15 `ActivityLog` (customer)
+```
+_id, userId (ref), type: 'offer_used' | 'offer_saved' | 'revival_submitted' | 'account_event', meta, createdAt
+```
+
+### 5.16 `NewsletterSubscriber`
+```
+_id, email (unique), city, subscribedAt, isActive
+```
+
+### 5.17 `AdminUser`
+```
+_id, email (unique), passwordHash, role: 'super_admin' | 'ops', createdAt
+```
+
+### 5.18 `PlatformContent` (SRD 4.6 — key/value content blocks)
+```
+_id, key: 'homepage_featured_merchants' | 'announcement_banner' | 'revival_feed' | 'category_config',
+value: Mixed (JSON), updatedAt, updatedByAdminId
 ```
 
 ---
 
-## 9. Expired Coupon Revival Flow
+## 6. API Route Map (Express, `apps/api`)
 
-This is Vouchiqo's most important feature. It must be fast, low-friction, and visible everywhere.
+All merchant/admin routes require JWT + role middleware. Plan-gated routes additionally run `planGate.middleware.ts` (see Section 7).
 
-### 9.1 Entry Points (Customer)
+### 6.1 Auth
+```
+POST   /api/auth/customer/signup
+POST   /api/auth/customer/login
+POST   /api/auth/customer/google
+POST   /api/auth/customer/facebook
+POST   /api/auth/customer/verify-otp
+POST   /api/auth/customer/resend-otp
+POST   /api/auth/customer/forgot-password
+POST   /api/auth/customer/reset-password
 
-| Entry Point | Location | Behaviour |
+POST   /api/auth/merchant/register        (3-step payload)
+POST   /api/auth/merchant/login
+POST   /api/auth/merchant/forgot-password
+POST   /api/auth/merchant/reset-password
+POST   /api/auth/merchant/demo-login       (seeded read-only demo account)
+
+POST   /api/auth/admin/login
+```
+
+### 6.2 Public / Customer-facing content
+```
+GET    /api/offers                 (filters: category, discountType, minDiscount, validity, newUsersOnly, brand, sort, page)
+GET    /api/offers/:slug
+POST   /api/offers/:id/save        (auth: customer)
+DELETE /api/offers/:id/save        (auth: customer)
+POST   /api/offers/:id/vote        (auth: customer)   body: { helpful: boolean }
+
+GET    /api/brands
+GET    /api/brands/:slug           (brand profile + active/expired offers)
+
+GET    /api/categories
+GET    /api/categories/:slug       (+ optional ?city=)
+
+GET    /api/offers/nearby          (query: lat, lng, radiusKm)
+
+POST   /api/revival-requests                (public form submit)
+GET    /api/revival-requests/recent-stories (social proof feed)
+
+POST   /api/newsletter/subscribe
+
+GET    /api/homepage                (aggregated payload: flash deals, featured brands, testimonials, stats)
+```
+
+### 6.3 Customer account (auth required)
+```
+GET    /api/customer/profile
+PATCH  /api/customer/profile
+GET    /api/customer/saves
+GET    /api/customer/activity
+GET    /api/customer/wallet
+PATCH  /api/customer/settings/notifications
+DELETE /api/customer/account
+```
+
+### 6.4 Merchant dashboard (auth: merchant)
+```
+GET    /api/merchant/dashboard/overview
+
+# Listings
+POST   /api/merchant/listings
+GET    /api/merchant/listings              (filters: status, type, category, sort)
+GET    /api/merchant/listings/:id
+PATCH  /api/merchant/listings/:id
+DELETE /api/merchant/listings/:id
+PATCH  /api/merchant/listings/bulk         (pause/delete/extend-expiry)
+
+# Revival (plan-gated: Pro+, or add-on)
+GET    /api/merchant/listings/expired
+POST   /api/merchant/listings/:id/revive
+GET    /api/merchant/revival-requests               (incoming from customers)
+PATCH  /api/merchant/revival-requests/:id/approve
+PATCH  /api/merchant/revival-requests/:id/decline
+PATCH  /api/merchant/revival-requests/bulk
+PUT    /api/merchant/revival-requests/auto-approval-rules   (Pro+)
+
+# Analytics (locked on Starter)
+GET    /api/merchant/analytics                     (query: range)
+GET    /api/merchant/analytics/export.csv
+
+# Campaigns (locked on Starter)
+GET    /api/merchant/campaigns
+POST   /api/merchant/campaigns
+GET    /api/merchant/campaigns/:id
+PATCH  /api/merchant/campaigns/:id
+DELETE /api/merchant/campaigns/:id
+POST   /api/merchant/campaigns/:id/launch
+
+# Subscription & billing
+GET    /api/merchant/subscription
+POST   /api/merchant/subscription/upgrade          (creates Razorpay order/subscription)
+POST   /api/merchant/subscription/addons/:addOnType/purchase
+GET    /api/merchant/subscription/billing-history
+GET    /api/merchant/subscription/invoices/:id.pdf
+POST   /api/merchant/subscription/enterprise-enquiry
+
+# Affiliate & commission
+GET    /api/merchant/affiliate
+PATCH  /api/merchant/affiliate/payout-details
+POST   /api/merchant/affiliate/rate-change-request
+
+# Notifications
+GET    /api/merchant/notifications
+PATCH  /api/merchant/notifications/:id/read
+PATCH  /api/merchant/notifications/read-all
+
+# Settings (5 tabs)
+GET    /api/merchant/settings/business-profile
+PATCH  /api/merchant/settings/business-profile
+PATCH  /api/merchant/settings/security             (password, 2FA, sessions)
+GET    /api/merchant/settings/sessions
+DELETE /api/merchant/settings/sessions/:sessionId
+PATCH  /api/merchant/settings/notification-prefs
+GET    /api/merchant/settings/api-access           (Pro/Enterprise only)
+POST   /api/merchant/settings/api-access/regenerate
+PATCH  /api/merchant/settings/danger-zone/pause-listings
+PATCH  /api/merchant/settings/danger-zone/deactivate
+DELETE /api/merchant/settings/danger-zone/delete-account
+
+# Support
+GET    /api/merchant/support/tickets
+POST   /api/merchant/support/tickets
+GET    /api/merchant/support/tickets/:id
+POST   /api/merchant/support/tickets/:id/reply
+```
+
+### 6.5 Admin (auth: admin, IP-whitelist recommended — SRD 6.2)
+```
+GET    /api/admin/dashboard
+
+GET    /api/admin/merchants                (filters + search)
+GET    /api/admin/merchants/pending
+PATCH  /api/admin/merchants/:id/approve
+PATCH  /api/admin/merchants/:id/reject
+PATCH  /api/admin/merchants/:id/request-info
+GET    /api/admin/merchants/:id            (full detail: profile, listings, subs, commissions, tickets, activity)
+PATCH  /api/admin/merchants/:id/plan
+PATCH  /api/admin/merchants/:id/suspend
+PATCH  /api/admin/merchants/:id/revival-credits
+
+GET    /api/admin/offers/verification-queue
+PATCH  /api/admin/offers/:id/approve
+PATCH  /api/admin/offers/:id/reject
+PATCH  /api/admin/offers/bulk-approve
+
+GET    /api/admin/revival-requests
+PATCH  /api/admin/revival-requests/:id/forward
+PATCH  /api/admin/revival-requests/:id/resolve
+
+GET    /api/admin/subscriptions
+GET    /api/admin/subscriptions/failed-payments
+GET    /api/admin/addons/history
+GET    /api/admin/payouts
+PATCH  /api/admin/payouts/:id/mark-paid
+
+GET    /api/admin/content/:key
+PUT    /api/admin/content/:key             (homepage sections, banners, revival feed, categories)
+
+GET    /api/admin/users
+PATCH  /api/admin/users/:id/suspend
+DELETE /api/admin/users/:id
+GET    /api/admin/users/newsletter-subscribers.csv
+```
+
+### 6.6 Webhooks
+```
+POST   /api/webhooks/razorpay      (signature verification mandatory — SRD 6.2)
+```
+
+---
+
+## 7. Auth, RBAC & Plan-Gating Design
+
+### 7.1 Three independent auth domains
+- **Customer**: NextAuth.js on the frontend (Google/Facebook OAuth + credentials provider that calls `/api/auth/customer/login`), session strategy = JWT, 24h expiry.
+- **Merchant**: custom JWT issued directly by Express (`/api/auth/merchant/login`), stored in httpOnly cookie, 8h expiry + refresh token for "stay logged in".
+- **Admin**: same pattern as merchant but separate secret/namespace, never shared with merchant tokens, and admin panel should sit behind an IP allowlist or extra password layer (SRD 6.2).
+
+**[DECISION NEEDED]** Reconciling "JWT + NextAuth.js" from the SRD: NextAuth is naturally suited to the *customer* OAuth flow; merchant/admin panels are better served by a custom JWT/cookie layer talking straight to Express, since NextAuth sessions aren't designed for multi-role dashboards with 8h/24h differing expiries. Recommend documenting this split explicitly in the contract confirmation before development.
+
+### 7.2 RBAC middleware (Express)
+```ts
+// middleware/rbac.middleware.ts
+requireRole('customer' | 'merchant' | 'admin')
+// verifies JWT signature + role claim + (for merchant) merchant.status === 'active'
+```
+
+### 7.3 Plan-gating middleware (server-enforced, SRD Section 7)
+```ts
+// middleware/planGate.middleware.ts
+requirePlan(feature: 'revival' | 'campaigns' | 'analytics' | 'api_access' | 'homepage_featured')
+// looks up req.merchant.plan against the feature matrix below
+// on failure: 403 { message: "Feature not available on your current plan." }
+```
+
+**Plan feature matrix (SRD Section 7 — enforce exactly, on the server):**
+
+| Feature | Starter | Growth | Pro | Enterprise |
+|---|---|---|---|---|
+| Active listings | 3 | 15 | Unlimited | Unlimited |
+| Dashboard | ✗ | Basic | Advanced | Full suite |
+| Analytics | ✗ | Standard | Deep | Custom |
+| Campaign Manager | ✗ | 1/quarter | 4/year | Unlimited |
+| Homepage Featured Slot | ✗ | ✗ | 2 days/mo | Custom |
+| Push Notification | ✗ | ✗ | 1/month | Unlimited |
+| Expired Offer Revival | ✗ | add-on only | 50/month | Unlimited |
+| Read-only API | ✗ | ✗ | ✓ | Full R/W |
+| Commission model | CPA only | CPA+CPC | CPA+CPC+CPL | Custom |
+| Support SLA | 72hr email | 48hr email | 24hr priority | 4hr dedicated |
+| 14-day free trial | — | ✓ | ✓ | — |
+
+Razorpay plan IDs required: `vouchiqo_growth_monthly`, `vouchiqo_growth_annual`, `vouchiqo_pro_monthly`, `vouchiqo_pro_annual`. Starter = free (no Razorpay plan). Enterprise = manual invoice, no self-serve checkout. Mid-cycle upgrades must use Razorpay's proration — do not hand-roll proration math.
+
+---
+
+## 8. Feature Modules — In-Depth Breakdown
+
+Each row: **Feature → Route(s) → Key components → Data touched → Notes**. Use this as the master checklist; check items off in Section 9 as they're built.
+
+### 8.1 Customer Platform (SRD Section 2)
+
+| Feature | Route | Components | Data | Notes |
+|---|---|---|---|---|
+| Homepage (hero, search, category strip, flash deals, featured brands, how-it-works, trending categories, testimonials, nearby teaser, app-download, for-merchants CTA, newsletter) | `/` | `HeroSection`, `SearchBar`, `CategoryStrip`, `FlashDealsRail`, `FeaturedBrands`, `HowItWorks`, `TrendingCategoriesGrid`, `TestimonialsCarousel`, `NearbyTeaser`, `AppDownloadCTA`, `ForMerchantsCTA`, `NewsletterForm` | `Offer` (featured/flash), `Merchant` (featured, min 16), platform stat aggregation | Must be SSR/SSG. Navy `#1A3C5E` hero, orange CTA. Countdown timer resets every 24h. |
+| Deals browse | `/deals` | `FilterSidebar`, `SortDropdown`, `OfferCardGrid`, `ActiveFilterPills` | `Offer` (paginated/filtered) | **[DECISION NEEDED]** infinite scroll vs pagination — SRD leaves this to developer; pagination is simpler for SEO (crawlable page 2, 3…), recommended. |
+| Offer Card (reusable) | used site-wide | `OfferCard` in `components/customer` | `Offer`, `SavedOffer` | Copy-to-clipboard with 2s "Copied!" state; save toggles login modal if unauthenticated; amber "expires in Xd" / red "Expired" badge logic. |
+| Individual offer page | `/deal/[slug]` | `OfferDetailLeft`, `StickyCodeSidebar`, `SimilarOffers` | `Offer`, votes, comments | Slug format `brand-name-offer-title-coupon-code`. JSON-LD `Offer` schema required (Section 8.5 below). |
+| Brand pages | `/brand/[brandSlug]` | `BrandHeader`, `OfferCardGrid`, `ExpiredOffersCollapsed` | `Merchant`, `Offer` (by merchant) | Expired section has "Request Revival" button → prefills revival form. |
+| Category pages (+ city variant) | `/category/[categorySlug]`, `/category/[cat]-deals-[city]` | `CategoryHero`, `SubCategoryChips`, `OfferCardGrid` | `Category`, `Offer` | City+category URLs are the primary local-SEO driver — do not skip. |
+| Nearby Offers | `/nearby-offers` | `NearbyDealList`, `GoogleMapPanel`, `LocationModal`, `DistanceFilter` | `Offer` + `Merchant.geo` | GPS permission → fallback manual Country/State/City/Locality picker. Ranchi/Jharkhand priority sort for Home Improvement category (SHOULD). Marker clustering required. |
+| Expired Offer Revival (customer) | `/expired-coupon-revival` | `RevivalHero`, `HowRevivalWorks`, `RevivalRequestForm`, `RecentRevivalsFeed` | `RevivalRequest`, `RevivalStory` | On submit: DB write + email to merchant dashboard + confirmation email to customer. |
+| Customer auth | `/auth/login`, `/auth/signup` | split-panel layout, OAuth buttons, OTP flow | `User` | OTP via email, resend after 60s. Forgot-password token expires 1h. |
+| Customer profile | `/profile/*` (Saves / Wallet / Activity / Nearby / Settings tabs) | `ProfileTabs`, `SavedOffersGrid`, `WalletCard` (placeholder), `ActivityFeed`, `SettingsForm` | `SavedOffer`, `ActivityLog`, `User` | Wallet redemption button is UI-only ("Coming Soon") for MVP — no payout logic (Phase 2). |
+
+### 8.2 Merchant Portal (SRD Section 3 — "if broken, Vouchiqo has no business model")
+
+| Feature | Route | Components | Data | Notes |
+|---|---|---|---|---|
+| Merchant auth | `/merchant/login`, `/merchant/register` | `MerchantLoginForm`, `3-StepRegisterWizard`, `DemoLoginButton` | `Merchant` | Demo login = seeded read-only account with persistent yellow "DEMO" banner. Registration step 3 = plan selection (Starter/Growth/Pro/Enterprise cards). |
+| Dashboard shell | `/merchant/dashboard/layout.tsx` | `Sidebar` (11 nav items), `TopHeaderBar`, `PlanExpiryBanner` | `Merchant` | Sidebar navy `#1A3C5E`; collapses to icon-rail on tablet, bottom tab bar (5 tabs) on mobile. |
+| Dashboard overview | `/merchant/dashboard` | `KPICardRow` (4 cards), `PerformanceLineChart`, `TopCouponsTable`, `QuickActionsCard`, `PlanUsageCard`, `RecentActivityFeed`, `ContextualAlerts` | `Offer` aggregates, `Subscription` | Revival/Campaign quick actions locked+tooltip on Starter. |
+| Post New Listing | `/merchant/dashboard/post` | `PostListingTabs` (Coupon / Deal / Special Offer), `LivePreviewPanel` | `Offer` (create, status=`pending_review`) | Live preview mirrors public `OfferCard` in real time as merchant types. "Submit for Review" → verification queue (admin). |
+| Listings management | `/merchant/dashboard/listings` | `ListingsFilterBar`, `ListingsTable`, `BulkActionsToolbar` | `Offer` | Bulk pause/delete/extend-expiry. Expired sub-tab shows "Revive" (greyed on Starter/Growth per plan gate). |
+| Revival management | `/merchant/dashboard/listings/expired` | `RevivalLockedCard` (Starter/Growth), `RevivalUsageBar` (Pro/Enterprise), `RevivalTable`, `ReviveModal`, `RevivalRequestsTab`, `AutoApprovalRulesToggle` | `RevivalRequest`, `Offer` | Plan gate at both UI and `requirePlan('revival')` middleware. Auto-approval rules engine is Pro+ only. |
+| Analytics | `/merchant/dashboard/analytics` | `DateRangePicker`, `KPICards`, `ClicksVsRedemptionsChart`, `TopCouponsBarChart`, `TrafficSourceDonut`, `BestDaysBarChart`, `CouponPerformanceTable` | `Offer` aggregates | Starter = fully locked page. Audience Insights + Revival Stats sections are Pro+ (SHOULD). |
+| Campaign Manager | `/merchant/dashboard/campaigns` | `CampaignList`, `CreateCampaignWizard` (4 steps) | `Campaign` | Starter fully locked. Step 4 launch options: Draft / Schedule / Launch Now. |
+| Subscription & Billing | `/merchant/dashboard/subscription` | `CurrentPlanCard`, `PlanComparisonGrid`, `UpgradeModal` (3-step), `AddOnsGrid` (6 cards), `BillingHistoryTable` | `Subscription`, `Transaction`, `AddOnPurchase` | Razorpay checkout embedded in step 2 of upgrade modal. GST-formatted invoice PDFs mandatory. |
+| Affiliate & Commission | `/merchant/dashboard/affiliate` | `CommissionModelCard`, `EarningsTable`, `PayoutDetailsCard` | `CommissionEarning`, `Merchant.bankDetails` | Affiliate network integration cards (Admitad, vCommission) are SHOULD only. |
+| Notifications | `/merchant/dashboard/notifications` | `NotificationTabs`, `NotificationList` | `MerchantNotification` | Types: approved/expiring/rejected/report/billing/campaign-ended/milestone/action-required. |
+| Settings | `/merchant/dashboard/settings` | 5-tab layout: `BusinessProfileTab`, `SecurityTab`, `NotificationPrefsTab`, `APIAccessTab` (Pro/Ent only), `DangerZoneTab` | `Merchant` | API Access tab must 403/hide for Starter/Growth. Delete Account requires type-to-confirm + 30-day recovery window messaging. |
+| Help & Support | `/merchant/dashboard/support` | `SLABanner`, `QuickHelpAccordion`, `ContactForm`, `TicketHistoryTable` | `SupportTicket` | SLA text driven by `merchant.plan` (72/48/24/4 hr). |
+
+### 8.3 Admin Panel (SRD Section 4 — "not optional")
+
+| Feature | Route | Components | Data | Notes |
+|---|---|---|---|---|
+| Admin dashboard | `/admin` | KPI row, `RevenueTrendChart`, `MerchantGrowthChart`, `UserGrowthChart` | Aggregated across all collections | Pending approvals + coupons-awaiting-verification counts must be prominent (they're operational blockers). |
+| Merchant management | `/admin/merchants`, `/admin/merchants/[id]` | `MerchantTable`, `PendingApprovalQueue`, `MerchantDetailView` | `Merchant`, related listings/subs/commissions/tickets | Approve → welcome email + activate. Reject → reason email. Admin can manually change plan/suspend/add revival credits. **Marbella pre-seeded account** (see Section 10 seed data) must exist per SRD 4.2. |
+| Offer verification queue | `/admin/offers/verification` | `VerificationQueueTable`, `TestCodeLink`, bulk approve | `Offer` (status=`pending_review`) | "Test Code" opens merchant's live URL for manual QA before Approve & Publish. Priority queue for Pro/Enterprise submissions. |
+| Revival request management | `/admin/revivals` | `RevivalRequestsTable` | `RevivalRequest` | Admin can forward to merchant or manually resolve after 48h of merchant non-response. |
+| Subscription & revenue mgmt | `/admin/subscriptions` | `SubscriptionOverview`, `FailedPaymentAlerts`, `AddOnRevenueSummary`, `PayoutManagement` | `Subscription`, `Transaction`, `CommissionEarning` | MRR total displayed at top. Failed Razorpay payments need a retry + contact-merchant action. |
+| Platform content mgmt | `/admin/content` | `HomepageSectionsEditor`, `RevivalFeedEditor`, `AnnouncementBannerEditor`, `CategoryManager` | `PlatformContent`, `Category`, `RevivalStory` | Controls which merchants appear in Featured Brands / homepage featured slot. |
+| User management | `/admin/users` | `UserTable`, CSV export | `User`, `NewsletterSubscriber` | Delete = full data wipe (confirm GDPR-style deletion semantics with owner). |
+
+### 8.4 Shared UI Component Library (`components/ui`)
+
+These primitives are used across all three surfaces (customer, merchant, admin) and should be built once, styled with a shared theme (navy `#1A3C5E` / orange primary / teal category tags), and reused rather than re-implemented per page:
+
+| Component | Used by | Notes |
 |---|---|---|
-| Inline mini-form | Homepage Revival section | Form expands in-page, no navigation |
-| Request Revival button | /brand/:slug → Expired tab (per card) | Form pre-filled with code + brand |
-| Full page | /expired-coupon-revival | Standalone page with full form |
-| Navbar link | "Revive Coupon" between Nearby and Categories | Orange/red badge indicator |
-| Footer link | First item in Quick Links column | Always visible |
-
-### 9.2 The Form
-
-```
-Fields:
-  ├── Expired Coupon Code (text input, required)
-  ├── Brand / Store Name (text with autocomplete from merchant DB, required)
-  └── Your Email (text input, required — used to send the outcome)
-
-On submit:
-  └── Inline success: "Submitted! We'll reach out within 48 hours."
-  └── Request stored in revival queue in DB
-  └── Admin notified
-
-No account required to submit a revival.
-```
-
-### 9.3 Full Revival State Machine
-
-```
-[Customer submits form]
-         │
-         ▼
-[Revival request created — status: PENDING]
-         │
-         ▼
-[Admin receives in queue — status: IN_REVIEW]
-         │
-         ▼
-[Admin contacts merchant]
-         │
-    48-hour window
-         │
-         ├──────────────────────────────────────────────┐
-         │                                              │
-    [Merchant responds]                      [No response in 48h]
-         │                                              │
-         │                                              ▼
-         │                                    [Auto-close: EXPIRED]
-         │                                    [Customer notified]
-         │
-    ┌────┴──────────────────────────┐
-    │                               │
-[APPROVED]                    [COUNTER]               [REJECTED]
-    │                               │                     │
-    ▼                               ▼                     ▼
-Fresh code             Alternative deal offered    Customer notified
-sent to customer       forwarded to customer       with active deals link
-    │                               │
-    ▼                               ▼
-[status: SUCCESSFUL]       [status: COUNTER_OFFERED]   [status: REJECTED]
-    │
-    ▼
-Platform stats incremented:
-  └── "Revivals Processed" counter +1
-  └── "₹ Recovered" += deal value
-  └── Approval rate recalculated
-```
+| `Button` | everywhere | Variants: primary (orange), outline (white/navy), danger (red), locked (grey + lock icon for plan-gated actions) |
+| `Modal` | offer copy modal, upgrade flow, revive modal, confirmation dialogs | Needs a "confirmation" sub-variant with type-to-confirm support (danger zone) |
+| `Badge` / `Pill` | Verified badge, discount badge, status pills, plan badges | Color-coded by status: green=active/verified, amber=expiring/pending, red=expired/rejected, grey=draft/starter |
+| `Tabs` | profile tabs, post-listing tabs, settings tabs, support tabs | Both top-tab and sidebar-tab layouts needed |
+| `Toast` | "Copied!", save confirmations, form success/error | 2-second auto-dismiss for copy actions per SRD 2.2 |
+| `ProgressBar` | plan usage bars (listings/campaigns/revival credits), password strength, registration wizard steps | |
+| `DataTable` | listings, analytics, billing history, admin queues | Needs sortable columns, row actions, bulk-select checkbox column |
+| `EmptyState` | "My Saves" empty state, no-results states | Illustration + CTA button pattern |
+| `LockedFeatureCard` | Analytics/Campaigns/Revival on Starter plan | Explanation copy + Upgrade CTA — drives upsell, must be consistent everywhere a plan gate hides a feature |
 
 ---
 
-## 10. Hot Deals Ticker — Priority Engine
+## 9. Feature Status Tracker
 
-### 10.1 Visual Spec
+> Update these checkboxes as implementation proceeds — this section is what tells an editor/agent "what already exists in this codebase" at a glance. Priorities are from SRD Section 9.
 
-```
-Position:   Immediately below navbar. Full viewport width. Sticky (stays on scroll).
-Height:     44px desktop / 40px mobile
-Background: Deep navy (#1A3C5E) with shimmer effect
-Left badge: "🔴 HOT DEALS" orange pill, white text, left-aligned
-Scroll:     Right-to-left continuous loop, ~20–25 second full cycle
-Pause:      On hover (desktop) / touch-hold (mobile)
-Items:      [Brand logo 16px] [Brand name bold white] [Offer snippet] [Discount badge orange] [→]
-Separator:  Vertical orange dividing line between items
-Right end:  Fixed "View All Hot Deals →" link → /deals?filter=featured
-Click:      Each item is a link → /deal/:id
-```
+### High priority — must ship for MVP
+- [ ] Homepage (all sections)
+- [ ] Customer auth (signup/login/OAuth/OTP/forgot-password)
+- [ ] Customer profile (saves + activity)
+- [ ] Deals browse page (filters + grid)
+- [ ] Individual offer page (copy-code + modal)
+- [ ] Brand pages
+- [ ] Category pages (incl. city+category SEO URLs)
+- [ ] Nearby offers + Google Maps
+- [ ] Expired Offer Revival — customer page + form
+- [ ] Merchant auth (3-step register, login, first-login onboarding)
+- [ ] Merchant dashboard shell
+- [ ] Post New Listing (3 tabs + live preview)
+- [ ] Listings management (CRUD)
+- [ ] Merchant analytics (Growth+)
+- [ ] Subscription & billing (4 plans + Razorpay upgrade flow)
+- [ ] Add-ons purchase flow (6 add-ons)
+- [ ] Billing history + GST invoice PDFs
+- [ ] Revival management (merchant side)
+- [ ] Campaign manager (basic, Growth+)
+- [ ] Admin: merchant approval queue
+- [ ] Admin: offer verification queue
+- [ ] Admin: subscription & revenue management
+- [ ] All 15 email notification types (Section 11)
+- [ ] SEO: dynamic meta + JSON-LD on all public pages
+- [ ] SEO: city+category URL pages
+- [ ] XML sitemap auto-generation
+- [ ] Full mobile responsiveness
 
-### 10.2 Priority Hierarchy (highest → lowest)
+### Medium priority — in MVP if timeline allows, else Phase 2
+- [ ] Cashback wallet (placeholder UI only, no backend logic)
+- [ ] Merchant account settings (all 5 tabs)
+- [ ] Help & support ticketing
+- [ ] Affiliate & commission tracking
+- [ ] Merchant notification centre
+- [ ] App-download "coming soon" + email capture
+- [ ] City-specific deal pages `/deals/[city]`
 
-```
-PRIORITY 1 — Paid Featured Slots
-   └── Merchants who purchased "Homepage Featured Slot" (₹999/3 days)
-   └── OR "Flash Campaign Boost" (₹799/campaign)
-   └── Admin can manually reorder within this tier
-   └── Auto-activates on purchase — no admin action needed
-
-PRIORITY 2 — Enterprise Plan Merchants
-   └── All active deals, automatically and continuously
-   └── No performance threshold required
-
-PRIORITY 3 — Pro Plan Merchants
-   └── Active deals with highest redemption rate in last 7 days
-   └── Sorted by: (redemptions ÷ clicks) → last 7 days
-
-PRIORITY 4 — Growth Plan Merchants
-   └── Top-performing deals sorted by click-through rate
-   └── Sorted by: (clicks ÷ impressions) → last 7 days
-
-PRIORITY 5 — Starter Plan Merchants
-   └── Only fills remaining slots if ticker has space
-   └── Edge case — unlikely once platform has 20+ paid merchants
-```
-
-### 10.3 Content Rules
-
-- Content updates in real-time from DB — no manual curation needed except Priority 1.
-- Admin can pin/unpin any deal in Ticker Management panel.
-- Merchant Analytics shows "Ticker Impressions" KPI (how many times their deals appeared in the ticker this month).
+### Low priority — explicitly Phase 2, do not build unless asked
+- [ ] Audience insights in analytics (Pro+)
+- [ ] Full read/write API access for Enterprise
+- [ ] WhatsApp Business API integration
+- [ ] Advanced push notification segmentation
+- [ ] Cashback wallet real payout logic (fintech/banking integration)
+- [ ] Native mobile app (iOS/Android)
 
 ---
 
-## 11. Personalisation Engine
+## 10. Seed / Fixture Data Required (SRD 8.5)
 
-### 11.1 Interest Categories (16 total — same list everywhere)
+- Marbella merchant account: business name "Marbella", category "Home Improvement — Tiles, Sanitary & Granite", location Ranchi/Jharkhand, login `marbellaranchi11@gmail.com`, plan Starter, category tags Tiles/Sanitary Ware/Granite/Flooring pre-selected.
+- One seeded **demo merchant** account (read-only, pre-populated dashboard data, for the "Try Demo Dashboard" login button).
+- Minimum 40 dummy coupons spread across all 16 categories.
+- Minimum 16 featured brands with logos for the homepage Featured Brands row.
+- Minimum 6 testimonials, minimum 5 Recent Revivals stories.
 
-```
-1.  Fashion & Apparel
-2.  Electronics & Gadgets
-3.  Food & Dining
-4.  Travel & Hotels
-5.  Beauty & Skincare
-6.  Home & Décor
-7.  Home Improvement (Tiles, Sanitary, Granite, Flooring)
-8.  Health & Fitness
-9.  Education & Courses
-10. Finance & Insurance
-11. Gaming
-12. Automotive
-13. Kids & Baby
-14. Pets
-15. Organic & Wellness
-16. Grocery & Supermarket
-```
+---
 
-### 11.2 Where Interests Are Set
+## 11. Email Notification Matrix (SRD 6.4 — all 15 required)
 
-| Surface | Who | Stored in |
+| Trigger | Recipient | Template purpose |
 |---|---|---|
-| Signup Step 2 | New customer | Database (user profile) |
-| Homepage interest banner | Anonymous visitor | localStorage |
-| Profile → Settings → Preferences tab | Logged-in customer | Database |
-| "Edit Preferences" side panel (homepage) | Logged-in customer | Database (instant refresh) |
+| Merchant registration submitted | Admin | New application review link |
+| Merchant registration approved | Merchant | Welcome + dashboard login link |
+| Merchant registration rejected | Merchant | Reason + reapply link |
+| Offer submitted for review | Merchant | "Under review, live within 4h" |
+| Offer approved & live | Merchant | View listing link |
+| Offer rejected | Merchant | Reason + edit/resubmit link |
+| Offer expiring in 3 days | Merchant | Renew/extend link |
+| Subscription payment confirmed | Merchant | Invoice attached |
+| Subscription payment failed | Merchant | Update payment method link |
+| Revival request from customer | Merchant | Review request link |
+| Customer OTP verification | Customer | 6-digit OTP, 10 min validity |
+| Customer forgot password | Customer | Reset link, 1h validity |
+| Revival request confirmation | Customer | "We'll update you in 48h" |
+| Revival approved — fresh code | Customer | New code + new expiry |
+| Weekly deals digest | Customer (opted-in) | Top 10 picks in their city |
 
-### 11.3 How Interests Are Applied
-
-| Surface | Effect |
-|---|---|
-| Homepage deals feed | Selected categories float to top; others in "More Deals" below |
-| Category strip | Selected categories shown first, highlighted in orange |
-| Email newsletter | Weekly digest contains only deals from selected categories |
-| Push notifications | Deal alerts only for selected categories |
-| Nearby offers page (/nearby) | Pre-filters to selected categories on load |
-
-### 11.4 No-Preference State
-
-If a logged-in user has no interests set (e.g. signed up via Google with no interest step):
-- Show soft nudge card at top of deals grid: "Tell us what you like for personalised deals →"
-- Links to /profile → Settings → Interests tab
+All emails: HTML templates (not plain text), sent from `noreply@vouchiqo.com` / `merchant@vouchiqo.com` via SendGrid, branded with logo/colors/CTA buttons.
 
 ---
 
-## 12. Location System
+## 12. SEO Architecture (SRD Section 5 — non-negotiable)
 
-### 12.1 Location Badge (Navbar — Always Visible)
-
-```
-Default (no location): "🔴 Set Location"
-With location:         "🔴 Ranchi"  [chevron down]
-
-Click → dropdown/popover:
-   ├── "Use My Current Location" (GPS button)
-   ├── City search input (autocomplete from 200+ Indian cities list)
-   └── State dropdown (alternative)
-
-Storage:
-   └── Anonymous user: localStorage
-   └── Logged-in user: DB (persists across sessions and devices)
-```
-
-### 12.2 Homepage Location Integration
-
-When location is set, the deals section shows a tab switcher:
-
-```
-[🔴 Near Ranchi]  [All India]
-    ↑ default active    ↑ shows all nationwide deals
-    when location set
-
-"Near [City]" tab shows:
-   └── Deals from merchants who listed matching city/state
-   └── PLUS all online/nationwide deals
-   └── Local merchants get "🔴 Local Deal" orange badge on their card
-
-"All India" tab:
-   └── All deals, no location filtering (same as current feed without location)
-```
-
-### 12.3 Special Business Rule — Ranchi / Jharkhand
-
-```
-IF user location = Ranchi OR any Jharkhand city:
-   └── Home Improvement category automatically elevated to top of personalised feed
-   └── Marbella's (specific merchant) coupon cards show "Local Business" badge
-   └── This applies regardless of whether user has Home Improvement in their interests
-```
-
-### 12.4 /deals Page Integration
-
-```
-Filter sidebar (top, above Category filter):
-   "Location: [Current city or All India]  [Change]"
-   └── Changing location updates results without full page reload
-```
-
----
-
-## 13. Brand / Merchant Page
-
-**URL:** `/brand/[brandname]-coupons-deals`
-**Slug:** auto-generated from business name — lowercase, hyphens, URL-safe
-
-### 13.1 Page Sections (Top to Bottom)
-
-```
-[BRAND HEADER]
-   ├── Cover image (1200×300px) — fallback: gradient from brand colour
-   ├── Brand logo (80px circle, overlapping cover at bottom-left)
-   ├── Brand name (H1)
-   ├── "Vouchiqo Verified" badge (green)
-   ├── Plan badge: "Pro Partner" (purple) | "Growth Partner" (blue) | "Enterprise Partner" (orange)
-   │     └── Starter merchants: no badge shown
-   ├── Stats row: Active Deals: X | Coupons Used: X this month | Avg Discount: X% | Category: X
-   └── Action buttons:
-         ├── "Follow Brand" → saves brand, enables deal alerts
-         ├── "Visit Website" → external link, new tab
-         └── "Share" → WhatsApp, copy link
-
-[BRAND DESCRIPTION]
-   ├── Short description (up to 300 chars) — from merchant dashboard
-   └── Long description (up to 1000 chars, optional) — collapsible "Read more →" if over 3 lines
-
-[LOCATION & CONTACT]  ← hidden for "Online Store" type merchants
-   ├── Full address: Street / Area, City, State, Pincode, Country
-   ├── Google Maps embed — clicking opens Google Maps in new tab
-   ├── Phone (click-to-call on mobile)
-   ├── WhatsApp Business (click-to-WhatsApp)
-   ├── Email (shown as contact form link, not raw address)
-   ├── Operating Hours table (Mon–Sun) with "Open Now" / "Closed" live status
-   └── Business Type badge: "Online Store" | "Physical Store" | "Online + Physical"
-
-[DEALS & COUPONS]
-   Tab switcher:
-      ├── [Active Deals (X)]     ← deal card grid, same component as rest of site
-      ├── [Coupons (X)]
-      ├── [Special Offers (X)]
-      └── [Expired (X)]          ← each card has "Request Revival" button
-   
-   Sort options: Most Popular (default) | Newest | Highest Discount | Expiring Soonest
-
-[CUSTOMER REVIEWS & TRUST]
-   ├── Overall star rating (from coupon helpfulness votes on individual deal pages)
-   ├── Top 3 most helpful customer comments (shown as quote cards)
-   └── "Was this brand helpful?" thumbs up/down for the brand page overall
-
-[RELATED BRANDS]
-   └── 4 brand cards from the same category — prevents dead-end navigation
-```
-
-### 13.2 Meta Tags (SEO)
-
-```
-Title:       "[Brand Name] — Coupons, Deals & Offers [Month Year] | Vouchiqo"
-Description: Dynamically generated from brand description + active deal count + location
-```
-
----
-
-## 14. Customer Savings Dashboard
-
-**URL:** `/profile` → "My Savings" tab (FIRST tab)
-**Replaces:** "My Saves" tab from SRD v1.0 (which moves to second position as "Saved Deals")
-
-### 14.1 Components
-
-```
-[MILESTONE BADGES ROW]
-   ├── First Saving ₹50+ — unlocks on first tracked redemption
-   ├── ₹500 Saved
-   ├── ₹1,000 Saved
-   ├── ₹5,000 Saved
-   └── ₹10,000 Saved
-   
-   On milestone unlock: confetti animation plays once
-   Hover on badge: shows "Reached on DD MMM YYYY"
-
-[KPI CARDS — 4 cards in a row, 2×2 on mobile]
-   ├── Card 1: Saved This Month (₹X) | "from X coupon uses" | +X% vs last month
-   ├── Card 2: Total Lifetime Savings (₹X) | "Since [account creation date]"
-   ├── Card 3: Total Spend Tracked (₹X) | "across X purchases" | tooltip explains affiliate-only tracking
-   └── Card 4: Savings Rate (X%) | "You save ₹X for every ₹100 spent" | 
-               Green if >20% | Amber if 10-20% | Grey if <10%
-
-[SAVINGS TIMELINE CHART]
-   ├── Line chart: 12 months on X-axis, ₹ on Y-axis (dual Y-axis)
-   ├── Orange line: savings | Navy line: spending
-   ├── Toggle: [3 Months] [6 Months] [12 Months] [All Time]
-   └── Hover tooltip: "In [Month]: Spent ₹X, Saved ₹Y across Z coupons"
-
-[CATEGORY BREAKDOWN]
-   ├── Donut chart: "Where I Save the Most" — slice per category, ₹ amount
-   └── Click slice → filters transaction table below to that category
-
-[TOP 5 BRANDS BAR CHART]
-   └── Horizontal bars: brand logo + ₹ saved per brand
-
-[TRANSACTION HISTORY TABLE]
-   Columns: Date | Brand | Coupon Code | Original Price | Discount | Amount Paid | Saved | Category
-   ├── Sortable by any column
-   ├── Paginated (20 per page)
-   ├── Filters: date range, category, brand search
-   └── Export to CSV button
-
-[SHARE MY SAVINGS]
-   └── Generates OG-style image card: "I saved ₹X this month using Vouchiqo! 🎉"
-   └── Shareable to: WhatsApp | Instagram Stories | Twitter
-
-[EMPTY STATE — for new users]
-   └── Illustration + "Your savings journey starts here. Use your first coupon to start tracking."
-   └── "Browse Deals" CTA button
-```
-
-### 14.2 Data Source
-
-- Savings and spend data comes from **affiliate-tracked transactions only** (via CoupX or equivalent).
-- Not all customer spending is tracked — only purchases made through Vouchiqo affiliate links.
-- Tooltip on "Total Spend Tracked" card explains this limitation.
-
----
-
-## 15. Revenue Model
-
-| Stream | Mechanism | Amount |
+| Page type | URL pattern | Title pattern |
 |---|---|---|
-| **Subscriptions** | Monthly recurring per merchant | 4 tiers — Starter, Growth, Pro, Enterprise |
-| **Homepage Featured Slot** | Paid add-on → Priority 1 ticker for 3 days | ₹999 / 3 days |
-| **Flash Campaign Boost** | Paid add-on → elevated ticker for campaign | ₹799 / campaign |
-| **Affiliate Commissions** | % of purchase value on tracked transactions | Variable per merchant agreement |
-| **Revival Fees (future)** | Merchants pay to facilitate revival of their expired codes | TBD |
+| Homepage | `/` | `Best Verified Offers & Deals in India [Mon YYYY] — Vouchiqo` |
+| All deals | `/deals` | `Today's Verified Offers & Deals — Vouchiqo` |
+| Category | `/category/[name]-coupons-deals` | `[Category] Coupons & Deals [Mon YYYY] — Vouchiqo` |
+| Brand | `/brand/[brandname]-coupons` | `[Brand] Coupon Codes [Mon YYYY] — Up to X% Off \| Vouchiqo` |
+| Individual coupon | `/deal/[brand]-[title]-coupon` | `[Brand] [X% Off] Coupon Code [Mon YYYY] — Vouchiqo` |
+| City deals | `/deals/[city-name]` | `Deals & Offers in [City] [Mon YYYY] — Vouchiqo` |
+| City + category | `/category/[cat]-deals-[city]` | `[Category] Deals in [City] [Mon YYYY] — Vouchiqo` |
+| Nearby offers | `/nearby-offers` | `Offers & Deals Near Me — Find Verified Offers Near [City] \| Vouchiqo` |
+| Expired revival | `/expired-coupon-revival` | `Expired Offer? Revive It Free — Vouchiqo Revival` |
+
+Mandatory implementation rules:
+- Every public page SSR or SSG — **never client-rendered only**.
+- Meta title/description generated dynamically per offer/brand/category from DB fields, including current month/year.
+- JSON-LD `Offer` schema (name, description, discount, validFrom, validThrough, url, seller) on every coupon page.
+- `/sitemap.xml` auto-regenerates on new coupon/brand/category creation; submit to Search Console.
+- `/robots.txt` allows all public routes, disallows `/merchant`, `/admin`, `/auth`, `/profile`, `/api`.
+- Canonical tags everywhere; paginated lists use `?page=2` with correct canonical handling.
+- Open Graph + Twitter Card tags on all public pages.
+- Dynamically generated `alt` text for every coupon image / brand logo / category image.
 
 ---
 
-## 16. Data Models — Key Entities
+## 13. Security Checklist (SRD Section 6.2)
 
-### User (Customer)
+- [ ] bcrypt password hashing, ≥12 rounds, never logged in plaintext.
+- [ ] JWT expiry: 24h customer / 8h merchant, with refresh-token flow.
+- [ ] Rate limiting on all auth endpoints — 5 failed attempts → 15 min lockout.
+- [ ] Server-side input sanitization on all endpoints — NoSQL injection + XSS prevention.
+- [ ] HTTPS enforced; HTTP → HTTPS redirect.
+- [ ] `/admin` behind IP allowlist or additional auth layer.
+- [ ] Razorpay webhook signature verification on every callback — never trust unverified payment events.
+- [ ] CORS locked to `vouchiqo.com` origin only.
+- [ ] All plan-gated features re-checked server-side (see Section 7.3) — a hidden button is not a security control.
 
-```
-user {
-  id                UUID        PRIMARY KEY
-  email             STRING      UNIQUE NOT NULL
-  name              STRING
-  phone             STRING
-  auth_provider     ENUM        [email, google, apple]
-  location_city     STRING
-  location_state    STRING
-  interests         STRING[]    (array of category keys)
-  followed_brands   UUID[]      (merchant IDs)
-  created_at        TIMESTAMP
-  cashback_balance  DECIMAL
-}
-```
+---
 
-### Merchant
+## 14. Performance & Responsive Design (SRD 6.1, 6.3)
 
-```
-merchant {
-  id                UUID        PRIMARY KEY
-  business_name     STRING      NOT NULL
-  slug              STRING      UNIQUE (auto-generated)
-  email             STRING      UNIQUE NOT NULL
-  category          STRING      (one of 16 categories)
-  plan              ENUM        [starter, growth, pro, enterprise]
-  plan_expires_at   TIMESTAMP
-  website_url       STRING
-  gstin             STRING
-  address_street    STRING
-  address_city      STRING
-  address_state     STRING
-  address_pincode   STRING
-  phone             STRING
-  whatsapp          STRING
-  business_email    STRING
-  operating_hours   JSON        {mon: {open: "09:00", close: "18:00", closed: false}, ...}
-  business_type     ENUM        [online, physical, both]
-  logo_url          STRING
-  cover_image_url   STRING
-  short_description STRING      (max 300 chars)
-  long_description  STRING      (max 1000 chars)
-  brand_colour      STRING      (hex, used for fallback cover gradient)
-  approved          BOOLEAN
-  approved_at       TIMESTAMP
-  created_at        TIMESTAMP
-}
-```
+- Core Web Vitals targets: LCP < 2.5s (mobile 4G), FID < 100ms, CLS < 0.1.
+- `next/image` for all images — no raw `<img>` on customer-facing pages.
+- API-level caching for coupon lists / category pages, invalidated on publish/update.
+- Mongo indexes on: `merchantId`, `category`, `status`, `endAt` (expiry), `city`.
+- Breakpoints: mobile < 768px, tablet 768–1024px, desktop > 1024px. Test explicitly at 375px (iPhone SE) and 390px.
+- Merchant dashboard: sidebar → bottom tab bar on mobile; tables → card-list view; multi-column forms → single column.
+- Touch targets ≥ 44×44px; no unintended horizontal scroll.
 
-### Deal / Coupon
+---
+
+## 15. Environment Variables (`.env.example` — populate before Sprint 1)
 
 ```
-deal {
-  id                UUID        PRIMARY KEY
-  merchant_id       UUID        FOREIGN KEY → merchant.id
-  title             STRING      NOT NULL
-  coupon_code       STRING      NOT NULL
-  discount_type     ENUM        [percentage, flat]
-  discount_value    DECIMAL     NOT NULL
-  original_price    DECIMAL
-  category          STRING      (one of 16)
-  deal_type         ENUM        [online, instore, both]
-  valid_from        TIMESTAMP
-  valid_until       TIMESTAMP
-  terms             TEXT
-  status            ENUM        [active, expired, paused, removed]
-  clicks            INTEGER     DEFAULT 0
-  uses              INTEGER     DEFAULT 0
-  impressions       INTEGER     DEFAULT 0
-  created_at        TIMESTAMP
-}
-```
+# Database
+MONGODB_URI=
 
-### Revival Request
+# Auth
+JWT_CUSTOMER_SECRET=
+JWT_MERCHANT_SECRET=
+JWT_ADMIN_SECRET=
+NEXTAUTH_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
 
-```
-revival {
-  id                UUID        PRIMARY KEY
-  coupon_code       STRING      NOT NULL
-  brand_name        STRING      NOT NULL
-  merchant_id       UUID        NULLABLE (if matched to registered merchant)
-  customer_email    STRING      NOT NULL
-  customer_id       UUID        NULLABLE (if logged in)
-  status            ENUM        [pending, in_review, approved, counter_offered, rejected, expired]
-  outcome_code      STRING      (the new code if approved)
-  outcome_note      TEXT
-  submitted_at      TIMESTAMP
-  resolved_at       TIMESTAMP
-}
-```
+# Payments
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
 
-### Ticker Slot (Paid Placement)
+# File storage (pick one — see Section 2 decision)
+CLOUDINARY_URL=
+AWS_S3_BUCKET=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
 
-```
-ticker_slot {
-  id                UUID        PRIMARY KEY
-  merchant_id       UUID        FOREIGN KEY → merchant.id
-  type              ENUM        [featured_slot, flash_boost]
-  starts_at         TIMESTAMP
-  ends_at           TIMESTAMP
-  amount_paid       DECIMAL
-  status            ENUM        [active, expired]
-  pinned_position   INTEGER     NULLABLE (admin override)
-  created_at        TIMESTAMP
-}
-```
+# Email
+SENDGRID_API_KEY=
+EMAIL_FROM_NOREPLY=noreply@vouchiqo.com
+EMAIL_FROM_MERCHANT=merchant@vouchiqo.com
 
-### Transaction (Affiliate-Tracked)
+# Maps & Push
+GOOGLE_MAPS_API_KEY=
+FIREBASE_SERVICE_ACCOUNT_JSON=
 
-```
-transaction {
-  id                UUID        PRIMARY KEY
-  user_id           UUID        FOREIGN KEY → user.id
-  merchant_id       UUID        FOREIGN KEY → merchant.id
-  deal_id           UUID        FOREIGN KEY → deal.id
-  coupon_code       STRING
-  original_amount   DECIMAL
-  discount_amount   DECIMAL
-  paid_amount       DECIMAL
-  category          STRING
-  tracked_at        TIMESTAMP
-  affiliate_ref     STRING      (affiliate tracking reference)
-}
+# App
+NEXT_PUBLIC_APP_URL=https://vouchiqo.com
+NEXT_PUBLIC_API_URL=https://api.vouchiqo.com
 ```
 
 ---
 
-## 17. State Machines
+## 16. Open Decisions Needed Before/During Build
 
-### Deal Status
+These are ambiguous or unspecified in the SRD — flag with the project owner rather than silently assuming:
 
-```
-[DRAFT] ──publish──► [ACTIVE]
-                         │
-              ┌──────────┤
-              │          │
-         admin pause   date passes
-              │          │
-              ▼          ▼
-          [PAUSED]   [EXPIRED]
-              │          │
-           unpause    revival request
-              │          │
-              ▼          ▼
-          [ACTIVE]  [REVIVAL_REQUESTED]
-```
-
-### Merchant Plan
-
-```
-[STARTER] ──pays──► [GROWTH | PRO | ENTERPRISE]
-                           │
-                    payment renewal
-                           │
-              ┌────────────┤
-              │            │
-           renews     doesn't renew
-              │            │
-              ▼            ▼
-          [same plan]  [STARTER] (downgrade, existing deals remain active)
-```
-
-### Revival Request
-
-```
-[PENDING] ──admin reviews──► [IN_REVIEW] ──merchant contacted──►
-     │                                                          │
-     │                                            ┌────────────┤────────────┐
-     │                                            │            │            │
-  48h no response                           [APPROVED]   [COUNTER]   [REJECTED]
-     │                                            │
-     ▼                                    [SUCCESSFUL]
-  [EXPIRED]
-```
+1. Cloudinary vs AWS S3 for file storage.
+2. Infinite scroll vs pagination on `/deals` (SRD explicitly leaves this to developer).
+3. TypeScript vs JavaScript (recommended: TypeScript).
+4. Testing strategy/framework — not mentioned in SRD at all; recommend Jest + React Testing Library (web) and Jest + Supertest (api) at minimum for auth, payment webhook, and plan-gating logic given their business-criticality.
+5. Whether "Brand" is a first-class collection or purely a derived view over `Merchant` — modeled here as the latter (simpler, avoids duplicate data), confirm before building brand CRUD in admin content management.
+6. Exact NextAuth vs custom-JWT split for merchant/admin (see Section 7.1).
 
 ---
 
-## 18. Feature Dependency Map
+## 17. Delivery Milestones (SRD Section 8.1 — map directly to sprint planning)
 
-```
-Hot Deals Ticker
-   └── depends on: Deal.status = active, Merchant.plan, ticker_slot table, Priority Engine
+| Milestone | % Payment | Target | Must be working |
+|---|---|---|---|
+| 1 | 20% | Contract signed | Repo created, founder as GitHub owner |
+| 2 | 20% | End of Week 4 | Merchant + customer auth working; DB schema live on Atlas |
+| 3 | 20% | End of Week 8 | Post → verify → admin approve → live pipeline; Razorpay subscription tested; deal browsing live |
+| 4 | 20% | End of Week 11 | Merchant dashboard complete (analytics, campaigns, revival); admin panel complete; nearby offers + maps; all 15 email triggers |
+| 5 | 20% | Final approval | Full deploy on vouchiqo.com; bugs resolved; full handover package |
 
-Personalisation Feed
-   └── depends on: User.interests (or localStorage), Deal.category, Location System
-
-Location-Aware Feed
-   └── depends on: User.location_city (or localStorage), Merchant.address_city, Deal.deal_type
-
-Revival System
-   └── depends on: Revival table, Admin queue, Merchant contact info, Email service
-
-Savings Dashboard
-   └── depends on: Transaction table, affiliate tracking integration (CoupX), User.created_at
-
-Milestone Badges
-   └── depends on: Savings Dashboard data (sum of transaction.discount_amount per user)
-
-Brand Page — Map & Hours
-   └── depends on: Merchant.business_type ≠ online, Merchant.address fields, Google Maps API
-
-"Open Now" badge
-   └── depends on: Merchant.operating_hours JSON, server timezone, current time calculation
-
-Ticker Impressions (merchant analytics)
-   └── depends on: Deal impression tracking when deal appears in ticker
-
-Share My Savings
-   └── depends on: Savings Dashboard data, image generation service (OG card)
-```
-
----
-
-## 19. Developer Notes & Constraints
-
-### Critical Business Rules
-
-1. **Ticker priority is strictly hierarchical.** Priority 1 (paid) always beats Priority 2 (Enterprise), which always beats Priority 3 (Pro), etc. No exceptions unless manually overridden in admin panel.
-
-2. **Interests must be multi-select.** A user can have multiple interest categories. The system never forces a single choice.
-
-3. **Location persists across sessions.** Once set, it must survive page refreshes, new tabs, and return visits (localStorage for anonymous, DB for logged-in).
-
-4. **Ranchi / Jharkhand rule is hardcoded.** When location = any Jharkhand city, Home Improvement rises to top and Marbella gets a "Local Business" badge — regardless of user interests.
-
-5. **Revival form requires no account.** Any visitor can submit a revival. Account is not a gate.
-
-6. **Interest banner must not block browsing.** It slides in from the bottom — not a full-screen modal. The user can dismiss it with "No thanks" and continue browsing.
-
-7. **Add-on purchase auto-activates ticker priority.** No admin action needed. Payment → Priority 1 immediately.
-
-8. **Expired deals auto-move to Expired tab.** No merchant or admin action needed. The system handles this at `valid_until` timestamp.
-
-9. **Savings dashboard tracks affiliate transactions only.** The tooltip on "Total Spend Tracked" must explain this to avoid confusion.
-
-10. **Google Maps embed is mandatory for physical businesses.** For merchants with `business_type = physical` or `both`, the map section is not optional.
-
-### SEO Rules
-
-- Brand page slug: `[business-name]-coupons-deals` — auto-generated, URL-safe, lowercase, hyphens.
-- Meta title: `[Brand Name] — Coupons, Deals & Offers [Month Year] | Vouchiqo`
-- Meta description: dynamically generated from brand description + active deal count + location.
-
-### Performance Notes
-
-- Ticker content updates from DB in real-time — no caching of ticker order.
-- Deals feed reorders on interest change without full page reload.
-- Location tab switch (Near City / All India) updates without full page reload.
-- "Edit Preferences" side panel saves and refreshes feed without page reload.
-
-### Mobile Breakpoints
-
-| Section | Mobile Behaviour |
-|---|---|
-| Ticker bar | Height 40px (vs 44px desktop) |
-| KPI cards | 2×2 grid (vs 4-in-a-row desktop) |
-| Revival section | Single column, visual below form |
-| Brand page location | Stacked, map full width |
-| Deals grid | 1 or 2 column (vs 3–4 desktop) |
-| Interest banner | Inputs stack vertically, button full width |
-
----
-
-*End of ARCHITECTURE.md — Vouchiqo v1.1*
-
-*This document covers SRD v1.0 + Amendment v1.1. If a third amendment is issued, update Sections 5, 10, 11, 12, 13, 14, and 16 first — those are the most likely to change.*
+Use this table to sequence backlog/sprints so each milestone's "must be working" list is demonstrably true at that checkpoint.

@@ -1,3 +1,4 @@
+import LocationSelector from "../LocationSelector";
 import Logo from "./Logo";
 import MobileMenu from "./MobileMenu";
 import NavLinks from "./NavLinks";
@@ -17,6 +18,9 @@ export const Navbar = () => (
 
       {/* Search — grows to fill middle space */}
       <SearchBar />
+
+      {/* Location Selector */}
+      <LocationSelector />
 
       {/* Nav links + icon cluster — pinned to the right */}
       <div className="ml-auto flex items-center gap-5 shrink-0">

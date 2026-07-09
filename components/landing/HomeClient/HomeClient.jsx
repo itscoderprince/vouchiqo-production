@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import dynamicImport from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -10,8 +9,6 @@ const ConfirmationModal = dynamicImport(
   () => import("@/components/shared/ConfirmationModal"),
   { ssr: false },
 );
-
-
 
 const HowItWorks = dynamicImport(() =>
   import("../HowItWorks").then((mod) => mod.HowItWorks),
@@ -33,12 +30,14 @@ const PartnerBrands = dynamicImport(() =>
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { useInterests } from "@/hooks/use-interests";
-
+import { useLocation } from "@/hooks/use-location";
 import { useSession } from "@/lib/auth-client";
 // Core components & hooks
 import { HeroSection } from "../HeroSection";
+import { HotDealsTicker } from "../HotDealsTicker";
 import PopularOffers from "../PopularOffers";
 import PopularStores from "../PopularStores";
+import { RevivalHeroSection } from "../RevivalHeroSection";
 import { DUMMY_TAB_COUPONS } from "./constants";
 import DealsOfTheDay from "./DealsOfTheDay";
 import InterestBanner from "./InterestBanner";
@@ -54,6 +53,7 @@ import VouchiqoCollections from "./VouchiqoCollections";
 export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
+  const { city } = useLocation();
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -68,7 +68,6 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [locationSelect, setLocationSelect] = useState("All Locations");
-
 
   const [feedTab, setFeedTab] = useState("all");
 
@@ -189,18 +188,56 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
       })
       .slice(0, 12);
 
-    // Fallback to high-quality dummy coupons if database returns empty for this tab
-    if (dbFiltered.length === 0) {
-      return DUMMY_TAB_COUPONS[couponTab] || [];
-    }
+    const isRanchi =
+      city?.toLowerCase() === "ranchi" || city?.toLowerCase() === "jharkhand";
+    let result =
+      dbFiltered.length > 0 ? dbFiltered : DUMMY_TAB_COUPONS[couponTab] || [];
 
-    return dbFiltered;
-  }, [couponTab, initialCoupons, latestCoupons]);
+    // 1. Tag elevated/local coupons
+    result = result.map((coupon) => {
+      const isHomeImprovement =
+        coupon.category === "home-improvement" || coupon.category === "home";
+      const isMarbella =
+        coupon.merchantId?.businessName?.toLowerCase().includes("marbella") ||
+        coupon.title?.toLowerCase().includes("marbella");
+      const isLocalMerchant =
+        coupon.merchantId?.city?.toLowerCase() === "ranchi" ||
+        coupon.merchantId?.city?.toLowerCase() === "jharkhand" ||
+        isMarbella;
+
+      return {
+        ...coupon,
+        isLocal: isLocalMerchant || (isRanchi && isHomeImprovement),
+      };
+    });
+
+    // 2. Sort/Reorder:
+    // Priority A: if isRanchi is true, elevate coupons where isLocal is true
+    // Priority B: if user has savedInterests, elevate coupons whose category is in savedInterests
+    result = [...result].sort((a, b) => {
+      if (isRanchi) {
+        if (a.isLocal && !b.isLocal) return -1;
+        if (!a.isLocal && b.isLocal) return 1;
+      }
+
+      const aHasInterest = savedInterests?.includes(a.category);
+      const bHasInterest = savedInterests?.includes(b.category);
+      if (aHasInterest && !bHasInterest) return -1;
+      if (!aHasInterest && bHasInterest) return 1;
+
+      return 0;
+    });
+
+    return result;
+  }, [couponTab, initialCoupons, latestCoupons, city, savedInterests]);
 
   return (
     <div className="min-h-screen flex flex-col bg-brand-surface text-brand-text">
       {/* Sticky Navbar */}
       <Navbar />
+
+      {/* Sticky Hot Deals Ticker Marquee */}
+      <HotDealsTicker />
 
       {/* Main Container */}
       <main className="container mx-auto px-4 py-6 max-w-7xl">
@@ -240,7 +277,8 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
         {/* 13. GrabOn Collections Grid */}
         <VouchiqoCollections />
 
-
+        {/* 14. Homepage Expired Coupon Revival Section */}
+        <RevivalHeroSection />
 
         {/* 17. Popular Categories Grid (High-density 29 links) */}
         <PopularCategories />
