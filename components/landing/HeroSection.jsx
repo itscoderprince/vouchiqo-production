@@ -268,7 +268,7 @@ export function HeroSection() {
       <section className="flex flex-col md:flex-row gap-4 select-none w-full text-left">
         {/* Left Column: Banners Carousel (75% Width) */}
         <div
-          className="md:w-3/4 rounded-lg overflow-hidden shadow-sm relative w-full max-w-[904px] group border border-brand-border bg-slate-900"
+          className="md:w-3/4 rounded-md overflow-hidden shadow-sm relative w-full group border border-brand-border bg-slate-900"
           style={{ height: "430px" }}
         >
           {/* Viewport for horizontal sliding */}
@@ -286,7 +286,7 @@ export function HeroSection() {
                     <img
                       src={slide.image}
                       alt={slide.title}
-                      className="w-full h-full object-fill cursor-pointer"
+                      className="w-full h-full object-cover cursor-pointer"
                     />
                   </Link>
                 </div>
@@ -312,7 +312,7 @@ export function HeroSection() {
 
         {/* Right Column: Banners Carousel (25% Width) */}
         <div
-          className="md:w-1/4 rounded-lg overflow-hidden shadow-sm relative w-full border border-brand-border bg-slate-900"
+          className="md:w-1/4 rounded-md overflow-hidden shadow-sm relative w-full border border-brand-border bg-slate-900"
           style={{ height: "430px" }}
         >
           {/* Viewport for horizontal sliding */}
@@ -335,11 +335,11 @@ export function HeroSection() {
                       <img
                         src={slide.image}
                         alt={slide.name}
-                        className="w-full h-full object-fill cursor-pointer"
+                        className="w-full h-full object-cover cursor-pointer"
                       />
                       {/* Floating card overlay that slides up smoothly when active */}
                       <div
-                        className={`absolute bottom-5 left-4 right-4 bg-white rounded-2xl p-5 shadow-lg text-left transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        className={`absolute bottom-5 left-4 right-4 bg-white rounded-md p-5 shadow-lg text-left transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                           isActive
                             ? "translate-y-0 opacity-100 delay-150"
                             : "translate-y-16 opacity-0"
@@ -390,7 +390,7 @@ export function HeroSection() {
                 key={brand.id}
                 onClick={() => handleLeftBrandClick(brand.id)}
                 type="button"
-                className={`relative flex items-center justify-center cursor-pointer border rounded-lg bg-white p-1.5 w-[76px] h-[40px] transition-all duration-200 shrink-0 ${
+                className={`relative flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 w-[76px] h-[40px] transition-all duration-200 shrink-0 ${
                   isActive
                     ? "border-[#FF7A18] shadow-sm ring-1 ring-[#FF7A18]/30"
                     : "border-brand-border hover:border-[#FF7A18]/50"
@@ -422,7 +422,7 @@ export function HeroSection() {
                 key={brand.id}
                 onClick={() => handleRightBrandClick(brand.id)}
                 type="button"
-                className={`relative flex items-center justify-center cursor-pointer border rounded-lg bg-white p-1.5 w-[76px] h-[40px] transition-all duration-200 shrink-0 ${
+                className={`relative flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 w-[76px] h-[40px] transition-all duration-200 shrink-0 ${
                   isActive
                     ? "border-[#FF7A18] shadow-sm ring-1 ring-[#FF7A18]/30"
                     : "border-brand-border hover:border-[#FF7A18]/50"

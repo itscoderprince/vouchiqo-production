@@ -212,7 +212,7 @@ export default function PopularStores() {
         <div className="lg:w-1/4">
           <Link
             href="/brand/amazon"
-            className="gp-feat block relative no-underline cursor-pointer rounded-2xl"
+            className="gp-feat block relative no-underline cursor-pointer rounded-md"
           >
             {/* ── LAYER 1: Background photo — FIXED, does NOT move on hover ── */}
             <div

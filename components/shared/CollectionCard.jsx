@@ -102,7 +102,7 @@ export default function CollectionCard({ title, logo, image, href = "#" }) {
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden relative transition-all duration-300 hover:shadow-lg select-none text-left flex flex-col h-[380px]"
+      className="bg-white rounded-md shadow-sm border border-slate-200/80 overflow-hidden relative transition-all duration-300 hover:shadow-lg select-none text-left flex flex-col h-[380px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -127,7 +127,7 @@ export default function CollectionCard({ title, logo, image, href = "#" }) {
           <img
             src={image}
             alt={`${title} Banner`}
-            className="w-full h-full object-cover rounded-xl transition-all duration-500"
+            className="w-full h-full object-cover rounded-md transition-all duration-500"
           />
         </div>
 
@@ -195,7 +195,7 @@ export default function CollectionCard({ title, logo, image, href = "#" }) {
           <button
             type="button"
             onClick={handleRedeem}
-            className="w-full py-3 bg-brand-blue hover:bg-brand-blue/90 text-white font-extrabold text-[13px] tracking-widest uppercase rounded-xl transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer border-none"
+            className="w-full py-3 bg-brand-blue hover:bg-brand-blue/90 text-white font-extrabold text-[13px] tracking-widest uppercase rounded-md transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer border-none"
           >
             REDEEM
           </button>

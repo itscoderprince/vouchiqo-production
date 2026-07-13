@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="bg-[#191F2E] text-slate-300 pt-16 pb-8 border-t border-slate-800 mt-auto select-none text-left font-sans">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="w-full px-4 md:px-8">
         {/* 6-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
           {/* Brand Info Block (spans 2 columns on desktop) */}

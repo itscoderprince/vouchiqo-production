@@ -43,7 +43,7 @@ export function Testimonials() {
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Hover interaction is for pausing auto-scroll
     <section
-      className="py-20 bg-brand-surface border-t border-brand-border px-4 max-w-7xl mx-auto w-full select-none"
+      className="py-20 bg-brand-surface border-t border-brand-border px-4 w-full select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -68,7 +68,7 @@ export function Testimonials() {
           >
             {CUSTOMER_TESTIMONIALS.map((item, idx) => (
               <div key={idx} className="w-full flex-shrink-0 px-2 md:px-6">
-                <div className="bg-brand-bg border border-brand-border rounded-xl p-8 md:p-10 shadow-lg relative flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center">
+                <div className="bg-brand-bg border border-brand-border rounded-md p-8 md:p-10 shadow-lg relative flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center">
                   {/* Left block: Star rating + Quote */}
                   <div className="flex-1 space-y-4">
                     {/* Stars */}

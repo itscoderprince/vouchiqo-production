@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 export function RevivalHeroSection() {
   const [brand, setBrand] = useState("");
@@ -57,7 +58,7 @@ export function RevivalHeroSection() {
   };
 
   return (
-    <section className="relative bg-gradient-to-br from-[#0D213F] via-[#1A3C5E] to-[#112948] text-white rounded-3xl overflow-hidden py-12 px-6 md:p-16 shadow-xl border border-white/5 my-12">
+    <section className="relative bg-gradient-to-br from-[#0D213F] via-[#1A3C5E] to-[#112948] text-white rounded-md overflow-hidden py-12 px-6 md:p-16 shadow-xl border border-white/5 my-12">
       {/* Decorative background glow */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-brand-blue/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-warning/5 rounded-full blur-3xl pointer-events-none" />
@@ -124,7 +125,7 @@ export function RevivalHeroSection() {
                   placeholder="e.g., Hostinger"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"
+                  className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-md text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"
                 />
               </div>
               <div>
@@ -136,7 +137,7 @@ export function RevivalHeroSection() {
                   placeholder="e.g., SAVE50"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"
+                  className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-md text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"
                 />
               </div>
               <div>
@@ -149,7 +150,7 @@ export function RevivalHeroSection() {
                   placeholder="e.g., customer@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"
+                  className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-md text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"
                 />
               </div>
             </div>
@@ -158,7 +159,7 @@ export function RevivalHeroSection() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full h-11 sm:w-auto px-6 bg-brand-gradient hover:opacity-95 text-white text-xs font-bold rounded-lg uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all border-0 shadow-lg disabled:opacity-50"
+                className="w-full h-11 sm:w-auto px-6 bg-brand-gradient hover:opacity-95 text-white text-xs font-bold rounded-md uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all border-0 shadow-lg disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

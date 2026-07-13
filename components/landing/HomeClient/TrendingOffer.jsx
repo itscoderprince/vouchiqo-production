@@ -4,7 +4,7 @@ export const TrendingOffer = () => (
       Trending Offer
     </h2>
     <a
-      className="block rounded-lg overflow-hidden border border-brand-border hover:shadow-sm hover:-translate-y-0.5 transition-all"
+      className="block rounded-md overflow-hidden border border-brand-border hover:shadow-sm hover:-translate-y-0.5 transition-all"
       href="/deals"
     >
       <img

@@ -4,10 +4,11 @@ import {
   Headphones,
   Plane,
   ShoppingBag,
-  Smartphone,
   Ticket,
-  Tv,
   Utensils,
+  Home,
+  Wrench,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import EmblaCarouselControls from "@/components/shared/EmblaCarouselControls";
@@ -28,12 +29,13 @@ export const TodayTopCoupons = ({
 
   const TABS = [
     { id: "most-used", label: "Most Used", IconComp: Ticket },
-    { id: "travel", label: "Travel", IconComp: Plane },
-    { id: "recharge", label: "Recharge", IconComp: Smartphone },
-    { id: "fashion", label: "Fashion", IconComp: ShoppingBag },
-    { id: "food", label: "Food", IconComp: Utensils },
-    { id: "electronics", label: "Electronics", IconComp: Headphones },
-    { id: "ott", label: "OTT", IconComp: Tv },
+    { id: "fashion", label: "Fashion & Clothing", IconComp: ShoppingBag },
+    { id: "food", label: "Food & Dining", IconComp: Utensils },
+    { id: "electronics", label: "Electronics & Gadgets", IconComp: Headphones },
+    { id: "beauty", label: "Beauty & Wellness", IconComp: Sparkles },
+    { id: "travel", label: "Travel & Hospitality", IconComp: Plane },
+    { id: "home", label: "Home & Living", IconComp: Home },
+    { id: "home-improvement", label: "Home Improvement", IconComp: Wrench },
   ];
 
   // Group into pages of 6 (2 rows of 3 columns)
@@ -86,7 +88,7 @@ export const TodayTopCoupons = ({
               key={tab.id}
               type="button"
               onClick={() => setCouponTab(tab.id)}
-              className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all border cursor-pointer ${
+              className={`px-5 py-2.5 rounded-md text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all border cursor-pointer ${
                 isActive
                   ? "bg-brand-blue border-brand-blue text-white shadow-sm font-extrabold"
                   : "bg-white border-[#e2e8f0] text-[#475569] hover:bg-gray-50"

@@ -1,0 +1,822 @@
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 1 
+VOUCHIQO 
+Expired Offer Re-generation System 
+Complete Developer Specification — Customer, Merchant & Internal Admin 
+Modules 
+Addendum to SRD v1.0 (Section 2.7, 3.6) and Amendment v1.1 
+Universal expired-offer intake  •  Three-category routing logic  •  Merchant intelligence engine  •  Win-back 
+automation 
+Prepared For: Webitya — Aditya Kumar  |  Confidential  |  Version 1.0 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 2 
+Document Purpose & Scope 
+This document is an addendum to SRD v1.0 and Amendment v1.1. It supersedes and significantly expands 
+Section 2.7 (Expired Offer Revival Page) and Section 3.6 (Expired Offer Revival Management) of SRD v1.0. 
+The original spec assumed every expired-offer submission relates to a current Vouchiqo merchant. This 
+addendum extends the system to accept submissions for ANY expired offer — including offers from merchants 
+who have never been on Vouchiqo, or who were on Vouchiqo and have since left. 
+�
+� CRITICAL  This is Vouchiqo's second-largest USP after verification itself. The system must be built 
+exactly as specified — it serves THREE simultaneous business functions: (1) genuine customer service 
+(helping a customer recover a discount), (2) merchant win-back automation for churned Vouchiqo 
+merchants, and (3) a structured lead-generation database for merchants who have never been on the 
+platform. All three functions must work from a SINGLE customer-facing submission form — the complexity 
+is handled entirely in backend routing logic, not by asking the customer different questions for different 
+scenarios. 
+Three-Way Routing — The Core Logic 
+Every submission is automatically classified into one of three categories the moment the Brand/Business 
+Name field is matched against the merchant database. This classification determines everything downstream 
+and must happen server-side, instantly, without the customer ever seeing or needing to know which category 
+they fall into. 
+Category 
+Match Condition 
+Category A 
+Brand name matches an 
+active, verified, currently
+listed Vouchiqo merchant 
+Routes To 
+Category B 
+Merchant's live dashboard — Revival Request queue 
+(Section 3.6, SRD v1.0). Fully automated, no admin step 
+needed unless merchant doesn't respond within SLA. 
+Category C 
+Brand name matches a 
+merchant record marked 
+inactive, suspended, or 
+churned (was once on 
+Vouchiqo, isn't now) 
+Brand name does NOT 
+match any record in the 
+merchant database, active 
+or inactive 
+Internal Admin Panel — 'Win-Back Opportunities' queue. 
+Requires manual admin action to attempt merchant re
+contact. 
+Internal Admin Panel — 'New Merchant Intelligence' queue. 
+Builds/updates a demand-signal record for that unlisted 
+business. 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 3 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+SECTION 
+A 
+CUSTOMER-FACING MODULE 
+The submission form, expectation-setting, and outcome delivery customers see 
+ 
+Part A: Customer Module 
+A.1  Page & Entry Points 
+MUST Standalone page at /expired-offer-revival (URL slug unchanged from SRD v1.0 for SEO 
+continuity, even though the customer-facing feature label has changed to 'Expired Offer 
+Revival' per brand language update). 
+ 
+MUST Inline mini-form embedded on the homepage Revival section, mirroring the same fields as the 
+full page (per SRD v1.0 Section 2.1 homepage spec) — both forms must submit to the same 
+backend endpoint and apply identical validation. 
+ 
+MUST 
+Entry point from 'Revive Offer' navbar link, footer Quick Links, and a 'Request Revival' button 
+shown on every expired listing on a brand's page (for Category A/B cases where Vouchiqo 
+already has the original listing on file, the form should auto-prefill from that listing's data — see 
+A.4). 
+ 
+A.2  The Submission Form — Complete Field Specification 
+Fields are grouped exactly as below in the actual form UI — render as four visually distinct sections, not one 
+long flat form. Use a progress indicator (e.g. 'Step 1 of 4') to reduce perceived form length. 
+ 
+Group 1 — Merchant Identification 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+Brand / Business 
+Name Text + 
+autocomplete Yes 
+Autocomplete 
+queries 
+merchant DB 
+(active + 
+inactive 
+records) live as 
+user types. 
+Free text 
+allowed if no 
+match found. 
+Primary field driving the 3-way routing logic in A.5. 
+Must trigger the backend match check on blur, not 
+just on submit, so the form can branch UI (see A.4) 
+before final submission. 
+Business Type / 
+Category Dropdown Yes 
+Use the 
+existing 15 
+Vouchiqo 
+categories 
+from SRD 
+Section 7. 
+Auto-filled and 
+locked if brand 
+matched an 
+existing 
+Required even for unmatched (Category C) 
+merchants — this is essential metadata for the 
+merchant intelligence database (Part C). 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 4 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+merchant 
+record. 
+Where did you find 
+this offer? Dropdown, 
+single-select Yes 
+Vouchiqo / 
+Instagram / 
+WhatsApp 
+Forward / 
+Google Search 
+/ Another 
+Coupon 
+Website / 
+Physical Store 
+or Flyer / 
+Friend or 
+Family / Other 
+(with free-text 
+follow-up if 
+'Other' or 
+'Another 
+Coupon 
+Website' 
+selected, 
+asking which 
+platform by 
+name) 
+Most important field for competitive intelligence. The 
+free-text follow-up for 'Another Coupon Website' 
+must capture the actual platform name — store as 
+structured data, not just 'Other'. 
+Merchant Website 
+or Social Media 
+Link Text, optional No 
+Accept any 
+URL format 
+loosely — do 
+not over
+validate. 
+Accept 
+Instagram 
+handles typed 
+without full 
+URL (e.g. 
+'@brandname') 
+and normalise 
+on save. 
+Critical lead-gen data for Category C. Even a bare 
+handle is enough for the merchant acquisition team 
+to find and contact the business. 
+Merchant City / 
+Location Text with 
+autocomplete Yes 
+Use same 
+city/state list as 
+customer 
+location 
+settings (SRD 
+Amendment 
+4). Default to 
+customer's 
+saved location 
+if set. 
+Drives Ranchi-priority surfacing in the internal 
+Merchant Demand Report (Part C). 
+ 
+Group 2 — Offer Details 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+Expired Code Text, optional No 
+Free text, 
+auto
+uppercase. 
+Leave blank if 
+the offer had 
+no code (e.g. 
+a direct-link 
+deal or in
+store flat 
+discount). 
+Used to attempt a direct match against Vouchiqo's 
+own historical coupon records for Category A/B 
+matching confidence. 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 5 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+Discount Type Radio buttons Yes 
+% Off / Flat ₹ 
+Off / BOGO / 
+Free Gift with 
+Purchase / 
+Other 
+Structured, not free text — required for matching, 
+analytics, and for suggesting alternative offers later 
+(Part C, Outcome 2 logic). 
+Discount Value Number, 
+contextual Yes 
+If '% Off' 
+selected: 
+integer 1–99 
+with % suffix. 
+If 'Flat ₹ Off' 
+selected: 
+number with ₹ 
+prefix. 
+Hidden/not 
+required if 
+BOGO or 
+Free Gift 
+selected. 
+Feeds the alternative-offer-suggestion engine (Part 
+C) — used to find comparably-valued active offers 
+when the original can't be revived. 
+Brief Description Text, 100 char 
+max Yes 
+Free text, live 
+character 
+counter 
+shown. 
+E.g. '20% off all sanitary fittings' — gives 
+merchant/admin enough context without needing the 
+full original listing. 
+When did you 
+see/find this offer? Date picker Yes 
+Cannot be a 
+future date. 
+Reasonable 
+past limit: 24 
+months. 
+Structured date, NOT a vague 'how long ago' text 
+field — this exact date drives the High/Medium/Low 
+triage priority rules in Part C. 
+What were you 
+trying to buy? Text, single line, 
+optional No Free text, 150 
+char max. 
+Gives merchant context for approval decisions; also 
+valuable aggregate product-demand data per 
+category. 
+ 
+Group 3 — Customer Contact 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+Email Address Email input Yes 
+Standard 
+email 
+validation. 
+Auto-filled and 
+locked if 
+customer is 
+logged in. 
+Primary outcome delivery channel alongside 
+WhatsApp. 
+Mobile Number Tel input, +91 
+default Yes 
+10-digit Indian 
+mobile 
+validation. 
+NOT optional 
+— this is a 
+deliberate 
+change from 
+typical 
+'optional 
+phone' 
+patterns. 
+WhatsApp delivery has materially higher open rates 
+than email for Tier-2 city users. Mandatory by 
+design, not an oversight. 
+Account Status System
+detected, not a 
+visible field N/A 
+If not logged 
+in, show an 
+inline 'Quick 
+Sign Up' 
+prompt (name 
++ the 
+email/mobile 
+Converts an already-invested submitter into a 
+registered account at the highest-intent moment in 
+their journey. 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 6 
+Field Name 
+Type 
+Required 
+Values / 
+Validation 
+Purpose / Logic Notes 
+already 
+entered 
+above, 
+password) 
+BEFORE 
+allowing final 
+submission, 
+rather than 
+after. 
+Group 4 — Expectation-Setting Consent (Mandatory Checkbox) 
+MUST 
+Render this exact checkbox immediately above the Submit button, NOT pre-checked, 
+submission blocked until checked: "I understand Vouchiqo will try to get this offer reactivated, 
+but cannot guarantee a working code will be available. If this isn't possible, I'll be notified and 
+may be offered a similar active offer from this brand or category instead." 
+⭐ KEY LOGIC  This single sentence is doing critical expectation-management work — it pre-frames all 
+three possible outcomes (regenerated / alternative offered / declined) before submission. Do not shorten, 
+paraphrase, or make this optional. This is the field that prevents support tickets, not a legal formality. 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 7 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+A.3  Submission Confirmation & Rate Limiting 
+MUST 
+On successful submission: instant on-screen confirmation + automated confirmation 
+email/WhatsApp (template per FAQ Library CANNED RESPONSE 'REVIVAL-01', already 
+specified). Confirmation must state the same non-guarantee framing as the consent 
+checkbox, briefly restated, plus an expected response window of 48 hours. 
+ 
+MUST 
+Rate limit: maximum 5 submissions per customer account per rolling 30-day period. On the 
+6th attempt within the window, show a friendly block message rather than a hard error: 'You've 
+reached your monthly submission limit. Need help sooner? Contact support.' with a support 
+link. 
+ 
+MUST 
+Duplicate detection: if the same customer email + same Brand/Business Name combination is 
+submitted again within 7 days of a prior submission, do NOT block it, but flag the new 
+submission with an internal-only 'Possible Duplicate' tag visible in the admin queue (Part C) 
+for a human glance before processing. 
+ 
+A.4  Pre-Fill Behaviour for Known Listings 
+MUST 
+When a customer clicks 'Request Revival' from an already-expired listing on Vouchiqo (a 
+listing that exists in Vouchiqo's own database, whether the merchant is currently active or 
+churned), auto pre-fill Brand Name, Category, Discount Type, Discount Value, Description, 
+and Expired Code directly from that stored listing data. Customer only needs to confirm/edit 
+and fill in Group 3 and Group 4. 
+ 
+SHOULD For pre-filled submissions from a still-active Category A merchant, allow an expedited single
+click 'Yes, this is correct — submit' flow rather than re-displaying every field, to reduce friction 
+for the highest-confidence, fastest-resolving case. 
+ 
+A.5  Outcome Delivery to Customer 
+Every submission MUST resolve to one of exactly three customer-visible outcomes. The system must never 
+leave a submission silently unresolved — every record needs a terminal status that triggers a customer 
+notification. 
+ 
+CUSTOMER-VISIBLE OUTCOME STATUSES 
+Status Value Who Sees It Meaning / System Behaviour 
+Code Regenerated 
+Customer (email + 
+WhatsApp + in
+account Activity 
+tab) 
+Fresh code delivered with explicit new validity period. Customer's Savings 
+Dashboard (SRD Section 2.9 / Amendment 7) should reflect this as a tracked 
+saving once used. 
+Alternative Offer 
+Provided 
+Customer (email + 
+WhatsApp + in
+account Activity 
+tab) 
+Original code could not be revived, but a comparable active offer (same 
+merchant or same category/city) is provided instead, with a direct link to that 
+listing. 
+Respectfully 
+Declined 
+Customer (email + 
+WhatsApp + in
+account Activity 
+tab) 
+No regeneration or reasonable alternative possible. Message must state a brief 
+honest reason and explicitly invite continued use of Vouchiqo for future offers — 
+never a bare 'no'. 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 8 
+Track and surface all three outcome statuses inside the customer's Profile → Activity tab (per 
+MUST 
+SRD Section 2.9), each request showing: brand, date submitted, current status, and outcome 
+detail once resolved. 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 9 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+SECTION 
+B 
+MERCHANT-FACING MODULE 
+What active and reactivated merchants see and act on in their dashboard 
+ 
+Part B: Merchant Module 
+B.1  Revival Request Queue (Category A — Active Merchants) 
+This is the existing Section 3.6 build from SRD v1.0, retained as specified, with the additions below. 
+ 
+MUST 
+Each incoming request displays: original offer details (pulled from Vouchiqo's stored listing if it 
+originated there, or from the customer's submitted description if Category C/external), the 
+customer's note on what they were trying to buy, exact days since expiry (calculated from the 
+customer-submitted date field, not a vague label), and three action buttons. 
+ 
+MUST Action 1 — Approve & Regenerate: merchant issues a fresh code and sets new validity period 
+inline, without leaving the request screen. 
+ 
+MUST Action 2 — Offer Alternative: merchant selects one of their OTHER currently active listings to 
+link instead of issuing a new code. Must show a searchable list of the merchant's own active 
+listings to pick from. 
+ 
+MUST 
+Action 3 — Decline: requires a mandatory short reason field (minimum 10 characters) before 
+the decline can be submitted. This reason is what gets relayed to the customer per the 
+consent checkbox they agreed to in Part A — declines without a reason are not permitted by 
+the system. 
+ 
+B.2  Auto-Approval Toggle (New — Addendum to SRD v1.0) 
+SHOULD 
+Add a setting in merchant Account Settings → Business Profile: 'Auto-approve revival 
+requests within 30 days of expiry, same terms.' When enabled, any incoming Category A 
+request where the customer's submitted expiry date is within the last 30 days, and the 
+merchant has NOT manually customised regeneration terms before, is auto-approved using 
+the original offer's exact terms and a system-generated new validity period (default: 14 days 
+from approval). 
+ 
+ℹ NOTE  This toggle is specifically for Pro and Enterprise merchants comfortable pre-authorising low-risk 
+regenerations — it should be available but OFF by default for all plans, never auto-enabled. 
+ 
+B.3  Win-Back Re-Engagement View (Category B — Churned Merchants) 
+This is new functionality not present in SRD v1.0 — there is currently no 'churned merchant' concept anywhere 
+in the existing spec. This is the first place it appears. 
+ 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 10 
+MUST 
+Build a 'Merchant Status' field on every merchant record with values: Active / Inactive 
+(Voluntary) / Suspended (Policy Violation) / Trial Expired. This status already needs to exist 
+for billing logic — extend it here to drive win-back routing. 
+MUST 
+When a Category B submission arrives (brand matches an Inactive/Suspended/Trial-Expired 
+merchant record), it does NOT appear in any live merchant dashboard (the merchant has no 
+active session/access). Instead it routes to the Internal Admin Panel only (see Part C.3). 
+MUST 
+If admin successfully re-contacts and the merchant chooses to reactivate (re-subscribes or re
+verifies under Starter), their FIRST dashboard view after reactivation must surface a 
+'Welcome Back' card showing: number of expired-offer submissions received for their 
+business while inactive, and a direct prompt to repost their previous best-performing offer with 
+one click (pre-filled from their last active listing data, which must be retained in the database 
+even after a merchant goes inactive, not deleted). 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 11 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+SECTION 
+C 
+INTERNAL ADMIN MODULE 
+The triage queues, merchant intelligence engine, and founder-facing tools 
+ 
+Part C: Internal Admin Module 
+�
+� CRITICAL  This is the most operationally important part of this entire system for the business owner. 
+The admin panel must let one person (the founder) process all three categories efficiently, without needing 
+to manually cross-reference data — the system does the matching and surfacing; the human only makes 
+judgment calls. 
+ 
+C.1  Master Submission Queue & Triage View 
+MUST 
+A single master table view showing ALL incoming submissions across all 3 categories, with 
+columns: Submission Date, Customer Name, Brand Name, Category (A/B/C — colour-coded), 
+Days Since Original Expiry, Priority (auto-calculated per C.2 rules below), Status, Assigned 
+Action. 
+ 
+MUST Default sort: Priority descending, then Days Since Expiry ascending (most urgent and most 
+recoverable cases surface first). 
+ 
+MUST Filter controls: by Category (A/B/C), by Merchant City, by Business Category (the 15 Vouchiqo 
+categories), by Status, by 'Possible Duplicate' flag. 
+ 
+C.2  Auto-Calculated Priority Logic — Build This Exactly 
+Priority is system-calculated on submission, not manually set. The logic below must run automatically and 
+assign one of three priority labels. 
+ 
+Priority Auto-Assignment Rule 
+HIGH Category A submissions (any). OR: any submission where (today's date − customer-submitted 
+expiry date) ≤ 14 days. OR: customer has a prior submission with a resolved 'Code Regenerated' or 
+'Alternative Offer Provided' outcome on file (repeat satisfied user). 
+MEDIUM Category B submissions (any). OR: Category C submissions where Merchant City = a Phase 1 
+priority city (configurable list, starts with Ranchi) AND Business Type is in the current priority 
+category list (configurable, e.g. Home Improvement, Fashion, Beauty at launch). 
+LOW All remaining Category C submissions — i.e. outside priority cities or outside priority categories. 
+These still get logged into the Merchant Intelligence Database (C.4) automatically even at LOW 
+priority; only the immediate customer-service action is deprioritised, not the data capture. 
+ 
+MUST Priority list values (HIGH/MEDIUM/LOW priority city/category configuration referenced above) 
+must be editable from the admin panel itself — not hardcoded — since priority 
+cities/categories will change as Vouchiqo expands past Ranchi Phase 1. 
+ 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 12 
+C.3  Category-Specific Admin Workflows 
+Category A Workflow (mostly automated) 
+MUST 
+No admin action needed in the normal case — request routes directly to merchant dashboard 
+(Part B.1). Admin queue only surfaces a Category A item if the merchant has NOT responded 
+within the SLA window (48 hours), at which point it appears in admin queue with a 'Merchant 
+Non-Responsive — Needs Founder Follow-Up' flag, prompting the founder to personally 
+chase the merchant. 
+Category B Workflow (Win-Back) 
+MUST 
+Admin queue item shows: original merchant contact details (from their dormant account), their 
+last subscription plan before churning, their last active listing data, and the new submission's 
+details. 
+MUST 
+One-click action: 'Generate Win-Back Outreach' — auto-populates a pre-written message 
+(editable before sending) using the merchant name, business type, and submission count, 
+following the win-back script pattern from the Merchant Playbook. Sends via WhatsApp 
+Business or email, logged against the merchant record. 
+MUST 
+Admin can manually mark outcome: Reactivated / Declined to Return / No Response — each 
+updates the merchant record's status accordingly, and 'Declined to Return' triggers the Do
+Not-Contact suppression in C.5. 
+Category C Workflow (New Merchant Intelligence) 
+MUST 
+Admin queue item shows: the submitted business details, the source platform field (where 
+customer found the offer), and crucially — the LIVE updated submission count for this exact 
+business name if multiple customers have separately submitted for the same unlisted 
+business (see C.4 for how this count is built). 
+MUST 
+One-click action: 'Add to Merchant Outreach List' — pushes this business into the Merchant 
+Demand Report (C.4) as an active acquisition target if not already there, or increments its 
+existing record. 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 13 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+C.4  The Merchant Demand Intelligence Database 
+This is the structured data asset that turns customer service exhaust into a merchant acquisition pipeline. It 
+must be its own dedicated admin panel view, separate from the submission queue, because it is used by a 
+different workflow (merchant sales outreach, not customer support resolution). 
+ 
+MUST 
+Every Category B and Category C submission creates OR updates a single persistent record 
+per unique business, keyed by a normalised version of the Brand Name field (case
+insensitive, whitespace-trimmed, to avoid 'Marbella' and 'marbella ' creating duplicate 
+records). 
+ 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+Business Name Text — Normalised, 
+de-duplicated 
+key field. Primary identifier. 
+Category Status Enum — 
+Never Listed 
+(C) / 
+Previously 
+Listed (B) 
+Determines which workflow (B.3 win-back vs C.3 
+fresh outreach) applies. 
+Business Category Dropdown value — 
+One of the 15 
+Vouchiqo 
+categories, 
+taken from 
+most recent 
+submission. 
+Routes to the correct category-specific outreach 
+script in the Merchant Playbook. 
+City / Location Text — From most 
+recent 
+submission. Drives the Ranchi-priority surfacing. 
+Submission Count Auto
+incrementing 
+number — 
+Increments by 
+1 every time a 
+DIFFERENT 
+customer (by 
+email) submits 
+for this same 
+business. 
+THE single most important field — this is the 
+evidence number used in merchant outreach scripts. 
+Source Platforms 
+Mentioned Multi-value list — 
+Aggregates all 
+distinct values 
+from 'Where 
+did you find 
+this offer' 
+across all 
+submissions 
+for this 
+business. 
+Reveals which competing platform(s) already list this 
+merchant — direct competitive intelligence. 
+First Submission 
+Date / Most Recent 
+Submission Date Date — Auto-tracked. Shows whether demand for this merchant is a one
+off or sustained over time. 
+Sample Offer 
+Types Requested Aggregated list — 
+Rolls up 
+Discount Type 
++ Description 
+from all 
+submissions 
+for this 
+business. 
+Gives the outreach team a starting pitch for what 
+offer to suggest the merchant launch with. 
+Outreach Status Enum — Not Yet 
+Contacted / 
+Contacted — 
+Tracks the business-development pipeline state for 
+this lead, separate from any individual customer 
+submission's status. 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 14 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Field Name Type Required Values / 
+Validation Purpose / Logic Notes 
+Awaiting 
+Response / 
+Declined / 
+Converted 
+(Now Listed) 
+Do-Not-Contact 
+Flag Boolean — 
+Set manually 
+by admin 
+when a 
+business 
+explicitly 
+declines 
+outreach. 
+See C.5 — suppresses repeat contact attempts. 
+ 
+MUST 
+Build a sortable, filterable report view titled 'Merchant Demand Report' — sortable by 
+Submission Count descending by default, filterable by City, Business Category, and Outreach 
+Status. This is the weekly hit-list the founder/marketing team works from for merchant 
+acquisition (replaces or supplements cold-outreach lists in the existing Merchant Playbook 
+process). 
+ 
+C.5  Do-Not-Contact Suppression 
+MUST 
+When a Category B or C business record has its Do-Not-Contact Flag set to true, that 
+business must NOT be auto-surfaced in any future 'Generate Win-Back Outreach' or 'Add to 
+Merchant Outreach List' one-click actions, even if new customer submissions continue to 
+increment its Submission Count. The record still updates silently in the background (count, 
+source platforms, etc.) for founder reference, but no outreach action is auto-suggested. 
+ 
+MUST Admin must be able to manually override and re-enable contact on a flagged record (e.g. if 
+significant time has passed or circumstances changed) — this is a soft suppression, not a 
+permanent block, but it requires a deliberate admin action to reverse. 
+ 
+C.6  Alternative-Offer Suggestion Engine 
+Supports Outcome 2 (Part A.5) — when a regeneration isn't possible, the admin (or auto-approval logic) needs 
+to quickly check whether a reasonable substitute offer exists. 
+ 
+MUST 
+When processing a decline for any category, the admin panel must auto-display up to 3 
+suggested alternative active listings, ranked by: (1) same merchant if they have any other 
+active listing, then (2) same Business Category + same City, then (3) same Business 
+Category nationally. Suggestions pull from Discount Type and approximate Discount Value 
+proximity to the original submitted offer. 
+ 
+SHOULD 
+If zero reasonable alternatives exist (common in early Phase 1 with a small merchant base), 
+the system should clearly show 'No alternative available' rather than forcing a poor-fit 
+suggestion — admin should never be pressured by the UI into offering an irrelevant substitute 
+just to fill the Outcome 2 slot. 
+ 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification 
+For Webitya  |  Page 15 
+C.7  Public Revival Social-Proof Feed — Sourcing Rule 
+SRD v1.0 Section 2.7 already specifies a 'Recent Revivals' social-proof feed on the public Revival page. This 
+addendum adds a mandatory sourcing rule for what is allowed to populate it. 
+�
+� CRITICAL  The public feed MUST only ever be populated from submissions with a resolved outcome of 
+'Code Regenerated' or 'Alternative Offer Provided' (genuine wins). It must NEVER show 'Respectfully 
+Declined' cases. It must NEVER feature a Category C business by name unless that business has since 
+actually converted to a listed Vouchiqo merchant (Outreach Status = Converted) — featuring a non
+partner's brand name without consent is a real legal exposure, not just a courtesy issue. 
+MUST 
+Admin panel needs a manual toggle per resolved submission: 'Include in public Recent 
+Revivals feed' (default OFF, must be explicitly turned on by admin after confirming the above 
+sourcing rule is satisfied) — this should never be fully automatic given the legal sensitivity. 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 16 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+SECTION 
+D 
+DATA, ABUSE PREVENTION & PRIVACY POLICY 
+HOOKS 
+Cross-cutting requirements that touch all three modules above 
+ 
+Part D: Data, Abuse Prevention & Privacy 
+D.1  Abuse Prevention — Already Specified, Consolidated Here 
+MUST Rate limit of 5 submissions per customer per rolling 30-day period (Part A.3). 
+MUST Duplicate detection flag for same email + same brand name within 7 days (Part A.3) — 
+flagged for human review, not auto-rejected. 
+SHOULD Consider a simple CAPTCHA or equivalent bot-prevention on the submission form given it is a 
+public, no-login-required entry point in some flows (the homepage inline mini-form). 
+ 
+D.2  Privacy Policy & Consent — Required Legal Hook 
+�
+� CRITICAL  Because Category C/B data is explicitly used for merchant business-development outreach 
+(contacting businesses who did not themselves submit anything and do not know Vouchiqo holds this 
+data), the Privacy Policy MUST include a specific, visible clause covering this — not buried in general 
+terms. Suggested language for the policy page (content team to finalise, but the mechanism must exist): 
+'Information submitted about businesses not currently partnered with Vouchiqo may be used by Vouchiqo 
+to evaluate and pursue potential business partnerships with those businesses.' 
+ 
+MUST This clause must be linked or referenced directly from the Group 4 consent checkbox area on 
+the submission form itself (Part A.2), not just exist in a separate Privacy Policy page nobody 
+reads. 
+ 
+D.3  Data Retention for Churned Merchants 
+MUST 
+When a merchant's status changes to Inactive/Suspended/Trial Expired, their listing data 
+(past offers, terms, categories) must be RETAINED in the database, not deleted — this is 
+required for both the Win-Back pre-fill flow (Part B.3) and for matching future Category B 
+submissions correctly. Standard customer account deletion rules (SRD Section 2.9 — 30-day 
+recovery window, full deletion after) are separate and unaffected by this; this retention rule 
+applies specifically to merchant listing/offer historical data, not personal customer data. 
+ 
+D.4  Summary — What Webitya Must Build, By Module 
+Module New Build Items Reuses / Extends From 
+Customer (Part 
+A) 
+4-group submission form with 
+new fields (source platform, 
+merchant link, structured discount 
+fields, expectation checkbox); 
+rate limiting; duplicate flagging; 
+SRD v1.0 Section 2.7 page shell, Section 2.9 Activity tab, existing 
+email/WhatsApp notification infrastructure 
+Vouchiqo  Expired Offer Re-generation System — Developer Specification For Webitya  |  Page 17 
+ 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Addendum to SRD v1.0 & Amendment v1.1  •  All features MUST unless marked SHOULD 
+Module New Build Items Reuses / Extends From 
+pre-fill logic; 3-outcome 
+notification system 
+Merchant (Part 
+B) 
+Auto-approval toggle; NEW 
+Merchant Status field 
+(Active/Inactive/Suspended/Trial 
+Expired); Win-Back 'Welcome 
+Back' reactivation card 
+SRD v1.0 Section 3.6 Revival Request table and approve/decline 
+modal — retained as-is with additions 
+Internal Admin 
+(Part C) 
+Master triage queue with auto
+priority logic; 3-way category 
+routing engine; Merchant 
+Demand Report (new, with 
+Submission Count as core field); 
+Do-Not-Contact suppression; 
+Alternative-offer suggestion 
+engine; public feed sourcing 
+toggle 
+SRD v1.0 Section 4.4 Revival Request Management — substantially 
+expanded, not just reused 
+Data & Privacy 
+(Part D) 
+Privacy Policy clause hook linked 
+from submission form; merchant 
+data retention rule for churned 
+accounts; basic bot-prevention on 
+public form 
+SRD v1.0 Section 6.2 Security requirements 
+ 
+Why This Matters More Than It Looks 
+Every other coupon platform treats an expired-code complaint as a dead end — a support 
+ticket to close. This system turns that exact moment into three different assets simultaneously: 
+a saved customer, a reactivated merchant, or a new sales lead with built-in evidence of 
+demand. The Submission Count field in Part C.4 is the single most valuable number in this 
+entire build — it is what lets a cold outreach call become a warm one. 
+ 
+Vouchiqo Expired Offer Re-generation System  •  Developer Specification v1.0  •  Addendum to SRD v1.0 & Amendment v1.1 

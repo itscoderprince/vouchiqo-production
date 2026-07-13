@@ -19,9 +19,6 @@ const Testimonials = dynamicImport(() =>
 const FaqSection = dynamicImport(() =>
   import("../FAQSection").then((mod) => mod.FaqSection),
 );
-const MerchantCTA = dynamicImport(() =>
-  import("../MerchantCTA").then((mod) => mod.MerchantCTA),
-);
 const PartnerBrands = dynamicImport(() =>
   import("../PartnerBrands").then((mod) => mod.PartnerBrands),
 );
@@ -34,10 +31,8 @@ import { useLocation } from "@/hooks/use-location";
 import { useSession } from "@/lib/auth-client";
 // Core components & hooks
 import { HeroSection } from "../HeroSection";
-import { HotDealsTicker } from "../HotDealsTicker";
 import PopularOffers from "../PopularOffers";
 import PopularStores from "../PopularStores";
-import { RevivalHeroSection } from "../RevivalHeroSection";
 import { DUMMY_TAB_COUPONS } from "./constants";
 import DealsOfTheDay from "./DealsOfTheDay";
 import InterestBanner from "./InterestBanner";
@@ -45,10 +40,8 @@ import InterestSheet from "./InterestSheet";
 // Component page sections
 import LeadingTaglineBar from "./LeadingTaglineBar";
 import NewsletterSubscription from "./NewsletterSubscription";
-import PopularCategories from "./PopularCategories";
 import TodayTopCoupons from "./TodayTopCoupons";
 import TrendingOffer from "./TrendingOffer";
-import VouchiqoCollections from "./VouchiqoCollections";
 
 export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
@@ -147,16 +140,15 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
 
         switch (couponTab) {
           case "travel":
-            return category.includes("travel") || category.includes("hotel");
-          case "recharge":
             return (
-              category.includes("recharge") ||
-              category.includes("utility") ||
-              title.includes("recharge")
+              category.includes("travel") ||
+              category.includes("hotel") ||
+              category.includes("hospitality")
             );
           case "fashion":
             return (
               category.includes("fashion") ||
+              category.includes("clothing") ||
               category.includes("apparel") ||
               title.includes("fashion")
             );
@@ -174,13 +166,24 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
               title.includes("laptop") ||
               title.includes("soundbar")
             );
-          case "ott":
+          case "beauty":
             return (
-              category.includes("ott") ||
-              category.includes("entertainment") ||
-              title.includes("ott") ||
-              title.includes("prime") ||
-              title.includes("tv")
+              category.includes("beauty") ||
+              category.includes("wellness") ||
+              category.includes("skincare")
+            );
+          case "home":
+            return (
+              category.includes("home") ||
+              category.includes("living") ||
+              category.includes("furniture")
+            );
+          case "home-improvement":
+            return (
+              category.includes("home-improvement") ||
+              category.includes("improvement") ||
+              category.includes("tiles") ||
+              category.includes("hardware")
             );
           default:
             return true;
@@ -236,11 +239,8 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
       {/* Sticky Navbar */}
       <Navbar />
 
-      {/* Sticky Hot Deals Ticker Marquee */}
-      <HotDealsTicker />
-
       {/* Main Container */}
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="w-full px-4 md:px-8 py-6">
         {/* 4. Split Hero Section */}
         <section
           className="g-main-banner main__banner__div"
@@ -254,7 +254,7 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
       <LeadingTaglineBar />
 
       {/* Main Container */}
-      <main className="container mx-auto px-4 py-6 space-y-12 max-w-7xl">
+      <main className="w-full px-4 md:px-8 py-6 space-y-12">
         {/* 8. Popular Offers of the Day */}
         <PopularOffers coupons={initialCoupons} />
 
@@ -274,23 +274,11 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [] }) {
         {/* 12. Deals of the Day (Product retail grid) */}
         <DealsOfTheDay />
 
-        {/* 13. GrabOn Collections Grid */}
-        <VouchiqoCollections />
-
-        {/* 14. Homepage Expired Coupon Revival Section */}
-        <RevivalHeroSection />
-
-        {/* 17. Popular Categories Grid (High-density 29 links) */}
-        <PopularCategories />
-
         {/* 19. Subscribe Now newsletter card */}
         <NewsletterSubscription />
 
         {/* 20. Trending Partner Brands Grid */}
         <PartnerBrands />
-
-        {/* 22. Merchant CTA */}
-        <MerchantCTA />
 
         {/* 23. FAQ Section */}
         <FaqSection />

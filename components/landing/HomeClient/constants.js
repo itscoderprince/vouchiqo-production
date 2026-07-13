@@ -1,14 +1,19 @@
 export const SYSTEM_CATEGORIES = [
+  { name: "Fashion & Clothing", slug: "fashion", emoji: "🛍️" },
   { name: "Food & Dining", slug: "food", emoji: "🍔" },
-  { name: "Fashion & Apparel", slug: "fashion", emoji: "🛍️" },
   { name: "Electronics & Gadgets", slug: "electronics", emoji: "💻" },
-  { name: "Beauty & Skincare", slug: "beauty", emoji: "💄" },
-  { name: "Travel & Hotels", slug: "travel", emoji: "✈️" },
-  { name: "Health & Fitness", slug: "fitness", emoji: "💪" },
-  { name: "Home & Décor", slug: "home", emoji: "🏠" },
-  { name: "SaaS & Productivity", slug: "entertainment", emoji: "💼" },
-  { name: "Local Services", slug: "services", emoji: "🛠️" },
-  { name: "Other Deals", slug: "other", emoji: "🏷️" },
+  { name: "Beauty & Wellness", slug: "beauty", emoji: "💄" },
+  { name: "Travel & Hospitality", slug: "travel", emoji: "✈️" },
+  { name: "Home & Living", slug: "home", emoji: "🛋️" },
+  { name: "Home Improvement", slug: "home-improvement", emoji: "🛠️" },
+  { name: "Fitness & Healthcare", slug: "fitness", emoji: "💪" },
+  { name: "Education & Courses", slug: "education", emoji: "🎓" },
+  { name: "Kids & Baby Products", slug: "kids-baby", emoji: "🧸" },
+  { name: "Jewellery & Accessories", slug: "jewellery", emoji: "💍" },
+  { name: "Automobile & Auto Services", slug: "automobile", emoji: "🚗" },
+  { name: "Gaming & Entertainment", slug: "gaming", emoji: "🎮" },
+  { name: "Grocery & Essentials", slug: "grocery", emoji: "🛒" },
+  { name: "Finance & Insurance", slug: "finance", emoji: "🏦" },
 ];
 
 export const DUMMY_TAB_COUPONS = {

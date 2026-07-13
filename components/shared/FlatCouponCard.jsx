@@ -81,7 +81,7 @@ export default function FlatCouponCard({ coupon }) {
       className="gh-ec"
       style={{
         backgroundColor: "#ffffff",
-        borderRadius: "8px",
+        borderRadius: "6px",
         border: "1px solid #e2e8f0",
         display: "flex",
         flexDirection: "column",

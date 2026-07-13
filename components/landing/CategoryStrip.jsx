@@ -30,7 +30,7 @@ export const CategoryStrip = React.memo(function CategoryStrip() {
       </div>
 
       {/* Brands List */}
-      <div className="flex justify-between items-center overflow-x-auto scrollbar-hide pt-6 gap-8 text-xs font-bold text-brand-subtext px-4 max-w-7xl mx-auto scroll-smooth">
+      <div className="flex justify-between items-center overflow-x-auto scrollbar-hide pt-6 gap-8 text-xs font-bold text-brand-subtext px-4 w-full scroll-smooth">
         {LEADING_BRANDS.map((brand, idx) => (
           <Link
             key={idx}

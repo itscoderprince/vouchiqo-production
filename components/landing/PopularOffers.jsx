@@ -48,13 +48,13 @@ function PopularOfferCard({ coupon }) {
   return (
     <Link
       href={`/deals/${coupon._id}`}
-      className="po-card group relative rounded-2xl no-underline cursor-pointer"
+      className="po-card group relative rounded-md no-underline cursor-pointer"
     >
       {/* ===== LAYER 1: BANNER IMAGE (z-index 1) =====
           Fills the whole card behind everything. The white box
           covers the bottom ~40%, leaving the top ~60% visible. */}
       <div
-        className="po-card__banner absolute top-0 left-0 w-full bg-cover bg-center rounded-2xl"
+        className="po-card__banner absolute top-0 left-0 w-full bg-cover bg-center rounded-md"
         style={{ height: "100%", backgroundImage: `url(${coverImage})` }}
         role="img"
         aria-label={coupon.title}
@@ -65,7 +65,7 @@ function PopularOfferCard({ coupon }) {
           UPWARD on hover (extra section expands) to reveal the
           divider + redeem button. The logo is a child, absolute-positioned
           so it straddles the image/box junction exactly like the GrabOn reference. */}
-      <div className="po-card__box absolute bottom-0 left-0 w-full bg-white rounded-b-2xl rounded-tl-[35px] px-5 pt-8 pb-5">
+      <div className="po-card__box absolute bottom-0 left-0 w-full bg-white rounded-b-md rounded-tl-[6px] px-5 pt-8 pb-5">
         {/* ===== LAYER 3: LOGO (z-index 3) — on the white overlay =====
             Straddles the top edge of the white box and the banner image. */}
         <div
@@ -123,7 +123,7 @@ function PopularOfferCard({ coupon }) {
             <button
               type="button"
               aria-label="Redeem Now"
-              className="po-card__redeem-btn w-full rounded-lg py-2 text-center text-[12px] font-bold uppercase tracking-wider text-white hover:brightness-110 transition-all"
+              className="po-card__redeem-btn w-full rounded-md py-2 text-center text-[12px] font-bold uppercase tracking-wider text-white hover:brightness-110 transition-all"
               style={{
                 backgroundColor: "#3E80DD",
                 boxShadow: "0 2px 8px rgba(62,128,221,0.3)",
@@ -325,7 +325,7 @@ export default function PopularOffers({ coupons = [] }) {
   const displayItems = items.length > 0 ? items : demoCoupons;
 
   return (
-    <section className="g-sub-banner text-left w-full bg-white rounded-2xl border border-brand-border p-6 md:p-8">
+    <section className="g-sub-banner text-left w-full bg-white rounded-md border border-brand-border p-6 md:p-8">
       <SectionHeader title="Popular Offers of the Day" viewAllHref="/deals" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -1,0 +1,131 @@
+WHAT IS A VOUCHIQO CAMPAIGN? 
+
+A Campaign on Vouchiqo is a structured, time-bound promotional event created by a merchant to achieve 
+a specific business objective — more than just having a coupon code discoverable on the platform. When 
+a merchant runs a Campaign, Vouchiqo activates a coordinated set of visibility actions across the 
+platform: the deal is featured in the homepage ticker, pushed to relevant subscribers via email, sent as a 
+push notification to opted-in users, elevated in the category page, and given a visible urgency indicator 
+(countdown timer or "X uses remaining" counter) on the deal card itself. 
+The 7 Campaign Types on Vouchiqo 
+Each type is designed for a specific business situation. Merchants choose the type when creating a 
+campaign, and the type determines the default duration, the urgency format, and which platform 
+placements are activated. 
+
+
+TYPE 1 — FLASH SALE CAMPAIGN 
+What it is: The most time-compressed campaign type. A deep discount offered for a very short window 
+— minimum 2 hours, maximum 48 hours. Designed to create maximum urgency and drive an immediate 
+spike in traffic and redemptions. 
+When to use it: Slow weekday, sudden excess inventory, a competitor just ran a sale and the merchant 
+needs to respond, or a merchant wants to test whether a particular offer format drives volume before 
+committing to a longer promotion. 
+Merchant sets: Discount depth (typically deeper than their standard listing — e.g. 30% vs the usual 
+15%), duration, total usage cap, and whether it's new-user-only or open to all. 
+Platform behaviour: The deal is elevated to the top of the Flash Deals homepage section with a live 
+countdown timer. It appears in the ticker with a "    
+Flash" badge. If the merchant has a Push 
+Notification add-on or included in their plan, a push goes out at campaign start. Email blast is optional. 
+Duration: 2 hours to 48 hours. Anything longer becomes a Seasonal campaign. 
+
+
+
+TYPE 2 — FESTIVAL CAMPAIGN 
+What it is: A longer-format campaign tied to a specific Indian festival or cultural event. Pre-planned, 
+thematically branded, and aligned with the peak spending period around the festival. This is the highest
+revenue campaign type for most merchants. 
+The festivals Vouchiqo supports with dedicated campaign templates: Diwali, Chhath Puja (especially 
+relevant for Jharkhand/Bihar merchants), Holi, Navratri, Durga Puja, Eid, Christmas and New Year, 
+Independence Day, Republic Day, Valentine's Day, Raksha Bandhan, Bhai Dooj, and Back-to-School 
+(July–August). Each has a pre-built campaign theme, suggested discount range, and recommended 
+duration based on that festival's typical spending pattern. 
+What makes it different from a Flash Sale: Duration is longer (3–7 days), the campaign card has 
+festival-specific visual treatment (Diwali themed card, Chhath themed card), and there is a pre-festival 
+teaser period where Vouchiqo promotes "Coming Soon" teasers 3 days before the campaign launches — 
+building anticipation before the deal even goes live. 
+When to use it: Any merchant with seasonal sales patterns — home improvement merchants before 
+Diwali renovation season, restaurants before Chhath, fashion boutiques before festivals. For Marbella 
+specifically, Diwali and the pre-monsoon renovation season are the two biggest windows. 
+
+
+TYPE 3 — NEW USER ACQUISITION CAMPAIGN 
+What it is: A campaign specifically designed to bring in first-time customers — people who have never 
+bought from that merchant before. The coupon is technically a "New Users Only" type, meaning it 
+validates at checkout only on the first order. 
+What Vouchiqo does differently for this type: The campaign is targeted exclusively to Vouchiqo users 
+who have NOT previously clicked through to that merchant's brand page. These are genuinely new 
+potential customers for the merchant. The campaign card is labelled "First-Time Offer" in teal — a 
+distinct visual treatment that signals exclusivity. 
+When to use it: A new business that just onboarded on Vouchiqo and needs to build a customer base fast. 
+A merchant expanding to a new city or category. A business that has relied on word-of-mouth and wants 
+to systematically acquire new customers. 
+Merchant value: This is the closest thing to a guaranteed new customer acquisition campaign. The 
+merchant pays only for the discount given (via CPA) — not for impressions or clicks. Every redemption 
+is a new customer. 
+
+
+
+TYPE 4 — SEASONAL / CLEARANCE CAMPAIGN 
+What it is: A medium-duration campaign tied to a season change or stock clearance event — not a 
+specific festival, but a recurring business cycle. Examples: End-of-Summer Flooring Sale, Monsoon 
+Ready Plumbing Specials, Winter Collection Launch, Back-to-School Stationery Deals. 
+Duration: 7 to 21 days. Longer than a flash sale, shorter than an always-on listing. Long enough to reach 
+users who are in the purchase consideration phase, short enough to maintain urgency. 
+Platform behaviour: Featured in the relevant category page for the full duration. Included in the weekly 
+email digest for that category for the campaign weeks. No ticker priority unless the Flash Campaign 
+Boost add-on is purchased. 
+When to use it: Merchants with inventory they need to move before a season ends. Merchants with 
+strong seasonal demand patterns. For Marbella — a "Pre-Monsoon Waterproofing Specials" campaign in 
+May/June would be a perfect Seasonal Campaign. 
+
+
+
+TYPE 5 — LOYALTY / RETURNING CUSTOMER CAMPAIGN 
+What it is: A campaign targeted exclusively at users who have previously used a Vouchiqo coupon from 
+that merchant. The platform identifies these users through redemption history and serves them the 
+campaign deal with a "Welcome Back" framing. 
+What it solves: Customer retention. Acquiring a new customer costs 5–7x more than retaining an 
+existing one. A Returning Customer campaign re-activates users who tried the merchant once but haven't 
+been back. 
+How targeting works: Vouchiqo's system filters the campaign audience to only users who have at least 
+one confirmed redemption from that merchant in the last 90 days. These users receive a personalised 
+push: "Hi, it's been a while since you last used [Brand]. Here's something for you: [Exclusive returning 
+customer offer]." 
+When to use it: Every 60–90 days, once a merchant has accumulated 50+ redemption records. Creates a 
+retention loop without the merchant needing to run their own CRM. 
+
+
+
+
+TYPE 6 — BUNDLE / BOGO CAMPAIGN 
+What it is: A campaign built around a non-standard discount format — Buy One Get One, bundle 
+packages, free gift with purchase, or value-add offers (e.g. "Buy tiles worth ₹10,000 and get free grouting 
+service worth ₹2,000"). These are not percentage-off or flat-off deals — they are structured promotional 
+packages. 
+Why it needs its own campaign type: The value communication is more complex. The deal card for a 
+BOGO campaign displays differently — it shows "BUY 1 GET 1 FREE" in large text rather than a 
+percentage badge. The redemption mechanism is also different — some BOGO deals require the 
+customer to show the page in-store rather than entering a code at online checkout. 
+When to use it: Food businesses (restaurant BOGO on specific dish), beauty salons (free hair wash with 
+any colour service), home improvement retailers (free installation with product purchase), clothing 
+boutiques (BOGO on selected season-end styles). 
+
+
+
+
+TYPE 7 — REVIVAL CAMPAIGN (PRO AND ENTERPRISE ONLY) 
+What it is: A campaign that is not about a new discount — it is about re-activating multiple expired 
+codes at once and marketing that revival as a promotional event. "Missed it? It's back — for 48 hours 
+only." The merchant selects a batch of their most-used expired codes, sets new expiry dates, and launches 
+a Revival Campaign. 
+Why this is powerful: Regular Revival (from the merchant dashboard) revives one code at a time in 
+response to a customer request. A Revival Campaign is proactive — the merchant decides to revive their 
+best-performing old codes and use the revival itself as a marketing hook. "Second Chance Sale" is a 
+compelling narrative that other platforms cannot replicate. 
+Platform treatment: Revival Campaign deals get a special "     
+Second Chance" badge on the deal card. 
+They appear in the Expired Coupon Revival section of the homepage and in the /expired-coupon-revival 
+page as "Active Revival Campaigns" — a separate curated list that customers on the revival page see first. 
+When to use it: Post-festival (the month after Diwali, when customers missed the festival deal and still 
+want the discount). Post-season (customers who were waiting before buying now see the discount return). 
+It creates a predictable annual promotional cycle: original campaign → expired → revival campaign 30 
+days later. 

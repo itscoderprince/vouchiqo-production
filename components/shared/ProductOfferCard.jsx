@@ -13,7 +13,7 @@ export default function ProductOfferCard({ product }) {
   } = product;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden relative group flex flex-col justify-between h-[380px] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 select-none text-left">
+    <div className="bg-white rounded-md shadow-sm border border-slate-200/80 overflow-hidden relative group flex flex-col justify-between h-[380px] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 select-none text-left">
       {/* Upper image area */}
       <div className="relative p-6 flex-grow flex items-center justify-center bg-slate-50/50">
         {/* Merchant Logo Badge (top left) */}
@@ -70,7 +70,7 @@ export default function ProductOfferCard({ product }) {
         {/* Action Button */}
         <button
           type="button"
-          className="w-full py-2.5 bg-brand-blue hover:bg-brand-blue/90 text-white font-extrabold text-[12px] tracking-wider uppercase rounded-xl transition-all duration-300 text-center shadow-sm cursor-pointer border-none"
+          className="w-full py-2.5 bg-brand-blue hover:bg-brand-blue/90 text-white font-extrabold text-[12px] tracking-wider uppercase rounded-md transition-all duration-300 text-center shadow-sm cursor-pointer border-none"
         >
           Buy now
         </button>

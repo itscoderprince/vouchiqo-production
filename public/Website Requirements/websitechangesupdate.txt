@@ -1,0 +1,1359 @@
+VOUCHIQO 
+Website Content Pack 
+For Webitya — Complete Page-by-Page 
+Content Specification 
+ 
+How to Read This Document 
+         CHANGE FROM CURRENT LIVE SITE  —  
+existing content/copy on vouchiqo.com that 
+must be replaced 
+✅ CONFIRM / KEEP AS-IS  —  element on 
+the live site that is already correct, no change 
+needed 
+➕ ADD NEW TO SITE  —  element not yet on 
+the live site that must be built and added 
+COPY  —  the exact text / headline / label to 
+place on the page 
+ 
+Based on: SRD v1.0 + Amendment v1.1 + 
+Expired Offer System Addendum + All 
+Founder Decisions 
+  
+Global Site-Wide Corrections — Apply Before Anything Else 
+These changes apply everywhere on the site — every page, every label, every email, every badge. Do not start page-level 
+content changes until these global corrections are applied platform-wide. 
+ 
+CHANGE FROM CURRENT LIVE SITE  The 
+current live site uses the word 'coupon' 
+extensively in brand-voice contexts — headlines, 
+page titles, category labels, navigation, and 
+marketing copy. The brand language decision is: 
+Vouchiqo does NOT describe itself as a 'coupon' 
+platform in marketing copy. Replace per the table 
+below. Exception: SEO meta-title patterns that 
+specifically target 'coupon code' as a search query 
+may retain the term; the URL slug /expired
+coupon-revival is also unchanged for SEO 
+continuity. 
+Element 
+Content / Specification 
+Current text on site (change everywhere) 
+Replace with 
+India's Leading Coupons & Deals Marketplace 
+Tested before it reaches you. 
+trusted coupon marketplace (meta description) India's first verified savings platform — every 
+offer tested before it goes live 
+View All TechGadgets Coupons / View All 
+StyleZone Coupons (listing links) 
+View All [Brand] Offers 
+Coupons (store count labels — e.g. 'Amazon 25 
+Coupons') 
+[Brand] 25 Offers 
+Popular Stores heading 
+Popular Brands 
+Popular Offers of the Day 
+Today's Verified Offers 
+Today's Top Coupons & Offers 
+Today's Top Verified Offers 
+Trending Partner Brands on Vouchiqo [with 'X 
+active coupons'] 
+Trending Brands on Vouchiqo [replace 'active 
+coupons' with 'verified offers'] 
+Subscribe Now — Get The Latest & Best 
+Coupon/Offer Alerts 
+GRABON EXCLUSIVE badge on deal cards 
+Subscribe for Verified Deal Alerts 
+VOUCHIQO VERIFIED — remove all GrabOn 
+references immediately 
+Footer tagline: 'trusted coupon marketplace' 
+verified savings platform 
+CHANGE FROM CURRENT LIVE SITE  The 
+current live site footer shows the company 
+address as 'OneWest Building, Gachibowli, 
+Hyderabad' and company name as 'Inspirelabs 
+Solutions Ltd.' This must be updated to the 
+correct registered Vouchiqo business address and 
+legal entity name once registration is complete. 
+Placeholder: 'Vouchiqo, Ranchi, Jharkhand, India'. 
+Do not show an incorrect address. 
+CHANGE FROM CURRENT LIVE SITE  All deal 
+cards currently show 'GRABON EXCLUSIVE' as a 
+badge. Replace with 'VOUCHIQO VERIFIED'. This is 
+critical — the live site is currently branding 
+competitor's label on your own product. 
+SECTION 
+1 
+HOMEPAGE — COMPLETE CONTENT 
+SPECIFICATION 
+Section-by-section content for vouchiqo.com 
+landing page 
+Section 1: Homepage 
+1.1  Browser Tab Title & Meta 
+COPY  Browser Tab Title 
+Vouchiqo — Verified Offers. Real Savings. 
+Ranchi's #1 Verified Savings Platform 
+COPY  Meta Description 
+Vouchiqo is India's first verified savings platform. 
+Every offer is tested before it reaches you. Find 
+verified deals, discover nearby offers in Ranchi, 
+and revive expired codes — free. 
+CHANGE FROM CURRENT LIVE SITE  Current 
+meta description says 'trusted coupon 
+marketplace and merchant growth platform 
+offering 100% verified deals and analytics.' 
+Replace entirely with the above. 
+1.2  Navigation Bar 
+Element 
+Content / Specification 
+Logo 
+Vouchiqo logo + text. Already live — keep. Ensure 
+it links to homepage. 
+Primary nav links (LEFT) 
+Stores → rename to BRANDS | Categories → keep 
+| Nearby Offers (ADD — links to /nearby-offers) | 
+Revive Offer (ADD — links to /expired-offer
+revival, styled with a subtle orange accent to 
+stand out from other nav links) 
+'June Sales' and 'Indulge' nav items 
+REMOVE — these are placeholder items from a 
+generic template. Not part of Vouchiqo's 
+navigation. 
+'More' dropdown 
+Remove. Replace with a clean Search icon that 
+activates the full-page search overlay. 
+Primary nav links (RIGHT) Login | Register | For Merchants (links to 
+/merchant/register — styled in orange pill button 
+to stand out) 
+Location badge ADD —       Set Location button that opens 
+city/state selector popover. Default text 'Set 
+Location' until user sets a city, then shows their 
+city (e.g. '      Ranchi'). 
+ 
+1.3  Hero Banner / Carousel 
+         CHANGE FROM CURRENT LIVE SITE  Current 
+carousel shows generic brand banners (Hostinger, 
+Redrail, Coursera, Samsung, etc.) with stock 
+images and no Vouchiqo-specific offer context. 
+Replace with the following structure. 
+ 
+Element Content / Specification 
+Hero Section (above fold — primary landing area) Full-width section. Background: deep navy 
+(#1A3C5E). NOT a rotating carousel as the 
+primary hero — the carousel should be a 
+secondary row below the hero. See SRD Section 
+2.1. 
+H1 Headline Tested before it reaches you. 
+H2 Subheadline Every verified offer on Vouchiqo has been 
+confirmed working by our team before it appears 
+on your screen. 
+CTA Buttons Primary (orange): Explore Verified Offers → 
+/deals | Secondary (white outline): How It Works 
+→ scrolls to the How It Works section 
+Trust stats row (below CTAs) [X] Verified Offers Live  •  [X] Brands on Platform  
+•  4-hour re-check on every report — pull actual 
+live numbers from the database for the first two; 
+the 4-hour stat is fixed copy 
+Rotating brand banner (BELOW hero, separate 
+row) 
+Keep the carousel concept for featured brand 
+banners, but remove all generic stock images. 
+Each banner slide must be an actual listed brand's 
+offer — not a template. For Phase 1 launch with 
+limited merchants, use only real Ranchi merchant 
+banners + any national brands actually listed. Do 
+not show banners for brands you don't have live 
+offers for. 
+ 
+1.4  Location-First Prompt (ADD — immediately below hero) 
+➕ ADD NEW TO SITE  This is a new element not 
+on the current live site. Insert a single-line 
+location prompt bar between the hero section 
+and the deals feed. A thin full-width bar with 
+background #F4F6F7, content: '      See offers near 
+you — [Set Your City]' where [Set Your City] is an 
+orange hyperlink that opens the location selector 
+popover (same as the navbar badge). For users 
+who have already set a location, this bar does not 
+appear. 
+1.5  Hot Deals Ticker Bar (ADD — below navbar, always visible) 
+➕ ADD NEW TO SITE  Full-width auto-scrolling 
+ticker immediately below the navbar, sitting 
+above everything else including the hero. 
+Background: deep navy (#1A3C5E). Left label 
+badge: '      
+TODAY'S DEALS' in orange pill. Deals 
+scroll right-to-left continuously. Each deal item: 
+Brand Name (bold white) + offer snippet (e.g. 
+'Flat ₹5,000 off Premium Marble Tiles') + discount 
+badge (orange pill). See Amendment 1 for full 
+priority logic and merchant dashboard integration 
+spec. 
+ℹ CONTENT NOTE  At launch with limited 
+merchants: show all live verified offers in the 
+ticker regardless of plan tier, in random rotation. 
+The paid-priority logic (Enterprise → Pro → 
+Growth) activates once you have 20+ paid 
+merchants. Do not show empty ticker — if fewer 
+than 3 offers, don't activate the ticker section at 
+all. 
+1.6  Interest / Category Selection (ADD — above deals feed) 
+➕ ADD NEW TO SITE  For first-time visitors: a 
+horizontally scrollable row of category chip 
+buttons, each with an emoji, immediately above 
+the deal cards grid. Label above row: 'What are 
+you shopping for today?' Chips are multi-select. 
+On selection, the deals grid below reorders to 
+surface selected categories first. Chips to include 
+(use exact names from the confirmed 15-category 
+architecture): Fashion & Clothing | Food & Dining 
+| Electronics & Gadgets | Beauty & Wellness | 
+Travel & Hospitality | Home & Living | Home 
+Improvement | Fitness & Healthcare | Education 
+& Courses | Kids & Baby | Jewellery & 
+Accessories | Automobile & Auto Services | 
+Gaming & Entertainment | Grocery & Essentials | 
+Finance & Insurance 
+CHANGE FROM CURRENT LIVE SITE  Current 
+live site shows 'Popular Categories' at the 
+BOTTOM of the page as a list of 29 sub-category 
+text links. Replace with the interactive chip row 
+above the deals feed (as specified) AND keep a 
+category grid section further down the page for 
+discovery, but restructure it — see 1.11. 
+1.7  Deals Feed Section 
+Element 
+Content / Specification 
+Section heading 
+Today's Verified Offers 
+Sub-filter tabs (REPLACE current tabs) 
+Most Popular | Newest | Near Me (only shows if 
+location is set) | Expiring Soon | Flash Deals 
+Current tab labels to remove 
+'Most Used / Travel / Recharge / Fashion / Food / 
+Electronics / OTT' — these are category tabs, not 
+sort/filter tabs. Move category filtering to the 
+chip row (1.6) instead. 
+Deal card — Brand name display 
+Show brand name prominently at top left of card 
+Deal card — Badge 
+Replace 'GRABON EXCLUSIVE' with 'VOUCHIQO 
+VERIFIED' badge in green. Shape: pill/rounded 
+tag. 
+Deal card — Offer type badge 
+Keep the format — FLAT X% OFF / FLAT ₹X OFF — 
+this is already correct 
+Deal card — Code section 
+Dashed-border code box: 'CODE:' label + 
+monospace bold code + Copy icon. On copy: 
+changes to '✅ Copied!' for 2 seconds. 
+Deal card — Verification timestamp 
+ADD below expiry date: small text '✅ Verified 
+[DD Mon]' — e.g. '✅ Verified 30 Jun' 
+Deal card — CTA button 
+'GET OFFER' or 'COPY CODE' — not 'GRAB NOW'. 
+'Grab Now' is a GrabOn-specific CTA. 
+1.8  Flash Deals Section (ADD) 
+➕ ADD NEW TO SITE  Full-width navy 
+background section with a live countdown timer 
+(24-hour cycle or merchant-set end time, 
+whichever is shorter). Horizontal scrollable row of 
+Flash Deal cards with a '    FLASH' ribbon. 
+Countdown timer format: HH:MM:SS. Section 
+heading: 'Flash Deals — Today Only' with the 
+countdown timer beside the heading. Source: any 
+listing with the Flash Campaign type or any offer 
+expiring within 24 hours. 
+ 
+1.9  How It Works Section 
+Element Content / Specification 
+Section heading How Vouchiqo Works 
+Step 1 Find — Browse verified offers by category, city, or 
+search. Every offer you see has been tested by 
+our team. 
+Step 2 Copy — Click to copy the offer code or activate 
+the deal. Works every time or we'll fix it within 4 
+hours. 
+Step 3 Save — Use the offer at checkout or in-store. 
+Your savings are tracked in your personal 
+dashboard. 
+Revival Callout (below 3 steps) Special callout box — orange outline, navy 
+background — 'Have an expired offer? Submit it. 
+We'll ask the merchant to bring it back.' with 
+button: 'Revive an Offer →' linking to /expired
+offer-revival 
+ 
+1.10  Expired Offer Revival Section (ADD — dedicated, not just a How It Works callout) 
+➕ ADD NEW TO SITE  A full-width dedicated 
+section between the How It Works section and 
+the category grid. This is Vouchiqo's second USP 
+and deserves its own section, not just a callout 
+box inside another section. 
+ 
+Element Content / Specification 
+Section badge      INDIA'S ONLY EXPIRED OFFER REVIVAL 
+Main headline Your Expired Offer Has Value. Claim It. 
+Subheadline Don't discard expired discount codes. Submit 
+them on Vouchiqo — we contact the merchant 
+on your behalf and request a fresh offer. Free. 48 
+hours. 
+Stats row [X] Revivals Processed  •  [X] Brands Responded  •  
+[48 hrs] Average Response Time — pull real 
+numbers once available, use placeholder zeros at 
+launch 
+Inline mini-form Three fields inline: Expired Code (text) | 
+Brand/Store Name (text with autocomplete) | 
+Your Email (email) — then 'Submit for Revival' 
+orange button. Full form at /expired-offer-revival 
+Right-side visual Animated illustration of an expired offer card 
+transforming to a verified active card with a green 
+checkmark 
+Below section 'Learn how Revival works →' text link to /expired
+offer-revival 
+ 
+1.11  Category Grid Section (RESTRUCTURE) 
+         CHANGE FROM CURRENT LIVE SITE  Current 
+live site shows 29 text links as a flat list under 
+'Popular Categories' near the footer. Replace with 
+a proper visual category grid, using the confirmed 
+15 Vouchiqo categories. 
+ 
+Element Content / Specification 
+Section heading Browse by Category 
+Grid layout 3 columns on desktop, 2 on mobile, each cell 
+with: category emoji, category name, active offer 
+count (live from database). 15 tiles total matching 
+the confirmed category list. 
+Categories (exact names) Fashion & Clothing | Food & Dining | Electronics 
+& Gadgets | Beauty & Wellness | Travel & 
+Hospitality | Home & Living | Home Improvement 
+| Fitness & Healthcare | Education & Courses | 
+Kids & Baby Products | Jewellery & Accessories | 
+Automobile & Auto Services | Gaming & 
+Entertainment | Grocery & Essentials | Finance & 
+Insurance 
+Each tile links to 
+/category/[slug] — individual category page 
+showing all offers in that category 
+1.12  Nearby Offers Teaser Section (ADD) 
+➕ ADD NEW TO SITE  Section heading: 'Offers 
+Near You in Ranchi'. Show a mini map preview + 4 
+deal cards from businesses with a Ranchi location 
+set. 'View All Nearby Offers →' button linking to 
+/nearby-offers. For users without a location set: 
+show a 'Set your city to see nearby offers' prompt 
+instead of the deal cards. 
+1.13  For Merchants Section 
+Element 
+Content / Specification 
+Section heading 
+List Your Business on Vouchiqo 
+Subheadline 
+No monthly subscription fee to start. You pay 
+only when we bring you a paying customer. 
+4 benefit points 
+✅ Your offer verified and live within 4 hours | 
+✅ Real-time dashboard showing exactly how 
+many customers we sent you | ✅ Smart Code 
+system — verified in-store, no payment gateway 
+change needed | ✅ Expired Offer Revival — we 
+help old customers find you again 
+Primary CTA 
+List Your Business — It's Free  →  
+/merchant/register 
+Secondary CTA 
+See Founding Merchant Benefits  →  
+/merchant/register#founding 
+Founding Merchant callout 
+Add a small orange callout below CTAs: 'Founding 
+Merchant Program open — first 50 Ranchi 
+businesses get priority placement + discounted 
+paid plans for 6 months.' 
+1.14  Deals of the Day / Product Deals Section 
+ 
+CHANGE FROM CURRENT LIVE SITE  Current 
+live site shows 'Deals Of The Day' with product 
+images, prices (₹769, ₹389, etc.) and 'Buy Now' 
+buttons. These appear to be product-deal listings 
+linking directly to third-party e-commerce sites. 
+This section should only be shown if you have 
+affiliate product-deal integrations confirmed. If 
+not, remove this section for Phase 1 and replace 
+with the Nearby Offers teaser (1.12). 
+1.15  Blog Section (ADD) 
+➕ ADD NEW TO SITE  Section heading: 'From the 
+Vouchiqo Blog'. Show 3 blog preview cards in a 
+row (title, category tag, 2-line excerpt, read more 
+link). Links to /blog. For Phase 1 before blog posts 
+exist: hide this section entirely rather than 
+showing empty or placeholder cards. 
+1.16  Newsletter Signup Section 
+Element 
+Content / Specification 
+Section heading 
+Get Verified Deal Alerts — Free 
+Sub-copy 
+We send you verified offers for the categories you 
+care about, in your city. No spam. Unsubscribe 
+anytime. 
+Form fields 
+Email address input + City/State dropdown (use 
+confirmed city list) + 'Subscribe' orange button 
+Post-subscribe message 
+'Done! You'll get your first deals digest within 24 
+hours.' 
+1.17  FAQ Section 
+Element 
+Content / Specification 
+Current FAQs (3 exist — expand to 6) 
+Keep the 3 existing FAQ headers. Add 3 more 
+below. 
+Q1 (existing) 
+A1 
+How does Vouchiqo verify offer codes? 
+Our team tests every offer before it goes live on 
+Vouchiqo. We simulate a real purchase, confirm 
+the discount applies exactly as described, and 
+only then publish it with a Vouchiqo Verified 
+badge and a verification date. If you find a non
+working offer, tap 'Report' — we re-test within 4 
+hours. 
+Q2 (existing) 
+What is the Expired Offer Revival System? 
+A2 
+When you find an offer that has already expired, 
+don't give up on it. Submit it on Vouchiqo through 
+our Revival page. We contact the merchant and 
+ask them to reactivate it specifically for you. If 
+they approve, you receive a fresh working offer 
+by email within 48 hours. This service is 
+completely free. 
+Q3 (existing) Is Vouchiqo free to use for customers? 
+A3 Yes, completely free. Creating an account, finding 
+offers, copying codes, submitting Revival 
+requests, and tracking your savings are all free. 
+Vouchiqo earns from merchant partners, not 
+from you. 
+Q4 (ADD) How is Vouchiqo different from other deal sites? 
+A4 Every other platform lists codes submitted by 
+merchants or users without testing them — 
+broken offers are common. Vouchiqo tests every 
+offer first. We also offer the only Expired Offer 
+Revival feature in India — and a Nearby Offers 
+map showing verified deals from businesses 
+physically close to you. 
+Q5 (ADD) What is the Nearby Offers feature? 
+A5 Nearby Offers shows you verified deals from 
+businesses near your current location. Set your 
+city and locality, and Vouchiqo shows you a map 
+of local businesses with active verified offers — 
+so you can plan your visit knowing the offer is real 
+before you leave home. 
+Q6 (ADD) How do I know if a code will still work tomorrow? 
+A6 Each offer shows the date it was last verified by 
+our team. We re-test all active offers every 30 
+days and immediately on any user report. If an 
+offer expires or breaks between verification 
+cycles, it is pulled from the site within 4 hours of 
+being reported. 
+ 
+1.18  Footer 
+         CHANGE FROM CURRENT LIVE SITE  Current 
+footer has broken links (most footers links to / or 
+empty). Rebuild completely per the structure 
+below. Also fix: company name and address, the 
+'Speciality Pages' section which lists generic 
+templates like 'Surge 2025' and 'Charities', and 
+the social media icon links which currently go to /. 
+ 
+Element Content / Specification 
+Logo + tagline Vouchiqo logo + 'Tested before it reaches you.' 
+About text India's verified savings platform. Every offer is 
+tested by our team before it appears on your 
+screen. Find verified deals, discover local offers, 
+and revive expired codes — all in one place. 
+Column 1 — Discover Verified Offers (/deals) | Nearby Offers (/nearby
+offers) | Revive an Expired Offer (/expired-offer
+revival) | All Brands (/brands) | All Categories 
+(/categories) 
+Column 2 — For Merchants List Your Business (/merchant/register) | 
+Founding Merchant Program 
+(/merchant/register#founding) | Merchant Login 
+(/merchant/login) | How Vouchiqo Works for 
+Merchants (/merchant/how-it-works) | Merchant 
+Plans & Pricing (/merchant/register#plans) 
+Column 3 — Company About Vouchiqo | Blog | Privacy Policy (/privacy) 
+| Terms of Use (/terms) | Contact Us (/contact) | 
+Sitemap 
+Column 4 — Contact Email: support@vouchiqo.com | WhatsApp: 
+[number] | Location: Ranchi, Jharkhand, India 
+Legal line at bottom © 2026 Vouchiqo. All Rights Reserved. | 
+Registered in India 
+Social icons Instagram | LinkedIn | WhatsApp — link to actual 
+Vouchiqo accounts only. Remove icon links that 
+currently go to homepage. 
+ 
+  
+SECTION 
+CUSTOMER DASHBOARD 
+2 
+Account, savings, nearby offers, activity — all 
+customer-facing pages 
+Section 2: Customer Dashboard — /profile 
+2.1  Customer Auth Pages (/auth/login, /auth/register) 
+Element 
+Content / Specification 
+Login page headline 
+Welcome back to Vouchiqo 
+Login sub-copy 
+Sign in to access your saved offers, savings 
+dashboard, and Revival requests. 
+Register page headline 
+Register sub-copy 
+Start saving smarter 
+Free account. Track your savings, get personalised 
+verified offers, and revive expired codes. 
+Interest selection step (during registration) 
+Step label: 'What do you want deals for?' + the 15 
+category chips from Section 1.6 — multi-select, 
+required before completing registration 
+Verification email subject line 
+Verify your Vouchiqo account — [6-digit OTP] 
+Verification email body opener 
+Hi [Name], your Vouchiqo verification code is 
+[OTP]. Valid for 10 minutes. 
+2.2  Customer Dashboard — Tab Navigation 
+➕ ADD NEW TO SITE  The customer dashboard 
+(/profile) must have 5 tabs in this order:       
+My 
+Savings (first, default landing tab) |          
+Offers |           
+Cashback Wallet |       
+Saved 
+Nearby Offers | 
+ 
+Settings 
+2.3  My Savings Tab — Personal Savings Dashboard 
+Element 
+Content / Specification 
+Page headline 
+Your Savings Dashboard 
+Sub-copy 
+Every rupee you've saved through Vouchiqo — 
+tracked, visualised, and yours. 
+KPI Card 1 
+Total Saved This Month — large number in green 
++ '[X] offer uses' sub-text 
+KPI Card 2 
+Total Lifetime Savings — since account creation 
+date 
+KPI Card 3 
+Total Spend Tracked — with tooltip: 'Based on 
+Vouchiqo-tracked purchases only' 
+KPI Card 4 
+Savings Rate — 'You save ₹[X] for every ₹100 
+spent through Vouchiqo' 
+Chart heading 
+Your Savings Over Time 
+Category breakdown heading 
+Where You Save the Most 
+Transaction table heading 
+My Offer Usage History 
+Export button 
+Download My Savings Report (CSV) 
+Share button 
+Share My Savings — generates a card: 'I saved 
+₹[X] this month with Vouchiqo        
+' 
+Milestone badges 
+First Saving | ₹500 Saved | ₹1,000 Saved | ₹5,000 
+Saved | ₹10,000 Saved 
+Empty state headline 
+Your savings journey starts here 
+Empty state sub-copy 
+Use your first verified offer to begin tracking. 
+Every rupee saved appears here. 
+Empty state CTA 
+Browse Verified Offers → 
+2.4  Saved Offers Tab 
+Element 
+Content / Specification 
+Tab label 
+Saved Offers 
+Empty state headline 
+Nothing saved yet 
+Empty state sub-copy 
+Tap the      
+on any offer to save it here for later. 
+Empty state CTA 
+Explore Offers → 
+2.5  Cashback Wallet Tab 
+Element 
+Content / Specification 
+Balance display headline 
+Your Cashback Balance 
+Pending cashback label 
+Pending (confirming with merchant) 
+Available balance label 
+Available to Redeem 
+Redemption status 
+'Redemption coming soon' — show as a pill tag, 
+not a disabled button, so it reads as a feature in 
+development rather than a broken button 
+Transaction history heading 
+Cashback History 
+Empty state copy 
+Your cashback rewards will appear here once you 
+use cashback-eligible offers. 
+2.6  Nearby Offers Tab (within Profile) 
+Element 
+Content / Specification 
+Heading 
+Offers Near You 
+Location status display 
+Shows the customer's currently saved location 
+with an 'Edit Location' link 
+Saved locations section 
+'Your Saved Locations' — shows up to 3 saved 
+cities with ability to switch active location 
+Add location label 
+'+ Add Another City' — up to 3 total 
+2.7  Settings Tab 
+Element 
+Content / Specification 
+Page heading 
+Account Settings 
+Preferences section heading 
+My Deal Preferences 
+Preferences description 
+Choose the categories you want deal alerts for. 
+We only send you offers that match. 
+Notification preferences heading 
+Email toggle label 
+Notification Settings 
+Weekly Deal Digest 
+Push toggle label 
+Flash Deal Alerts 
+Revival update toggle label 
+Revival Request Updates 
+Delete account CTA 
+Delete My Account 
+Delete account confirmation copy 
+This will permanently delete your account after 
+30 days. Offers, savings history, and Revival 
+requests will all be removed. 
+SECTION 
+OFFER PAGES, CARDS & BADGES 
+3 
+Individual offer pages, card components, 
+verification badges 
+Section 3: Offer Pages, Cards & Badges 
+3.1  Deal/Offer Cards — The Reusable Component 
+Element 
+Content / Specification 
+Brand name display 
+Top left — brand name in bold dark text 
+Verified badge 
+GREEN PILL: ✅ Vouchiqo Verified — replace all 
+instances of 'GRABON EXCLUSIVE' immediately 
+Discount badge 
+Orange pill — format: FLAT X% OFF or FLAT ₹X 
+OFF or BOGO or FREE GIFT 
+Offer title 
+Code section 
+Max 2 lines, truncated with ellipsis if longer 
+Dashed border, monospace bold code text, Copy 
+icon button 
+Copy button states 
+Default: 'Copy Code' | On copy: '✅ Copied!' (2 
+seconds) | No valid code: 'Activate Offer' 
+Verification date 
+Expiry indicator 
+Small text below code: 'Verified [DD Mon YYYY]' 
+Normal: 'Valid until [date]' | Within 3 days: amber 
+'     
+Expires in [X] days' | Expired: red 'Expired — 
+Request Revival' 
+Category tag 
+Save icon 
+Small teal pill at bottom left 
+Heart icon — outline = unsaved, filled red = 
+saved. Requires login to save. 
+Hover state 
+Card lifts 4px, shadow deepens, 3px orange top 
+border 
+'Expired' card state 
+Show in greyed-out style with 'Request Revival →' 
+button instead of code copy 
+3.2  Merchant Badges — All Badge Types 
+➕ ADD NEW TO SITE  The following badges must 
+be built as distinct, visually designed elements — 
+not plain text labels. Each badge type appears in 
+specific contexts as listed. 
+Badge Name Where It Appears Design & Copy 
+Vouchiqo Verified (offer) Every verified live offer card and deal 
+page 
+Green pill. ✅ Vouchiqo Verified. Paired 
+with verification date on deal page: 
+'Verified [date] by our team' 
+Verified Merchant Merchant brand page header, 
+merchant search results 
+Green badge below merchant name. ✅ 
+Verified Merchant — identity confirmed 
+by Vouchiqo 
+Founding Partner Merchant brand page header (first 50 
+merchants only) 
+Orange star badge. ⭐ Founding 
+Partner — Ranchi's first 50. Permanent 
+— never shown to merchant #51+. 
+Growth Partner Merchant brand page (Growth plan 
+merchants) 
+Blue pill badge. Growth Partner 
+Pro Partner Merchant brand page (Pro plan 
+merchants) 
+Purple pill badge. Pro Partner 
+Enterprise Partner Merchant brand page (Enterprise 
+merchants) 
+Orange gradient badge. Enterprise 
+Partner 
+Local Business Nearby offer cards (in-store, Ranchi
+area merchants) 
+Orange location pin badge.       Local 
+Business 
+Flash Deal Cards with Flash Campaign type or 
+expiry within 24 hours 
+Yellow/amber badge with lightning bolt. 
+    Flash Deal 
+Revival Approved Offers that were regenerated through 
+the Revival system 
+Cyan badge.      Revived Offer 
+New Offers live for less than 48 hours Teal badge. NEW 
+ 
+3.3  Individual Offer Page (/deal/:id) 
+Element Content / Specification 
+Page H1 The offer title (e.g. 'Flat ₹5,000 off Premium 
+Marble Tiles at Marbella') 
+Breadcrumb Home > Home Improvement > Marbella > [Offer 
+Title] 
+Verification callout A dedicated callout box on the page — not a 
+badge — reading: 'How we verified this: Our team 
+tested this offer on [date] by completing a real 
+purchase. The discount applied exactly as 
+described: [X]% off[, minimum order ₹Y if 
+applicable]. Report it below if it stops working.' 
+Code box copy (sticky sidebar) Large code in monospace, orange border. Button: 
+'Copy Code & Visit [Brand]'. On click: copies code 
+AND opens merchant website in a new tab + 
+shows a toast: 'Code copied! Now paste it at 
+checkout on [Brand]'s website.' 
+Thumbs up/down label 
+Was this offer helpful? 
+Comments section heading 
+What others are saying 
+Report button label 
+This offer isn't working — Report it 
+Report confirmation 
+'Reported — our team will re-test within 4 hours. 
+We'll update this page with the result.' 
+Similar offers heading 
+More offers from [Brand Name] 
+3.4  Brand / Merchant Page (/brand/:slug) 
+Element 
+Content / Specification 
+Page H1 
+[Brand Name] — Verified Offers 
+Verified Merchant badge 
+✅ Verified Merchant — identity confirmed by 
+Vouchiqo 
+Stats row 
+[X] Active Offers | Verified by Vouchiqo Since 
+[date] | [Category] 
+Active offers tab label 
+Expired offers tab label 
+Active Verified Offers ([count]) 
+Expired Offers ([count]) — Request Revival 
+Follow button label 
+Follow [Brand] for Offer Alerts 
+Business info section heading 
+About [Brand Name] 
+Map section heading 
+Find [Brand Name] 
+Opening hours label 
+Business Hours 
+No active offers empty state 
+[Brand] has no active verified offers right now. Be 
+the first to know when they add one — follow 
+them above. Or request a revival of an offer 
+you've seen before. 
+3.5  Advertising Banners — Homepage & Category Pages 
+➕ ADD NEW TO SITE  Paid advertising 
+placements for merchants who purchase a 
+Homepage Featured Slot or Flash Campaign 
+Boost. Build two types of ad banner slot: 
+Element 
+Content / Specification 
+Homepage Banner Slot Full-width banner below the ticker, above the 
+deal feed. Maximum 1 banner visible at a time. 
+Rotation interval: 6 seconds if multiple banners 
+are purchased. Must be visually differentiated 
+from organic content with a small 'Sponsored' tag 
+in the corner (light grey, unobtrusive but visible 
+— required for transparency). 
+Category Page Banner Half-width banner that appears at the top of a 
+specific category page (e.g. Home Improvement 
+category page shows the Marbella paid banner). 
+Merchant selects which category page at time of 
+purchase. 'Sponsored' tag required. 
+Banner content spec Each banner must have: Brand logo, Offer 
+headline (max 60 chars), Discount badge (orange 
+pill), CTA button ('Get This Offer'), and Vouchiqo 
+Verified badge. Background should use the 
+merchant's brand colour or Vouchiqo's default 
+navy — no clashing bright backgrounds. 
+ 
+  
+SECTION 
+4 
+MERCHANT DASHBOARD 
+All merchant-facing pages and copy 
+ 
+Section 4: Merchant Dashboard — /merchant/ 
+4.1  Merchant Registration (/merchant/register) 
+Element Content / Specification 
+Page headline List Your Business on Vouchiqo 
+Sub-copy Reach verified savings-seekers in Ranchi. No 
+subscription fee to start — you pay only when we 
+bring you a paying customer. 
+Step 1 label Business Details 
+Step 2 label Your Account 
+Step 3 label Choose Your Plan 
+Plan selection — Starter card headline Start Free 
+Plan selection — Starter key line Zero subscription fee. You pay a small 
+commission only when we send you a verified 
+sale. 
+Plan selection — Growth card headline Grow Faster 
+Plan selection — Growth key line Full analytics + campaigns. Know exactly which 
+customers came from Vouchiqo. 
+Plan selection — Pro card headline Full Platform 
+Plan selection — Pro key line Unlimited listings, Expired Offer Revival, push 
+notifications, and homepage priority. 
+Plan selection — Enterprise card headline Scale with Vouchiqo 
+Founding Merchant callout on Step 3 Orange banner at top of Step 3: '⭐ Founding 
+Merchant Program — You are among Vouchiqo's 
+first 50 Ranchi merchants. Founding members get 
+priority placement, a permanent badge, and 
+discounted paid plans for the first 6 months. 
+Growth: ₹999/mo (normally ₹1,499). Pro: 
+₹2,999/mo (normally ₹3,999). Rate reverts to 
+standard after 6 months — disclosed upfront, no 
+surprises.' 
+Success page headline You're registered! Verification in progress. 
+Success page copy Our team will verify your business within 24–48 
+hours. You'll receive a confirmation email with 
+your dashboard login details. In the meantime, 
+prepare your first offer — we'll help you set it up 
+the moment you're approved. 
+4.2  Merchant Login (/merchant/login) 
+Element 
+Content / Specification 
+Page headline 
+Merchant Dashboard 
+Sub-copy 
+Manage your verified offers, track performance, 
+and grow with Vouchiqo. 
+Demo account CTA 
+Try the Demo Dashboard — auto-logs in with pre
+seeded demo data (read-only, yellow DEMO 
+banner) 
+Forgot password link text 
+Forgot your password? 
+4.3  Dashboard Home — Overview Page 
+Element 
+Content / Specification 
+Page heading 
+Dashboard Overview 
+KPI card 1 label 
+Total Clicks This Month 
+KPI card 2 label 
+Verified Sales Driven 
+KPI card 3 label 
+Estimated Revenue for You (₹) 
+KPI card 4 label 
+Active Listings ([X] of [plan limit]) 
+Chart title 
+Performance This Month 
+Top offers table heading 
+Your Best-Performing Offers 
+Quick Actions card heading 
+Quick Actions 
+Plan usage card heading 
+Your Plan 
+Activity feed heading 
+Recent Activity 
+Alert card — expiring offer      
+Your offer '[name]' expires in [X] days. Extend 
+it to keep earning. 
+Alert card — plan limit      
+You've used [X] of your [Y] listing slots. 
+Upgrade to add more. 
+Alert card — low performance      
+This offer has had low clicks this month. Try 
+adjusting the discount or updating the 
+description. 
+Empty state (no listings yet) 
+Welcome to your Vouchiqo dashboard! Post your 
+first verified offer to start reaching customers. 
+Takes 3 minutes — our team verifies it within 4 
+hours. 
+4.4  Post New Offer — Form Labels 
+Element 
+Content / Specification 
+Page heading 
+Post a New Verified Offer 
+Tab 1 label 
+Offer with Code 
+Tab 2 label 
+Deal / Direct Link 
+Tab 3 label 
+Special Offer / Gift 
+Offer title field label 
+Offer Headline (max 80 characters) 
+Code field label 
+Offer Code 
+'Generate random code' button 
+Generate Code 
+Discount type label 
+Discount Type 
+Discount value label 
+Discount Amount 
+Validity section heading 
+Offer Validity 
+Usage limit label 
+Total Uses Allowed (optional) 
+Per-user limit label 
+Limit per Customer 
+Description field label 
+What customers need to know (shown on your 
+offer page) 
+Terms field label 
+Submit button 
+Terms & Conditions 
+Submit for Verification 
+Submit tooltip 
+Our team verifies every offer within 4 hours. Your 
+offer goes live only after it's confirmed working. 
+Save draft button 
+Preview button 
+Save as Draft 
+Preview Offer 
+Live preview panel heading 
+How your offer will look 
+4.5  Campaigns — Labels & Copy 
+Element 
+Content / Specification 
+Page heading 
+Campaign Manager 
+Starter plan locked state 
+Campaigns are available from the Growth plan. 
+Upgrade to run time-bound promotions that 
+reach Vouchiqo's full customer base. 
+Create campaign button 
+Create New Campaign 
+Campaign types in dropdown 
+Flash Sale | Festival Campaign | New Customer 
+Offer | Seasonal / Clearance | Loyalty — 
+Returning Customers | Bundle / BOGO | Expired 
+Offer Revival Campaign 
+Campaign status labels 
+Draft | Scheduled | Live (with pulsing green 
+indicator) | Ended 
+Campaign card — stats labels 
+Impressions | Clicks | Offers Used | Revenue 
+Driven 
+Post-campaign report heading 
+Campaign Report — [Campaign Name] 
+4.6  Subscription & Billing — Copy 
+Element 
+Content / Specification 
+Page heading 
+Your Plan & Billing 
+Current plan card heading 
+Your Current Plan 
+Renewal label 
+Next renewal: 
+Upgrade CTA 
+Upgrade Your Plan 
+Plan comparison heading 
+Find the Right Plan for Your Business 
+Monthly/Annual toggle label 
+Monthly | Annual (save 2 months) 
+Add-ons section heading 
+Boost Your Plan 
+Add-on 1 
+Expired Offer Revival Pack — ₹499 / 25 revivals 
+Add-on 2 
+Flash Campaign Boost — ₹799 / campaign (Ticker 
+priority + dedicated email + push notification) 
+Add-on 3 
+Homepage Featured Slot — ₹999 / 3 days (your 
+offer first in the ticker and banner slot) 
+Add-on 4 
+Push Notification — ₹599 / send (targeted to 
+users interested in your category) 
+Add-on 5 
+Festival Campaign Package — ₹2,999 / event (full 
+festival campaign — 7 days, teaser, email, social) 
+Add-on 6 
+Performance Analytics Report — ₹799 / report 
+(deep monthly PDF report) 
+Billing history heading 
+Trust line below plan comparison 
+Billing History 
+No setup fee  •  Cancel anytime  •  14-day free 
+trial on Growth and Pro  •  GST invoice provided 
+on every payment 
+4.7  Expired Offer Revival Dashboard — Merchant Side 
+Element 
+Content / Specification 
+Section heading (in My Listings) 
+Expired Offers 
+Revive button label 
+Revive This Offer 
+Starter plan locked state for Revival 
+Expired Offer Revival is available from Pro plan or 
+as an add-on purchase (₹499 for 25 revivals). 
+Upgrade to Pro for unlimited revivals, or purchase 
+a Revival Pack to try it now. 
+Revival credits bar (Pro plan) 
+[X] of 50 revival credits used this month 
+Approve revival modal heading 
+Revive This Offer 
+Approve button 
+Confirm Revival — Send Fresh Code to Customer 
+Decline button 
+Decline this Request 
+Decline reason field label 
+Brief reason (shared with the customer) 
+Customer revival requests tab 
+Revival Requests from Customers 
+Requests table — column headings 
+Date Received | Customer (masked) | Offer 
+Requested | Customer Note | Action 
+Auto-approval toggle label 
+Auto-approve revival requests within 30 days of 
+expiry, same terms 
+SECTION 
+5 
+ADMIN DASHBOARD 
+Internal admin panel copy and labels 
+Section 5: Admin Dashboard — /admin (Internal Use Only) 
+5.1  Admin Panel — Key Labels 
+Element 
+Content / Specification 
+Login page heading 
+Vouchiqo Admin 
+Login page sub-copy 
+Internal use only — founder access 
+Main navigation items 
+Dashboard | Merchant Approval Queue | Offer 
+Verification Queue | Revival Requests | Merchant 
+Intelligence | Subscription & Revenue | Platform 
+Content | User Management | Settings 
+Merchant Approval Queue heading 
+Merchants Awaiting Approval 
+Offer Verification Queue heading 
+Offers Awaiting Verification 
+Approve merchant button 
+Approve & Send Welcome Email 
+Reject merchant button 
+Reject — Notify Applicant 
+Approve offer button 
+Approve & Publish — Verified 
+Reject offer button 
+Reject — Notify Merchant 
+Changes requested button 
+Request Changes from Merchant 
+Verification notes field 
+Internal verification notes (not shown to 
+merchant) 
+5.2  Merchant Intelligence Queue (Admin) 
+Element 
+Content / Specification 
+Queue heading 
+Merchant Demand Report 
+Description text 
+Businesses flagged by expired-offer submissions 
+from customers. Submission count = how many 
+different customers have submitted expired 
+offers from this business. Use this as your weekly 
+merchant outreach hit-list. 
+Submission count column label 
+Customer Demand Count 
+Source platforms column label 
+Where Customers Found Them 
+Add to outreach button 
+Add to Acquisition List 
+Win-Back Opportunities 
+Win-back queue heading 
+Win-back description 
+Merchants who were on Vouchiqo and have since 
+left, for whom customers are still submitting 
+expired offer requests. 
+Win-back outreach button 
+Generate Win-Back Message 
+Do not contact toggle 
+Do Not Contact — suppress from outreach 
+5.3  Platform Content — Admin-Controlled Copy 
+Element 
+Content / Specification 
+Recent Revivals feed heading (admin) 
+Recent Revivals — Public Feed Management 
+Add to public feed toggle 
+Include in 'Recent Revivals' homepage section 
+Warning label beside toggle 
+Only include genuine Outcome 1 and Outcome 2 
+results. Never include declines. Never include 
+Category C businesses by name unless they have 
+since listed on Vouchiqo. 
+Ticker management heading 
+Hot Deals Ticker — Priority Management 
+Ticker management description 
+Offers listed here are pinned to the top of the 
+homepage ticker bar. Paid Featured Slot 
+purchases auto-populate here. Manual pins can 
+be added and removed. 
+Homepage banner slots heading 
+Homepage Ad Banner Slots 
+Announcement banner heading 
+Site-Wide Announcement Banner 
+Announcement banner placeholder 
+e.g. 'Vouchiqo is live in Ranchi — Browse [X] 
+verified offers now' 
+SECTION 
+6 
+NEARBY OFFERS PAGE 
+Complete content spec for /nearby-offers 
+Section 6: Nearby Offers — /nearby-offers 
+Element 
+Content / Specification 
+Page H1 
+Verified Offers Near You in Ranchi 
+Sub-copy 
+Every business on this map has a live verified 
+offer confirmed working by our team. 
+Location prompt (GPS not set) 
+Allow location access to automatically find deals 
+near you, or enter your city and area below. 
+Manual entry label 
+Distance filter label 
+Enter your location 
+Distance 
+Distance options 
+Within 1 km | 3 km | 5 km | 10 km 
+Category filter label 
+Category 
+Map pin popup — offer line 
+[Brand Name] — [Offer Headline] 
+Map pin popup — verified line 
+✅ Verified [date] 
+Map pin popup — CTA 
+Get This Offer → 
+Get Directions link label 
+Get Directions 
+Deal list item — distance label 
+[X.X km away] 
+Empty state 
+No verified offers found near [location]. We're 
+actively onboarding Ranchi businesses — check 
+back soon, or browse all verified offers. 
+Ranchi Home Improvement priority note 
+When city = Ranchi: Home Improvement category 
+(Marbella — tiles, sanitary, granite) is surfaced at 
+the top of the list and map. This is hardcoded 
+priority for Phase 1. 
+SECTION 
+7 
+EXPIRED OFFER REVIVAL PAGE 
+Full content spec for /expired-offer-revival 
+Section 7: Expired Offer Revival — /expired-offer-revival 
+Element 
+Content / Specification 
+Page H1 
+Have an Expired Offer? Don't Give Up. 
+Sub-copy 
+Submit it here. Vouchiqo contacts the merchant 
+on your behalf and requests a fresh verified offer 
+— free, within 48 hours. 
+Step 1 visual label 
+Submit your expired offer 
+Step 2 visual label 
+Vouchiqo contacts the merchant 
+Step 3 visual label 
+You receive a fresh offer by email 
+Form heading 
+Submit Your Revival Request 
+Brand field label 
+Brand or Business Name 
+Brand field placeholder 
+e.g. Marbella, Zomato, your local salon... 
+Expired code field label 
+Expired Offer Code (if there was one) 
+Expired code placeholder 
+e.g. SAVE20, MARBELLA15 
+Discount type field label 
+What was the offer? 
+Discount value field label 
+How much off? 
+Description field label 
+Offer description (brief) 
+Found where field label 
+Where did you find this offer? 
+Merchant link field label 
+Merchant website or Instagram (if you know it) 
+Merchant city field label 
+Which city is this business in? 
+Buying intent field label 
+What were you trying to buy? (optional) 
+Email field label 
+Your email — we'll send the fresh offer here 
+Mobile field label 
+Your WhatsApp number — for faster delivery 
+Consent checkbox text 
+I understand Vouchiqo will try to get this offer 
+reactivated, but cannot guarantee a working code 
+will be available. If this isn't possible, I'll be 
+notified and may be offered a similar active offer 
+from this brand or category instead. 
+Submit button 
+Submit Revival Request 
+Success message headline 
+Submitted! We're on it. 
+Success message copy 
+Recent Revivals heading 
+We've received your request and will contact the 
+merchant on your behalf. You'll hear back within 
+48 hours — check your email and WhatsApp. 
+Check your Activity tab in your account for live 
+status updates. 
+Recent Successful Revivals 
+Recent Revivals sub-copy 
+Real offers recovered for real customers. 
+(Anonymised.) 
+SECTION 
+BLOG & SUPPORTING PAGES 
+8 
+Blog, About, Contact, How It Works for 
+Merchants 
+Section 8: Blog & Supporting Pages 
+8.1  Blog (/blog) 
+Element 
+Content / Specification 
+Page H1 
+The Vouchiqo Blog 
+Sub-copy 
+Savings strategies, new offers, merchant stories, 
+and how to get the most from Vouchiqo. 
+First blog post — suggested title 
+Why We Started in Ranchi: What 75 
+Conversations With Local Businesses Taught Us 
+First blog post — purpose 
+This is your launch story and Phase 1 SEO anchor. 
+Write it as a genuine founder reflection from the 
+market validation week. Use real insights from 
+your merchant and customer conversations. This 
+content builds trust, SEO, and local identity 
+simultaneously. 
+Recommended blog categories 
+Savings Tips | Merchant Stories | Platform 
+Updates | Local Ranchi | How Vouchiqo Works 
+8.2  Merchant How It Works (/merchant/how-it-works) 
+Element 
+Content / Specification 
+Page H1 
+How Vouchiqo Works for Merchants 
+Step 1 
+Register Free — Create your merchant account. 
+No monthly fee on Starter. Takes 5 minutes. 
+Step 2 
+Submit Your Offer — Post your discount, deal, or 
+special offer. Our team verifies it within 4 hours. 
+Step 3 
+We Send You Customers — Customers discover 
+your verified offer and come to you. Smart Code 
+tracks every in-store visit. 
+Step 4 
+Pay Only for Results — A small commission 
+applies only on verified sales we drove. Zero sales 
+from us = zero charge from you. 
+Smart Code section heading 
+How In-Store Redemption Works 
+Smart Code explanation 
+Customers generate a unique Smart Code on 
+their phone and show it at your counter. You 
+enter it in your dashboard, confirm the bill 
+amount, and the transaction is recorded. No 
+payment gateway change. No new POS 
+equipment. No friction. 
+ 
+8.3  About Vouchiqo (/about) 
+Element Content / Specification 
+Page H1 About Vouchiqo 
+Opening paragraph Vouchiqo started with a simple frustration: 
+expired codes at checkout. You find a deal, add 
+your items, type the code, and see 'Invalid.' The 
+discount is gone. The trust is broken. We built 
+Vouchiqo to fix that — not with a different 
+aggregator, but with a different standard. Every 
+offer on Vouchiqo is tested by our team before it 
+reaches your screen. That's the commitment we 
+make, and we make it every time. 
+Why Ranchi section heading Why We Started in Ranchi 
+Why Ranchi paragraph Ranchi is home. And Ranchi's local businesses — 
+the tile showroom, the restaurant, the salon — 
+don't have access to the digital marketing tools 
+that national brands do. Vouchiqo gives them 
+one: a verified, performance-only channel where 
+they pay only when it works. We're building from 
+here, and expanding from here. 
+Verification commitment section heading The Verified Standard 
+Verification paragraph 'Verified' is a word that gets overused. On 
+Vouchiqo, it means something specific: our team 
+manually tested this offer, confirmed the 
+discount applies, and checked the terms match 
+exactly what's published. The date you see on 
+every offer is the date we last confirmed it. If it 
+breaks, it's off the site within 4 hours of a report. 
+ 
+8.4  Contact (/contact) 
+Element Content / Specification 
+Page H1 Contact Vouchiqo 
+Customer support section heading Customer Support 
+Customer email support@vouchiqo.com 
+Merchant & Business Enquiries 
+Merchant enquiries heading 
+Merchant email 
+merchant@vouchiqo.com 
+Response time note 
+We respond to all messages within 24 hours, 
+typically the same evening. 
+Support form — subject dropdown options 
+Offer Not Working | Account Issue | Revival 
+Request Update | Cashback Question | Business / 
+Merchant Enquiry | Feedback | Something Else 
+Delivery Priority for Webitya 
+Priority 1 (Before Phase 1 Handover): Global 
+corrections (remove GrabOn badge, fix all 
+'coupon' copy), homepage H1/tagline, navbar, 
+offer card verified badge. These are visible on the 
+current live site and must be fixed before any 
+stakeholder review. 
+Priority 2 (Phase 1 Build): Customer auth pages, 
+merchant registration with Founding Merchant 
+section, deal cards with all badge types, individual 
+offer page verification callout, footer rebuild, FAQ 
+expansion. 
+Priority 3 (Phase 1 Complete): All dashboard 
+pages (customer savings, merchant overview, 
+admin queues), Nearby Offers page, Expired Offer 
+Revival page, blog stub, About/Contact pages. 
+Vouchiqo Website Content Pack  •  v1.0  •  For Webitya Implementation  •  Based on SRD v1.0 + Amendment v1.1 + All 
+Founder Decisions  •  Confidential 

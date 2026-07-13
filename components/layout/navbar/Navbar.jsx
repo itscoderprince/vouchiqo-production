@@ -12,7 +12,7 @@ const NOTIFICATION_COUNT = 2;
 export const Navbar = () => (
   <header className="w-full bg-white font-sans border-b border-gray-200 sticky top-0 z-40">
     <PromoBanner />
-    <div className="w-full max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+    <div className="w-full px-4 md:px-8 py-3 flex items-center gap-4">
       {/* Logo */}
       <Logo />
 

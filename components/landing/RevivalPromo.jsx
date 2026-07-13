@@ -54,7 +54,7 @@ export function RevivalPromo() {
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 bg-brand-success/5 rounded-full blur-3xl z-0" />
       <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-brand-blue/5 rounded-full blur-3xl z-0" />
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
         {/* Left Column: Form & Details (55%) */}
         <div className="lg:col-span-7 space-y-6 text-left animate-fade-in-up stagger-1">
           <Badge className="bg-orange-500/15 text-[#FF7A18] hover:bg-orange-500/20 border border-[#FF7A18]/20 rounded-full px-3.5 py-1 font-extrabold text-xs shadow-none gap-1.5 w-fit">
@@ -104,7 +104,7 @@ export function RevivalPromo() {
           </div>
 
           {/* Inline mini-form */}
-          <div className="max-w-xl bg-white border border-brand-border rounded-2xl p-6 md:p-8 shadow-xl relative">
+          <div className="max-w-xl bg-white border border-brand-border rounded-md p-6 md:p-8 shadow-xl relative">
             {success ? (
               <div className="text-center py-6 space-y-4 animate-fade-in-scale">
                 <div className="w-12 h-12 rounded-full bg-brand-success/20 text-brand-success flex items-center justify-center mx-auto border border-brand-success/30">
@@ -215,13 +215,13 @@ export function RevivalPromo() {
           {/* Transforming coupon CSS visual */}
           <div className="w-[320px] h-[220px] relative flex items-center justify-center">
             {/* Background glowing ring */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF7A18]/10 to-[#00B67A]/10 rounded-2xl blur-2xl animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF7A18]/10 to-[#00B67A]/10 rounded-md blur-2xl animate-pulse" />
 
             {/* Glowing active success border */}
-            <div className="absolute inset-2 border border-brand-success/15 rounded-xl animate-pulse z-0" />
+            <div className="absolute inset-2 border border-brand-success/15 rounded-md animate-pulse z-0" />
 
             {/* Expired cracked coupon (sliding left, fading out) */}
-            <div className="absolute left-4 w-52 h-32 bg-white border border-brand-error/20 rounded-xl p-4 flex flex-col justify-between shadow-lg transform -rotate-6 animate-float z-10 opacity-60 hover:opacity-80 transition-opacity">
+            <div className="absolute left-4 w-52 h-32 bg-white border border-brand-error/20 rounded-md p-4 flex flex-col justify-between shadow-lg transform -rotate-6 animate-float z-10 opacity-60 hover:opacity-80 transition-opacity">
               <div className="flex justify-between items-start">
                 <span className="text-[8px] font-black text-brand-error border border-brand-error/30 px-1 py-0.5 rounded bg-brand-error/5">
                   EXPIRED
@@ -242,7 +242,7 @@ export function RevivalPromo() {
 
             {/* Fresh revived coupon (sliding right, glowing checkmark) */}
             <div
-              className="absolute right-4 w-52 h-32 bg-white border border-brand-success/30 rounded-xl p-4 flex flex-col justify-between shadow-xl transform rotate-3 animate-float z-20"
+              className="absolute right-4 w-52 h-32 bg-white border border-brand-success/30 rounded-md p-4 flex flex-col justify-between shadow-xl transform rotate-3 animate-float z-20"
               style={{ animationDelay: "1.5s" }}
             >
               <div className="flex justify-between items-start">

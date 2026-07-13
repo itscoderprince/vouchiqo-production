@@ -42,7 +42,7 @@ export function LoginForm() {
   };
 
   return (
-    <AuthCard title="Sign in to your account">
+    <AuthCard title="Log In">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -51,10 +51,10 @@ export function LoginForm() {
         className="space-y-4"
       >
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-brand-text uppercase">
-            Email
+          <Label className="text-sm font-medium text-brand-text">
+            Email Address
           </Label>
-          <InputGroup className="bg-brand-surface border border-brand-border rounded-lg h-10 px-1">
+          <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">
             <InputGroupAddon>
               <Mail className="w-4 h-4 text-brand-subtext" />
             </InputGroupAddon>
@@ -72,17 +72,17 @@ export function LoginForm() {
 
         <div className="space-y-1.5">
           <div className="flex justify-between items-center">
-            <Label className="text-xs font-bold text-brand-text uppercase">
+            <Label className="text-sm font-medium text-brand-text">
               Password
             </Label>
             <Link
               href="/auth/forgot-password"
-              className="text-xs md:text-sm text-brand-blue font-bold hover:underline"
+              className="text-xs md:text-sm text-brand-blue font-semibold hover:underline"
             >
-              Forgot?
+              Forgot Password?
             </Link>
           </div>
-          <InputGroup className="bg-brand-surface border border-brand-border rounded-lg h-10 px-1">
+          <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">
             <InputGroupAddon>
               <Lock className="w-4 h-4 text-brand-subtext" />
             </InputGroupAddon>
@@ -100,9 +100,9 @@ export function LoginForm() {
         <Button
           type="submit"
           disabled={isPending}
-          className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-1 border-0 h-auto cursor-pointer shadow-none"
+          className="btn-primary w-full py-2.5 rounded-md text-sm font-semibold flex items-center justify-center gap-1 border-0 h-auto cursor-pointer shadow-none"
         >
-          <span>{isPending ? "Signing in..." : "Sign In"}</span>
+          <span>{isPending ? "Logging in..." : "Log In"}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       </form>
@@ -110,8 +110,8 @@ export function LoginForm() {
       {/* Divider */}
       <div className="relative my-4 flex items-center justify-center">
         <hr className="border-t border-brand-border w-full" />
-        <span className="absolute bg-brand-bg px-3 text-[10px] uppercase font-bold text-brand-subtext tracking-wider">
-          Or continue with
+        <span className="absolute bg-brand-bg px-3 text-[11px] font-medium text-brand-subtext">
+          or log in with
         </span>
       </div>
 
@@ -119,7 +119,7 @@ export function LoginForm() {
       <Button
         type="button"
         onClick={handleGoogleSignIn}
-        className="w-full h-10 border border-brand-border bg-brand-surface hover:bg-brand-bg text-brand-text hover:text-brand-navy flex items-center justify-center gap-2.5 rounded-lg text-sm font-bold transition-all shadow-none cursor-pointer"
+        className="w-full h-10 border border-brand-border bg-brand-surface hover:bg-brand-bg text-brand-text hover:text-brand-navy flex items-center justify-center gap-2.5 rounded-md text-sm font-semibold transition-all shadow-none cursor-pointer"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path
@@ -139,11 +139,11 @@ export function LoginForm() {
             d="M23.52 12.273c0-.818-.073-1.609-.208-2.373H12v4.582h6.473c-.273 1.455-1.09 2.69-2.318 3.518l3.864 3c2.255-2.082 3.5-5.155 3.5-8.727Z"
           />
         </svg>
-        <span>Continue with Google</span>
+        <span>Google Account</span>
       </Button>
 
-      <p className="text-center text-sm font-semibold text-brand-subtext">
-        No account?{" "}
+      <p className="text-center text-sm font-medium text-brand-subtext mt-4">
+        Don't have an account?{" "}
         <Link
           href="/auth/register"
           className="text-brand-blue font-bold hover:underline"
