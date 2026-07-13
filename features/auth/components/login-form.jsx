@@ -145,7 +145,7 @@ export function LoginForm() {
       <p className="text-center text-sm font-medium text-brand-subtext mt-4">
         Don't have an account?{" "}
         <Link
-          href="/auth/register"
+          href="/register"
           className="text-brand-blue font-bold hover:underline"
         >
           Create one free

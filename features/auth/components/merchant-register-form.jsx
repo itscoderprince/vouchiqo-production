@@ -131,7 +131,7 @@ export function MerchantRegisterForm() {
       <p className="text-center text-sm font-medium text-brand-subtext mt-4">
         Already registered?{" "}
         <Link
-          href="/merchant/login"
+          href="/merchant-login"
           className="text-brand-blue font-bold hover:underline"
         >
           Log in here

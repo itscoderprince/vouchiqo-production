@@ -244,7 +244,7 @@ export function RegisterForm() {
       <p className="text-center text-sm font-semibold text-brand-subtext">
         Have an account?{" "}
         <Link
-          href="/auth/login"
+          href="/login"
           className="text-brand-blue font-bold hover:underline"
         >
           Sign in

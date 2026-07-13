@@ -34,7 +34,7 @@ export function ForgotPasswordForm() {
             </p>
           </div>
           <Link
-            href="/auth/login"
+            href="/login"
             className="btn-tertiary text-xs py-2 px-6 flex items-center justify-center gap-1.5 w-full border border-brand-border rounded-lg"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Login
@@ -79,7 +79,7 @@ export function ForgotPasswordForm() {
             <span>{isPending ? "Sending..." : "Send Reset Link"}</span>
           </Button>
           <Link
-            href="/auth/login"
+            href="/login"
             className="flex items-center justify-center gap-1 text-xs font-bold text-brand-blue hover:underline py-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In

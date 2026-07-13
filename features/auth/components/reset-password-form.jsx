@@ -42,7 +42,7 @@ export function ResetPasswordForm({ token }) {
             </p>
           </div>
           <Link
-            href="/auth/login"
+            href="/login"
             className="btn-primary text-xs py-2.5 px-6 flex items-center justify-center gap-1.5 w-full border-0 h-auto cursor-pointer shadow-none"
           >
             Go to Sign In <ArrowRight className="w-3.5 h-3.5" />

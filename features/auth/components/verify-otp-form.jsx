@@ -112,7 +112,7 @@ export function VerifyOtpForm() {
           </Button>
 
           <Link
-            href="/auth/login"
+            href="/login"
             className="flex items-center justify-center gap-1 text-xs font-bold text-brand-blue hover:underline py-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />

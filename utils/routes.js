@@ -29,11 +29,11 @@ export const ROUTES = {
 
   // Authentication Routes
   AUTH: {
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
-    FORGOT_PASSWORD: "/auth/forgot-password",
-    RESET_PASSWORD: "/auth/reset-password",
-    VERIFY_OTP: "/auth/verify-otp",
+    LOGIN: "/login",
+    REGISTER: "/register",
+    FORGOT_PASSWORD: "/forgot-password",
+    RESET_PASSWORD: "/reset-password",
+    VERIFY_OTP: "/verify-otp",
     CALLBACK: "/auth/callback",
   },
 
@@ -144,6 +144,18 @@ export function getRedirectForRole(role) {
  * @returns {boolean} True if the route is protected.
  */
 export function isProtectedRoute(pathname) {
+  if (
+    pathname === "/admin-login" ||
+    pathname === "/merchant-login" ||
+    pathname === "/merchant-register" ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname === "/verify-otp"
+  ) {
+    return false;
+  }
   return (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/merchant") ||

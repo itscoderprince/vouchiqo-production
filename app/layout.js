@@ -27,7 +27,10 @@ export default function RootLayout({ children }) {
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-brand-surface text-brand-text">
+      <body
+        className="min-h-full flex flex-col bg-brand-surface text-brand-text"
+        suppressHydrationWarning
+      >
         <QueryProvider>
           {children}
           <Toaster

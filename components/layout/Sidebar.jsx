@@ -157,7 +157,7 @@ export default function Sidebar({ role = "customer" }) {
         <Button
           onClick={() => {
             // better-auth sign out handler
-            window.location.href = "/auth/login";
+            window.location.href = "/login";
           }}
           variant="ghost"
           className="flex items-center justify-start gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer h-auto border-0 bg-transparent shadow-none"

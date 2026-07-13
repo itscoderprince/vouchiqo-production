@@ -29,7 +29,7 @@ export function useUser() {
 
   async function logout() {
     await signOut();
-    router.push("/auth/login");
+    router.push("/login");
   }
 
   return {

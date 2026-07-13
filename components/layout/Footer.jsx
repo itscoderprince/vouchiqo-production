@@ -7,8 +7,8 @@ export default function Footer() {
       <div className="w-full px-4 md:px-8">
         {/* 6-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
-          {/* Brand Info Block (spans 2 columns on desktop) */}
-          <div className="lg:col-span-2 space-y-5">
+          {/* Brand Info Block */}
+          <div className="space-y-5">
             <Link href="/" className="inline-block bg-white p-2 rounded-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -17,7 +17,7 @@ export default function Footer() {
                 className="h-10 w-auto object-contain"
               />
             </Link>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm font-medium">
+            <p className="text-xs text-slate-400 leading-relaxed font-normal">
               Striving towards making the world a better place to shop with
               great savings! We help you turn verified promotional offers into
               instant value.
@@ -96,12 +96,12 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-            <p className="text-[10px] text-slate-500 leading-normal max-w-xs font-semibold">
+            <p className="text-[10px] text-slate-500 leading-normal max-w-xs font-normal">
               We may earn a commission if you buy through links on Vouchiqo. For
               more details refer to our{" "}
               <Link
                 href="/terms"
-                className="text-slate-400 hover:text-white underline font-bold"
+                className="text-slate-400 hover:text-white underline font-medium"
               >
                 terms of use
               </Link>
@@ -109,65 +109,59 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Col 3: Speciality Pages */}
+          {/* Col 2: Speciality Pages */}
           <div>
             <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
-              <span className="relative z-10 bg-[#191F2E] pr-2">
-                Speciality Pages
-              </span>
-              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+              Speciality Pages
             </h4>
-            <ul className="space-y-2 text-xs font-bold text-slate-400">
+            <ul className="space-y-2 text-xs font-normal text-slate-400">
               <li>
                 <Link
                   className="hover:text-white transition-colors"
-                  href="/categories"
+                  href="/expired-coupon-revival"
                 >
-                  AI Tools
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="hover:text-white transition-colors"
-                  href="/categories"
-                >
-                  Surge 2025
-                </Link>
-              </li>
-              <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Blog
+                  Coupon Revival
                 </Link>
               </li>
               <li>
                 <Link
                   className="hover:text-white transition-colors"
-                  href="/categories"
+                  href="/nearby-offers"
                 >
-                  Product Deals
+                  Nearby Offers
                 </Link>
               </li>
               <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Charities
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/submit"
+                >
+                  Submit a Deal
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/faq"
+                >
+                  Help & FAQs
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Offers */}
+          {/* Col 3: Offers */}
           <div>
             <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
-              <span className="relative z-10 bg-[#191F2E] pr-2">Offers</span>
-              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+              Offers
             </h4>
-            <ul className="space-y-2 text-xs font-bold text-slate-400">
+            <ul className="space-y-2 text-xs font-normal text-slate-400">
               <li>
                 <Link
                   className="hover:text-white transition-colors"
                   href="/categories"
                 >
-                  City Offers
+                  Browse Categories
                 </Link>
               </li>
               <li>
@@ -175,23 +169,64 @@ export default function Footer() {
                   className="hover:text-white transition-colors"
                   href="/brands"
                 >
-                  Brand Offers
+                  Partner Brands
                 </Link>
               </li>
               <li>
                 <Link
                   className="hover:text-white transition-colors"
-                  href="/categories"
+                  href="/contact"
                 >
-                  Bank Offers
+                  Contact Support
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Portals & Accounts */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
+              My Account
+            </h4>
+            <ul className="space-y-2 text-xs font-normal text-slate-400">
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/login"
+                >
+                  Customer Login
                 </Link>
               </li>
               <li>
                 <Link
                   className="hover:text-white transition-colors"
-                  href="/categories"
+                  href="/register"
                 >
-                  Festival Offers
+                  Customer Register
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/merchant-login"
+                >
+                  Merchant Login
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/merchant-register"
+                >
+                  Merchant Register
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/admin-login"
+                >
+                  Admin Portal
                 </Link>
               </li>
             </ul>
@@ -200,13 +235,15 @@ export default function Footer() {
           {/* Col 5: Company */}
           <div>
             <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
-              <span className="relative z-10 bg-[#191F2E] pr-2">Company</span>
-              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+              Company
             </h4>
-            <ul className="space-y-2 text-xs font-bold text-slate-400">
+            <ul className="space-y-2 text-xs font-normal text-slate-400">
               <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  About Us
+                <Link
+                  className="hover:text-white transition-colors"
+                  href="/terms"
+                >
+                  Terms of Use
                 </Link>
               </li>
               <li>
@@ -220,34 +257,9 @@ export default function Footer() {
               <li>
                 <Link
                   className="hover:text-white transition-colors"
-                  href="/terms"
+                  href="/contact"
                 >
-                  Terms of Use
-                </Link>
-              </li>
-              <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Branding
-                </Link>
-              </li>
-              <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Partner With Us
-                </Link>
-              </li>
-              <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Sitemap
-                </Link>
-              </li>
-              <li>
-                <Link className="hover:text-white transition-colors" href="/">
-                  Feedback
+                  Contact Us
                 </Link>
               </li>
             </ul>
@@ -256,12 +268,9 @@ export default function Footer() {
           {/* Col 6: Contact Us */}
           <div>
             <h4 className="text-white font-semibold mb-4 flex items-center relative text-sm uppercase tracking-wider">
-              <span className="relative z-10 bg-[#191F2E] pr-2">
-                Contact Us
-              </span>
-              <span className="absolute left-0 bottom-0 w-8 h-[2px] bg-brand-success -mb-[2px]" />
+              Contact Us
             </h4>
-            <ul className="space-y-3.5 text-xs font-bold text-slate-400">
+            <ul className="space-y-3.5 text-xs font-normal text-slate-400">
               <li className="flex items-start">
                 <Mail className="w-4 h-4 mr-2.5 text-slate-500 mt-0.5" />
                 <a
@@ -282,15 +291,13 @@ export default function Footer() {
                   <br />
                   Inspirelabs Solutions Ltd,
                   <br />
-                  OneWest Building, Gachibowli,
-                  <br />
-                  Hyderabad, TG, 500032
+                  Ranchi Jharkhand 834002
                 </span>
               </li>
               <li className="pt-2">
                 <Link
                   href="/contact"
-                  className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 rounded text-[10px] uppercase tracking-wider font-extrabold transition-all flex items-center gap-1.5 w-fit cursor-pointer shadow-sm"
+                  className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 rounded text-[10px] uppercase tracking-wider font-semibold transition-all flex items-center gap-1.5 w-fit cursor-pointer shadow-sm"
                 >
                   <Headphones className="w-3.5 h-3.5" />
                   <span>Support Center</span>
@@ -302,7 +309,7 @@ export default function Footer() {
 
         {/* Footer Bottom Block */}
         <div className="text-center pt-8 border-t border-slate-800 flex flex-col items-center select-none">
-          <p className="text-[10px] text-slate-500 font-bold leading-normal">
+          <p className="text-[10px] text-slate-500 font-medium leading-normal">
             &copy; {new Date().getFullYear()} Vouchiqo is Registered Trademark
             Of Inspirelabs Solutions Ltd. - All Rights Reserved.
           </p>

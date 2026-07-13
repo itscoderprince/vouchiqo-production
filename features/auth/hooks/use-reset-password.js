@@ -20,7 +20,7 @@ export function useResetPassword() {
         return;
       }
       toast.success("Password updated! Please sign in.");
-      router.push("/auth/login");
+      router.push("/login");
     },
 
     onError: (err) =>

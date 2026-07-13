@@ -39,7 +39,18 @@ export async function proxy(request) {
         const { role } = session.user;
 
         // Redirect logged-in users away from auth forms (e.g. login, register)
-        if (pathname.startsWith("/auth") && pathname !== ROUTES.AUTH.CALLBACK) {
+        const isAuthForm =
+          pathname === ROUTES.AUTH.LOGIN ||
+          pathname === ROUTES.AUTH.REGISTER ||
+          pathname === ROUTES.AUTH.FORGOT_PASSWORD ||
+          pathname === ROUTES.AUTH.RESET_PASSWORD ||
+          pathname === ROUTES.AUTH.VERIFY_OTP ||
+          pathname === "/merchant-login" ||
+          pathname === "/merchant-register" ||
+          pathname === "/admin-login" ||
+          (pathname.startsWith("/auth") && pathname !== ROUTES.AUTH.CALLBACK);
+
+        if (isAuthForm) {
           const dest = getRedirectForRole(role);
           return NextResponse.redirect(new URL(dest, request.url));
         }
@@ -75,5 +86,13 @@ export const config = {
     "/customer/:path*",
     "/profile/:path*",
     "/auth/:path*",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-otp",
+    "/merchant-login",
+    "/merchant-register",
+    "/admin-login",
   ],
 };

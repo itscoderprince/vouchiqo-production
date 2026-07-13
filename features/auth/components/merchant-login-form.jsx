@@ -111,7 +111,7 @@ export function MerchantLoginForm() {
       <p className="text-center text-sm font-medium text-brand-subtext mt-4">
         Want to sell on Vouchiqo?{" "}
         <Link
-          href="/merchant/register"
+          href="/merchant-register"
           className="text-brand-blue font-bold hover:underline"
         >
           Register your brand

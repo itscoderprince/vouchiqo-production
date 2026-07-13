@@ -19,7 +19,7 @@ export default async function AuthCallbackPage({ searchParams }) {
 
   if (!session?.user) {
     // No valid session — send back to login
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   const resolvedSearchParams = await searchParams;

@@ -19,7 +19,7 @@ export const MerchantCTA = React.memo(function MerchantCTA() {
             asChild
             className="btn-primary text-xs py-2.5 px-6 border-0 h-auto cursor-pointer shadow-none"
           >
-            <Link href="/auth/register?role=merchant">
+            <Link href="/merchant-register">
               Create Merchant Account
             </Link>
           </Button>
