@@ -45,13 +45,11 @@ export function AdminLoginForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const configuredUsername = process.env.NEXT_PUBLIC_ADMIN_USERNAME || "admin";
-    const configuredEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@vouchiqo.com";
+    const adminUsername = process.env.NEXT_PUBLIC_ADMIN_USERNAME || "admin";
     
-    let loginEmail = username;
-    // Map typed username to the registered administrator email under-the-hood
-    if (username.trim() === configuredUsername) {
-      loginEmail = configuredEmail;
+    let loginEmail = username.trim();
+    if (loginEmail === adminUsername || !loginEmail.includes("@")) {
+      loginEmail = `${loginEmail}@vouchiqo.com`;
     }
     
     loginMutation.mutate({ email: loginEmail, password });

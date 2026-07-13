@@ -20,7 +20,8 @@ export async function GET() {
   await connectDB();
   const db = mongoose.connection.db;
 
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@vouchiqo.com";
+  const adminUsername = process.env.NEXT_PUBLIC_ADMIN_USERNAME || "admin";
+  const adminEmail = `${adminUsername}@vouchiqo.com`;
   const demoEmails = [
     "customer@vouchiqo.com",
     "customer2@vouchiqo.com",
