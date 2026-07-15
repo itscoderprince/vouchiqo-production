@@ -1,22 +1,13 @@
 "use client";
 
-import {
-  CalendarDays,
-  LayoutGrid,
-  List,
-  Menu,
-  Plus,
-  Store,
-  X,
-} from "lucide-react";
+import { Flame, LayoutGrid, MapPin, Menu, Store, X } from "lucide-react";
 import { useState } from "react";
 
 const MOBILE_NAV_LINKS = [
-  { href: "/merchants", icon: Store, label: "Stores" },
+  { href: "/brands", icon: Store, label: "Brands" },
   { href: "/categories", icon: LayoutGrid, label: "Categories" },
-  { href: "/june-sales", icon: CalendarDays, label: "June Sales" },
-  { href: "/indulge", icon: List, label: "Indulge" },
-  { href: "/submit", icon: Plus, label: "Submit Coupon" },
+  { href: "/campaigns", icon: Flame, label: "Trending" },
+  { href: "/nearby-offers", icon: MapPin, label: "Nearby Map" },
 ];
 
 export const MobileMenu = () => {

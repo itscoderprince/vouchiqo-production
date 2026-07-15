@@ -12,32 +12,44 @@ const NOTIFICATION_COUNT = 2;
 export const Navbar = () => (
   <header className="w-full bg-white font-sans border-b border-gray-200 sticky top-0 z-40">
     <PromoBanner />
-    <div className="w-full px-4 md:px-8 py-3 flex items-center gap-4">
-      {/* Logo */}
-      <Logo />
+    <div className="w-full px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+      {/* Left: Logo */}
+      <div className="flex items-center gap-3">
+        <Logo />
+      </div>
 
-      {/* Search — grows to fill middle space */}
-      <SearchBar />
+      {/* Middle: Search (Desktop only) */}
+      <div className="hidden md:block flex-1 max-w-[380px]">
+        <SearchBar />
+      </div>
 
-      {/* Location Selector */}
-      <LocationSelector />
-
-      {/* Nav links + icon cluster — pinned to the right */}
-      <div className="ml-auto flex items-center gap-5 shrink-0">
+      {/* Right: Nav links + icon cluster */}
+      <div className="flex items-center gap-3 md:gap-5 shrink-0">
         {/* Desktop Links */}
-        <NavLinks />
+        <div className="hidden lg:block">
+          <NavLinks />
+        </div>
 
-        {/* Divider */}
-        <div className="h-5 w-px bg-gray-200 hidden md:block" />
+        {/* Divider (Desktop only) */}
+        <div className="h-5 w-px bg-gray-200 hidden lg:block" />
 
         {/* Icon cluster */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Location Selector (Mobile only) */}
+          <div className="block md:hidden">
+            <LocationSelector isMobile={true} />
+          </div>
           <NotificationBell count={NOTIFICATION_COUNT} />
           <UserMenu />
           {/* Mobile burger toggle */}
           <MobileMenu />
         </div>
       </div>
+    </div>
+
+    {/* Mobile Search Row (Mobile only) */}
+    <div className="block md:hidden px-4 pb-3">
+      <SearchBar />
     </div>
   </header>
 );
