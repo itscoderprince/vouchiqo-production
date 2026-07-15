@@ -8,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 export default function DashboardLayout({ title, user, children }) {
   return (
     <TooltipProvider>
-      <SidebarProvider>
+      <SidebarProvider style={{ "--sidebar-width": "260px" }}>
         <div className="min-h-screen flex bg-brand-surface text-brand-text w-full">
           <AppSidebar />
           <SidebarInset className="bg-brand-surface flex-1 flex flex-col min-w-0">

@@ -49,7 +49,14 @@ export function NavMain({ groups }) {
             >
               <div className="mt-0.5 space-y-0.5">
                 {group.items.map((item) => {
-                  const isActive = pathname === item.url;
+                  const normalizedPath = pathname.replace(/\/$/, "");
+                  const normalizedUrl = item.url.replace(/\/$/, "");
+                  const isActive =
+                    normalizedPath === normalizedUrl ||
+                    (normalizedUrl !== "/merchant/dashboard" &&
+                      normalizedUrl !== "/admin/dashboard" &&
+                      normalizedUrl !== "/customer/dashboard" &&
+                      normalizedPath.startsWith(normalizedUrl + "/"));
                   const Icon = item.icon;
 
                   return (
@@ -58,8 +65,8 @@ export function NavMain({ groups }) {
                       href={item.url}
                       className={`group relative flex items-center transition-all duration-200 ${
                         isCollapsed
-                          ? "justify-center p-1.5 rounded-lg"
-                          : "gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold"
+                          ? "justify-center p-2 rounded-lg"
+                          : "gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold"
                       } ${
                         isActive
                           ? "bg-[#f1f5f9] text-[#0f172a]"
@@ -68,7 +75,7 @@ export function NavMain({ groups }) {
                     >
                       {Icon && (
                         <Icon
-                          className={`h-4 w-4 shrink-0 transition-colors ${
+                          className={`h-[18px] w-[18px] shrink-0 transition-colors ${
                             isActive
                               ? "text-[#0f172a]"
                               : "text-slate-400 group-hover:text-slate-600"

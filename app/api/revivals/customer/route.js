@@ -12,15 +12,25 @@ import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
 
 const createCustomerRevivalSchema = z.object({
-  code: z.string().min(2).max(50).toUpperCase(),
+  code: z.string().toUpperCase().optional().nullable(),
   brandName: z.string().min(2).max(100),
   email: z.string().email(),
+  whereDidYouFindThisOffer: z.string().optional().nullable(),
+  merchantWebsite: z.string().optional().nullable(),
+  merchantCity: z.string().min(2).max(100),
+  discountType: z.string().min(2).max(50),
+  discountValue: z.number().min(0).optional().nullable(),
+  description: z.string().max(200).optional().nullable(),
+  whenSeen: z.string().optional().nullable(),
+  whatBuying: z.string().max(200).optional().nullable(),
+  mobileNumber: z.string().regex(/^\d{10}$/, "WhatsApp mobile must be exactly 10 digits"),
+  consent: z.boolean(),
 });
 
 /**
  * GET /api/revivals/customer
  * Returns the count of customer revival requests processed this month for public,
- * or lists all revival documents for administrators.
+ * or lists all revival documents for administrators with advanced query sorting.
  */
 export const GET = asyncHandler(async (request) => {
   await connectDB();
@@ -30,8 +40,8 @@ export const GET = asyncHandler(async (request) => {
 
   if (isAdminRequest) {
     await requireRole(request, ROLES.ADMIN);
-    const revivals = await listAllCustomerRevivals();
-    return ok({ revivals });
+    const result = await listAllCustomerRevivals(searchParams);
+    return ok(result);
   }
 
   const stats = await getCustomerRevivalStats();
@@ -40,7 +50,7 @@ export const GET = asyncHandler(async (request) => {
 
 /**
  * POST /api/revivals/customer
- * Submits a new customer revival request.
+ * Submits a new customer revival request with 3-Way routing.
  */
 export const POST = asyncHandler(async (request) => {
   await connectDB();

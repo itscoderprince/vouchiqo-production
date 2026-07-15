@@ -1,6 +1,6 @@
 "use client";
 
-import { ALPHA_LETTERS } from "../constants/shared-navigation";
+import { ALPHA_LETTERS } from "@/utils/shared-navigation";
 
 /**
  * Shared alphabetical filter bar + search input for listing pages.

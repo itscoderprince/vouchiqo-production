@@ -15,6 +15,8 @@ import {
   TrendingUp,
   User,
   Users,
+  RotateCcw,
+  Building2,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { NavMain } from "@/components/layout/NavMain";
@@ -66,6 +68,11 @@ export function AppSidebar({ ...props }) {
             title: "Overview",
             items: [
               {
+                title: "Go to Homepage",
+                url: "/",
+                icon: Home,
+              },
+              {
                 title: "Dashboard",
                 url: "/admin/dashboard",
                 icon: LayoutDashboard,
@@ -84,6 +91,11 @@ export function AppSidebar({ ...props }) {
                 title: "User Management",
                 url: "/admin/users",
                 icon: Users,
+              },
+              {
+                title: "Merchant Intelligence",
+                url: "/admin/merchant-demand",
+                icon: Building2,
               },
             ],
           },
@@ -124,6 +136,11 @@ export function AppSidebar({ ...props }) {
             title: "Overview",
             items: [
               {
+                title: "Go to Homepage",
+                url: "/",
+                icon: Home,
+              },
+              {
                 title: "Dashboard",
                 url: "/merchant/dashboard",
                 icon: LayoutDashboard,
@@ -159,6 +176,11 @@ export function AppSidebar({ ...props }) {
                 icon: Sparkles,
               },
               {
+                title: "Revival Requests",
+                url: "/merchant/revivals",
+                icon: RotateCcw,
+              },
+              {
                 title: "Billing & Plans",
                 url: "/merchant/billing",
                 icon: CreditCard,
@@ -171,6 +193,11 @@ export function AppSidebar({ ...props }) {
           {
             title: "Navigation",
             items: [
+              {
+                title: "Go to Homepage",
+                url: "/",
+                icon: Home,
+              },
               {
                 title: "Dashboard",
                 url: "/customer/dashboard",
@@ -203,13 +230,12 @@ export function AppSidebar({ ...props }) {
         "--sidebar-border": "var(--brand-border)",
         "--sidebar-accent": "var(--brand-surface)",
         "--sidebar-accent-foreground": "var(--brand-navy)",
-        "--sidebar-width": "200px",
       }}
       {...props}
     >
       <SidebarHeader className="p-0 border-b border-sidebar-border">
         <div
-          className={`flex h-12 items-center gap-2.5 ${isCollapsed ? "justify-center px-0" : "px-3"}`}
+          className={`flex h-[72px] items-center gap-2.5 ${isCollapsed ? "justify-center px-0" : "px-3"}`}
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0f172a] text-white">
             <svg
@@ -229,8 +255,8 @@ export function AppSidebar({ ...props }) {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col text-left leading-tight">
-              <span className="text-xs font-bold tracking-tight text-slate-800 truncate max-w-[120px]">
-                {user.name ? user.name.split(" ")[0] : "Vouchiqo"}
+              <span className="text-xs font-bold tracking-tight text-slate-800 truncate max-w-[170px]">
+                {user.name || "Vouchiqo"}
               </span>
               <span className="text-[9px] font-medium uppercase tracking-widest text-slate-400">
                 Dashboard
@@ -242,28 +268,6 @@ export function AppSidebar({ ...props }) {
       <SidebarContent
         className={`py-2 ${isCollapsed ? "px-1" : "px-2"} space-y-2`}
       >
-        {/* Redirect to Homepage Button */}
-        {!isCollapsed ? (
-          <div className="px-1.5 mb-1">
-            <a
-              href="/"
-              className="flex items-center justify-center gap-1.5 w-full py-1 px-2.5 bg-brand-navy hover:bg-slate-800 text-white rounded-md text-[11px] font-semibold shadow-sm transition-colors cursor-pointer text-center"
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>Go to Homepage</span>
-            </a>
-          </div>
-        ) : (
-          <div className="flex justify-center mb-1">
-            <a
-              href="/"
-              className="p-1 bg-brand-navy hover:bg-slate-800 text-white rounded-md flex items-center justify-center transition-colors cursor-pointer"
-              title="Go to Homepage"
-            >
-              <Home className="w-3.5 h-3.5" />
-            </a>
-          </div>
-        )}
         <NavMain groups={groups} />
       </SidebarContent>
       <SidebarFooter

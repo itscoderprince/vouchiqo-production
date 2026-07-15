@@ -268,8 +268,7 @@ export function HeroSection() {
       <section className="flex flex-col md:flex-row gap-4 select-none w-full text-left">
         {/* Left Column: Banners Carousel (75% Width) */}
         <div
-          className="md:w-3/4 rounded-md overflow-hidden shadow-sm relative w-full group border border-brand-border bg-slate-900"
-          style={{ height: "430px" }}
+          className="md:w-3/4 rounded-md overflow-hidden shadow-sm relative w-full group border border-brand-border bg-slate-900 h-[200px] sm:h-[300px] md:h-[430px]"
         >
           {/* Viewport for horizontal sliding */}
           <div className="w-full h-full overflow-hidden">
@@ -312,8 +311,7 @@ export function HeroSection() {
 
         {/* Right Column: Banners Carousel (25% Width) */}
         <div
-          className="md:w-1/4 rounded-md overflow-hidden shadow-sm relative w-full border border-brand-border bg-slate-900"
-          style={{ height: "430px" }}
+          className="md:w-1/4 rounded-md overflow-hidden shadow-sm relative w-full border border-brand-border bg-slate-900 h-[200px] sm:h-[300px] md:h-[430px]"
         >
           {/* Viewport for horizontal sliding */}
           <div className="w-full h-full overflow-hidden">
@@ -380,7 +378,7 @@ export function HeroSection() {
       </section>
 
       {/* Brands List (Synchronized directly with slider) */}
-      <div className="flex flex-col md:flex-row gap-4 mt-2 select-none w-full text-left">
+      <div className="hidden md:flex flex-col md:flex-row gap-4 mt-2 select-none w-full text-left">
         {/* Left brand list (75% width) */}
         <div className="md:w-3/4 flex justify-start items-center overflow-x-auto scrollbar-hide py-3.5 gap-4 px-4 border-b border-brand-border">
           {LEFT_BRANDS.map((brand) => {

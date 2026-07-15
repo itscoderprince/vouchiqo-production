@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { SIDEBAR_NAV, POPULAR_MERCHANTS_SIDEBAR } from "../constants/shared-navigation";
+import { SIDEBAR_NAV, POPULAR_MERCHANTS_SIDEBAR } from "@/utils/shared-navigation";
 
 /**
  * Shared sidebar used by Brands, Categories, Merchants, Campaigns listing pages.

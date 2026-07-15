@@ -2,28 +2,46 @@
 
 import { useState } from "react";
 
+const BAR_COLORS = [
+  "#3b82f6", // Blue
+  "#10b981", // Emerald
+  "#f59e0b", // Amber
+  "#ef4444", // Red
+  "#8b5cf6", // Purple
+  "#ec4899", // Pink
+  "#06b6d4", // Cyan
+  "#f97316", // Orange
+  "#14b8a6", // Teal
+  "#a855f7", // Purple Light
+  "#6366f1", // Indigo
+  "#3b82f6", // Blue repeat
+];
+
 export default function DashboardChart({
   data = [],
   series = [],
   title = "Performance Trend",
   type = "area", // "area" | "bar"
+  height = 320, // Accepts height as a prop to scale and fill card layouts
 }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  // Chart layout specs
+  // Responsive vector width
   const width = 600;
-  const height = 240;
-  const paddingLeft = 50;
-  const paddingRight = 20;
-  const paddingTop = 25;
-  const paddingBottom = 40;
+  const paddingLeft = 45;
+  const paddingRight = 15;
+  const paddingTop = 20;
+  const paddingBottom = 25;
 
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
   if (!data || data.length === 0 || !series || series.length === 0) {
     return (
-      <div className="h-[240px] flex items-center justify-center text-xs text-slate-400 font-semibold">
+      <div 
+        className="flex items-center justify-center text-xs text-slate-400 font-semibold"
+        style={{ height: `${height}px` }}
+      >
         No trend data available
       </div>
     );
@@ -33,7 +51,7 @@ export default function DashboardChart({
   const isCurrency =
     activeSeries.key === "revenue" || activeSeries.key === "profit";
 
-  // Calculate customized neat Y-axis limits matching the user's images
+  // Calculate Y-axis limits
   let yMax = 100;
   const yTicks = 4;
   if (activeSeries.key === "revenue") {
@@ -52,15 +70,15 @@ export default function DashboardChart({
     (_, i) => (i / yTicks) * yMax,
   );
 
-  // Helper to format values on Y-axis
+  // Format Y-axis text
   const formatYValue = (val) => {
     if (isCurrency) {
-      return `$${(val / 1000).toFixed(0)}k`;
+      return `₹${(val / 1000).toFixed(0)}k`; // Match Indian localized currency styling
     }
     return val.toLocaleString();
   };
 
-  // Convert points
+  // Convert coordinate points
   const points = data.map((d, i) => {
     const x = paddingLeft + (i / (data.length - 1)) * chartWidth;
     const val = d[activeSeries.key] || 0;
@@ -70,30 +88,23 @@ export default function DashboardChart({
 
   return (
     <div className="relative w-full">
-      {/* SVG Canvas */}
       <div className="relative">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto overflow-visible select-none"
         >
           <defs>
-            <linearGradient
-              id={`grad-${activeSeries.key}`}
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop
-                offset="0%"
-                stopColor={activeSeries.color}
-                stopOpacity="0.25"
-              />
-              <stop
-                offset="100%"
-                stopColor={activeSeries.color}
-                stopOpacity="0.00"
-              />
+            {/* Multi-color gradient for the Area/Line chart fill */}
+            <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.00" />
+            </linearGradient>
+
+            {/* Vibrant colorful gradient for the line stroke */}
+            <linearGradient id="stroke-gradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="50%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
           </defs>
 
@@ -108,14 +119,14 @@ export default function DashboardChart({
                   x2={width - paddingRight}
                   y2={y}
                   stroke="#F1F5F9"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 4"
+                  strokeWidth="1.2"
+                  strokeDasharray="3 3"
                 />
                 <text
-                  x={paddingLeft - 12}
-                  y={y + 4}
+                  x={paddingLeft - 10}
+                  y={y + 3.5}
                   textAnchor="end"
-                  className="fill-slate-400 font-sans font-semibold text-[10px]"
+                  className="fill-slate-400 font-sans font-semibold text-[9px]"
                 >
                   {formatYValue(tickVal)}
                 </text>
@@ -123,10 +134,9 @@ export default function DashboardChart({
             );
           })}
 
-          {/* Render Area/Line Chart */}
+          {/* Area Chart Layout */}
           {type === "area" && points.length >= 2 && (
             <g>
-              {/* Curved Area Path */}
               {(() => {
                 let pathD = `M ${points[0].x} ${points[0].y}`;
                 let areaD = `M ${points[0].x} ${paddingTop + chartHeight} L ${points[0].x} ${points[0].y}`;
@@ -146,13 +156,13 @@ export default function DashboardChart({
                   <>
                     <path
                       d={areaD}
-                      fill={`url(#grad-${activeSeries.key})`}
+                      fill="url(#area-gradient)"
                       className="transition-all duration-300"
                     />
                     <path
                       d={pathD}
                       fill="none"
-                      stroke={activeSeries.color}
+                      stroke="url(#stroke-gradient)"
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       className="transition-all duration-300"
@@ -161,14 +171,13 @@ export default function DashboardChart({
                 );
               })()}
 
-              {/* Hover States Dots */}
+              {/* Dots with color gradients */}
               {points.map((pt, i) => (
                 <g key={i}>
-                  {/* Invisible larger hover area */}
                   <circle
                     cx={pt.x}
                     cy={pt.y}
-                    r={12}
+                    r={10}
                     fill="transparent"
                     className="cursor-pointer"
                     onMouseEnter={() => setHoveredIndex(i)}
@@ -177,10 +186,10 @@ export default function DashboardChart({
                   <circle
                     cx={pt.x}
                     cy={pt.y}
-                    r={hoveredIndex === i ? 6 : 4}
+                    r={hoveredIndex === i ? 5 : 3.5}
                     fill="#FFFFFF"
-                    stroke={activeSeries.color}
-                    strokeWidth="2.5"
+                    stroke={hoveredIndex === i ? "#ec4899" : "#8b5cf6"}
+                    strokeWidth="2"
                     className="pointer-events-none transition-all duration-150"
                   />
                 </g>
@@ -188,18 +197,17 @@ export default function DashboardChart({
             </g>
           )}
 
-          {/* Render Vertical Bar Chart */}
+          {/* Bar Chart Layout (multi-color sequence) */}
           {type === "bar" && (
             <g>
               {points.map((pt, i) => {
-                const barWidth = 24;
+                const barWidth = 20;
                 const x = pt.x - barWidth / 2;
                 const y = pt.y;
                 const bottom = paddingTop + chartHeight;
                 const barHeight = bottom - y;
-                const r = 6; // top rounded corner radius
+                const r = 4; // top corner rounded radius
 
-                // top-only rounded vertical bar path
                 const pathD =
                   barHeight > r
                     ? `M ${x} ${y + r} 
@@ -211,6 +219,8 @@ export default function DashboardChart({
                      Z`
                     : `M ${x} ${y} h ${barWidth} v ${barHeight} h ${-barWidth} Z`;
 
+                const barColor = BAR_COLORS[i % BAR_COLORS.length];
+
                 return (
                   <g
                     key={i}
@@ -220,8 +230,8 @@ export default function DashboardChart({
                   >
                     <path
                       d={pathD}
-                      fill={activeSeries.color}
-                      opacity={hoveredIndex === i ? 0.85 : 1}
+                      fill={barColor}
+                      opacity={hoveredIndex === i ? 0.8 : 1}
                       className="transition-all duration-200"
                     />
                   </g>
@@ -235,9 +245,9 @@ export default function DashboardChart({
             <text
               key={i}
               x={pt.x}
-              y={height - 12}
+              y={height - 6}
               textAnchor="middle"
-              className="fill-slate-400 font-sans font-semibold text-[10px]"
+              className="fill-slate-400 font-sans font-semibold text-[9px]"
             >
               {pt.label}
             </text>
@@ -247,10 +257,10 @@ export default function DashboardChart({
         {/* Dynamic Tooltip */}
         {hoveredIndex !== null && points[hoveredIndex] && (
           <div
-            className="absolute bg-slate-900 text-white text-[10px] font-bold p-2.5 rounded-lg shadow-lg border border-slate-800 z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full flex flex-col gap-0.5"
+            className="absolute bg-slate-900 text-white text-[10px] font-bold p-2 rounded-lg shadow-lg border border-slate-800 z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full flex flex-col gap-0.5"
             style={{
               left: `${(points[hoveredIndex].x / width) * 100}%`,
-              top: `${(points[hoveredIndex].y / height) * 100 - 4}%`,
+              top: `${(points[hoveredIndex].y / height) * 100 - 6}%`,
             }}
           >
             <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wider block">
@@ -259,7 +269,7 @@ export default function DashboardChart({
             <span className="text-white block font-black">
               {activeSeries.name}:{" "}
               {isCurrency
-                ? `$${points[hoveredIndex].value.toLocaleString()}`
+                ? `₹${points[hoveredIndex].value.toLocaleString()}`
                 : points[hoveredIndex].value}
             </span>
           </div>

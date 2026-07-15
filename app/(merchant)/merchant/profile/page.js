@@ -12,6 +12,15 @@ import {
   Save,
   Store,
   Upload,
+  Link2,
+  Tag,
+  Briefcase,
+  AlignLeft,
+  FileText,
+  Mail,
+  MessageSquare,
+  Flag,
+  Image,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -312,8 +321,9 @@ export default function MerchantBusinessProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2 text-center md:text-left">
-                <Label className="text-xs font-bold text-brand-text uppercase block">
-                  Store Logo
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Image className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Store Logo</span>
                 </Label>
                 <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-5 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-28 overflow-hidden">
                   {formData.logo
@@ -340,8 +350,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label className="text-xs font-bold text-brand-text uppercase block">
-                  Cover Banner
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Image className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Cover Banner</span>
                 </Label>
                 <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-5 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-28 overflow-hidden">
                   {formData.banner
@@ -380,8 +391,9 @@ export default function MerchantBusinessProfile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Company/Brand Name
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Store className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Company/Brand Name</span>
                 </Label>
                 <Input
                   type="text"
@@ -393,8 +405,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Slug (Read-Only)
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Link2 className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Slug (Read-Only)</span>
                 </Label>
                 <Input
                   type="text"
@@ -405,8 +418,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Market Category
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Tag className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Market Category</span>
                 </Label>
                 <Select
                   value={formData.category}
@@ -432,8 +446,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Business Type
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Business Type</span>
                 </Label>
                 <div className="flex gap-4 items-center h-10 px-1">
                   {["online", "physical", "both"].map((type) => (
@@ -461,9 +476,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Short Store Description (For card snippets, max 300
-                  characters)
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <AlignLeft className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Short Store Description (Max 300 chars)</span>
                 </Label>
                 <Input
                   type="text"
@@ -480,8 +495,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Detailed Store Bio / Description (Max 1000 characters)
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <FileText className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Detailed Store Bio / Description (Max 1000 chars)</span>
                 </Label>
                 <Textarea
                   value={formData.longDescription}
@@ -508,8 +524,9 @@ export default function MerchantBusinessProfile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Official Website
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Globe className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Official Website</span>
                 </Label>
                 <Input
                   type="url"
@@ -523,8 +540,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Contact Email
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Mail className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Contact Email</span>
                 </Label>
                 <Input
                   type="email"
@@ -538,8 +556,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Business Phone (Click-to-Call)
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Phone className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Business Phone (Click-to-Call)</span>
                 </Label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-brand-subtext absolute left-3 top-3" />
@@ -556,8 +575,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  WhatsApp Business Number
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>WhatsApp Business Number</span>
                 </Label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-brand-subtext absolute left-3 top-3" />
@@ -577,8 +597,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Street Address
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Street Address</span>
                 </Label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-brand-subtext absolute left-3 top-3" />
@@ -595,8 +616,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Pincode
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Pincode</span>
                 </Label>
                 <Input
                   type="text"
@@ -610,8 +632,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  City
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>City</span>
                 </Label>
                 <Input
                   type="text"
@@ -625,8 +648,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  State
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>State</span>
                 </Label>
                 <Input
                   type="text"
@@ -640,8 +664,9 @@ export default function MerchantBusinessProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-brand-text uppercase">
-                  Country
+                <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5">
+                  <Flag className="w-3.5 h-3.5 text-brand-blue" />
+                  <span>Country</span>
                 </Label>
                 <Input
                   type="text"
@@ -692,8 +717,9 @@ export default function MerchantBusinessProfile() {
                     {!hr.closed && (
                       <>
                         <div className="space-y-1">
-                          <Label className="text-[10px] font-bold text-brand-subtext uppercase">
-                            Open Time
+                          <Label className="text-[10px] font-bold text-brand-subtext uppercase flex items-center gap-1 mb-1">
+                            <Clock className="w-3 h-3 text-brand-blue" />
+                            <span>Open Time</span>
                           </Label>
                           <Input
                             type="text"
@@ -706,8 +732,9 @@ export default function MerchantBusinessProfile() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-[10px] font-bold text-brand-subtext uppercase">
-                            Close Time
+                          <Label className="text-[10px] font-bold text-brand-subtext uppercase flex items-center gap-1 mb-1">
+                            <Clock className="w-3 h-3 text-brand-blue" />
+                            <span>Close Time</span>
                           </Label>
                           <Input
                             type="text"

@@ -549,7 +549,7 @@ export default function PopularStores() {
 
         /* ── Right-side store grid ── */
         .gp-store-wrap {
-          height: 290px;
+          height: 350px;
         }
         @media (min-width: 1024px) {
           .gp-store-wrap {

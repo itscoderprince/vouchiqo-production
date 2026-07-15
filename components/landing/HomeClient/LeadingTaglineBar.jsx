@@ -1,12 +1,9 @@
 export const LeadingTaglineBar = () => (
-  <div className="w-full bg-white select-none border-y border-[#E2E8F0] py-4">
-    <div className="w-full">
-      <div
-        className="grid items-center"
-        style={{ gridTemplateColumns: "1fr auto 1fr", gap: "16px" }}
-      >
-        {/* Left arrow decorator */}
-        <div className="flex items-center gap-2">
+  <div className="w-full bg-white select-none border-y border-[#E2E8F0] py-4 overflow-hidden">
+    <div className="w-full max-w-7xl mx-auto px-4">
+      <div className="flex items-center justify-center gap-4">
+        {/* Left arrow decorator - hidden on mobile, visible on sm and up */}
+        <div className="hidden sm:flex items-center gap-2 flex-grow">
           <div className="flex-1 h-[2px] bg-[#D0D7E2] rounded-full" />
           <svg
             width="18"
@@ -15,6 +12,7 @@ export const LeadingTaglineBar = () => (
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
+            className="shrink-0"
           >
             <path
               d="M0 6H14M14 6L9 1M14 6L9 11"
@@ -28,19 +26,16 @@ export const LeadingTaglineBar = () => (
 
         {/* Center tagline */}
         <h1
-          className="text-center font-bold whitespace-nowrap px-4"
+          className="text-center font-bold text-xs sm:text-sm text-brand-navy whitespace-normal sm:whitespace-nowrap shrink-0 leading-relaxed uppercase tracking-wider"
           style={{
             fontFamily: '"Nunito Sans", sans-serif',
-            fontSize: "14px",
-            color: "#191F2E",
-            lineHeight: "125%",
           }}
         >
           India&apos;s Leading Coupons &amp; Deals Marketplace
         </h1>
 
-        {/* Right arrow decorator */}
-        <div className="flex items-center gap-2">
+        {/* Right arrow decorator - hidden on mobile, visible on sm and up */}
+        <div className="hidden sm:flex items-center gap-2 flex-grow">
           <svg
             width="18"
             height="12"
@@ -48,6 +43,7 @@ export const LeadingTaglineBar = () => (
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
+            className="shrink-0"
           >
             <path
               d="M18 6H4M4 6L9 1M4 6L9 11"
