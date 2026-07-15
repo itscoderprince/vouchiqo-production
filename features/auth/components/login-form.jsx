@@ -2,7 +2,8 @@
 
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/features/auth/hooks/use-login";
+import { useUser } from "@/hooks/use-user";
 import { signIn } from "@/lib/auth-client";
 import { AuthCard } from "./auth-card";
 
@@ -21,6 +23,20 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: login, isPending } = useLogin();
+  const { user, role, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      if (role === "admin") {
+        router.replace("/admin/dashboard");
+      } else if (role === "merchant") {
+        router.replace("/merchant/dashboard");
+      } else {
+        router.replace("/");
+      }
+    }
+  }, [user, role, isLoaded, router]);
 
   const handleGoogleSignIn = async () => {
     try {

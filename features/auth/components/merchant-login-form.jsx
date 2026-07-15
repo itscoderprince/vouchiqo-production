@@ -2,7 +2,8 @@
 
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,20 @@ import {
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { signIn, signOut } from "@/lib/auth-client";
+import { useUser } from "@/hooks/use-user";
 import { AuthCard } from "./auth-card";
 
 export function MerchantLoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { user, role, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && user && role === "merchant") {
+      router.replace("/merchant/dashboard");
+    }
+  }, [user, role, isLoaded, router]);
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }) => signIn.email({ email, password }),

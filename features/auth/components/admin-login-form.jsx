@@ -2,7 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, Eye, EyeOff, Lock, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,12 +12,21 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { signIn, signOut } from "@/lib/auth-client";
+import { useUser } from "@/hooks/use-user";
 import { AuthCard } from "./auth-card";
 
 export function AdminLoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { user, role, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && user && role === "admin") {
+      router.replace("/admin/dashboard");
+    }
+  }, [user, role, isLoaded, router]);
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }) => signIn.email({ email, password }),
