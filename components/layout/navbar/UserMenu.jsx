@@ -1,16 +1,11 @@
 "use client";
 
-import { LogOut, Settings, Ticket, User } from "lucide-react";
+import { LogOut, Settings, Ticket, User, LayoutDashboard, Users, Store } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { signOut, useSession } from "@/lib/auth-client";
-
-const USER_MENU = [
-  { icon: User, label: "My Profile", href: "/profile" },
-  { icon: Ticket, label: "My Coupons", href: "/customer/claimed" },
-];
 
 export const UserMenu = () => {
   const { data: session, isPending } = useSession();
@@ -69,6 +64,33 @@ export const UserMenu = () => {
     );
   }
 
+  const role = session.user.role ?? "customer";
+
+  const getMenuItems = () => {
+    switch (role) {
+      case "admin":
+        return [
+          { icon: LayoutDashboard, label: "Admin Dashboard", href: "/admin/dashboard" },
+          { icon: Users, label: "Manage Users", href: "/admin/users" },
+          { icon: Store, label: "Manage Merchants", href: "/admin/approvals/merchants" },
+          { icon: User, label: "My Profile", href: "/profile" },
+        ];
+      case "merchant":
+        return [
+          { icon: LayoutDashboard, label: "Merchant Dashboard", href: "/merchant/dashboard" },
+          { icon: Ticket, label: "Manage Coupons", href: "/merchant/coupons" },
+          { icon: User, label: "My Profile", href: "/merchant/profile" },
+        ];
+      default:
+        return [
+          { icon: User, label: "My Profile", href: "/profile" },
+          { icon: Ticket, label: "My Coupons", href: "/customer/claimed" },
+        ];
+    }
+  };
+
+  const menuItems = getMenuItems();
+
   // Authenticated State: Render User Icon & Dropdown Menu
   const getInitials = (name) => {
     if (!name) return "U";
@@ -118,7 +140,7 @@ export const UserMenu = () => {
           </div>
 
           {/* Menu Items */}
-          {USER_MENU.map(({ icon: Icon, label, href }) => (
+          {menuItems.map(({ icon: Icon, label, href }) => (
             <Link
               key={href}
               href={href}

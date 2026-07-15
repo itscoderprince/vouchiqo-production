@@ -283,13 +283,51 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
                 onClick={() => setDropdownOpen(false)}
               />
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
-                <Link
-                  href="/profile"
-                  className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  My Profile
-                </Link>
+                {user?.role === "admin" && (
+                  <>
+                    <Link
+                      href="/admin/dashboard"
+                      className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      My Profile
+                    </Link>
+                  </>
+                )}
+                {user?.role === "merchant" && (
+                  <>
+                    <Link
+                      href="/merchant/dashboard"
+                      className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Merchant Dashboard
+                    </Link>
+                    <Link
+                      href="/merchant/profile"
+                      className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      My Profile
+                    </Link>
+                  </>
+                )}
+                {(!user?.role || user.role === "customer") && (
+                  <Link
+                    href="/profile"
+                    className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    My Profile
+                  </Link>
+                )}
                 <Link
                   href="/"
                   className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
