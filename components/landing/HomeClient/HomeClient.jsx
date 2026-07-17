@@ -37,6 +37,7 @@ import { DUMMY_TAB_COUPONS } from "./constants";
 import DealsOfTheDay from "./DealsOfTheDay";
 import InterestBanner from "./InterestBanner";
 import InterestSheet from "./InterestSheet";
+import LocationPromptModal from "@/components/shared/LocationPromptModal";
 // Component page sections
 import LeadingTaglineBar from "./LeadingTaglineBar";
 import NewsletterSubscription from "./NewsletterSubscription";
@@ -381,6 +382,9 @@ export function HomeClient({
           handleSaveInterests={handleSaveInterests}
         />
       )}
+
+      {/* Geolocation Prompt Modal */}
+      {isMounted && <LocationPromptModal />}
     </div>
   );
 }

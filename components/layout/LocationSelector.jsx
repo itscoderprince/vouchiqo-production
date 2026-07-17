@@ -18,14 +18,6 @@ export default function LocationSelector({
 
   const isDetecting = status === "detecting";
 
-  // Auto-detect current location on first mount if no saved city
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only auto-detect on initial mount
-  useEffect(() => {
-    if (!city && !isDetecting) {
-      detect();
-    }
-  }, []);
-
   // Focus search input when dropdown opens
   useEffect(() => {
     if (open && inputRef.current) {
@@ -61,7 +53,7 @@ export default function LocationSelector({
   }
 
   function handleDetect() {
-    detect();
+    window.dispatchEvent(new CustomEvent("show-location-prompt"));
     setOpen(false);
     setQuery("");
     if (onMobileSelect) onMobileSelect();
