@@ -4,17 +4,27 @@ import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircle2,
   Edit,
+  HelpCircle,
   Loader2,
   Plus,
   Search,
   Trash2,
   XCircle,
-  HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,16 +48,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useDeleteCoupon } from "@/hooks/use-coupons";
 
 const TableSkeleton = () => (
@@ -80,7 +80,7 @@ export default function MerchantCoupons() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState(null);
-  
+
   const router = useRouter();
   const deleteMutation = useDeleteCoupon();
 
@@ -117,7 +117,7 @@ export default function MerchantCoupons() {
     const matchesSearch = coupon.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus =
       statusFilter === "all" || coupon.status === statusFilter;
 
@@ -272,103 +272,104 @@ export default function MerchantCoupons() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-brand-border font-semibold text-brand-text">
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, idx) => (
-                    <TableSkeleton key={idx} />
-                  ))
-                ) : filteredCoupons.length > 0 ? (
-                  filteredCoupons.map((coupon, idx) => (
-                    <TableRow
-                      key={idx}
-                      className="hover:bg-brand-surface/40 transition-colors border-b border-brand-border last:border-b-0"
-                    >
-                      <TableCell className="p-4 h-auto">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-brand-navy">
-                            {coupon.title}
-                          </span>
-                          <span className="text-[10px] text-brand-subtext uppercase font-bold mt-0.5 font-mono">
-                            ID: {coupon._id}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-4 text-brand-blue font-bold">
-                        {formatDiscount(coupon)}
-                      </TableCell>
-                      <TableCell className="p-4">
-                        {coupon.totalClaims || 0}
-                      </TableCell>
-                      <TableCell className="p-4">
-                        {coupon.totalRedemptions || 0}
-                      </TableCell>
-                      <TableCell className="p-4">
-                        <Badge
-                          variant={
-                            coupon.status === "active"
-                              ? "success"
-                              : "destructive"
-                          }
-                          className={`rounded-full text-[10px] font-bold py-0.5 px-2 border-0 shadow-none gap-1 ${
-                            coupon.status === "active"
-                              ? "bg-brand-success/10 text-brand-success hover:bg-brand-success/10"
-                              : coupon.status === "pending"
-                                ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                                : "bg-brand-error/10 text-brand-error hover:bg-brand-error/10"
-                          }`}
+                {isLoading
+                  ? Array.from({ length: 3 }).map((_, idx) => (
+                      <TableSkeleton key={idx} />
+                    ))
+                  : filteredCoupons.length > 0
+                    ? filteredCoupons.map((coupon, idx) => (
+                        <TableRow
+                          key={idx}
+                          className="hover:bg-brand-surface/40 transition-colors border-b border-brand-border last:border-b-0"
                         >
-                          {coupon.status === "active" ? (
-                            <CheckCircle2 className="w-3 h-3" />
-                          ) : coupon.status === "pending" ? (
-                            <HelpCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          <span className="capitalize">{coupon.status}</span>
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="p-4 text-brand-subtext">
-                        {new Date(coupon.expiresAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      <TableCell className="p-4 text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              router.push(`/merchant/coupons/${coupon._id}`)
-                            }
-                            className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-blue hover:bg-brand-surface cursor-pointer shadow-none"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteId(coupon._id)}
-                            disabled={deleteMutation.isPending}
-                            className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-error hover:bg-brand-surface cursor-pointer shadow-none disabled:opacity-50"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="p-8 text-center text-brand-subtext font-semibold"
-                    >
-                      No coupons found. Click "Create Coupon" to add your first
-                      offer.
-                    </TableCell>
-                  </TableRow>
-                )}
+                          <TableCell className="p-4 h-auto">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-brand-navy">
+                                {coupon.title}
+                              </span>
+                              <span className="text-[10px] text-brand-subtext uppercase font-bold mt-0.5 font-mono">
+                                ID: {coupon._id}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-4 text-brand-blue font-bold">
+                            {formatDiscount(coupon)}
+                          </TableCell>
+                          <TableCell className="p-4">
+                            {coupon.totalClaims || 0}
+                          </TableCell>
+                          <TableCell className="p-4">
+                            {coupon.totalRedemptions || 0}
+                          </TableCell>
+                          <TableCell className="p-4">
+                            <Badge
+                              variant={
+                                coupon.status === "active"
+                                  ? "success"
+                                  : "destructive"
+                              }
+                              className={`rounded-full text-[10px] font-bold py-0.5 px-2 border-0 shadow-none gap-1 ${
+                                coupon.status === "active"
+                                  ? "bg-brand-success/10 text-brand-success hover:bg-brand-success/10"
+                                  : coupon.status === "pending"
+                                    ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                                    : "bg-brand-error/10 text-brand-error hover:bg-brand-error/10"
+                              }`}
+                            >
+                              {coupon.status === "active"
+                                ? <CheckCircle2 className="w-3 h-3" />
+                                : coupon.status === "pending"
+                                  ? <HelpCircle className="w-3 h-3" />
+                                  : <XCircle className="w-3 h-3" />}
+                              <span className="capitalize">
+                                {coupon.status}
+                              </span>
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="p-4 text-brand-subtext">
+                            {new Date(coupon.expiresAt).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                          </TableCell>
+                          <TableCell className="p-4 text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  router.push(`/merchant/coupons/${coupon._id}`)
+                                }
+                                className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-blue hover:bg-brand-surface cursor-pointer shadow-none"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeleteId(coupon._id)}
+                                disabled={deleteMutation.isPending}
+                                className="w-8 h-8 rounded-lg text-brand-subtext hover:text-brand-error hover:bg-brand-surface cursor-pointer shadow-none disabled:opacity-50"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="p-8 text-center text-brand-subtext font-semibold"
+                        >
+                          No coupons found. Click "Create Coupon" to add your
+                          first offer.
+                        </TableCell>
+                      </TableRow>}
               </TableBody>
             </Table>
           </div>

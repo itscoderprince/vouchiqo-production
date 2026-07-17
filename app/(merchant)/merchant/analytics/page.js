@@ -12,9 +12,18 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 import AnalyticsCard from "@/components/shared/AnalyticsCard";
+import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 import KPICard from "@/components/shared/KPICard";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,15 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
 
 export default function MerchantAnalytics() {
   const [timeRange, setTimeRange] = useState("30");
@@ -71,9 +71,18 @@ export default function MerchantAnalytics() {
   const isProPlus = plan === "pro" || plan === "enterprise";
 
   const overviewStats = analyticsData?.overview ?? {};
-  const totalViews = Object.values(overviewStats).reduce((sum, s) => sum + (s.views || 0), 0);
-  const totalClaims = Object.values(overviewStats).reduce((sum, s) => sum + (s.claims || 0), 0);
-  const totalRedemptions = Object.values(overviewStats).reduce((sum, s) => sum + (s.redemptions || 0), 0);
+  const totalViews = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.views || 0),
+    0,
+  );
+  const totalClaims = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.claims || 0),
+    0,
+  );
+  const totalRedemptions = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.redemptions || 0),
+    0,
+  );
   const tickerImpressions = totalViews * 2.5; // Estimated multiplier based on ticker logic
 
   const trendData = analyticsData?.trend ?? [];
@@ -90,24 +99,41 @@ export default function MerchantAnalytics() {
       count: totalClaims > 0 ? Math.round(totalClaims * 0.22) : 0,
       pct: totalClaims > 0 ? 22 : 0,
     },
-    { 
-      name: "Tablet Device", 
-      count: totalClaims > 0 ? Math.round(totalClaims * 0.1) : 0, 
-      pct: totalClaims > 0 ? 10 : 0 
+    {
+      name: "Tablet Device",
+      count: totalClaims > 0 ? Math.round(totalClaims * 0.1) : 0,
+      pct: totalClaims > 0 ? 10 : 0,
     },
   ];
 
   const cityData = [
-    { city: "Ranchi", count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.55) : 0, pct: 55 },
-    { city: "Patna", count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.25) : 0, pct: 25 },
-    { city: "Arrah", count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.12) : 0, pct: 12 },
-    { city: "Delhi", count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.08) : 0, pct: 8 },
+    {
+      city: "Ranchi",
+      count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.55) : 0,
+      pct: 55,
+    },
+    {
+      city: "Patna",
+      count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.25) : 0,
+      pct: 25,
+    },
+    {
+      city: "Arrah",
+      count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.12) : 0,
+      pct: 12,
+    },
+    {
+      city: "Delhi",
+      count: totalRedemptions > 0 ? Math.round(totalRedemptions * 0.08) : 0,
+      pct: 8,
+    },
   ];
 
   const revivalStats = {
     totalRevived: analyticsData?.revivalCount ?? 0,
     approvalRate: totalRedemptions > 0 ? "86%" : "0%",
-    revenueRecovered: trendData.reduce((sum, t) => sum + (t.revenue || 0), 0) * 0.15, // Estimate
+    revenueRecovered:
+      trendData.reduce((sum, t) => sum + (t.revenue || 0), 0) * 0.15, // Estimate
   };
 
   return (
@@ -183,15 +209,34 @@ export default function MerchantAnalytics() {
         <AnalyticsCard title="Performance Trend Overview">
           <div className="h-64 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <AreaChart
+                data={trendData}
+                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+              >
                 <defs>
-                  <linearGradient id="analyticsAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="analyticsAreaGrad"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#2563eb" stopOpacity="0.25" />
                     <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <YAxis
                   stroke="#94a3b8"
                   fontSize={11}
@@ -200,10 +245,18 @@ export default function MerchantAnalytics() {
                   tickFormatter={(tick) => `₹${(tick / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#0f172a", borderRadius: "8px", border: "none", color: "#fff" }}
+                  contentStyle={{
+                    backgroundColor: "#0f172a",
+                    borderRadius: "8px",
+                    border: "none",
+                    color: "#fff",
+                  }}
                   labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
                   itemStyle={{ fontSize: "12px", color: "#fff" }}
-                  formatter={(value) => [`₹${value.toLocaleString("en-IN")}`, "Revenue"]}
+                  formatter={(value) => [
+                    `₹${value.toLocaleString("en-IN")}`,
+                    "Revenue",
+                  ]}
                 />
                 <Area
                   type="monotone"
@@ -228,9 +281,9 @@ export default function MerchantAnalytics() {
                 Unlock Pro Analytics &amp; Demographics
               </h3>
               <p className="text-xs text-brand-subtext max-w-md mt-2 leading-relaxed font-semibold">
-                Get comprehensive insight data about your customers, top regional
-                cities of redemptions, active hours heatmaps, and Expired Offer
-                Revival performance.
+                Get comprehensive insight data about your customers, top
+                regional cities of redemptions, active hours heatmaps, and
+                Expired Offer Revival performance.
               </p>
               <Link
                 href="/merchant/billing"
@@ -428,7 +481,10 @@ export default function MerchantAnalytics() {
                     Revenue Saved
                   </span>
                   <span className="block text-2xl font-black text-brand-navy font-mono">
-                    ₹{Math.round(revivalStats.revenueRecovered).toLocaleString("en-IN")}
+                    ₹
+                    {Math.round(revivalStats.revenueRecovered).toLocaleString(
+                      "en-IN",
+                    )}
                   </span>
                 </div>
               </div>

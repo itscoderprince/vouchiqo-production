@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { apiFetch } from "@/lib/fetcher";
 import { qk } from "@/lib/query-keys";
-import { useMerchantProfile } from "@/hooks/use-merchant";
 
 const INITIAL_CAMPAIGN_DATA = {
   name: "",

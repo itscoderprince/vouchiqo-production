@@ -28,10 +28,7 @@ export function useRegister() {
       // Invalidate session so dashboards read fresh data
       await queryClient.invalidateQueries({ queryKey: ["session"] });
 
-      const dest =
-        variables.role === "merchant"
-          ? "/merchant/dashboard"
-          : "/";
+      const dest = variables.role === "merchant" ? "/merchant/dashboard" : "/";
 
       router.replace(dest);
     },

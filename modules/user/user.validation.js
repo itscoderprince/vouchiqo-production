@@ -4,7 +4,10 @@ export const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   phone: z
     .string()
-    .regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number (starts with 6-9)")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Must be a valid 10-digit Indian mobile number (starts with 6-9)",
+    )
     .or(z.literal(""))
     .optional(),
   location: z

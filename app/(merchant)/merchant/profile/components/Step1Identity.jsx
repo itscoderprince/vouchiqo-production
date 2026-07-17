@@ -1,3 +1,4 @@
+import { Briefcase, Link2, Mail, Phone, Store, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -8,9 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { COUPON_CATEGORIES } from "@/utils/constants";
-import { Store, Link2, Briefcase, User, Phone, Mail } from "lucide-react";
 
-export default function Step1Identity({ formData, setFormData, handleBusinessNameChange }) {
+export default function Step1Identity({
+  formData,
+  setFormData,
+  handleBusinessNameChange,
+}) {
   return (
     <div className="bg-brand-bg border border-brand-border rounded-xl p-5 shadow-sm space-y-5">
       <h3 className="font-heading text-sm font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center gap-2">
@@ -43,7 +47,12 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
             type="text"
             placeholder="e.g. The Beans Cafe"
             value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-") })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
+              })
+            }
             className="text-xs focus-visible:ring-brand-blue"
             required
           />
@@ -56,17 +65,35 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
           </Label>
           <Select
             value={formData.constitution}
-            onValueChange={(val) => setFormData({ ...formData, constitution: val })}
+            onValueChange={(val) =>
+              setFormData({ ...formData, constitution: val })
+            }
           >
             <SelectTrigger className="text-xs h-9 border-brand-border shadow-none text-brand-navy font-semibold">
               <SelectValue placeholder="Constitution" />
             </SelectTrigger>
             <SelectContent className="bg-brand-bg border border-brand-border">
-              <SelectItem value="proprietorship" className="text-xs text-brand-navy">Proprietorship</SelectItem>
-              <SelectItem value="partnership" className="text-xs text-brand-navy">Partnership</SelectItem>
-              <SelectItem value="llp" className="text-xs text-brand-navy">LLP</SelectItem>
-              <SelectItem value="pvt_ltd" className="text-xs text-brand-navy">Pvt Ltd</SelectItem>
-              <SelectItem value="others" className="text-xs text-brand-navy">Others</SelectItem>
+              <SelectItem
+                value="proprietorship"
+                className="text-xs text-brand-navy"
+              >
+                Proprietorship
+              </SelectItem>
+              <SelectItem
+                value="partnership"
+                className="text-xs text-brand-navy"
+              >
+                Partnership
+              </SelectItem>
+              <SelectItem value="llp" className="text-xs text-brand-navy">
+                LLP
+              </SelectItem>
+              <SelectItem value="pvt_ltd" className="text-xs text-brand-navy">
+                Pvt Ltd
+              </SelectItem>
+              <SelectItem value="others" className="text-xs text-brand-navy">
+                Others
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -85,7 +112,11 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
             </SelectTrigger>
             <SelectContent className="bg-brand-bg border-brand-border">
               {COUPON_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat} className="text-xs text-brand-navy capitalize">
+                <SelectItem
+                  key={cat}
+                  value={cat}
+                  className="text-xs text-brand-navy capitalize"
+                >
                   {cat.replace("-", " ")}
                 </SelectItem>
               ))}
@@ -102,7 +133,9 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
             type="text"
             placeholder="Liaison Name"
             value={formData.liaisonName}
-            onChange={(e) => setFormData({ ...formData, liaisonName: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, liaisonName: e.target.value })
+            }
             className="text-xs focus-visible:ring-brand-blue"
           />
         </div>
@@ -114,16 +147,26 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
           </Label>
           <Select
             value={formData.liaisonDesignation}
-            onValueChange={(val) => setFormData({ ...formData, liaisonDesignation: val })}
+            onValueChange={(val) =>
+              setFormData({ ...formData, liaisonDesignation: val })
+            }
           >
             <SelectTrigger className="text-xs h-9 border-brand-border shadow-none text-brand-navy font-semibold">
               <SelectValue placeholder="Designation" />
             </SelectTrigger>
             <SelectContent className="bg-brand-bg border border-brand-border">
-              <SelectItem value="owner" className="text-xs text-brand-navy">Owner</SelectItem>
-              <SelectItem value="partner" className="text-xs text-brand-navy">Partner</SelectItem>
-              <SelectItem value="manager" className="text-xs text-brand-navy">Manager</SelectItem>
-              <SelectItem value="others" className="text-xs text-brand-navy">Others</SelectItem>
+              <SelectItem value="owner" className="text-xs text-brand-navy">
+                Owner
+              </SelectItem>
+              <SelectItem value="partner" className="text-xs text-brand-navy">
+                Partner
+              </SelectItem>
+              <SelectItem value="manager" className="text-xs text-brand-navy">
+                Manager
+              </SelectItem>
+              <SelectItem value="others" className="text-xs text-brand-navy">
+                Others
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -137,7 +180,9 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
             type="text"
             placeholder="10-digit mobile number"
             value={formData.liaisonPhone}
-            onChange={(e) => setFormData({ ...formData, liaisonPhone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, liaisonPhone: e.target.value })
+            }
             className="text-xs focus-visible:ring-brand-blue"
           />
         </div>
@@ -151,7 +196,9 @@ export default function Step1Identity({ formData, setFormData, handleBusinessNam
             type="email"
             placeholder="email@brand.com"
             value={formData.contactEmail}
-            onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, contactEmail: e.target.value })
+            }
             className="text-xs focus-visible:ring-brand-blue"
             required
           />

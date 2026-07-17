@@ -75,7 +75,7 @@ export const GET = asyncHandler(async (request) => {
     // Revenue is the total savings amount generated for customers
     stat.revenue = stat.profit;
     // Profit is Vouchiqo's commission cut (10% of savings generated)
-    stat.profit = Math.round(stat.revenue * 0.10);
+    stat.profit = Math.round(stat.revenue * 0.1);
   });
 
   return ok({

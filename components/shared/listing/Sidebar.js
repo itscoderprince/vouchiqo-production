@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  SIDEBAR_NAV,
   POPULAR_MERCHANTS_SIDEBAR,
+  SIDEBAR_NAV,
 } from "@/utils/shared-navigation";
 
 /**

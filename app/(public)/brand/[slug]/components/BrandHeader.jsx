@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2, Heart, Star } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Heart, SlidersHorizontal, Star } from "lucide-react";
 import Link from "next/link";
 
 export default function BrandHeader({
@@ -21,6 +22,9 @@ export default function BrandHeader({
   couponsCount,
   offersCount,
 }) {
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
+
   const tabs = [
     { id: "all", label: "All", count: coupons.length },
     { id: "cpn", label: "Codes", count: couponsCount },
@@ -98,14 +102,14 @@ export default function BrandHeader({
                 className="relative z-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-white"
                 style={{
                   width: 96,
-                  height: 72,
-                  marginTop: -36,
+                  height: 96,
+                  marginTop: -48,
                   border: "3px solid #fff",
                   boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
                   overflow: "hidden",
                 }}
               >
-                {merchant.logo ? (
+                {merchant.logo && !logoFailed ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={merchant.logo}
@@ -115,6 +119,7 @@ export default function BrandHeader({
                       maxHeight: "100%",
                       objectFit: "contain",
                     }}
+                    onError={() => setLogoFailed(true)}
                   />
                 ) : (
                   <span
@@ -161,24 +166,30 @@ export default function BrandHeader({
                 </p>
 
                 {/* Mobile star rating */}
-                <div className="flex sm:hidden items-center gap-1.5 mt-0.5">
-                  <div className="flex text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-3 h-3 fill-current stroke-none"
-                      />
-                    ))}
-                  </div>
-                  <span className="text-[11px] text-gray-500 font-medium">
-                    {ratingVal.toFixed(1)} ({votesCount})
-                  </span>
+                <div className="flex sm:hidden items-center gap-1.5 mt-1 text-[11px] text-gray-500 font-medium">
+                  <Star className="w-3.5 h-3.5 fill-yellow-400 stroke-yellow-400" />
+                  <span>{ratingVal.toFixed(0) || 4}/5</span>
+                  <span className="text-gray-300">|</span>
+                  <span>{votesCount} Users</span>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    type="button"
+                    onClick={handleRate}
+                    disabled={isRated}
+                    className="text-blue-600 font-semibold hover:underline border-0 bg-transparent p-0 cursor-pointer text-[11px]"
+                  >
+                    {isRated ? "Rated" : "Rate Now"}
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-2 pb-4 flex-wrap">
+            <div
+              className={`${
+                showMobileFilters ? "flex" : "hidden"
+              } sm:flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pb-4 flex-wrap w-full sm:w-auto mt-2 sm:mt-0`}
+            >
               {/* Star rating */}
               <button
                 onClick={handleRate}
@@ -244,31 +255,43 @@ export default function BrandHeader({
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-100 -mb-px overflow-x-auto scrollbar-none">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                type="button"
-                className={`pb-3 px-4 text-[13px] font-medium whitespace-nowrap transition-all border-0 bg-transparent cursor-pointer relative ${
-                  activeTab === tab.id
-                    ? "text-blue-600"
-                    : "text-gray-500 hover:text-gray-800"
-                }`}
-                style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
-              >
-                {tab.label}{" "}
-                <span
-                  className={`text-[11px] ${activeTab === tab.id ? "text-blue-400" : "text-gray-400"}`}
+          {/* Tabs Row Container */}
+          <div className="flex items-center justify-between gap-3 mt-4 pb-3">
+            {/* Capsule Tabs */}
+            <div className="flex bg-gray-100 p-1 rounded-xl gap-1 overflow-x-auto scrollbar-none flex-grow max-w-sm">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  type="button"
+                  className={`flex-grow py-1.5 px-3 text-[12px] font-medium whitespace-nowrap transition-all border-0 cursor-pointer rounded-lg text-center ${
+                    activeTab === tab.id
+                      ? "bg-white text-blue-600 shadow-xs font-semibold"
+                      : "bg-transparent text-gray-500 hover:text-gray-800"
+                  }`}
+                  style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
                 >
-                  ({tab.count})
-                </span>
-                {activeTab === tab.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
-                )}
-              </button>
-            ))}
+                  {tab.label}{" "}
+                  <span className="text-[10px] opacity-70">
+                    ({tab.count})
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile Filter Toggle Button */}
+            <button
+              onClick={() => setShowMobileFilters((prev) => !prev)}
+              type="button"
+              className={`flex sm:hidden items-center justify-center w-10 h-10 rounded-full shadow-md border-0 cursor-pointer flex-shrink-0 transition-all active:scale-95 ${
+                showMobileFilters
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+              title="Toggle Filters"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </section>

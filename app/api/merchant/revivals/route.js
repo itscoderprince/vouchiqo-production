@@ -1,8 +1,8 @@
 import { connectDB } from "@/lib/mongodb";
+import { escapeRegex } from "@/lib/security";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
 import CustomerRevival from "@/modules/revival/customer-revival.model";
-import { escapeRegex } from "@/lib/security";
 import { ok } from "@/utils/api-response";
 import { NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";

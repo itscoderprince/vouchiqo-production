@@ -313,7 +313,7 @@ export function HomeClient({
       <LeadingTaglineBar />
 
       {/* Main Container */}
-      <main className="w-full px-4 md:px-8 py-6 space-y-12">
+      <main className="w-full px-1 md:px-8 py-2 space-y-12">
         {/* 8. Popular Offers of the Day */}
         <PopularOffers coupons={initialCoupons} />
 

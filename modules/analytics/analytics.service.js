@@ -26,61 +26,66 @@ export async function getMerchantAnalytics(authId) {
   twelveMonthsAgo.setDate(1);
   twelveMonthsAgo.setHours(0, 0, 0, 0);
 
-  const [couponsStats, recentRedemptions, recentClaims, topCoupons, monthlyRedemptions] =
-    await Promise.all([
-      // Aggregate coupon stats
-      Coupon.aggregate([
-        { $match: { merchantId } },
-        {
-          $group: {
-            _id: "$status",
-            count: { $sum: 1 },
-            totalViews: { $sum: "$viewCount" },
-            totalClaims: { $sum: "$totalClaims" },
-            totalRedemptions: { $sum: "$totalRedemptions" },
+  const [
+    couponsStats,
+    recentRedemptions,
+    recentClaims,
+    topCoupons,
+    monthlyRedemptions,
+  ] = await Promise.all([
+    // Aggregate coupon stats
+    Coupon.aggregate([
+      { $match: { merchantId } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          totalViews: { $sum: "$viewCount" },
+          totalClaims: { $sum: "$totalClaims" },
+          totalRedemptions: { $sum: "$totalRedemptions" },
+        },
+      },
+    ]),
+
+    // Recent redemptions (30 days)
+    Redemption.countDocuments({
+      merchantId,
+      createdAt: { $gte: thirtyDaysAgo },
+    }),
+
+    // Recent claims (30 days)
+    Claim.countDocuments({
+      merchantId,
+      createdAt: { $gte: thirtyDaysAgo },
+    }),
+
+    // Top performing coupons
+    Coupon.find({ merchantId, status: COUPON_STATUS.ACTIVE })
+      .sort({ totalRedemptions: -1 })
+      .limit(5)
+      .select("title totalRedemptions totalClaims viewCount expiresAt")
+      .lean(),
+
+    // Monthly aggregation for the past 12 months
+    Redemption.aggregate([
+      {
+        $match: {
+          merchantId,
+          createdAt: { $gte: twelveMonthsAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
           },
+          count: { $sum: 1 },
+          revenue: { $sum: { $ifNull: ["$savingsAmount", 0] } },
         },
-      ]),
-
-      // Recent redemptions (30 days)
-      Redemption.countDocuments({
-        merchantId,
-        createdAt: { $gte: thirtyDaysAgo },
-      }),
-
-      // Recent claims (30 days)
-      Claim.countDocuments({
-        merchantId,
-        createdAt: { $gte: thirtyDaysAgo },
-      }),
-
-      // Top performing coupons
-      Coupon.find({ merchantId, status: COUPON_STATUS.ACTIVE })
-        .sort({ totalRedemptions: -1 })
-        .limit(5)
-        .select("title totalRedemptions totalClaims viewCount expiresAt")
-        .lean(),
-
-      // Monthly aggregation for the past 12 months
-      Redemption.aggregate([
-        {
-          $match: {
-            merchantId,
-            createdAt: { $gte: twelveMonthsAgo }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              year: { $year: "$createdAt" },
-              month: { $month: "$createdAt" }
-            },
-            count: { $sum: 1 },
-            revenue: { $sum: { $ifNull: ["$savingsAmount", 0] } }
-          }
-        }
-      ])
-    ]);
+      },
+    ]),
+  ]);
 
   // Flatten coupon stats by status
   const statsByStatus = couponsStats.reduce((acc, s) => {
@@ -94,7 +99,20 @@ export async function getMerchantAnalytics(authId) {
   }, {});
 
   // Generate a continuous list of the past 12 months
-  const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthsShort = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const trend = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date();
@@ -105,7 +123,7 @@ export async function getMerchantAnalytics(authId) {
 
     // Find database match
     const dbMatch = monthlyRedemptions.find(
-      (m) => m._id.year === year && m._id.month === monthVal
+      (m) => m._id.year === year && m._id.month === monthVal,
     );
 
     const realOrders = dbMatch ? dbMatch.count : 0;
@@ -117,7 +135,7 @@ export async function getMerchantAnalytics(authId) {
       month: monthVal,
       revenue: realRevenue,
       orders: realOrders,
-      profit: parseFloat((realRevenue * 0.4).toFixed(2))
+      profit: parseFloat((realRevenue * 0.4).toFixed(2)),
     });
   }
 

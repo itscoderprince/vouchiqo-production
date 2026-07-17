@@ -1,11 +1,15 @@
 import { connectDB } from "@/lib/mongodb";
 import { requireAuth } from "@/modules/auth/auth.middleware";
-import { claimCoupon, getUserClaims, getMerchantClaims } from "@/modules/claim/claim.service";
-import Merchant from "@/modules/merchant/merchant.model";
+import {
+  claimCoupon,
+  getMerchantClaims,
+  getUserClaims,
+} from "@/modules/claim/claim.service";
 import {
   claimQuerySchema,
   createClaimSchema,
 } from "@/modules/claim/claim.validation";
+import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";

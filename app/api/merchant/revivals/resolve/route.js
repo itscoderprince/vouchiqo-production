@@ -30,7 +30,9 @@ export const POST = asyncHandler(async (request) => {
   const requestBrand = revivalRequest.brandName.toLowerCase().trim();
 
   if (merchantBrand !== requestBrand && user.role !== ROLES.ADMIN) {
-    throw new ForbiddenError("You do not have permission to resolve this request");
+    throw new ForbiddenError(
+      "You do not have permission to resolve this request",
+    );
   }
 
   const result = await resolveCustomerRevival(revivalId, {

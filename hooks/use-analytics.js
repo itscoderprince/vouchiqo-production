@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { STALE } from "@/components/shared/QueryProvider";
 import { apiFetch } from "@/lib/fetcher";
 import { qk } from "@/lib/query-keys";
-import { STALE } from "@/components/shared/QueryProvider";
 
 /**
  * Fetch merchant-side analytics (revenue, claims, redemptions).

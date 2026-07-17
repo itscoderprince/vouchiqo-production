@@ -113,7 +113,9 @@ export default function SettingsTab({
               }`}
             >
               <InputGroupAddon>
-                <span className="text-xs font-bold text-brand-subtext select-none">+91</span>
+                <span className="text-xs font-bold text-brand-subtext select-none">
+                  +91
+                </span>
               </InputGroupAddon>
               <InputGroupInput
                 type="tel"
@@ -127,7 +129,9 @@ export default function SettingsTab({
               />
             </InputGroup>
             {phoneError && (
-              <p className="text-[10px] text-red-500 font-medium mt-0.5">{phoneError}</p>
+              <p className="text-[10px] text-red-500 font-medium mt-0.5">
+                {phoneError}
+              </p>
             )}
             <p className="text-[9px] text-brand-subtext">
               10-digit mobile number without country code (e.g. 9876543210)

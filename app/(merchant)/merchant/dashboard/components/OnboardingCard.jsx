@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, X, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 
 export default function OnboardingCard({
@@ -8,7 +8,8 @@ export default function OnboardingCard({
   onboardingDismissed,
   setOnboardingDismissed,
 }) {
-  if (totalCoupons === undefined || totalCoupons > 0 || onboardingDismissed) return null;
+  if (totalCoupons === undefined || totalCoupons > 0 || onboardingDismissed)
+    return null;
 
   return (
     <div className="bg-gradient-to-r from-blue-900 to-indigo-950 border border-blue-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
@@ -33,9 +34,12 @@ export default function OnboardingCard({
             <Sparkles className="w-6 h-6 text-blue-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Welcome to Vouchiqo Partner Network!</h2>
+            <h2 className="text-xl font-bold tracking-tight">
+              Welcome to Vouchiqo Partner Network!
+            </h2>
             <p className="text-xs text-slate-300 font-medium">
-              Let's set up your store and get your first deals live to start saving Ranchi shoppers money.
+              Let's set up your store and get your first deals live to start
+              saving Ranchi shoppers money.
             </p>
           </div>
         </div>
@@ -43,10 +47,13 @@ export default function OnboardingCard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between space-y-2 hover:bg-white/10 transition-colors">
             <div className="space-y-1">
-              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Step 1</div>
+              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                Step 1
+              </div>
               <h4 className="text-xs font-bold">Complete Business Profile</h4>
               <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-                Add details, location coordinates (Marbella prioritized), logo, and set your business hours.
+                Add details, location coordinates (Marbella prioritized), logo,
+                and set your business hours.
               </p>
             </div>
             <Link
@@ -60,10 +67,13 @@ export default function OnboardingCard({
 
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between space-y-2 hover:bg-white/10 transition-colors">
             <div className="space-y-1">
-              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Step 2</div>
+              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                Step 2
+              </div>
               <h4 className="text-xs font-bold">Verify Plan & Billing</h4>
               <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-                Upgrade to Pro or Enterprise for unlocked revival limits and automatic coupon approvals.
+                Upgrade to Pro or Enterprise for unlocked revival limits and
+                automatic coupon approvals.
               </p>
             </div>
             <Link
@@ -77,10 +87,13 @@ export default function OnboardingCard({
 
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between space-y-2 hover:bg-white/10 transition-colors">
             <div className="space-y-1">
-              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Step 3</div>
+              <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                Step 3
+              </div>
               <h4 className="text-xs font-bold">Post Your First Coupon</h4>
               <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-                Submit your promo code, discount rules, was/now prices, and custom target tags.
+                Submit your promo code, discount rules, was/now prices, and
+                custom target tags.
               </p>
             </div>
             <Link

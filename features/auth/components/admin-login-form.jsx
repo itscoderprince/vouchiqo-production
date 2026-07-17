@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, Eye, EyeOff, Lock, User } from "lucide-react";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +11,8 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { signIn, signOut } from "@/lib/auth-client";
 import { useUser } from "@/hooks/use-user";
+import { signIn, signOut } from "@/lib/auth-client";
 import { AuthCard } from "./auth-card";
 
 export function AdminLoginForm() {
@@ -121,4 +121,3 @@ export function AdminLoginForm() {
     </AuthCard>
   );
 }
-

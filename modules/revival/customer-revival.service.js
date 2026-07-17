@@ -1,9 +1,9 @@
+import { escapeRegex } from "@/lib/security";
+import PlatformSetting from "@/modules/admin/settings.model";
+import Coupon from "@/modules/coupon/coupon.model";
+import Merchant from "@/modules/merchant/merchant.model";
 import CustomerRevival from "@/modules/revival/customer-revival.model";
 import MerchantDemand from "@/modules/revival/merchant-demand.model";
-import Merchant from "@/modules/merchant/merchant.model";
-import Coupon from "@/modules/coupon/coupon.model";
-import PlatformSetting from "@/modules/admin/settings.model";
-import { escapeRegex } from "@/lib/security";
 import { buildMeta, parsePagination } from "@/utils/pagination";
 
 /**
@@ -170,9 +170,12 @@ export async function createCustomerRevival(data) {
 
   if (category === "A" && matchedMerchant) {
     const isProOrEnterprise =
-      matchedMerchant.plan === "pro" ||
-      matchedMerchant.plan === "enterprise";
-    if (isProOrEnterprise && matchedMerchant.autoApproveRevival && daysSinceSeen <= 30) {
+      matchedMerchant.plan === "pro" || matchedMerchant.plan === "enterprise";
+    if (
+      isProOrEnterprise &&
+      matchedMerchant.autoApproveRevival &&
+      daysSinceSeen <= 30
+    ) {
       initialStatus = "code_regenerated";
       initialOutcome = "resolved_regenerated";
     }

@@ -1,11 +1,27 @@
 "use client";
 
-import { Check, Store, X, RefreshCw, Eye, ShieldAlert, CreditCard, Image as ImageIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import {
+  Check,
+  CreditCard,
+  Eye,
+  Image as ImageIcon,
+  RefreshCw,
+  ShieldAlert,
+  Store,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import EmptyState from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -14,8 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function MerchantApprovals() {
   const [merchants, setMerchants] = useState([]);
@@ -54,7 +69,9 @@ export default function MerchantApprovals() {
       if (res.ok) {
         setMerchants((prev) => prev.filter((m) => m._id !== merchantId));
         toast.success(
-          action === "approve" ? "Merchant approved & activated!" : "Merchant application rejected."
+          action === "approve"
+            ? "Merchant approved & activated!"
+            : "Merchant application rejected.",
         );
       } else {
         const json = await res.json().catch(() => ({}));
@@ -199,12 +216,15 @@ export default function MerchantApprovals() {
                     <span>KYC Document Verification</span>
                   </DialogTitle>
                   <DialogDescription className="text-xs text-brand-subtext">
-                    Inspect merchant KYC, bank accounts, and uploaded documents before approving.
+                    Inspect merchant KYC, bank accounts, and uploaded documents
+                    before approving.
                   </DialogDescription>
                 </div>
                 <TabsList className="flex bg-slate-100 p-1 rounded-xl h-10 w-fit shrink-0 gap-1 ml-4 border-0">
                   <TabsTrigger value="details">Merchant Details</TabsTrigger>
-                  <TabsTrigger value="assets">Brand Assets &amp; Proofs</TabsTrigger>
+                  <TabsTrigger value="assets">
+                    Brand Assets &amp; Proofs
+                  </TabsTrigger>
                 </TabsList>
               </DialogHeader>
 
@@ -221,48 +241,66 @@ export default function MerchantApprovals() {
                         </h4>
                         <div className="grid grid-cols-2 gap-x-3 gap-y-4 leading-relaxed">
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Legal Entity Name</span>
-                            <p className="font-bold text-brand-navy text-xs mt-0.5">{selectedMerchant.businessName}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Legal Entity Name
+                            </span>
+                            <p className="font-bold text-brand-navy text-xs mt-0.5">
+                              {selectedMerchant.businessName}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Constitution</span>
-                            <p className="font-bold text-brand-navy text-xs mt-0.5 capitalize">{selectedMerchant.constitution || "N/A"}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Constitution
+                            </span>
+                            <p className="font-bold text-brand-navy text-xs mt-0.5 capitalize">
+                              {selectedMerchant.constitution || "N/A"}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Authorized Liaison</span>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Authorized Liaison
+                            </span>
                             <p className="font-bold text-brand-text text-xs mt-0.5">
                               {selectedMerchant.liaisonName || "N/A"}
                             </p>
-                            <span className="text-[10px] text-brand-subtext capitalize font-semibold block">({selectedMerchant.liaisonDesignation || "owner"})</span>
+                            <span className="text-[10px] text-brand-subtext capitalize font-semibold block">
+                              ({selectedMerchant.liaisonDesignation || "owner"})
+                            </span>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Liaison Contact</span>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Liaison Contact
+                            </span>
                             <p className="font-bold text-brand-text text-xs mt-0.5">
                               {selectedMerchant.liaisonPhone || "N/A"}
                             </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Regional Hub City</span>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Regional Hub City
+                            </span>
                             <p className="font-bold text-brand-text text-xs mt-0.5 capitalize">
                               {selectedMerchant.regionalHubCity || "N/A"}
                             </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Google Maps Link</span>
-                            {selectedMerchant.gmapsLink ? (
-                              <p className="mt-0.5">
-                                <a
-                                  href={selectedMerchant.gmapsLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-brand-blue hover:underline font-bold text-xs"
-                                >
-                                  View Store Location
-                                </a>
-                              </p>
-                            ) : (
-                              <p className="text-slate-400 text-xs mt-0.5">N/A</p>
-                            )}
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Google Maps Link
+                            </span>
+                            {selectedMerchant.gmapsLink
+                              ? <p className="mt-0.5">
+                                  <a
+                                    href={selectedMerchant.gmapsLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-brand-blue hover:underline font-bold text-xs"
+                                  >
+                                    View Store Location
+                                  </a>
+                                </p>
+                              : <p className="text-slate-400 text-xs mt-0.5">
+                                  N/A
+                                </p>}
                           </div>
                         </div>
                       </div>
@@ -277,16 +315,24 @@ export default function MerchantApprovals() {
                         </h4>
                         <div className="grid grid-cols-1 gap-y-4 leading-relaxed">
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Permanent Account Number (PAN)</span>
-                            <p className="font-bold text-brand-navy text-xs font-mono uppercase mt-0.5">{selectedMerchant.pan || "N/A"}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Permanent Account Number (PAN)
+                            </span>
+                            <p className="font-bold text-brand-navy text-xs font-mono uppercase mt-0.5">
+                              {selectedMerchant.pan || "N/A"}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">GST Identification Number (GSTIN)</span>
-                            {selectedMerchant.isGstExempt ? (
-                              <p className="font-bold text-brand-success text-xs mt-0.5">GST Exempt Consumer (Unregistered)</p>
-                            ) : (
-                              <p className="font-bold text-brand-navy text-xs font-mono uppercase mt-0.5">{selectedMerchant.gstin || "N/A"}</p>
-                            )}
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              GST Identification Number (GSTIN)
+                            </span>
+                            {selectedMerchant.isGstExempt
+                              ? <p className="font-bold text-brand-success text-xs mt-0.5">
+                                  GST Exempt Consumer (Unregistered)
+                                </p>
+                              : <p className="font-bold text-brand-navy text-xs font-mono uppercase mt-0.5">
+                                  {selectedMerchant.gstin || "N/A"}
+                                </p>}
                           </div>
                         </div>
                       </div>
@@ -301,20 +347,39 @@ export default function MerchantApprovals() {
                         </h4>
                         <div className="grid grid-cols-2 gap-x-3 gap-y-4 leading-relaxed">
                           <div className="col-span-2">
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Bank Account Holder</span>
-                            <p className="font-bold text-brand-text text-xs mt-0.5">{selectedMerchant.bankDetails?.holderName || "N/A"}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Bank Account Holder
+                            </span>
+                            <p className="font-bold text-brand-text text-xs mt-0.5">
+                              {selectedMerchant.bankDetails?.holderName ||
+                                "N/A"}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Account Typology</span>
-                            <p className="font-bold text-brand-text text-xs mt-0.5 capitalize">{selectedMerchant.bankDetails?.accountType || "N/A"}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Account Typology
+                            </span>
+                            <p className="font-bold text-brand-text text-xs mt-0.5 capitalize">
+                              {selectedMerchant.bankDetails?.accountType ||
+                                "N/A"}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Bank IFSC</span>
-                            <p className="font-bold text-brand-navy text-xs font-mono uppercase mt-0.5">{selectedMerchant.bankDetails?.ifsc || "N/A"}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Bank IFSC
+                            </span>
+                            <p className="font-bold text-brand-navy text-xs font-mono uppercase mt-0.5">
+                              {selectedMerchant.bankDetails?.ifsc || "N/A"}
+                            </p>
                           </div>
                           <div className="col-span-2">
-                            <span className="text-brand-subtext text-[10px] uppercase font-bold">Account Number</span>
-                            <p className="font-bold text-brand-navy text-xs font-mono mt-0.5">{selectedMerchant.bankDetails?.accountNumber || "N/A"}</p>
+                            <span className="text-brand-subtext text-[10px] uppercase font-bold">
+                              Account Number
+                            </span>
+                            <p className="font-bold text-brand-navy text-xs font-mono mt-0.5">
+                              {selectedMerchant.bankDetails?.accountNumber ||
+                                "N/A"}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -325,140 +390,146 @@ export default function MerchantApprovals() {
                 <TabsContent value="assets" className="mt-0">
                   {/* Visual assets grid styled according to real proportions */}
                   <div className="grid grid-cols-1 md:grid-cols-8 gap-6 bg-brand-surface border border-brand-border p-5 rounded-xl">
-                    
                     {/* Store Logo - spans 2 columns */}
                     <div className="md:col-span-2 space-y-2 text-left">
-                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">Store Logo (1:1)</span>
+                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">
+                        Store Logo (1:1)
+                      </span>
                       <div className="relative border border-brand-border rounded-xl h-44 bg-white flex items-center justify-center overflow-hidden shadow-inner p-6">
-                        {selectedMerchant.logo ? (
-                          <>
-                            <img
-                              src={selectedMerchant.logo}
-                              alt="Logo"
-                              className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                            <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
-                              <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
-                              <span>Logo Unavailable</span>
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-slate-400 text-[10px]">No logo uploaded</span>
-                        )}
+                        {selectedMerchant.logo
+                          ? <>
+                              <img
+                                src={selectedMerchant.logo}
+                                alt="Logo"
+                                className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                              <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
+                                <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
+                                <span>Logo Unavailable</span>
+                              </div>
+                            </>
+                          : <span className="text-slate-400 text-[10px]">
+                              No logo uploaded
+                            </span>}
                       </div>
                     </div>
 
                     {/* Shop Photo - spans 3 columns */}
                     <div className="md:col-span-3 space-y-2 text-left">
-                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">Shop Photograph (4:3)</span>
+                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">
+                        Shop Photograph (4:3)
+                      </span>
                       <div className="relative border border-brand-border rounded-xl h-44 bg-white flex items-center justify-center overflow-hidden shadow-inner p-2">
-                        {selectedMerchant.shopImage ? (
-                          <>
-                            <img
-                              src={selectedMerchant.shopImage}
-                              alt="Shop Front"
-                              className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                            <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
-                              <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
-                              <span>Photo Unavailable</span>
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-slate-400 text-[10px]">No shop photo uploaded</span>
-                        )}
+                        {selectedMerchant.shopImage
+                          ? <>
+                              <img
+                                src={selectedMerchant.shopImage}
+                                alt="Shop Front"
+                                className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                              <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
+                                <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
+                                <span>Photo Unavailable</span>
+                              </div>
+                            </>
+                          : <span className="text-slate-400 text-[10px]">
+                              No shop photo uploaded
+                            </span>}
                       </div>
                     </div>
 
                     {/* Cancelled Cheque - spans 3 columns */}
                     <div className="md:col-span-3 space-y-2 text-left">
-                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">Bank Proof Cheque (4:3)</span>
+                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">
+                        Bank Proof Cheque (4:3)
+                      </span>
                       <div className="relative border border-brand-border rounded-xl h-44 bg-white flex items-center justify-center overflow-hidden shadow-inner p-2">
-                        {selectedMerchant.bankDetails?.chequeImage ? (
-                          <>
-                            <img
-                              src={selectedMerchant.bankDetails.chequeImage}
-                              alt="Cancelled Cheque"
-                              className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                            <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
-                              <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
-                              <span>Proof Unavailable</span>
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-slate-400 text-[10px]">No bank proof uploaded</span>
-                        )}
+                        {selectedMerchant.bankDetails?.chequeImage
+                          ? <>
+                              <img
+                                src={selectedMerchant.bankDetails.chequeImage}
+                                alt="Cancelled Cheque"
+                                className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                              <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
+                                <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
+                                <span>Proof Unavailable</span>
+                              </div>
+                            </>
+                          : <span className="text-slate-400 text-[10px]">
+                              No bank proof uploaded
+                            </span>}
                       </div>
                     </div>
 
                     {/* Cover Banner - spans all 8 columns for full width display */}
                     <div className="md:col-span-8 space-y-2 text-left mt-2">
-                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">Cover Banner (Landscape)</span>
+                      <span className="text-brand-subtext text-[10px] uppercase font-bold block">
+                        Cover Banner (Landscape)
+                      </span>
                       <div className="relative border border-brand-border rounded-xl h-48 bg-white flex items-center justify-center overflow-hidden shadow-inner p-2">
-                        {selectedMerchant.banner ? (
-                          <>
-                            <img
-                              src={selectedMerchant.banner}
-                              alt="Cover Banner"
-                              className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                            <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
-                              <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
-                              <span>Banner Unavailable</span>
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-slate-400 text-[10px]">No cover banner uploaded</span>
-                        )}
+                        {selectedMerchant.banner
+                          ? <>
+                              <img
+                                src={selectedMerchant.banner}
+                                alt="Cover Banner"
+                                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                              <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold bg-slate-50">
+                                <ImageIcon className="w-5 h-5 mb-1 text-slate-300" />
+                                <span>Banner Unavailable</span>
+                              </div>
+                            </>
+                          : <span className="text-slate-400 text-[10px]">
+                              No cover banner uploaded
+                            </span>}
                       </div>
                     </div>
-
                   </div>
                 </TabsContent>
 
-              {/* Action Buttons in Modal */}
-              <div className="flex justify-end gap-3 border-t border-brand-border pt-4">
-                <Button
-                  onClick={() => {
-                    handleAction(selectedMerchant._id, "reject");
-                    setKycDialogOpen(false);
-                  }}
-                  className="bg-brand-error hover:bg-red-600 text-white text-xs h-9 px-4 font-bold rounded-lg cursor-pointer border-0 shadow-none flex items-center gap-1.5"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Decline KYC</span>
-                </Button>
-                <Button
-                  onClick={() => {
-                    handleAction(selectedMerchant._id, "approve");
-                    setKycDialogOpen(false);
-                  }}
-                  className="bg-brand-success hover:bg-emerald-600 text-white text-xs h-9 px-4 font-bold rounded-lg cursor-pointer border-0 shadow-none flex items-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Approve &amp; Activate</span>
-                </Button>
+                {/* Action Buttons in Modal */}
+                <div className="flex justify-end gap-3 border-t border-brand-border pt-4">
+                  <Button
+                    onClick={() => {
+                      handleAction(selectedMerchant._id, "reject");
+                      setKycDialogOpen(false);
+                    }}
+                    className="bg-brand-error hover:bg-red-600 text-white text-xs h-9 px-4 font-bold rounded-lg cursor-pointer border-0 shadow-none flex items-center gap-1.5"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Decline KYC</span>
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      handleAction(selectedMerchant._id, "approve");
+                      setKycDialogOpen(false);
+                    }}
+                    className="bg-brand-success hover:bg-emerald-600 text-white text-xs h-9 px-4 font-bold rounded-lg cursor-pointer border-0 shadow-none flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Approve &amp; Activate</span>
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Tabs>
-        )}
+            </Tabs>
+          )}
         </DialogContent>
       </Dialog>
     </DashboardLayout>

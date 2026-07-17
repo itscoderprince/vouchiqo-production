@@ -2,14 +2,14 @@
 
 import {
   Check,
-  RefreshCw,
-  X,
+  Eye,
   Forward,
   Mail,
-  Eye,
+  RefreshCw,
   Sparkles,
+  X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import EmptyState from "@/components/shared/EmptyState";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +23,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  adminFetchMerchantRevivals,
   adminFetchCustomerRevivals,
-  adminReviewMerchantRevival,
+  adminFetchMerchantRevivals,
   adminReviewCustomerRevival,
+  adminReviewMerchantRevival,
 } from "@/lib/api-helpers";
 
 export default function RevivalManagement() {

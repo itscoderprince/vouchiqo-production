@@ -1,14 +1,14 @@
 import { connectDB } from "@/lib/mongodb";
 import {
-  getAllBanners,
   createBanner,
-  updateBanner,
   deleteBanner,
+  getAllBanners,
+  updateBanner,
 } from "@/modules/admin/banner.service";
 import { requireRole } from "@/modules/auth/auth.middleware";
-import { ok, error } from "@/utils/api-response";
+import { error, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
-import { ROLES, HTTP } from "@/utils/constants";
+import { HTTP, ROLES } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,10 @@ export const POST = asyncHandler(async (request) => {
 
   const body = await request.json();
   if (!body.title || !body.image || !body.link || !body.slot) {
-    return error("Missing required fields: title, image, link, or slot", HTTP.BAD_REQUEST);
+    return error(
+      "Missing required fields: title, image, link, or slot",
+      HTTP.BAD_REQUEST,
+    );
   }
 
   const banner = await createBanner(body);

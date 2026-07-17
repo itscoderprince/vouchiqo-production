@@ -203,9 +203,7 @@ export async function getMerchantRedemptions(merchantId, searchParams) {
         $lookup: {
           from: "user",
           let: { userIdStr: "$userId" },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$userIdStr"] } } }
-          ],
+          pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$userIdStr"] } } }],
           as: "userProfile",
         },
       },
@@ -229,7 +227,7 @@ export async function getMerchantRedemptions(merchantId, searchParams) {
             _id: "$couponId._id",
             title: "$couponId.title",
             image: "$couponId.image",
-          }
+          },
         },
       },
     ]),

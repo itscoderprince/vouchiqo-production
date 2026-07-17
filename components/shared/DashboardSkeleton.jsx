@@ -27,7 +27,9 @@ export default function DashboardSkeleton({ mode = "dashboard" }) {
             </div>
             <div className="flex-1 flex items-end justify-between h-[180px] pt-4 px-2">
               {Array.from({ length: 12 }).map((_, i) => {
-                const heights = [45, 60, 35, 75, 50, 65, 40, 80, 55, 70, 45, 60];
+                const heights = [
+                  45, 60, 35, 75, 50, 65, 40, 80, 55, 70, 45, 60,
+                ];
                 return (
                   <div
                     key={i}

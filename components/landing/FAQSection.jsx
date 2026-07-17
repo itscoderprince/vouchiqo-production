@@ -65,10 +65,12 @@ function FaqItem({ faq, index, isMobile }) {
             fontSize: isMobile ? "11.5px" : "12.5px",
             color: "#475569",
             lineHeight: 1.6,
-            padding: isMobile ? "0 14px 12px" : "0 20px 16px",
+            paddingLeft: isMobile ? "14px" : "20px",
+            paddingRight: isMobile ? "14px" : "20px",
+            paddingBottom: isMobile ? "12px" : "16px",
+            paddingTop: "10px",
             margin: 0,
             borderTop: "1px solid #f1f5f9",
-            paddingTop: "10px",
           }}
         >
           {faq.a}

@@ -1,12 +1,12 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import Topbar from "@/components/layout/Topbar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function DashboardLayout({ title, user, children }) {
   const router = useRouter();
@@ -22,7 +22,11 @@ export default function DashboardLayout({ title, user, children }) {
 
       // If user is trying to access merchant routes but is not a verified merchant yet
       if (pathname.startsWith("/merchant")) {
-        if (role !== "merchant" && role !== "admin" && pathname !== "/merchant/profile") {
+        if (
+          role !== "merchant" &&
+          role !== "admin" &&
+          pathname !== "/merchant/profile"
+        ) {
           router.push("/merchant/profile");
         }
       }

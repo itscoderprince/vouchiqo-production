@@ -2,11 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Store,
-  ChevronRight,
-  ChevronLeft,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
+  Store,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -106,7 +106,8 @@ export default function MerchantBusinessProfile() {
         slug: merchant.slug ?? "",
         category: merchant.category ?? "food",
         description: merchant.description ?? "",
-        shortDescription: merchant.shortDescription ?? merchant.description ?? "",
+        shortDescription:
+          merchant.shortDescription ?? merchant.description ?? "",
         longDescription: merchant.longDescription ?? "",
         contactEmail: merchant.contactEmail ?? "",
         website: merchant.website ?? "",
@@ -198,7 +199,7 @@ export default function MerchantBusinessProfile() {
         const key = field.split(".")[1];
         setFormData((prev) => ({
           ...prev,
-          bankDetails: { ...prev.bankDetails, [key]: imageUrl }
+          bankDetails: { ...prev.bankDetails, [key]: imageUrl },
         }));
       } else {
         setFormData((prev) => ({ ...prev, [field]: imageUrl }));
@@ -224,10 +225,13 @@ export default function MerchantBusinessProfile() {
       }
     }
     if (currentStep === 2) {
-      if (!formData.address) return "Complete physical store address is required.";
+      if (!formData.address)
+        return "Complete physical store address is required.";
       if (!formData.city) return "Store city location is required.";
-      if (!formData.gmapsLink) return "Google Maps navigation link is required.";
-      const gmapsRegex = /^https:\/\/(www\.)?(google\.com\/maps|maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\//i;
+      if (!formData.gmapsLink)
+        return "Google Maps navigation link is required.";
+      const gmapsRegex =
+        /^https:\/\/(www\.)?(google\.com\/maps|maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\//i;
       if (!gmapsRegex.test(formData.gmapsLink)) {
         return "Google Maps hyperlink must use domain prefix like https://www.google.com/maps/ or https://maps.app.goo.gl/";
       }
@@ -238,22 +242,31 @@ export default function MerchantBusinessProfile() {
         return "Invalid PAN format. Must be a valid 10-character code (e.g. ABCDE1234F).";
       }
       if (!formData.isGstExempt) {
-        if (!formData.gstin) return "GSTIN is required unless you declare GST exemption below.";
+        if (!formData.gstin)
+          return "GSTIN is required unless you declare GST exemption below.";
         const gstinTrimmed = (formData.gstin || "").trim().toUpperCase();
-        if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstinTrimmed)) {
+        if (
+          !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+            gstinTrimmed,
+          )
+        ) {
           return "Invalid GSTIN format (15 characters e.g. 22AAAAA1111A1Z1).";
         }
       }
     }
     if (currentStep === 4) {
-      if (!formData.bankDetails.holderName) return "Bank account holder name is required.";
-      if (!formData.bankDetails.accountNumber) return "Account number is required.";
+      if (!formData.bankDetails.holderName)
+        return "Bank account holder name is required.";
+      if (!formData.bankDetails.accountNumber)
+        return "Account number is required.";
       const accNumTrimmed = (formData.bankDetails.accountNumber || "").trim();
       if (!/^\d{9,18}$/.test(accNumTrimmed)) {
         return "Bank account number must be between 9 to 18 digits.";
       }
       if (!formData.bankDetails.ifsc) return "IFSC code is required.";
-      const ifscTrimmed = (formData.bankDetails.ifsc || "").trim().toUpperCase();
+      const ifscTrimmed = (formData.bankDetails.ifsc || "")
+        .trim()
+        .toUpperCase();
       if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscTrimmed)) {
         return "Invalid Bank IFSC format (e.g. HDFC0000123).";
       }
@@ -277,7 +290,9 @@ export default function MerchantBusinessProfile() {
   // Save profile mutation (POST to create, PUT to update)
   const saveMutation = useMutation({
     mutationFn: async (payload) => {
-      const url = merchant ? `/api/merchants/${merchant._id}` : "/api/merchants";
+      const url = merchant
+        ? `/api/merchants/${merchant._id}`
+        : "/api/merchants";
       const method = merchant ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -326,7 +341,7 @@ export default function MerchantBusinessProfile() {
         city: formData.city,
         state: formData.state,
         country: formData.country,
-      }
+      },
     };
 
     saveMutation.mutate(payload);
@@ -370,7 +385,10 @@ export default function MerchantBusinessProfile() {
                   Application Under Review
                 </h3>
                 <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  Your business profile registration has been successfully submitted and is under review. Our admins are checking your KYC credentials and bank settlement details. You will receive an email notice once approved.
+                  Your business profile registration has been successfully
+                  submitted and is under review. Our admins are checking your
+                  KYC credentials and bank settlement details. You will receive
+                  an email notice once approved.
                 </p>
               </div>
               <div className="pt-4 border-t border-slate-100 flex justify-center gap-3">
@@ -394,7 +412,9 @@ export default function MerchantBusinessProfile() {
                   Account Verified &amp; Active
                 </h3>
                 <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  Congratulations! Your merchant account is fully verified. You can now create new coupons, launch campaigns, and monitor store redemptions.
+                  Congratulations! Your merchant account is fully verified. You
+                  can now create new coupons, launch campaigns, and monitor
+                  store redemptions.
                 </p>
               </div>
               <div className="pt-4 border-t border-slate-100 flex justify-center gap-3">
@@ -418,7 +438,9 @@ export default function MerchantBusinessProfile() {
                   Application Rejected
                 </h3>
                 <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  Unfortunately, your onboarding application was rejected by the admin team. Please review the reason below, correct the necessary particulars, and resubmit.
+                  Unfortunately, your onboarding application was rejected by the
+                  admin team. Please review the reason below, correct the
+                  necessary particulars, and resubmit.
                 </p>
               </div>
               {merchant.rejectionReason && (
@@ -481,7 +503,9 @@ export default function MerchantBusinessProfile() {
               <div
                 key={s}
                 className={`h-2 rounded-full transition-all ${
-                  step >= s ? "bg-brand-blue" : "bg-brand-surface border border-brand-border"
+                  step >= s
+                    ? "bg-brand-blue"
+                    : "bg-brand-surface border border-brand-border"
                 }`}
               />
             ))}
@@ -516,10 +540,7 @@ export default function MerchantBusinessProfile() {
           )}
 
           {step === 3 && (
-            <Step3KYC
-              formData={formData}
-              setFormData={setFormData}
-            />
+            <Step3KYC formData={formData} setFormData={setFormData} />
           )}
 
           {step === 4 && (
@@ -543,24 +564,26 @@ export default function MerchantBusinessProfile() {
               <span>Previous Step</span>
             </Button>
 
-            {step < 4 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                className="bg-brand-blue hover:bg-blue-600 text-white text-xs h-9 px-4 flex items-center gap-1 font-bold rounded-lg cursor-pointer border-0 shadow-none ml-auto"
-              >
-                <span>Continue</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={saveMutation.isPending}
-                className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs h-9 px-6 flex items-center gap-1 font-bold rounded-lg cursor-pointer border-0 shadow-none ml-auto"
-              >
-                <span>{saveMutation.isPending ? "Submitting..." : "Submit Registration"}</span>
-              </Button>
-            )}
+            {step < 4
+              ? <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="bg-brand-blue hover:bg-blue-600 text-white text-xs h-9 px-4 flex items-center gap-1 font-bold rounded-lg cursor-pointer border-0 shadow-none ml-auto"
+                >
+                  <span>Continue</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              : <Button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs h-9 px-6 flex items-center gap-1 font-bold rounded-lg cursor-pointer border-0 shadow-none ml-auto"
+                >
+                  <span>
+                    {saveMutation.isPending
+                      ? "Submitting..."
+                      : "Submit Registration"}
+                  </span>
+                </Button>}
           </div>
         </form>
       </div>

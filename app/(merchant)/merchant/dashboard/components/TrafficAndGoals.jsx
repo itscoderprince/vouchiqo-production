@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 export default function TrafficAndGoals({
   pageViews,
@@ -13,17 +13,26 @@ export default function TrafficAndGoals({
     { name: "Direct", value: 35, color: "#3e80dd" },
     { name: "Organic", value: 28, color: "#2563eb" },
     { name: "Referral", value: 22, color: "#0a2e6e" },
-    { name: "Social", value: 15, color: "#2563eb" }
+    { name: "Social", value: 15, color: "#2563eb" },
   ];
 
   const revenueGoal = analyticsData?.goals?.revenueTarget ?? 0;
   const revenueActual = totalRevenue;
-  const revenuePct = revenueGoal > 0 ? Math.min(100, Math.round((revenueActual / revenueGoal) * 100)) : 0;
+  const revenuePct =
+    revenueGoal > 0
+      ? Math.min(100, Math.round((revenueActual / revenueGoal) * 100))
+      : 0;
 
   const claimsGoal = analyticsData?.goals?.claimsTarget ?? 0;
-  const claimsPct = claimsGoal > 0 ? Math.min(100, Math.round((totalClaims / claimsGoal) * 100)) : 0;
+  const claimsPct =
+    claimsGoal > 0
+      ? Math.min(100, Math.round((totalClaims / claimsGoal) * 100))
+      : 0;
 
-  const redemptionPct = totalClaims > 0 ? Math.min(100, Math.round((totalRedemptions / totalClaims) * 100)) : 0;
+  const redemptionPct =
+    totalClaims > 0
+      ? Math.min(100, Math.round((totalRedemptions / totalClaims) * 100))
+      : 0;
 
   return (
     <div className="col-span-full flex flex-col gap-4 xl:col-span-4">
@@ -77,7 +86,10 @@ export default function TrafficAndGoals({
               {trafficData.map((t) => (
                 <div key={t.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }}></div>
+                    <div
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: t.color }}
+                    ></div>
                     <span className="text-xs text-muted-foreground">
                       {t.name}
                     </span>
@@ -111,8 +123,12 @@ export default function TrafficAndGoals({
         <div data-slot="card-content" className="p-6 pt-0 space-y-5">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-foreground">Monthly Revenue</span>
-              <span className="text-muted-foreground">{revenueGoal > 0 ? `${revenuePct}%` : "—"}</span>
+              <span className="font-medium text-foreground">
+                Monthly Revenue
+              </span>
+              <span className="text-muted-foreground">
+                {revenueGoal > 0 ? `${revenuePct}%` : "—"}
+              </span>
             </div>
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/15">
               <div
@@ -122,13 +138,19 @@ export default function TrafficAndGoals({
             </div>
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
               <span>₹{revenueActual.toLocaleString("en-IN")}</span>
-              <span>{revenueGoal > 0 ? `Target: ₹${revenueGoal.toLocaleString("en-IN")}` : "No target set"}</span>
+              <span>
+                {revenueGoal > 0
+                  ? `Target: ₹${revenueGoal.toLocaleString("en-IN")}`
+                  : "No target set"}
+              </span>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-foreground">Coupon Claims</span>
-              <span className="text-muted-foreground">{claimsGoal > 0 ? `${claimsPct}%` : "—"}</span>
+              <span className="text-muted-foreground">
+                {claimsGoal > 0 ? `${claimsPct}%` : "—"}
+              </span>
             </div>
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/15">
               <div
@@ -138,13 +160,21 @@ export default function TrafficAndGoals({
             </div>
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
               <span>{totalClaims.toLocaleString()}</span>
-              <span>{claimsGoal > 0 ? `Target: ${claimsGoal.toLocaleString()}` : "No target set"}</span>
+              <span>
+                {claimsGoal > 0
+                  ? `Target: ${claimsGoal.toLocaleString()}`
+                  : "No target set"}
+              </span>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-foreground">Conversion Rate</span>
-              <span className="text-muted-foreground">{totalClaims > 0 ? `${redemptionPct}%` : "—"}</span>
+              <span className="font-medium text-foreground">
+                Conversion Rate
+              </span>
+              <span className="text-muted-foreground">
+                {totalClaims > 0 ? `${redemptionPct}%` : "—"}
+              </span>
             </div>
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/15">
               <div

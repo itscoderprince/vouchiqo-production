@@ -72,11 +72,14 @@ export async function updateMerchant(merchantId, authId, data) {
     UserProfile.findOneAndUpdate(
       { authId: merchant.authId },
       { $set: { role: userRole } },
-      { upsert: true }
+      { upsert: true },
     ),
     mongoose.connection.db
       .collection("user")
-      .updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } })
+      .updateOne(
+        { _id: new mongoose.Types.ObjectId(merchant.authId) },
+        { $set: { role: userRole } },
+      ),
   ]);
 
   return merchant;
@@ -131,16 +134,20 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
   if (!merchant) throw new NotFoundError("Merchant");
 
   // Sync user role in both UserProfile and Better Auth collections
-  const userRole = status === MERCHANT_STATUS.APPROVED ? "merchant" : "customer";
+  const userRole =
+    status === MERCHANT_STATUS.APPROVED ? "merchant" : "customer";
   await Promise.all([
     UserProfile.findOneAndUpdate(
       { authId: merchant.authId },
       { $set: { role: userRole } },
-      { upsert: true }
+      { upsert: true },
     ),
     mongoose.connection.db
       .collection("user")
-      .updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } })
+      .updateOne(
+        { _id: new mongoose.Types.ObjectId(merchant.authId) },
+        { $set: { role: userRole } },
+      ),
   ]);
 
   return merchant;

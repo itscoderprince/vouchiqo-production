@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { connectDB } from "@/lib/mongodb";
 import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/mongodb";
 import { ROLES } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";

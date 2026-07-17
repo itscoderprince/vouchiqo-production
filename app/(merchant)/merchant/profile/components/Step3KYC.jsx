@@ -1,7 +1,7 @@
+import { FileText, Shield } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Shield, FileText } from "lucide-react";
 
 export default function Step3KYC({ formData, setFormData }) {
   return (
@@ -22,7 +22,9 @@ export default function Step3KYC({ formData, setFormData }) {
             maxLength={10}
             placeholder="10-digit alphanumeric (e.g. ABCDE1234F)"
             value={formData.pan}
-            onChange={(e) => setFormData({ ...formData, pan: e.target.value.toUpperCase() })}
+            onChange={(e) =>
+              setFormData({ ...formData, pan: e.target.value.toUpperCase() })
+            }
             className="text-xs focus-visible:ring-brand-blue font-mono uppercase"
           />
         </div>
@@ -38,7 +40,12 @@ export default function Step3KYC({ formData, setFormData }) {
               maxLength={15}
               placeholder="15-digit alphanumeric (e.g. 22AAAAA1111A1Z1)"
               value={formData.gstin}
-              onChange={(e) => setFormData({ ...formData, gstin: e.target.value.toUpperCase() })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  gstin: e.target.value.toUpperCase(),
+                })
+              }
               disabled={formData.isGstExempt}
               className="text-xs focus-visible:ring-brand-blue font-mono uppercase"
             />
@@ -48,14 +55,21 @@ export default function Step3KYC({ formData, setFormData }) {
             <Checkbox
               id="gst-exempt"
               checked={formData.isGstExempt}
-              onCheckedChange={(checked) => setFormData({ ...formData, isGstExempt: !!checked, gstin: checked ? "" : formData.gstin })}
+              onCheckedChange={(checked) =>
+                setFormData({
+                  ...formData,
+                  isGstExempt: !!checked,
+                  gstin: checked ? "" : formData.gstin,
+                })
+              }
               className="w-4 h-4 rounded-sm border-brand-border"
             />
             <label
               htmlFor="gst-exempt"
               className="text-xs text-brand-subtext font-semibold select-none cursor-pointer leading-tight"
             >
-              I certify that my commercial enterprise is currently unregistered under the Indian GST regime as an exempt micro-merchant.
+              I certify that my commercial enterprise is currently unregistered
+              under the Indian GST regime as an exempt micro-merchant.
             </label>
           </div>
         </div>

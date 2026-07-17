@@ -1,6 +1,6 @@
+import { Image, ImageIcon, Link2, MapPin, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Link2, Upload, Image, ImageIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Step2Location({
   formData,
@@ -34,7 +34,11 @@ export default function Step2Location({
           <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-2 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-32 overflow-hidden">
             {formData.shopImage ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={formData.shopImage} alt="Shop Front" className="max-w-full max-h-full object-contain rounded-md" />
+              <img
+                src={formData.shopImage}
+                alt="Shop Front"
+                className="max-w-full max-h-full object-contain rounded-md"
+              />
             ) : (
               <>
                 <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
@@ -61,7 +65,11 @@ export default function Step2Location({
           <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-4 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-32 overflow-hidden">
             {formData.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={formData.logo} alt="Logo" className="max-w-[75%] max-h-[75%] object-contain" />
+              <img
+                src={formData.logo}
+                alt="Logo"
+                className="max-w-[75%] max-h-[75%] object-contain"
+              />
             ) : (
               <>
                 <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
@@ -88,7 +96,11 @@ export default function Step2Location({
           <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-2 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-32 overflow-hidden">
             {formData.banner ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={formData.banner} alt="Cover Banner" className="w-full h-full object-contain rounded-md" />
+              <img
+                src={formData.banner}
+                alt="Cover Banner"
+                className="w-full h-full object-contain rounded-md"
+              />
             ) : (
               <>
                 <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
@@ -116,16 +128,29 @@ export default function Step2Location({
           </Label>
           <Select
             value={formData.regionalHubCity}
-            onValueChange={(val) => setFormData({ ...formData, regionalHubCity: val })}
+            onValueChange={(val) =>
+              setFormData({ ...formData, regionalHubCity: val })
+            }
           >
             <SelectTrigger className="text-xs h-9 border-brand-border shadow-none text-brand-navy font-semibold">
               <SelectValue placeholder="Select Hub City" />
             </SelectTrigger>
             <SelectContent className="bg-brand-bg border border-brand-border">
-              <SelectItem value="ranchi" className="text-xs text-brand-navy">Ranchi</SelectItem>
-              <SelectItem value="jamshedpur" className="text-xs text-brand-navy">Jamshedpur</SelectItem>
-              <SelectItem value="dhanbad" className="text-xs text-brand-navy">Dhanbad</SelectItem>
-              <SelectItem value="bokaro" className="text-xs text-brand-navy">Bokaro</SelectItem>
+              <SelectItem value="ranchi" className="text-xs text-brand-navy">
+                Ranchi
+              </SelectItem>
+              <SelectItem
+                value="jamshedpur"
+                className="text-xs text-brand-navy"
+              >
+                Jamshedpur
+              </SelectItem>
+              <SelectItem value="dhanbad" className="text-xs text-brand-navy">
+                Dhanbad
+              </SelectItem>
+              <SelectItem value="bokaro" className="text-xs text-brand-navy">
+                Bokaro
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -139,7 +164,9 @@ export default function Step2Location({
             type="url"
             placeholder="https://maps.google.com/?q=..."
             value={formData.gmapsLink}
-            onChange={(e) => setFormData({ ...formData, gmapsLink: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, gmapsLink: e.target.value })
+            }
             className="text-xs focus-visible:ring-brand-blue"
             required
           />
@@ -153,7 +180,9 @@ export default function Step2Location({
           <Textarea
             placeholder="Flat/Plot No, Floor, Building Name, Commercial Area, Pincode"
             value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, address: e.target.value })
+            }
             className="text-xs min-h-[70px] focus-visible:ring-brand-blue"
             required
           />
@@ -181,7 +210,9 @@ export default function Step2Location({
           <Input
             type="text"
             value={formData.state}
-            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, state: e.target.value })
+            }
             className="text-xs focus-visible:ring-brand-blue"
           />
         </div>

@@ -45,7 +45,10 @@ export async function proxy(request) {
       headers: request.headers,
     });
   } catch (err) {
-    console.error("[Proxy Middleware] auth.api.getSession failed:", err?.message);
+    console.error(
+      "[Proxy Middleware] auth.api.getSession failed:",
+      err?.message,
+    );
   }
 
   // ── Step 3: No valid session (expired / tampered cookie) ────────────────
@@ -60,7 +63,9 @@ export async function proxy(request) {
 
   // ── Step 4: Logged-in user — apply role-based routing ───────────────────
   const { role, email } = session.user;
-  console.log(`[Proxy Middleware] "${pathname}" | user="${email}" role="${role}"`);
+  console.log(
+    `[Proxy Middleware] "${pathname}" | user="${email}" role="${role}"`,
+  );
 
   // Redirect logged-in users away from auth pages to their correct dashboard
   const isAuthPage =
@@ -84,7 +89,7 @@ export async function proxy(request) {
   if (!isAuthorizedForRoute(pathname, role)) {
     const dest = getRedirectForRole(role);
     console.log(
-      `[Proxy Middleware] Unauthorized: "${pathname}" for role="${role}" → "${dest}"`
+      `[Proxy Middleware] Unauthorized: "${pathname}" for role="${role}" → "${dest}"`,
     );
     return NextResponse.redirect(new URL(dest, request.url));
   }

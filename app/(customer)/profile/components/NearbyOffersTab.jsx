@@ -1,7 +1,7 @@
 "use client";
 
+import { MapPin, Search, Sliders, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { MapPin, Search, ZoomIn, ZoomOut, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const CITIES = [

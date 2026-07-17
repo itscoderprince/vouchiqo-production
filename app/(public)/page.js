@@ -1,13 +1,13 @@
 import { HomeClient } from "@/components/landing/HomeClient";
+import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
+import { getPromoBanners } from "@/modules/admin/banner.service";
 import {
   getFeaturedCoupons,
   listCoupons,
 } from "@/modules/coupon/coupon.service";
-import { getPromoBanners } from "@/modules/admin/banner.service";
 import Merchant from "@/modules/merchant/merchant.model";
-import { redis } from "@/lib/redis";
-import Navbar from "@/components/layout/navbar";
 
 // Force Next.js to render this page dynamically (SSR) so database queries are fresh
 export const dynamic = "force-dynamic";
@@ -37,17 +37,25 @@ export default async function Home() {
       popularMerchants = JSON.parse(cachedMerchants);
     } else {
       const rawMerchants = await Merchant.find({ status: "approved" })
-        .select("businessName slug logo banner totalCoupons totalRedemptions followerCount")
+        .select(
+          "businessName slug logo banner totalCoupons totalRedemptions followerCount",
+        )
         .sort({ followerCount: -1, totalCoupons: -1 })
         .limit(24)
         .lean();
       popularMerchants = JSON.parse(JSON.stringify(rawMerchants || []));
-      await redis.setex("home:popular_merchants", 300, JSON.stringify(popularMerchants));
+      await redis.setex(
+        "home:popular_merchants",
+        300,
+        JSON.stringify(popularMerchants),
+      );
     }
   } catch (err) {
     console.error("Redis error fetching popular merchants:", err);
     const rawMerchants = await Merchant.find({ status: "approved" })
-      .select("businessName slug logo banner totalCoupons totalRedemptions followerCount")
+      .select(
+        "businessName slug logo banner totalCoupons totalRedemptions followerCount",
+      )
       .sort({ followerCount: -1, totalCoupons: -1 })
       .limit(24)
       .lean();

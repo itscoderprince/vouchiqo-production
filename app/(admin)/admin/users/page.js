@@ -1,7 +1,7 @@
 "use client";
 
-import { Ban, RefreshCw, Search, Download } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Ban, Download, RefreshCw, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/table";
 
 import {
+  adminExportSubscribers,
   adminFetchUsers,
   adminToggleUserStatus,
-  adminExportSubscribers,
 } from "@/lib/api-helpers";
 
 export default function UserManagement() {
@@ -211,11 +211,16 @@ export default function UserManagement() {
                           </span>
                         </TableCell>
                         <TableCell className="p-4 text-brand-subtext font-semibold">
-                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }) : "—"}
+                          {u.createdAt
+                            ? new Date(u.createdAt).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
+                            : "—"}
                         </TableCell>
                         <TableCell className="p-4">
                           {u.role === "customer"
