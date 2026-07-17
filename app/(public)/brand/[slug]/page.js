@@ -6,6 +6,24 @@ import BrandClient from "./brand-client";
 
 export const dynamic = "force-dynamic";
 
+// Fields safe to expose publicly for related brand cards
+const MERCHANT_PUBLIC_FIELDS = {
+  businessName: 1,
+  slug: 1,
+  logo: 1,
+  category: 1,
+  description: 1,
+  shortDescription: 1,
+  followerCount: 1,
+  isVerified: 1,
+  plan: 1,
+  website: 1,
+  totalCoupons: 1,
+};
+
+// Default coordinates for Ranchi (fallback)
+const DEFAULT_COORDS = { lat: 23.3441, lng: 85.3096 };
+
 const MOCK_MERCHANTS = {
   "qatar-airways": {
     businessName: "Qatar Airways",
@@ -18,6 +36,8 @@ const MOCK_MERCHANTS = {
     website: "https://www.qatarairways.com",
     followerCount: 61,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Doha", state: "Qatar", country: "QA", coordinates: { lat: 25.2854, lng: 51.531 } },
   },
   qatarairways: {
     businessName: "Qatar Airways",
@@ -30,10 +50,12 @@ const MOCK_MERCHANTS = {
     website: "https://www.qatarairways.com",
     followerCount: 61,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Doha", state: "Qatar", country: "QA", coordinates: { lat: 25.2854, lng: 51.531 } },
   },
   hostinger: {
     businessName: "Hostinger",
-    category: "services",
+    category: "other",
     logo: "https://cdn.grabon.in/gograbon/images/merchant/1620645638457/hostinger-coupons.jpg",
     description:
       "Hostinger offers cheap and reliable web hosting services with 24/7 customer support, 99.9% uptime guarantee, and easy-to-use control panel.",
@@ -42,6 +64,8 @@ const MOCK_MERCHANTS = {
     website: "https://www.hostinger.com",
     followerCount: 142,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Kaunas", state: "Lithuania", country: "LT", coordinates: { lat: 54.8985, lng: 23.9036 } },
   },
   redrail: {
     businessName: "Redrail",
@@ -54,10 +78,12 @@ const MOCK_MERCHANTS = {
     website: "https://www.redbus.in/rails",
     followerCount: 88,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Bengaluru", state: "Karnataka", country: "IN", coordinates: { lat: 12.9716, lng: 77.5946 } },
   },
   coursera: {
     businessName: "Coursera",
-    category: "services",
+    category: "education",
     logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838612711/coursera-logo.jpg",
     description:
       "Build skills with courses from top universities and companies like Google, IBM, and Microsoft. Learn at your own pace with online learning.",
@@ -66,6 +92,8 @@ const MOCK_MERCHANTS = {
     website: "https://www.coursera.org",
     followerCount: 95,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Mountain View", state: "California", country: "US", coordinates: { lat: 37.3861, lng: -122.0839 } },
   },
   dell: {
     businessName: "Dell",
@@ -78,10 +106,12 @@ const MOCK_MERCHANTS = {
     website: "https://www.dell.com",
     followerCount: 210,
     isVerified: true,
+    businessType: "both",
+    location: { city: "Round Rock", state: "Texas", country: "US", coordinates: { lat: 30.5083, lng: -97.6789 } },
   },
   google: {
     businessName: "Google Workspace",
-    category: "services",
+    category: "other",
     logo: "https://cdn.grabon.in/gograbon/images/merchant/1621589145623/google-workspace-logo.jpg",
     description:
       "Google Workspace is a collection of cloud computing, productivity and collaboration tools, software and products developed by Google.",
@@ -90,6 +120,8 @@ const MOCK_MERCHANTS = {
     website: "https://workspace.google.com",
     followerCount: 340,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Mountain View", state: "California", country: "US", coordinates: { lat: 37.422, lng: -122.084 } },
   },
   adidas: {
     businessName: "Adidas",
@@ -102,10 +134,12 @@ const MOCK_MERCHANTS = {
     website: "https://www.adidas.com",
     followerCount: 180,
     isVerified: true,
+    businessType: "both",
+    location: { city: "Herzogenaurach", state: "Bavaria", country: "DE", coordinates: { lat: 49.5683, lng: 10.8933 } },
   },
   amazon: {
     businessName: "Amazon",
-    category: "shopping",
+    category: "other",
     logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838752233/amazon-logo.jpg",
     description:
       "Online shopping from the Earth's biggest selection of books, magazines, music, DVDs, videos, electronics, computers, software, apparel & accessories.",
@@ -114,6 +148,8 @@ const MOCK_MERCHANTS = {
     website: "https://www.amazon.in",
     followerCount: 520,
     isVerified: true,
+    businessType: "online",
+    location: { city: "Seattle", state: "Washington", country: "US", coordinates: { lat: 47.6062, lng: -122.3321 } },
   },
   uber: {
     businessName: "Uber",
@@ -126,10 +162,12 @@ const MOCK_MERCHANTS = {
     website: "https://www.uber.com",
     followerCount: 160,
     isVerified: true,
+    businessType: "both",
+    location: { city: "San Francisco", state: "California", country: "US", coordinates: { lat: 37.7749, lng: -122.4194 } },
   },
   udemy: {
     businessName: "Udemy",
-    category: "services",
+    category: "education",
     logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838852331/udemy-logo.jpg",
     description:
       "Udemy is an online learning and teaching marketplace with over 213,000 courses and 57 million students. Learn programming, marketing, data science and more.",
@@ -138,6 +176,8 @@ const MOCK_MERCHANTS = {
     website: "https://www.udemy.com",
     followerCount: 220,
     isVerified: true,
+    businessType: "online",
+    location: { city: "San Francisco", state: "California", country: "US", coordinates: { lat: 37.7749, lng: -122.4194 } },
   },
 };
 
@@ -167,13 +207,20 @@ function getMockMerchant(slug) {
     _id: hexId,
     businessName: titleName,
     slug,
-    category: "services",
+    category: "other",
     logo: "",
     description: `Verified discount coupons and promo codes for ${titleName}. Grab the latest offers and save today.`,
-    longDescription: `${titleName} is a verified partner brand offering premium products and services. Shop online using our discount coupons and get exclusive savings on checkout.`,
+    longDescription: `${titleName} is a verified partner brand offering premium products and services. Shop online using our exclusive discount coupons and get the best savings on every checkout.`,
     website: `https://www.${norm}.com`,
     followerCount: 42,
     isVerified: true,
+    businessType: "online",
+    location: {
+      city: "Ranchi",
+      state: "Jharkhand",
+      country: "IN",
+      coordinates: DEFAULT_COORDS,
+    },
   };
 }
 
@@ -294,50 +341,65 @@ export default async function BrandPage({ params }) {
   let relatedBrands = [];
 
   try {
+    // Fetch the merchant — full fields needed for brand page
     merchant = await Merchant.findOne({ slug, status: "approved" }).lean();
 
     if (!merchant) {
-      // Fallback to mock merchant data instead of showing 404
+      // Fallback to mock data so the page never 404s for demo brands
       merchant = getMockMerchant(slug);
       coupons = getMockCoupons(slug, merchant._id);
       expiredCoupons = getMockExpiredCoupons(slug, merchant._id);
     } else {
-      // Fetch active coupons
+      // ── Active coupons (not expired, not deleted/paused) ──
       const rawCoupons = await Coupon.find({
         merchantId: merchant._id,
         status: "active",
         expiresAt: { $gt: new Date() },
       })
-        .populate("merchantId", "businessName slug logo")
+        .sort({ isFeatured: -1, createdAt: -1 })
+        .populate("merchantId", "businessName slug logo website")
         .lean();
       coupons = JSON.parse(JSON.stringify(rawCoupons || []));
 
-      // Fetch expired coupons
+      // ── Expired coupons (status=expired OR active but past expiresAt) ──
+      // Exclude deleted coupons — they should not surface publicly
       const rawExpired = await Coupon.find({
         merchantId: merchant._id,
+        status: { $ne: "deleted" },
         $or: [
           { status: "expired" },
           { status: "active", expiresAt: { $lte: new Date() } },
         ],
       })
+        .sort({ expiresAt: -1 })
+        .limit(5)
         .populate("merchantId", "businessName slug logo")
         .lean();
       expiredCoupons = JSON.parse(JSON.stringify(rawExpired || []));
     }
+  } catch (err) {
+    console.error("Error loading brand profile or coupons:", err);
+    notFound();
+  }
 
-    // Fetch related brands in the same category
+  // ── Related brands — isolated so errors here never kill the page ──
+  try {
+    const isRealId = merchant._id && /^[0-9a-fA-F]{24}$/.test(merchant._id.toString());
     const relatedQuery = {
       category: merchant.category,
       status: "approved",
+      ...(isRealId ? { _id: { $ne: merchant._id } } : {}),
     };
-    if (merchant._id && /^[0-9a-fA-F]{24}$/.test(merchant._id.toString())) {
-      relatedQuery._id = { $ne: merchant._id };
-    }
-    const rawRelated = await Merchant.find(relatedQuery).limit(4).lean();
+    // Only select public-safe fields — never expose PAN, GSTIN, bank details, authId
+    const rawRelated = await Merchant.find(relatedQuery)
+      .select(MERCHANT_PUBLIC_FIELDS)
+      .limit(6)
+      .lean();
     relatedBrands = JSON.parse(JSON.stringify(rawRelated || []));
   } catch (err) {
-    console.error("Error loading brand profile:", err);
-    notFound();
+    // Related brands failing should not break the whole page
+    console.warn("Related brands fetch failed (non-fatal):", err.message);
+    relatedBrands = [];
   }
 
   return (

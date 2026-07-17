@@ -1,40 +1,60 @@
 "use client";
 
 export default function BrandStats({ coupons, merchant }) {
+  const pctArr = coupons
+    .filter((c) => c.discountType === "percentage" && c.discountValue)
+    .map((c) => c.discountValue);
+  const fixedArr = coupons
+    .filter((c) => c.discountType === "fixed" && c.discountValue)
+    .map((c) => c.discountValue);
+  const hasFreebie = coupons.some((c) => c.discountType === "freebie");
+
+  let discountLabel = "See Deals";
+  if (pctArr.length > 0) {
+    discountLabel = `Up to ${Math.max(...pctArr)}%`;
+  } else if (fixedArr.length > 0) {
+    discountLabel = `Up to ₹${Math.max(...fixedArr)}`;
+  } else if (hasFreebie) {
+    discountLabel = "Freebies";
+  }
+
+  const stats = [
+    {
+      label: "Active Deals",
+      value: `${coupons.length}`,
+    },
+    {
+      label: "Best Discount",
+      value: discountLabel,
+    },
+    {
+      label: "Channel",
+      value: merchant.businessType || "Online",
+    },
+    {
+      label: "Category",
+      value: merchant.category || "General",
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-5 border-t border-[#f1f5f9] text-left">
-      <div className="bg-[#f8fafc] px-4 py-3 rounded-xl border border-[#e2e8f0]">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-          Active Deals
-        </span>
-        <span className="text-sm font-black text-[#191f2e] mt-0.5 block">
-          {coupons.length} Listed
-        </span>
-      </div>
-      <div className="bg-[#f8fafc] px-4 py-3 rounded-xl border border-[#e2e8f0]">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-          Average Discount
-        </span>
-        <span className="text-sm font-black text-[#191f2e] mt-0.5 block">
-          Up to 45%
-        </span>
-      </div>
-      <div className="bg-[#f8fafc] px-4 py-3 rounded-xl border border-[#e2e8f0]">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-          Channel Type
-        </span>
-        <span className="text-sm font-black text-[#191f2e] mt-0.5 block capitalize">
-          {merchant.businessType || "Both"}
-        </span>
-      </div>
-      <div className="bg-[#f8fafc] px-4 py-3 rounded-xl border border-[#e2e8f0]">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-          Category
-        </span>
-        <span className="text-sm font-black text-[#191f2e] mt-0.5 block capitalize">
-          {merchant.category || "General"}
-        </span>
-      </div>
+    <div
+      className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
+      {stats.map((s) => (
+        <div
+          key={s.label}
+          className="bg-white border border-gray-100 rounded-xl px-4 py-3 text-left shadow-sm"
+        >
+          <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block">
+            {s.label}
+          </span>
+          <span className="text-sm font-semibold text-gray-900 mt-0.5 block capitalize">
+            {s.value}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

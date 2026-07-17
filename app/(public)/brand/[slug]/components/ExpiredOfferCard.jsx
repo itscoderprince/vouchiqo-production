@@ -11,41 +11,47 @@ export default function ExpiredOfferCard({
   const isLoading = revivalStatus[coupon._id] === "loading";
 
   return (
-    <div className="bg-white border border-[#e2e8f0] rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
+    <div
+      className="bg-white border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 opacity-70"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
       <div className="space-y-1 text-left">
         <div className="flex items-center gap-2">
           {coupon.code && (
-            <span className="font-mono text-xs bg-[#f1f5f9] px-2 py-0.5 rounded text-slate-400 line-through">
+            <span className="font-mono text-[11px] bg-gray-100 px-2 py-0.5 rounded text-gray-400 line-through">
               {coupon.code}
             </span>
           )}
-          <span className="bg-[#fef2f2] text-[#ef4444] border border-[#fee2e2] px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+          <span className="bg-red-50 text-red-500 border border-red-100 px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider">
             Expired
           </span>
         </div>
-        <h4 className="text-sm font-bold text-slate-700">{coupon.title}</h4>
-        <p className="text-[11px] text-[#6b7280] leading-snug">
-          {coupon.description}
-        </p>
+        <h4 className="text-[13px] font-medium text-gray-600 leading-snug">
+          {coupon.title}
+        </h4>
+        {coupon.description && (
+          <p className="text-[11px] text-gray-400 leading-snug font-normal">
+            {coupon.description}
+          </p>
+        )}
       </div>
 
-      {/* Action button */}
-      <div className="flex-shrink-0 self-stretch sm:self-auto flex items-center justify-end">
+      <div className="flex-shrink-0">
         {isSuccess ? (
-          <div className="flex items-center gap-1.5 text-xs text-[#2f855a] font-bold bg-[#eaf5ec] border border-[#c6f6d5] px-4 py-2 rounded-lg">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Revival Vote Counted</span>
+          <div className="flex items-center gap-1.5 text-[11px] text-green-700 font-semibold bg-green-50 border border-green-100 px-3 py-2 rounded-lg">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Revival Requested
           </div>
         ) : (
           <button
             disabled={isLoading}
             onClick={() => handleReviveExpired(coupon._id)}
             type="button"
-            className="bg-[#3e80dd] hover:bg-[#2563eb] text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 border-0 cursor-pointer disabled:opacity-50"
+            className="bg-gray-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 text-gray-600 text-[12px] font-medium py-2 px-3 rounded-lg flex items-center gap-1.5 border border-gray-200 cursor-pointer disabled:opacity-50 transition-colors"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>Requesting...</span>
               </>
             ) : (

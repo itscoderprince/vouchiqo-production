@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Heart, Star, Mail } from "lucide-react";
+import { CheckCircle2, Heart, Star } from "lucide-react";
 import Link from "next/link";
 
 export default function BrandHeader({
@@ -21,71 +21,88 @@ export default function BrandHeader({
   couponsCount,
   offersCount,
 }) {
+  const tabs = [
+    { id: "all", label: "All", count: coupons.length },
+    { id: "cpn", label: "Codes", count: couponsCount },
+    { id: "dl", label: "Offers", count: offersCount },
+  ];
+
   return (
     <>
-      {/* Breadcrumb section */}
-      <div className="bg-white border-b border-[#e5e7eb] py-3.5 relative z-10">
-        <div className="max-w-[1248px] mx-auto px-4">
-          <ul className="flex items-center gap-2 text-[13px] text-[#6b7280] font-medium overflow-x-auto whitespace-nowrap scrollbar-none">
+      {/* Breadcrumb */}
+      <div className="w-full bg-white border-b border-gray-100">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <ol className="flex items-center gap-1.5 text-[13px] text-gray-400 overflow-x-auto whitespace-nowrap scrollbar-none">
             <li>
-              <Link href="/" className="hover:text-[#3e80dd] transition-colors">
+              <Link
+                href="/"
+                className="hover:text-blue-600 transition-colors font-medium"
+              >
                 Home
               </Link>
             </li>
-            <span>/</span>
+            <span className="text-gray-300">/</span>
             <li>
               <Link
                 href="/brands"
-                className="hover:text-[#3e80dd] transition-colors"
+                className="hover:text-blue-600 transition-colors font-medium"
               >
                 Brands
               </Link>
             </li>
-            <span>/</span>
-            <li className="text-[#191f2e] font-semibold">
-              {merchant.businessName} Offers
+            <span className="text-gray-300">/</span>
+            <li className="text-gray-900 font-semibold truncate max-w-[200px]">
+              {merchant.businessName}
             </li>
-          </ul>
+          </ol>
         </div>
       </div>
 
-      {/* Cover Banner */}
-      <div className="relative w-full bg-gradient-to-r from-[#0D213F] to-[#1A3C5E] h-[160px] md:h-[220px] overflow-hidden select-none">
+      {/* Hero Banner */}
+      <div className="relative w-full h-[140px] sm:h-[200px] bg-gradient-to-r from-gray-900 via-blue-950 to-blue-900 overflow-hidden">
         {merchant.banner ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={merchant.banner}
             alt={`${merchant.businessName} banner`}
-            className="w-full h-full object-cover opacity-90"
+            className="w-full h-full object-cover opacity-60"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#0D213F] via-[#1A3C5E] to-[#2563eb] opacity-80" />
+          <>
+            {/* Subtle grid pattern */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+              }}
+            />
+            {/* Decorative circles */}
+            <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-blue-500/10 blur-2xl" />
+            <div className="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-blue-400/10 blur-2xl" />
+          </>
         )}
-        <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
 
-      {/* Intro Header Section */}
-      <section className="bg-white border-b border-[#e5e7eb] pb-6 select-none relative">
-        <div className="max-w-[1248px] mx-auto px-4">
-          {/* Overlapping layout block */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-20">
-            {/* Left Block: Logo & Title Details */}
-            <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-end w-full md:w-auto">
-              {/* Logo */}
+      {/* Brand Identity Section */}
+      <section className="w-full bg-white border-b border-gray-100">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Logo + Info row */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative">
+            {/* Left: Logo + Brand Name */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+              {/* Logo — overlaps banner */}
               <div
-                className="-mt-[45px] md:-mt-[60px] relative z-25"
+                className="relative z-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-white"
                 style={{
-                  width: 140,
-                  height: 100,
-                  borderRadius: 12,
-                  border: "4px solid #ffffff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#ffffff",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  width: 96,
+                  height: 72,
+                  marginTop: -36,
+                  border: "3px solid #fff",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
                   overflow: "hidden",
-                  flexShrink: 0,
                 }}
               >
                 {merchant.logo ? (
@@ -100,110 +117,121 @@ export default function BrandHeader({
                     }}
                   />
                 ) : (
-                  <span className="font-extrabold text-3xl text-[#3e80dd]">
+                  <span
+                    className="font-bold text-2xl text-blue-600"
+                    style={{
+                      fontFamily: "var(--font-inter), Inter, sans-serif",
+                    }}
+                  >
                     {merchant.businessName?.[0]}
                   </span>
                 )}
               </div>
 
-              {/* Title & Metadata */}
-              <div className="space-y-1 text-left pb-1">
+              {/* Brand name + badges */}
+              <div className="space-y-1.5 pb-4 text-left">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-[#191f2e] tracking-tight">
+                  <h1
+                    className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight"
+                    style={{
+                      fontFamily: "var(--font-inter), Inter, sans-serif",
+                    }}
+                  >
                     {merchant.businessName}
                   </h1>
-                  {/* Plan badge */}
-                  <span className="bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe] px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
-                    {merchant.plan || "Starter"} Partner
-                  </span>
                   {merchant.isVerified !== false && (
-                    <span className="bg-[#eaf5ec] text-[#2f855a] border border-[#c6f6d5] px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-[#2f855a]" />
-                      <span>Verified Store</span>
+                    <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified
+                    </span>
+                  )}
+                  {merchant.plan && (
+                    <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                      {merchant.plan} Partner
                     </span>
                   )}
                 </div>
-                <p className="text-[13px] text-[#6b7280] font-medium">
-                  Best {coupons.length} Offers last validated on{" "}
-                  <span className="text-[#191f2e] font-semibold">
-                    {todayStr}
-                  </span>
+
+                <p
+                  className="text-[13px] text-gray-500 font-normal"
+                  style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+                >
+                  {coupons.length} active deals · validated on{" "}
+                  <span className="text-gray-700 font-medium">{todayStr}</span>
                 </p>
 
-                {/* Mobile ratings row */}
-                <div className="flex md:hidden items-center gap-2 mt-1">
-                  <div className="flex text-[#f59e0b]">
+                {/* Mobile star rating */}
+                <div className="flex sm:hidden items-center gap-1.5 mt-0.5">
+                  <div className="flex text-yellow-400">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className="w-3.5 h-3.5 fill-current stroke-none"
+                        className="w-3 h-3 fill-current stroke-none"
                       />
                     ))}
                   </div>
-                  <span className="text-[12px] text-[#4b5563] font-semibold">
-                    {ratingVal.toFixed(1)}/5 ({votesCount} votes)
+                  <span className="text-[11px] text-gray-500 font-medium">
+                    {ratingVal.toFixed(1)} ({votesCount})
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Right Block: Star Rating & Toggle */}
-            <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end gap-3 flex-shrink-0 w-full md:w-auto pb-1 justify-between md:justify-end">
-              {/* Star ratings container */}
-              <div className="flex items-center gap-3 bg-[#f8fafc] border border-[#e2e8f0] px-4 py-2 rounded-xl shadow-sm text-right">
-                <div>
-                  <button
-                    onClick={handleRate}
-                    type="button"
-                    className="flex text-[#f59e0b] hover:scale-105 transition-transform border-0 bg-transparent cursor-pointer p-0"
-                    title="Click to Rate Store"
-                    disabled={isRated}
-                  >
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${
-                          i < Math.floor(ratingVal) ? "fill-[#f59e0b]" : ""
-                        } stroke-current`}
-                      />
-                    ))}
-                  </button>
-                  <p className="text-[11px] text-[#6b7280] font-bold mt-1 uppercase tracking-wider">
-                    {ratingVal.toFixed(1)} / 5 ({votesCount} votes)
-                  </p>
-                </div>
-                <div className="w-px h-8 bg-[#e2e8f0] mx-1" />
-                <div className="text-left">
-                  <button
-                    onClick={handleFollow}
-                    type="button"
-                    className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-wider border-0 bg-transparent cursor-pointer transition-colors ${
-                      isFollowing
-                        ? "text-[#2f855a]"
-                        : "text-[#3e80dd] hover:text-[#2563eb]"
-                    }`}
-                  >
-                    <Heart
-                      className={`w-3.5 h-3.5 ${isFollowing ? "fill-[#2f855a]" : ""}`}
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 pb-4 flex-wrap">
+              {/* Star rating */}
+              <button
+                onClick={handleRate}
+                type="button"
+                disabled={isRated}
+                title="Rate this store"
+                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 disabled:opacity-60"
+                style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+              >
+                <div className="flex text-yellow-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-3.5 h-3.5 ${i < Math.floor(ratingVal) ? "fill-current" : ""} stroke-current`}
                     />
-                    <span>{isFollowing ? "Following" : "Follow Store"}</span>
-                  </button>
-                  <p className="text-[10px] text-[#6b7280] font-semibold mt-1">
-                    {followers} Followers
-                  </p>
+                  ))}
                 </div>
-              </div>
+                <span className="text-xs text-gray-500">
+                  {ratingVal.toFixed(1)} ({votesCount})
+                </span>
+              </button>
 
-              {/* Existing user switch */}
-              <div className="flex items-center gap-3">
-                <span className="text-[13px] font-semibold text-[#4b5563]">
-                  Existing User Offers
+              {/* Follow */}
+              <button
+                onClick={handleFollow}
+                type="button"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-[13px] font-medium transition-all ${
+                  isFollowing
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600"
+                }`}
+                style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+              >
+                <Heart
+                  className={`w-3.5 h-3.5 ${isFollowing ? "fill-white" : ""}`}
+                />
+                <span>{isFollowing ? "Following" : "Follow"}</span>
+                <span className="text-xs opacity-70">({followers})</span>
+              </button>
+
+              {/* Existing User toggle */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50">
+                <span
+                  className="text-[12px] font-medium text-gray-600 whitespace-nowrap"
+                  style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+                >
+                  Existing User
                 </span>
                 <button
                   type="button"
                   onClick={() => setExistingUser((prev) => !prev)}
                   className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    existingUser ? "bg-[#3e80dd]" : "bg-[#d1d5db]"
+                    existingUser ? "bg-blue-600" : "bg-gray-300"
                   }`}
                 >
                   <span
@@ -216,61 +244,31 @@ export default function BrandHeader({
             </div>
           </div>
 
-          {/* Tab Links list matching GrabOn Tab */}
-          <div className="max-w-[1248px] mx-auto px-4 mt-5">
-            <div className="flex border-b border-[#e5e7eb] w-full">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-100 -mb-px overflow-x-auto scrollbar-none">
+            {tabs.map((tab) => (
               <button
-                onClick={() => setActiveTab("all")}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 type="button"
-                className={`pb-2.5 px-4 text-[13px] font-black uppercase tracking-wider transition-all border-0 bg-transparent cursor-pointer relative ${
-                  activeTab === "all"
-                    ? "text-[#3e80dd]"
-                    : "text-[#6b7280] hover:text-[#3e80dd]"
+                className={`pb-3 px-4 text-[13px] font-medium whitespace-nowrap transition-all border-0 bg-transparent cursor-pointer relative ${
+                  activeTab === tab.id
+                    ? "text-blue-600"
+                    : "text-gray-500 hover:text-gray-800"
                 }`}
+                style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
               >
-                {"All "}
-                <span className="text-[11px] font-bold text-[#9ca3af]">
-                  ({coupons.length})
+                {tab.label}{" "}
+                <span
+                  className={`text-[11px] ${activeTab === tab.id ? "text-blue-400" : "text-gray-400"}`}
+                >
+                  ({tab.count})
                 </span>
-                {activeTab === "all" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#3e80dd]" />
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
                 )}
               </button>
-              <button
-                onClick={() => setActiveTab("cpn")}
-                type="button"
-                className={`pb-2.5 px-4 text-[13px] font-black uppercase tracking-wider transition-all border-0 bg-transparent cursor-pointer relative ${
-                  activeTab === "cpn"
-                    ? "text-[#3e80dd]"
-                    : "text-[#6b7280] hover:text-[#3e80dd]"
-                }`}
-              >
-                {"Codes "}
-                <span className="text-[11px] font-bold text-[#9ca3af]">
-                  ({couponsCount})
-                </span>
-                {activeTab === "cpn" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#3e80dd]" />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab("dl")}
-                type="button"
-                className={`pb-2.5 px-4 text-[13px] font-black uppercase tracking-wider transition-all border-0 bg-transparent cursor-pointer relative ${
-                  activeTab === "dl"
-                    ? "text-[#3e80dd]"
-                    : "text-[#6b7280] hover:text-[#3e80dd]"
-                }`}
-              >
-                {"Offers "}
-                <span className="text-[11px] font-bold text-[#9ca3af]">
-                  ({offersCount})
-                </span>
-                {activeTab === "dl" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#3e80dd]" />
-                )}
-              </button>
-            </div>
+            ))}
           </div>
         </div>
       </section>
