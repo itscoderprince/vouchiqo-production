@@ -23,6 +23,7 @@ export default function BrandHeader({
   offersCount,
 }) {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const tabs = [
     { id: "all", label: "All", count: coupons.length },
@@ -101,14 +102,14 @@ export default function BrandHeader({
                 className="relative z-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-white"
                 style={{
                   width: 96,
-                  height: 72,
-                  marginTop: -36,
+                  height: 96,
+                  marginTop: -48,
                   border: "3px solid #fff",
                   boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
                   overflow: "hidden",
                 }}
               >
-                {merchant.logo ? (
+                {merchant.logo && !logoFailed ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={merchant.logo}
@@ -118,6 +119,7 @@ export default function BrandHeader({
                       maxHeight: "100%",
                       objectFit: "contain",
                     }}
+                    onError={() => setLogoFailed(true)}
                   />
                 ) : (
                   <span
