@@ -1,179 +1,360 @@
 "use client";
 
-import {
-  ArrowRight,
-  CreditCard,
-  HelpCircle,
-  MessageSquare,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
+import { HelpCircle, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+const ALL_FAQS = [
+  // General
+  {
+    category: "General",
+    q: "How does Vouchiqo verify coupon codes?",
+    a: "We partner directly with verified merchants whose coupon validity is integrated with their checkout systems. Our team also tracks live checkout conversion logs to ensure no stale or inactive codes remain listed on the platform.",
+  },
+  {
+    category: "General",
+    q: "Is Vouchiqo free to use for customers?",
+    a: "Yes, completely free. Users can browse, search, and claim unlimited coupon codes at no cost. Merchants pay a subscription fee to list and manage their promotional campaigns on the platform.",
+  },
+  {
+    category: "General",
+    q: "How often are coupons updated on Vouchiqo?",
+    a: "Our deal-hunting team reviews and updates listed coupons daily. Expired codes are automatically flagged and either removed or moved to the 'Expired' section where users can request revival.",
+  },
+  {
+    category: "General",
+    q: "Can I use multiple coupons on one purchase?",
+    a: "Stacking depends entirely on the merchant's checkout policy. Vouchiqo lists each offer individually. Always check the offer's terms for stackability — some merchants allow combining a coupon code with a bank offer.",
+  },
+  {
+    category: "General",
+    q: "Are the discounts shown on Vouchiqo guaranteed?",
+    a: "We strive for 100% accuracy, but final discount eligibility rests with the merchant's system at checkout. If a code doesn't work, use the 'Report' button and our team will verify it within 24 hours.",
+  },
+  // Coupons & Redemption
+  {
+    category: "Coupons",
+    q: "How do I redeem a coupon code from Vouchiqo?",
+    a: "Click 'Get Code' on any coupon listing. The code is automatically copied to your clipboard and the merchant's website opens in a new tab. Paste the code in the promo code field at checkout before completing payment.",
+  },
+  {
+    category: "Coupons",
+    q: "Why is a coupon code not working at checkout?",
+    a: "Common reasons include: the offer has expired, your cart doesn't meet the minimum order value, the code is category-specific, or the merchant has paused the promotion. Report it via the 'Report Offer' button for a quick review.",
+  },
+  {
+    category: "Coupons",
+    q: "What is the difference between a coupon code and a deal?",
+    a: "A coupon code requires you to manually enter a promo string at checkout. A deal is a direct-link offer — clicking 'Get Deal' opens the merchant page with the discount pre-applied, no code required.",
+  },
+  {
+    category: "Coupons",
+    q: "How do I know if a coupon is still valid?",
+    a: "All listed coupons display an expiry date. Coupons marked 'Verified' have been tested within the last 24 hours. If no expiry is shown, the offer is ongoing but subject to stock availability.",
+  },
+  {
+    category: "Coupons",
+    q: "Can I share a Vouchiqo coupon with friends?",
+    a: "Absolutely. Use the share button on any coupon card to copy the link. Shared links are tracked and help our platform surface the most popular deals to more users.",
+  },
+  // Revival System
+  {
+    category: "Revival",
+    q: "What is the Expired Coupon Revival System?",
+    a: "When an offer expires, users can vote to revive it. Once a revival request threshold is met, Vouchiqo automatically notifies the partner merchant with real conversion projections, incentivizing them to reactivate the deal.",
+  },
+  {
+    category: "Revival",
+    q: "How long does a coupon revival take?",
+    a: "Active merchants typically respond within 2–5 business days after receiving a revival alert. The timeline depends on the merchant's responsiveness and internal campaign scheduling.",
+  },
+  {
+    category: "Revival",
+    q: "How many votes are needed to trigger a revival?",
+    a: "Each merchant has a custom revival threshold based on their plan tier. Generally, Starter-plan brands need 10 votes, Growth needs 25, and Pro/Enterprise brands get auto-revival options.",
+  },
+  {
+    category: "Revival",
+    q: "Will I be notified when a revived coupon goes live?",
+    a: "Yes. If you cast a revival vote, you'll receive a platform notification and email alert the moment the merchant reactivates the coupon. Make sure notifications are enabled in your account settings.",
+  },
+  // Merchants
+  {
+    category: "Merchants",
+    q: "How do I list my business on Vouchiqo?",
+    a: "Register via the Merchant Portal and submit your business profile for review. Our admin team approves verified businesses within 24–48 hours, after which you can access the full campaign dashboard.",
+  },
+  {
+    category: "Merchants",
+    q: "What billing plans are available for merchants?",
+    a: "We offer Starter, Growth, Pro, and Enterprise plans. Each tier unlocks more active coupon slots, revival credits, analytics depth, and priority support. Visit the pricing page or contact sales for a custom quote.",
+  },
+  {
+    category: "Merchants",
+    q: "Can merchants track coupon redemptions in real time?",
+    a: "Yes. The merchant dashboard provides real-time redemption counts, claimed-vs-redeemed ratios, geographic heatmaps, and coupon performance analytics updated every 5 minutes.",
+  },
+  {
+    category: "Merchants",
+    q: "What happens if my coupon gets reported as invalid?",
+    a: "Our team verifies the report within 24 hours. If confirmed invalid, the coupon is paused and you'll receive an email to update or reactivate the campaign. Repeated invalid codes can affect your merchant rating.",
+  },
+  // Account
+  {
+    category: "Account",
+    q: "How do I create a Vouchiqo account?",
+    a: "Click 'Login' in the top navigation and choose 'Sign Up'. You can register with your email or use Google Sign-In. Account creation is instant and free for customers.",
+  },
+  {
+    category: "Account",
+    q: "How do I reset my password?",
+    a: "On the login screen, click 'Forgot Password'. Enter your registered email address and you'll receive a secure reset link within 2 minutes. Check your spam folder if you don't see it.",
+  },
+];
+
+const CATEGORIES = [
+  "All",
+  "General",
+  "Coupons",
+  "Revival",
+  "Merchants",
+  "Account",
+];
 
 export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [openItem, setOpenItem] = useState(null);
 
-  const faqs = [
-    {
-      category: "General",
-      icon: HelpCircle,
-      q: "How does Vouchiqo verify coupon codes?",
-      a: "We work directly with verified merchants. Code validity keys are integrated with their web stores. We also track client-side checkout conversion logs to ensure no stale discount codes exist.",
-    },
-    {
-      category: "General",
-      icon: HelpCircle,
-      q: "Is Vouchiqo free to use for customers?",
-      a: "Absolutely! Vouchiqo is completely free for members to discover, claim, and save coupons. Merchants pay a small monthly subscription to list campaign dashboards.",
-    },
-    {
-      category: "Revival",
-      icon: ShieldCheck,
-      q: "What is the Expired Coupon Revival System?",
-      a: "If a specific offer has expired, customers can submit a revival vote. When a threshold is met, the system alerts the merchant, offering them conversion projections to incentivize reactivating the deal.",
-    },
-    {
-      category: "Revival",
-      icon: ShieldCheck,
-      q: "How long does a Coupon Revival take?",
-      a: "It depends on the merchant. Once a coupon reaches its revival request threshold, we notify the partner brand automatically. Typically, active merchants respond or reactivate deals within 2 to 5 business days.",
-    },
-    {
-      category: "Merchants",
-      icon: CreditCard,
-      q: "How do I list my business on Vouchiqo?",
-      a: "You can create a Merchant Account via our registration portal. Once your business profile is reviewed and approved by our admin team, you will get access to the merchant dashboard to create campaigns.",
-    },
-    {
-      category: "Merchants",
-      icon: CreditCard,
-      q: "What billing plans are available for merchants?",
-      a: "We offer Growth, Enterprise, and Custom billing plans tailored to your conversion volume. Visit the Merchant Portal or contact our sales team to find the best package for your business.",
-    },
-  ];
+  const filteredFaqs = useMemo(() => {
+    return ALL_FAQS.filter((faq) => {
+      const matchesCategory =
+        activeCategory === "All" || faq.category === activeCategory;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        !q ||
+        faq.q.toLowerCase().includes(q) ||
+        faq.a.toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    });
+  }, [searchQuery, activeCategory]);
 
-  const filteredFaqs = faqs.filter(
-    (faq) =>
-      faq.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.a.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const toggle = (idx) => setOpenItem((prev) => (prev === idx ? null : idx));
+
+  // Split into two columns for desktop
+  const mid = Math.ceil(filteredFaqs.length / 2);
+  const leftCol = filteredFaqs.slice(0, mid);
+  const rightCol = filteredFaqs.slice(mid);
 
   return (
-    <div className="min-h-screen flex flex-col bg-brand-surface">
+    <div
+      className="min-h-screen flex flex-col bg-white"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="bg-brand-navy text-white py-16 px-4 text-center relative overflow-hidden animate-fade-in-scale">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
-        <div className="max-w-4xl mx-auto space-y-6 relative z-10 animate-fade-in-up">
-          <h1 className="text-3xl md:text-4xl font-extrabold font-heading tracking-tight leading-tight text-white">
-            How can we help you?
+      {/* ── Hero ── */}
+      <section className="relative w-full bg-blue-50 border-b border-blue-100 overflow-hidden">
+        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight mb-3">
+            Frequently Asked Questions
           </h1>
-          <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-            Search our Help Center or browse common questions about verified
-            discount codes, revival rules, and partner billing.
+          <p className="text-[14px] text-gray-500 font-normal max-w-md mx-auto mb-8">
+            Find answers about coupon verification, the revival system, merchant
+            billing, and your account.
           </p>
 
-          {/* Search bar */}
-          <div className="bg-brand-bg rounded-lg shadow-lg max-w-md mx-auto p-1.5 flex items-center border border-brand-border text-brand-text">
-            <Search className="w-4 h-4 text-brand-subtext ml-2 flex-shrink-0" />
-            <Input
+          {/* Search */}
+          <div className="relative max-w-lg mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
               type="text"
-              placeholder="Search help topics or keywords..."
+              placeholder="Search questions or keywords..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-0 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 w-full text-brand-text placeholder-brand-subtext font-medium p-0 pl-2 h-auto shadow-none"
+              className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 text-[13px] font-normal focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+              style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
             />
           </div>
         </div>
       </section>
 
-      {/* FAQ Accordion Grid */}
-      <main className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8 w-full flex-grow animate-fade-in-up stagger-1">
-        {filteredFaqs.length > 0 ? (
-          <Accordion
-            type="single"
-            collapsible
-            className="w-full bg-brand-bg border border-brand-border rounded-xl shadow-sm overflow-hidden"
-          >
-            {filteredFaqs.map((faq, idx) => {
-              const Icon = faq.icon;
-              return (
-                <AccordionItem
-                  key={idx}
-                  value={`faq-${idx}`}
-                  className="border-b border-brand-border last:border-0"
-                >
-                  <AccordionTrigger className="p-5 font-heading font-bold text-sm text-brand-navy hover:no-underline hover:bg-brand-surface/40 transition-all text-left flex justify-between items-center">
-                    <span className="flex items-center gap-3">
-                      <span className="p-1.5 rounded-md bg-brand-blue/5 text-brand-blue">
-                        <Icon className="w-4 h-4" />
-                      </span>
-                      <span>{faq.q}</span>
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-5 pb-5 text-xs text-brand-subtext leading-relaxed border-t border-brand-border/60 pt-4 bg-brand-surface/20">
-                    {faq.a}
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-        ) : (
-          <div className="text-center py-16 bg-brand-bg border border-brand-border rounded-xl p-8">
-            <HelpCircle className="w-12 h-12 text-brand-subtext mx-auto mb-3" />
-            <h3 className="text-base font-bold text-brand-navy mb-1">
-              No matching questions found
-            </h3>
-            <p className="text-xs text-brand-subtext max-w-xs mx-auto mb-4">
-              Try searching with general terms like "coupon", "revival", or
-              "payment".
-            </p>
-            <Button
-              onClick={() => setSearchQuery("")}
-              className="btn-primary text-xs py-2 px-4 border-0 h-auto cursor-pointer shadow-none"
+      {/* ── Category filter pills ── */}
+      <div className="w-full bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 overflow-x-auto scrollbar-none">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-medium transition-all border cursor-pointer ${
+                activeCategory === cat
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
+              }`}
+              style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
             >
-              Clear Search Query
-            </Button>
+              {cat}
+            </button>
+          ))}
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="flex-shrink-0 ml-auto text-[11px] text-gray-400 hover:text-gray-700 transition-colors cursor-pointer border-0 bg-transparent"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── FAQ Grid ── */}
+      <main className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow min-h-screen">
+        {filteredFaqs.length > 0 ? (
+          <>
+            <p className="text-[11px] text-gray-400 font-medium mb-5">
+              Showing {filteredFaqs.length} question
+              {filteredFaqs.length !== 1 ? "s" : ""}
+              {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
+              {searchQuery ? ` for "${searchQuery}"` : ""}
+            </p>
+
+            {/* Desktop: 2 columns | Mobile: 1 column */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Left column */}
+              <div className="space-y-3">
+                {leftCol.map((faq) => {
+                  const globalIdx = ALL_FAQS.indexOf(faq);
+                  const isOpen = openItem === globalIdx;
+                  return (
+                    <FAQItem
+                      key={globalIdx}
+                      faq={faq}
+                      isOpen={isOpen}
+                      onToggle={() => toggle(globalIdx)}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Right column */}
+              <div className="space-y-3">
+                {rightCol.map((faq) => {
+                  const globalIdx = ALL_FAQS.indexOf(faq);
+                  const isOpen = openItem === globalIdx;
+                  return (
+                    <FAQItem
+                      key={globalIdx}
+                      faq={faq}
+                      isOpen={isOpen}
+                      onToggle={() => toggle(globalIdx)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-20 bg-gray-50 border border-gray-100 rounded-2xl">
+            <HelpCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <h3 className="text-[15px] font-semibold text-gray-800 mb-1">
+              No matching questions
+            </h3>
+            <p className="text-[13px] text-gray-500 font-normal max-w-xs mx-auto mb-4">
+              Try different keywords like "coupon", "revival", or "merchant".
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setActiveCategory("All");
+              }}
+              className="text-blue-600 text-[13px] font-medium hover:underline border-0 bg-transparent cursor-pointer"
+            >
+              Reset filters
+            </button>
           </div>
         )}
-
-        {/* Support CTA card */}
-        <div className="mt-12 bg-brand-navy text-white rounded-xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden shadow-md">
-          <div className="space-y-2 relative z-10 text-center md:text-left">
-            <h3 className="text-lg font-bold font-heading flex items-center justify-center md:justify-start gap-2">
-              <MessageSquare className="w-5 h-5 text-brand-warning" />
-              <span>Still have questions?</span>
-            </h3>
-            <p className="text-xs text-slate-300 max-w-md">
-              Can't find the answers you're looking for? Reach out to our
-              dedicated support team and we will get back to you shortly.
-            </p>
-          </div>
-          <Button
-            asChild
-            className="btn-primary text-xs py-2.5 px-6 border-0 h-auto cursor-pointer shadow-none relative z-10"
-          >
-            <Link href="/contact">
-              <span>Contact Support</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
-          </Button>
-        </div>
       </main>
 
       <Footer />
+    </div>
+  );
+}
+
+function FAQItem({ faq, isOpen, onToggle }) {
+  return (
+    <div
+      className={`bg-white border rounded-xl overflow-hidden transition-all duration-200 ${
+        isOpen
+          ? "border-blue-200 shadow-sm"
+          : "border-gray-100 hover:border-gray-200"
+      }`}
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer border-0 bg-transparent"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className={`flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold transition-colors ${
+              isOpen ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            {faq.category[0]}
+          </span>
+          <span
+            className={`text-[13px] font-medium leading-snug ${
+              isOpen ? "text-blue-700" : "text-gray-900"
+            }`}
+          >
+            {faq.q}
+          </span>
+        </div>
+        <span
+          className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+            isOpen
+              ? "border-blue-600 bg-blue-600 text-white rotate-180"
+              : "border-gray-300 text-gray-400"
+          }`}
+        >
+          <svg
+            className="w-3 h-3 transition-transform"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="px-5 pb-5 border-t border-gray-50">
+          <div className="flex items-start gap-3 pt-3">
+            <div className="flex-shrink-0 w-6 flex justify-center">
+              <div className="w-0.5 h-full bg-blue-100 mt-0.5 min-h-[16px]" />
+            </div>
+            <p className="text-[13px] text-gray-600 leading-relaxed font-normal">
+              {faq.a}
+            </p>
+          </div>
+          <div className="mt-3 ml-9">
+            <span className="inline-flex items-center text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              {faq.category}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
