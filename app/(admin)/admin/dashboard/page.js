@@ -194,10 +194,10 @@ export default function AdminDashboard() {
             type: item.type,
             date: item.date,
             status: item.status,
-            amount: item.type === "Merchant" ? "$49.00" : "$0.00",
+            amount: item.type === "Merchant" ? "₹1,499.00" : "₹0.00",
           };
         })
-      : defaultPending;
+      : [];
 
   // Mock list of activities themed in white, black, and blue
   const defaultActivities = [
@@ -806,6 +806,13 @@ export default function AdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {recentPending.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="p-8 text-center text-slate-400">
+                          No pending coupon or merchant approvals currently in queue.
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>

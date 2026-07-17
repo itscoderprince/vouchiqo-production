@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Claim from "@/modules/claim/claim.model";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
@@ -30,11 +31,20 @@ export async function claimCoupon(userId, couponId) {
     );
   }
 
+  // Fetch user details from database
+  const dbUser = await mongoose.connection.db
+    .collection("user")
+    .findOne({ _id: new mongoose.Types.ObjectId(userId) });
+  const userName = dbUser?.name || "Customer User";
+  const userEmail = dbUser?.email || "";
+
   // Create the claim — unique index handles duplicate prevention
   const claim = await Claim.create({
     userId,
     couponId: coupon._id,
     merchantId: coupon.merchantId,
+    userName,
+    userEmail,
   });
 
   // Increment claim counters atomically (coupon + merchant)
@@ -135,4 +145,52 @@ export async function removeClaim(claimId, userId) {
   if (!claim) throw new NotFoundError("Claim");
 
   await Coupon.findByIdAndUpdate(claim.couponId, { $inc: { totalClaims: -1 } });
+}
+
+/**
+ * Get all claims for a merchant (users who have claimed/saved their coupons).
+ *
+ * @param {string} merchantId - MongoDB Merchant ID
+ * @param {URLSearchParams} searchParams
+ */
+export async function getMerchantClaims(merchantId, searchParams) {
+  const { page, limit, skip } = parsePagination(searchParams);
+
+  const [claims, total] = await Promise.all([
+    Claim.aggregate([
+      { $match: { merchantId: new mongoose.Types.ObjectId(merchantId) } },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: "coupons",
+          localField: "couponId",
+          foreignField: "_id",
+          as: "coupon",
+        },
+      },
+      { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          userId: 1,
+          userName: { $ifNull: ["$userName", "Customer User"] },
+          userEmail: { $ifNull: ["$userEmail", ""] },
+          status: 1,
+          createdAt: 1,
+          coupon: {
+            _id: "$coupon._id",
+            title: "$coupon.title",
+            code: "$coupon.code",
+            discountType: "$coupon.discountType",
+            discountValue: "$coupon.discountValue",
+          },
+        },
+      },
+    ]),
+    Claim.countDocuments({ merchantId }),
+  ]);
+
+  return { claims, meta: buildMeta(total, page, limit) };
 }

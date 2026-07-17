@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Heart, MapPin, Save, Trash2, User } from "lucide-react";
+import { Bell, Heart, MapPin, Phone, Save, Trash2, User } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -32,8 +33,43 @@ export default function SettingsTab({
   setShowDeleteModal,
   handleInterestToggle,
 }) {
+  const [phoneError, setPhoneError] = useState("");
+
+  // Strip leading country code if user pastes full number like +919876543210 or 09876543210
+  const normalizePhone = (raw) => {
+    const digits = raw.replace(/\D/g, "");
+    if (digits.startsWith("91") && digits.length === 12) return digits.slice(2);
+    if (digits.startsWith("0") && digits.length === 11) return digits.slice(1);
+    return digits.slice(0, 10);
+  };
+
+  const handlePhoneChange = (e) => {
+    const normalized = normalizePhone(e.target.value);
+    setProfileData({ ...profileData, phone: normalized });
+    if (normalized.length > 0 && normalized.length < 10) {
+      setPhoneError("Enter a valid 10-digit Indian mobile number.");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  const handleFormSubmit = (e) => {
+    const ph = profileData.phone;
+    if (ph && ph.length !== 10) {
+      e.preventDefault();
+      setPhoneError("Enter a valid 10-digit Indian mobile number.");
+      return;
+    }
+    if (ph && !/^[6-9]\d{9}$/.test(ph)) {
+      e.preventDefault();
+      setPhoneError("Number must start with 6, 7, 8, or 9.");
+      return;
+    }
+    handleSaveSettings(e);
+  };
+
   return (
-    <form onSubmit={handleSaveSettings} className="space-y-6 w-full text-left">
+    <form onSubmit={handleFormSubmit} className="space-y-6 w-full text-left">
       {/* Personal Details */}
       <div className="bg-brand-bg border border-brand-border rounded-md p-5 shadow-sm space-y-4">
         <h3 className="font-heading text-xs font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center gap-1.5">
@@ -67,17 +103,35 @@ export default function SettingsTab({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold uppercase text-brand-text">
+            <Label className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand-text">
+              <Phone className="w-3.5 h-3.5 text-brand-blue" />
               Phone Number
             </Label>
-            <Input
-              type="text"
-              value={profileData.phone}
-              onChange={(e) =>
-                setProfileData({ ...profileData, phone: e.target.value })
-              }
-              className="bg-brand-surface border-brand-border text-xs"
-            />
+            <InputGroup
+              className={`bg-brand-surface border rounded-lg h-10 px-1 ${
+                phoneError ? "border-red-400" : "border-brand-border"
+              }`}
+            >
+              <InputGroupAddon>
+                <span className="text-xs font-bold text-brand-subtext select-none">+91</span>
+              </InputGroupAddon>
+              <InputGroupInput
+                type="tel"
+                inputMode="numeric"
+                placeholder="98765 43210"
+                value={profileData.phone}
+                onChange={handlePhoneChange}
+                maxLength={10}
+                pattern="[6-9][0-9]{9}"
+                className="text-xs h-full tracking-wider"
+              />
+            </InputGroup>
+            {phoneError && (
+              <p className="text-[10px] text-red-500 font-medium mt-0.5">{phoneError}</p>
+            )}
+            <p className="text-[9px] text-brand-subtext">
+              10-digit mobile number without country code (e.g. 9876543210)
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

@@ -164,22 +164,26 @@ export default function MerchantSubscription() {
     },
   ];
 
-  const invoices = [
-    {
-      id: "INV-2948",
-      date: "2026-06-15",
-      amount: "₹1,499.00",
-      plan: "Growth Partner",
-      status: "Paid",
-    },
-    {
-      id: "INV-1834",
-      date: "2026-05-15",
-      amount: "₹1,499.00",
-      plan: "Growth Partner",
-      status: "Paid",
-    },
-  ];
+  const invoices = [];
+  if (merchant?.plan && merchant.plan !== "starter" && merchant.createdAt) {
+    const signupDate = new Date(merchant.createdAt);
+    const currentDate = new Date();
+    let tempDate = new Date(signupDate);
+    let counter = 2948;
+
+    while (tempDate <= currentDate) {
+      const priceVal = merchant.plan === "growth" ? 1499 : merchant.plan === "pro" ? 3999 : 9999;
+      invoices.push({
+        id: `INV-${counter++}`,
+        date: tempDate.toISOString().split("T")[0],
+        amount: `₹${priceVal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+        plan: merchant.plan === "growth" ? "Growth Partner" : merchant.plan === "pro" ? "Pro Partner" : "Enterprise Partner",
+        status: "Paid",
+      });
+      tempDate.setMonth(tempDate.getMonth() + 1);
+    }
+    invoices.reverse();
+  }
 
   const handleOpenUpgrade = (plan) => {
     setSelectedPlan(plan);

@@ -37,6 +37,23 @@ export async function createCoupon(authId, data) {
     throw new ForbiddenError("Only approved merchants can create coupons");
   }
 
+  // Subscription Plan limits gating check
+  const activeCount = await Coupon.countDocuments({
+    merchantId: merchant._id,
+    status: COUPON_STATUS.ACTIVE,
+    expiresAt: { $gt: new Date() },
+  });
+
+  const plan = merchant.plan || "starter";
+  const limits = { starter: 3, growth: 15, pro: Infinity, enterprise: Infinity };
+  const allowed = limits[plan] ?? 3;
+
+  if (activeCount >= allowed) {
+    throw new ForbiddenError(
+      `Your subscription plan '${plan}' allows a maximum of ${allowed} active listings. Please upgrade to create more.`
+    );
+  }
+
   const coupon = await Coupon.create({
     merchantId: merchant._id,
     ...data,

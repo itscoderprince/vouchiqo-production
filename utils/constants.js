@@ -106,11 +106,13 @@ export const REDIS_TTL = {
   FEATURED: 300, // 5 minutes
   TRENDING: 120, // 2 minutes
   REDEEM_LOCK: 10, // 10 seconds
+  BANNERS: 300, // 5 minutes
 };
 
 export const REDIS_KEYS = {
   FEATURED_DEALS: "home:featured",
   TRENDING_DEALS: "home:trending",
+  BANNERS: "home:banners",
   rateLimit: (ip, route) => `rl:${ip}:${route}`,
   redeemLock: (couponId, userId) => `redeem:lock:${couponId}:${userId}`,
   otp: (userId) => `otp:${userId}`,

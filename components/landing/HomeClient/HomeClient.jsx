@@ -43,7 +43,7 @@ import NewsletterSubscription from "./NewsletterSubscription";
 import TodayTopCoupons from "./TodayTopCoupons";
 import TrendingOffer from "./TrendingOffer";
 
-export function HomeClient({ initialCoupons = [], latestCoupons = [], popularMerchants = [] }) {
+export function HomeClient({ initialCoupons = [], latestCoupons = [], popularMerchants = [], banners = [] }) {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
   const { city } = useLocation();
@@ -246,7 +246,7 @@ export function HomeClient({ initialCoupons = [], latestCoupons = [], popularMer
           className="g-main-banner main__banner__div"
           data-toppicks-show="True"
         >
-          <HeroSection />
+          <HeroSection banners={banners} />
         </section>
       </main>
 

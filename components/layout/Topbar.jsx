@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/use-user";
+import UserDropdown from "./UserDropdown";
 
 export default function Topbar({ title = "Dashboard", user: propUser = null }) {
   const { user: authUser, logout } = useUser();
@@ -239,109 +240,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
         <div className="h-5 w-px bg-brand-border"></div>
 
         {/* Profile Dropdown Container */}
-        <div className="relative">
-          <div
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2.5 cursor-pointer group select-none"
-          >
-            <div className="w-7 h-7 rounded-full bg-brand-navy flex items-center justify-center text-white overflow-hidden shadow-sm shrink-0">
-              {user?.image ? (
-                <img
-                  src={user.image}
-                  alt={user.name || "User Avatar"}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : user?.name ? (
-                <span className="font-semibold text-xs uppercase">
-                  {user.name[0]}
-                </span>
-              ) : (
-                <User className="w-3.5 h-3.5" />
-              )}
-            </div>
-            <div className="hidden lg:flex items-center gap-1">
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-semibold text-brand-text group-hover:text-brand-blue transition-colors leading-none mb-0.5">
-                  {user?.name || "Premium User"}
-                </span>
-                {user?.role && user.role !== "customer" && (
-                  <span className="text-[9px] text-brand-subtext uppercase font-semibold leading-none">
-                    {user.role}
-                  </span>
-                )}
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-brand-subtext group-hover:text-brand-blue transition-colors ml-0.5" />
-            </div>
-          </div>
-
-          {dropdownOpen && (
-            <>
-              {/* Clicking outside closes the dropdown */}
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setDropdownOpen(false)}
-              />
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
-                {user?.role === "admin" && (
-                  <Link
-                    href="/admin/dashboard"
-                    className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
-                {user?.role === "merchant" && (
-                  <>
-                    <Link
-                      href="/merchant/dashboard"
-                      className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      Merchant Dashboard
-                    </Link>
-                    <Link
-                      href="/merchant/profile"
-                      className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      My Profile
-                    </Link>
-                  </>
-                )}
-                {(!user?.role || user.role === "customer") && (
-                  <Link
-                    href="/profile"
-                    className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    My Profile
-                  </Link>
-                )}
-                <Link
-                  href="/"
-                  className="flex w-full items-center px-4 py-2 text-xs font-medium text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  Go to Homepage
-                </Link>
-                <div className="border-t border-slate-100 dark:border-zinc-850 my-1" />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setDropdownOpen(false);
-                    await logout();
-                  }}
-                  className="flex w-full items-center gap-2 text-left px-4 py-2 text-xs font-medium text-red-650 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/25 hover:text-red-750 transition-colors border-0 bg-transparent cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-red-500" />
-                  <span>Log Out</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <UserDropdown user={user} />
       </div>
     </header>
   );

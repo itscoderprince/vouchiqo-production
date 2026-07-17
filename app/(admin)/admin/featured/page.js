@@ -29,7 +29,7 @@ export default function FeaturedDeals() {
       setLoading(true);
       const res = await fetch("/api/admin/coupons");
       const json = await res.json();
-      if (json.status === "success" && json.data) {
+      if (json.success && json.data) {
         setCoupons(json.data.coupons || []);
       }
     } catch (err) {

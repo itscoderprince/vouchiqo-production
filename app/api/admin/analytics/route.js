@@ -40,12 +40,9 @@ export const GET = asyncHandler(async (request) => {
   let monthlyRevenue = 0;
   merchants.forEach((m) => {
     const plan = m.plan || "starter";
-    const prices = { starter: 0, growth: 49, pro: 99, enterprise: 199 };
+    const prices = { starter: 0, growth: 1499, pro: 3999, enterprise: 9999 };
     monthlyRevenue += prices[plan] || 0;
   });
-  if (monthlyRevenue === 0) {
-    monthlyRevenue = totalMerchants * 49;
-  }
 
   // Build dynamic trendData based on real redemptions
   const currentYear = new Date().getFullYear();
@@ -71,12 +68,14 @@ export const GET = asyncHandler(async (request) => {
     }
   });
 
-  trendData.forEach((stat, i) => {
-    // Baseline padding for visualization if database is sparse
-    const baseOrders = stat.orders || i * 2 + 5;
+  trendData.forEach((stat) => {
+    // Show true data from redemptions without baseline padding
+    const baseOrders = stat.orders;
     stat.orders = baseOrders;
-    stat.revenue = baseOrders * 49 + Math.round(baseOrders * 2.5);
-    stat.profit = stat.profit || Math.round(stat.revenue * 0.35);
+    // Revenue is the total savings amount generated for customers
+    stat.revenue = stat.profit;
+    // Profit is Vouchiqo's commission cut (10% of savings generated)
+    stat.profit = Math.round(stat.revenue * 0.10);
   });
 
   return ok({

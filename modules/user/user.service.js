@@ -41,7 +41,7 @@ export async function updateProfile(authId, data) {
   if (name !== undefined || phone !== undefined) {
     const userUpdate = {};
     if (name !== undefined) userUpdate.name = name;
-    if (phone !== undefined) {
+    if (phone !== undefined && phone !== "") {
       userUpdate.phone = phone;
       userUpdate.phoneNumber = phone;
     }

@@ -13,6 +13,7 @@ import {
   Settings,
   Store,
   Tag,
+  Sliders,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -47,6 +48,7 @@ export default function Sidebar({ role = "customer" }) {
           { name: "User Management", href: "/admin/users", icon: Users },
           { name: "Featured Deals", href: "/admin/featured", icon: Tag },
           { name: "Homepage Ticker", href: "/admin/ticker", icon: TrendingUp },
+          { name: "Homepage Banners", href: "/admin/banners", icon: Sliders },
           {
             name: "Revival Requests",
             href: "/admin/revivals",

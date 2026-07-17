@@ -79,6 +79,14 @@ export async function listUsers(searchParams) {
       },
     },
     {
+      $lookup: {
+        from: "claims",
+        localField: "authId",
+        foreignField: "userId",
+        as: "userClaims",
+      },
+    },
+    {
       $project: {
         _id: 1,
         authId: 1,
@@ -91,6 +99,7 @@ export async function listUsers(searchParams) {
         emailNotifications: 1,
         smsNotifications: 1,
         expiryAlerts: 1,
+        couponsSaved: { $size: "$userClaims" },
       },
     },
   ];

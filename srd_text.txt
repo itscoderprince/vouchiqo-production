@@ -1,0 +1,1090 @@
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 1
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+VOUCHIQO
+Software Requirements Document
+Verified Savings Platform — Full Stack MVP
+Prepared by: Platform Owner / Founder
+Prepared for: Webitya — Future of Digital Growth
+Document Version: 1.0
+Date: May 2026
+CONFIDENTIAL — For developer use only. Not to be shared with third parties.
+
+-- 1 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 2
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+Document Information
+Project Name Vouchiqo — Verified Savings Platform
+Domain Vouchiqo.com
+Document Type Software Requirements Document (SRD)
+Version 1.0 (Review and confirm before development begins)
+Prepared By Platform Founder / Owner
+Prepared For Webitya — Aditya Kumar (+91-9693245941)
+Date May 2026
+Document Purpose
+This document defines ALL features, modules, and technical requirements for
+the Vouchiqo MVP. The developer must confirm acceptance of this full scope
+before work begins. Any feature listed here that is not included in the
+development must be flagged in writing before contract signing.
+IMPORTANT This document supersedes all previous verbal discussions and partial feature lists shared
+with the developer. The scope defined here is the complete MVP scope. The developer must provide a
+written confirmation and revised quotation covering this full scope before work begins.
+
+-- 2 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 3
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 1 PROJECT OVERVIEW & OBJECTIVES
+1. Project Overview & Objectives
+Vouchiqo is India's first verified savings platform with a built-in Expired Offer Revival mechanism. The
+platform serves two distinct user groups simultaneously: end customers who want genuine, working verified
+offers, and merchant-businesses who want a performance-only channel to acquire customers through
+verified promotional offers.
+Unlike existing discount platforms (CouponDunia, GrabOn), Vouchiqo's core differentiator is verification at
+the source — every offer is tested before going live — and the Expired Offer Revival feature, which allows
+customers to recover value from expired codes by requesting merchant-approved regeneration. No other
+platform in India currently offers this.
+1.1 Platform Architecture Overview
+The platform has three distinct sides that must operate independently but share a single underlying
+database and API:
+• Customer-Facing Platform — the public website where end users browse, search, save, and redeem
+verified offers
+• Merchant Portal — a separate authenticated dashboard where registered businesses manage their
+listings, subscriptions, campaigns, analytics, and offer revival requests
+• Admin Panel — an internal operations panel for the platform owner to manage merchant approvals, offer
+verification, subscription billing oversight, and platform-wide content
+1.2 Technology Stack (Confirmed)
+Layer Technology Specification
+Frontend Framework Next.js (React)
+SSR/SSG for SEO. All customer-facing pages
+must be server-side rendered or statically
+generated for Google indexing.
+Backend Runtime Node.js + Express RESTful API. All API endpoints documented in a
+Postman collection delivered with the project.
+Database MongoDB (Atlas)
+Use MongoDB Atlas managed cloud instance.
+Schema design must support multi-tenant
+merchant data isolation.
+Authentication JWT + NextAuth.js
+Separate auth flows for customers, merchants,
+and admin. Role-based access control (RBAC)
+mandatory.
+Payment Gateway Razorpay
+NOT PhonePe. Razorpay required for recurring
+subscription billing (Growth/Pro/Enterprise
+plans). PhonePe does not support
+subscription/recurring APIs adequately.
+
+-- 3 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 4
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+Layer Technology Specification
+File Storage Cloudinary or AWS S3
+For merchant logos, coupon images, and deal
+banners. Direct upload from merchant
+dashboard.
+Email Service SendGrid (free tier → paid) Transactional emails: OTP, merchant approvals,
+offer expiry alerts, weekly reports.
+Maps Google Maps JavaScript API
+For Nearby Offers feature. Merchant addresses
+plotted as map markers. User location detection
+via browser GPS.
+Push Notifications Firebase Cloud Messaging
+(FCM)
+Web push notifications for deal alerts, expiry
+reminders, merchant notifications.
+Hosting Hostinger VPS (as quoted)
+Minimum: 4 vCPU, 8GB RAM, 100GB SSD.
+NGINX reverse proxy. SSL via Let's Encrypt.
+PM2 for process management.
+Version Control GitHub (private repository)
+All code committed to a private GitHub repo.
+Founder added as owner/admin. Final handover
+includes full repo access transfer.
+
+-- 4 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 5
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 2 CUSTOMER-FACING PLATFORM
+2. Customer-Facing Platform
+All pages listed in this section are accessible without login unless stated otherwise. Every page must be fully
+mobile-responsive, render correctly on iOS Safari and Android Chrome, and load in under 3 seconds on a
+4G connection.
+2.1 Homepage
+Hero Section
+MUST
+Animated hero section with deep navy (#1A3C5E) background. Floating 3D-style offer cards
+as background decoration (CSS keyframe animations, no heavy WebGL). Large heading:
+'Save More on Everything You Love' with animated typing text cycling through deal
+categories.
+MUST
+Two CTA buttons: 'Explore Deals' (orange primary) and 'How It Works' (white outline). Trust
+row below buttons showing platform stats: verified brands count, active deals count, total user
+savings.
+MUST Desktop layout: 50% content left, 50% animated phone mockup right. Mobile layout: stacked
+single column.
+Search Bar
+MUST
+Full-width search bar below hero. Accepts brand name, category, coupon code, or keyword.
+Autocomplete dropdown showing matching brands and categories. Search results page at
+/deals?q=[query].
+Category Strip
+MUST
+Horizontally scrollable category pills with emoji icons. Categories: All | Fashion | Electronics |
+Food & Dining | Travel | Beauty | Home & Decor | Home Improvement | Health & Fitness |
+Education | Finance | Gaming | Automotive | Kids & Baby | Pets | Organic & Wellness. Active
+category highlighted in orange.
+Homepage Sections (in order)
+MUST Flash Deals section — navy background, live countdown timer (24-hour cycle), horizontally
+scrollable featured deal cards with urgency indicator.
+MUST Featured Brands row — brand logo cards with active deal count. Minimum 16 brands
+displayed.
+
+-- 5 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 6
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST How It Works — 3-step section: Find → Copy → Save. Special callout box for Expired Offer
+Revival.
+MUST Trending Categories grid — 3×3 on desktop, 2×4 on mobile. Each with gradient background,
+emoji, category name, deal count.
+MUST Testimonials carousel — auto-scrolling, 6 cards minimum, with star ratings and savings
+badge.
+MUST Nearby Offers teaser section — location input + map preview panel. See Section 2.6 for full
+spec.
+MUST App Download section — 'Coming Soon' state with email capture for launch notification.
+MUST
+For Merchants section near footer — headline, 4 benefit points, two CTA buttons: 'List Your
+Business — It's Free' → /merchant/register and 'View Merchant Plans' →
+/merchant/register#plans.
+MUST Newsletter signup with email input, city/location selector, and success state animation.
+2.2 Deals & Offers Browse Page (/deals)
+MUST
+Left sidebar (desktop) / bottom sheet (mobile) with filters: Category (multi-select), Discount
+Type (% Off, Flat Off, Free Shipping, BOGO, Cashback), Minimum Discount slider, Validity
+(Expiring Today / This Week / This Month), New Users Only toggle, Brand search input.
+MUST Sort options: Most Popular | Newest | Highest Discount | Expiring Soonest.
+MUST 3-column card grid on desktop, 2-column on tablet, 1-column on mobile. Infinite scroll OR
+pagination (developer to confirm approach).
+MUST Deal count label: 'Showing X deals' updated dynamically as filters change.
+MUST Active filters shown as removable pill tags above the grid.
+Offer Card Component (Reusable — used across entire site)
+MUST Brand logo (circular placeholder with initials if no logo) + brand name + CoupX Verified green
+badge.
+MUST Offer title (max 2 lines, truncated). Large discount badge (orange pill): '20% OFF' or 'FLAT
+₹500' or 'FREE SHIPPING'.
+
+-- 6 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 7
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST Dashed-border code section: 'CODE:' label + monospace bold code + Copy icon. On copy:
+button changes to '✅ Copied!' for 2 seconds, code written to clipboard.
+MUST Expiry date. If expiring within 3 days: amber warning '⚠️ Expires in X days'. If expired: red
+'Expired' badge.
+MUST Category tag pill (teal). Heart/save icon (outline = unsaved, filled red = saved). Toggle saved
+state on click — requires user login if not authenticated (show login modal).
+MUST Hover state: card lifts (translateY -4px), shadow deepens, 3px orange top border.
+2.3 Individual Offer/Deal Page (/deal/:id)
+MUST Breadcrumb navigation: Home > Category > Brand > Offer Title.
+MUST
+Left content area (60%): Brand logo + verified badge, offer title (H1), discount badge, full
+description, How to Use numbered steps, Terms & Conditions (expandable), expiry
+countdown if within 7 days, thumbs up/down helpfulness vote, user comments section.
+MUST
+Right sticky sidebar (40%): Large code box (monospace, orange border) + 'Copy Code'
+orange button. On click: code copies AND a modal opens — 'Code Copied! Now visit [Brand]
+and paste at checkout.' with 'Visit [Brand] Website' button (opens brand URL new tab). Save +
+Share (WhatsApp, copy link) buttons. Similar deals from same category (4 cards minimum).
+MUST Page URL must be SEO-friendly: /deal/[brand-name]-[offer-title]-coupon-code. Not
+/deal/12345.
+MUST Page meta title: '[Brand] Verified Offer [MONTH YEAR] — [Discount] Off | Vouchiqo'. Meta
+description dynamically generated from offer details.
+2.4 Brand Pages (/brand/:brandname)
+MUST Individual page for each merchant/brand listing all their active verified offers, brand
+description, website link, and category.
+MUST URL: /brand/[brand-name]-coupons. Meta title: '[Brand] Coupon Codes & Deals [MONTH
+YEAR] — Vouchiqo'.
+MUST All active offers for that brand shown in card grid. Expired offers shown in a separate
+collapsed section with 'Request Revival' button.
+2.5 Category Pages (/category/:categoryname)
+
+-- 7 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 8
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST Individual page for each category (Fashion, Electronics, etc.) with filtered deals from that
+category.
+MUST URL: /category/[category-name]-coupons-deals. SEO-optimised meta tags per category.
+MUST Each category page: category hero banner, sub-category chips if applicable, filtered deal grid
+with all category filters available.
+MUST City-specific category pages: /category/[category]-deals-[city-name] (e.g. /category/tiles-deals-
+ranchi). These are critical for local SEO.
+2.6 Nearby Offers Page (/nearby-offers)
+MUST Split layout: scrollable deal list (40% width on desktop) + interactive Google Map (60% width,
+sticky, full height).
+MUST
+On page load: prompt user for browser GPS permission. If granted: auto-detect city + locality,
+pan map to user location, show blue 'You are here' marker. If denied: show manual location
+entry modal.
+MUST
+Manual location entry: Country (default India) → State dropdown (all Indian states) → City
+dropdown (filters by state, includes Ranchi, Jharkhand as priority entry) →
+Area/Locality/Pincode text input. 'Find Deals Near Me' orange button.
+MUST Distance filter: Within 1km | 3km | 5km | 10km.
+MUST
+Map markers: custom orange markers with Vouchiqo branding. Click marker: info popup
+showing brand name, offer title, discount, 'View Deal' button, 'Get Directions' link (opens
+Google Maps directions in new tab). Marker clustering when zoomed out.
+MUST Deal list item: brand logo, offer title, category, discount badge, distance ('1.2 km away'), short
+address, 'Get Directions' link. Click item: map pans and zooms to that pin.
+SHOULD Ranchi/Jharkhand prioritisation: when user location is set to Jharkhand, Home Improvement
+category (Marbella tiles/sanitary deals) pre-filtered and shown at top of nearby list.
+2.7 Expired Offer Revival Page (/expired-coupon-revival)
+MUST This is a standalone public page explaining and enabling the Revival feature. Not to be
+confused with the merchant-side revival management.
+MUST Hero with heading 'Have an Expired Offer? Don't Give Up.' and sub-copy explaining the
+Revival service.
+
+-- 8 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 9
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST 3-step How Revival Works section (Step 1: Submit, Step 2: CoupX contacts merchant, Step 3:
+Get fresh code by email).
+MUST
+Revival Request Form: Brand/Store name (text with autocomplete from registered merchants),
+Expired Offer Code (text input), What were you buying (optional textarea), Your email
+(required, to receive revived code). 'Submit Revival Request' orange button.
+MUST
+Form submission stores request in database, triggers email notification to relevant merchant's
+dashboard (as a revival request), and sends confirmation email to customer: 'We've received
+your request. We'll update you within 48 hours.'
+MUST
+Recent Revivals social proof feed: auto-cycling list showing anonymised successful revival
+stories (name + city + brand + amount saved + time ago). Minimum 5 entries. Admin can
+manage these from the admin panel.
+SHOULD Live counter: 'X revival requests processed this month' — pulled from database.
+2.8 Customer Authentication (/auth/login /auth/signup)
+MUST Split-panel layout: left panel (40%) — navy with brand message + floating offer animations.
+Right panel (60%) — white form.
+MUST Login: Google OAuth button (primary) + Facebook OAuth button + email/password form as
+alternative. 'Remember me' checkbox. Forgot password link.
+MUST
+Signup: Full name, email, mobile (+91 default), password with strength indicator, city, state,
+interests multi-select (Fashion, Electronics, Food, Travel, Beauty, Home & Decor, Home
+Improvement, Health, Education, Finance). Terms checkbox.
+MUST OTP verification via email on signup. Resend OTP option after 60 seconds.
+MUST Forgot password: email input → sends reset link → reset form with new password + confirm.
+Token-based, expires in 1 hour.
+MUST Post-login redirect: return user to the page they were on before login modal appeared.
+2.9 Customer Profile & Account (/profile)
+MUST Top tab navigation: My Saves | Cashback Wallet | My Activity | Nearby Offers | Settings.
+MUST My Saves: grid of saved offers with copy code + remove from saves options. Empty state with
+'Browse Deals' CTA.
+
+-- 9 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 10
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST
+Cashback Wallet: balance card showing available + pending cashback. Redemption button
+(disabled with 'Coming Soon' label — UI placeholder only). Transaction history table: Date |
+Brand | Purchase Amount | Cashback % | Amount | Status.
+MUST My Activity: chronological feed of user actions (verified offers used, deals saved, revival
+requests submitted, account events).
+MUST Settings: edit name/email/mobile/city/state. Notification preferences (toggles per type for email
++ web push). Change password. Delete account with confirmation modal.
+
+-- 10 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 11
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 3 MERCHANT PORTAL
+3. Merchant Portal
+The Merchant Portal is a completely separate authenticated system from the customer platform. It lives at
+/merchant and is accessed only by registered, verified business partners. Every feature in this section is
+mandatory for the MVP.
+CRITICAL The Merchant Portal is the primary revenue engine of Vouchiqo. Subscription payments, add-on
+purchases, and commission income all flow through this system. If any part of the merchant portal is
+missing or broken, Vouchiqo has no business model. This section must be scoped and priced separately if
+the developer has not included it in the ₹75,000 quote.
+3.1 Merchant Authentication
+Merchant Login (/merchant/login)
+MUST Separate login page. Business email + password. Eye-toggle on password field. Remember
+me. Forgot password link.
+MUST Split layout: right panel shows brand benefits (Verified listings, Analytics dashboard, Expired
+Offer Revival, Performance-only model).
+MUST 'Try Demo Dashboard' button — auto-logs in as a seeded demo merchant account (read-only
+mode, data pre-populated, yellow DEMO banner shown throughout dashboard).
+MUST 'Register Your Business' CTA below form.
+Merchant Registration (/merchant/register)
+MUST
+3-step progress bar registration form. Step 1: Business Details (Business name, category
+dropdown with 10 categories including 'Home Improvement — Tiles, Sanitary & Granite',
+website URL, GST number optional, business type radio buttons). Step 2: Contact & Account
+(contact person name, designation, business email, mobile +91, password with strength
+indicator, confirm password). Step 3: Plan Selection (4 plan cards: Starter Free / Growth
+₹1,499/mo / Pro ₹3,999/mo / Enterprise Custom — matching full plan comparison design).
+MUST Step 3 plan cards must show: plan name, price, 4-5 key features with check/cross icons, CTA
+button. Growth card highlighted with 'Most Popular' badge and orange border.
+MUST Success screen: 'Application Submitted! Our team will verify your business within 24–48
+hours.' Email confirmation sent. Button: Return to Vouchiqo Home.
+
+-- 11 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 12
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+First Login — New Merchant
+MUST
+On first approved login: 'Set Your Password' screen if admin-created account, OR redirect to
+dashboard with dismissible onboarding welcome card. Welcome card: 3-step getting started
+guide + 'Post Your First Offer' CTA button.
+3.2 Merchant Dashboard Shell
+Layout
+MUST Fixed left sidebar (240px desktop). Collapsible to icon-only at 64px on tablet. Hidden drawer
+on mobile. Mobile shows bottom tab bar (5 tabs: Home, Listings, Post, Analytics, Settings).
+MUST Sidebar background: deep navy #1A3C5E. White/light grey text and icons (Lucide icon set).
+MUST Top of sidebar: Vouchiqo logo + 'Merchant Portal' text. Below: merchant business name +
+plan badge pill (grey=Starter, blue=Growth, purple=Pro, orange=Enterprise).
+Sidebar Navigation Links
+MUST
+Navigation links with Lucide icons: (1) Dashboard Overview, (2) My Listings (expandable:
+Verified Offers / Deals & Offers / Expired Offers), (3) Post New (orange background,
+highlighted), (4) Analytics, (5) Campaigns, (6) Notifications (with unread count badge), (7)
+Subscription & Billing, (8) Affiliate & Commission, (9) Account Settings, (10) Help & Support,
+(11) Logout button at bottom.
+Top Header Bar
+MUST White bar. Left: hamburger (mobile) + current page title. Right: search bar, bell with unread
+badge, help icon, merchant avatar dropdown (Profile / Subscription / Logout).
+MUST Plan expiry banner (conditional): amber if expiring within 7 days, red if expired. Banner has
+'Renew Now' and 'Upgrade' action buttons.
+3.3 Dashboard Overview Page
+MUST
+4 KPI stat cards in a row (2×2 on mobile): Total Clicks This Month, Coupon Redemptions,
+Estimated Revenue Driven (₹), Active Listings (used/plan limit with progress bar). Each card:
+large number, label, % change vs last month with coloured arrow.
+MUST Performance line chart: last 30 days clicks (blue) vs redemptions (orange). Toggle buttons: 7
+Days | 30 Days | 90 Days. Recharts or Chart.js.
+MUST
+Top Performing Coupons table: Coupon Code | Discount | Category | Clicks | Redemptions |
+Success Rate | Status (coloured pill). Row actions: Edit, Pause/Resume, Delete (with
+confirmation modal).
+
+-- 12 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 13
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST
+Quick Actions card: '+ Post New Offer', '+ Post New Deal', 'Launch Campaign', 'Revive
+Expired Offers' buttons. Revival and Campaign buttons locked (grey + lock icon) on Starter
+plan with upgrade tooltip.
+MUST Plan Usage card: plan name badge, listings used progress bar, campaigns used progress bar,
+days until renewal. 'Upgrade Plan' orange link.
+MUST Recent Activity feed: last 5 events with icon, message, time ago.
+MUST Contextual alert cards: expiring coupons warning (amber), low redemption rate tip (blue), plan
+limit warning (orange).
+3.4 Post New Listing (/merchant/dashboard/post)
+Tab 1 — Coupon Code
+MUST
+Form fields: Offer Title* (max 80 chars, live character counter), Coupon Code* (auto-
+uppercase, 'Generate Random Code' button), Discount Type* (radio: % Off / Flat ₹ Off / Free
+Shipping / BOGO), Discount Value* (with % or ₹ prefix), Max Discount Cap (optional),
+Minimum Order Value (optional).
+MUST Validity section: Start Date+Time picker (defaults now), End Date+Time picker*, Total Usage
+Limit (optional), Per User Limit (default 1).
+MUST
+Targeting section: Applicable Categories (multi-select chips), Applicable For (radio: All / New
+Users Only / Returning / App Only), Geographic Restriction (toggle: All India / Specific States
+— state multi-select if toggled).
+MUST Visibility section: Featured on Homepage toggle (locked on Starter, locked on Growth,
+available on Pro+), Include in Newsletter toggle, Attach to Campaign dropdown.
+MUST Description + Terms: Short Description (200 char textarea for listing card), Terms &
+Conditions (textarea for expanded view), Internal Note (not shown publicly).
+MUST
+Submit area: 'Save as Draft' (navy outline) + 'Preview' (opens full-screen modal) + 'Submit for
+Review' (orange, full width). Tooltip on Submit: 'Our team verifies your offer within 4 hours
+before it goes live.'
+Tab 2 — Deal / Flat Offer
+MUST
+Same structure as Tab 1 but replaces Coupon Code with: Deal Headline*, Direct Deal URL*
+(merchant's offer page), Deal Image upload (800×400px recommended, drag-drop), Price
+fields: Original Price + Sale Price (optional, shown as 'Was ₹X Now ₹Y').
+Tab 3 — Special Offer / Gift
+
+-- 13 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 14
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST
+Offer Type radio: Free Gift with Purchase / BOGO / Loyalty Points / Referral Bonus / Bundle
+Deal. Offer Title*, Offer Description* (textarea), Conditions text, Redemption Method radio
+(Auto-applied / Show page to cashier / Enter code at checkout / Visit store). Upload Offer
+Image. Validity dates.
+Live Preview Panel
+MUST
+Right-side panel (desktop only, 40% width) showing real-time preview of how the listing
+appears on Vouchiqo public site. Updates as merchant types. Shows: brand logo placeholder,
+offer title, coupon code box (copy-able), discount badge, expiry, category tags, Vouchiqo
+Verified badge.
+3.5 Listings Management (/merchant/dashboard/listings)
+MUST Filter bar: Status (All / Active / Paused / Expired / Pending Review / Draft), Type (Coupon /
+Deal / Offer), Category. Sort by: Newest / Most Clicked / Highest Redemption / Expiring Soon.
+MUST
+Table columns: Title | Code/Type | Discount | Category | Valid Until | Clicks | Redemptions |
+Success Rate | Status (coloured pill) | Actions (Edit pencil / Pause-Resume toggle / Delete
+trash with confirmation modal).
+MUST Bulk actions toolbar: Pause Selected | Delete Selected | Extend Expiry (date picker modal for
+bulk date extension).
+MUST
+'Expired Coupons' sub-tab showing all expired listings. Each row has a 'Revive' button. On
+Starter and Growth plans, Revive button is greyed out and shows: 'Upgrade to Pro to unlock
+Revival — or purchase a Revival Add-On pack.'
+3.6 Expired Offer Revival Management
+(/merchant/dashboard/listings/expired)
+MUST Plan gate: Starter and Growth show locked state with explanation card, option to purchase
+₹499/25 revival add-on pack, and 'Upgrade to Pro' button.
+MUST Pro and Enterprise: show usage bar ('23 of 50 revival credits used this month' for Pro,
+'Unlimited' for Enterprise).
+MUST Revival table: Coupon Title | Code | Original Expiry | Days Since Expiry | Uses Before Expiry |
+Revival Status | Action buttons.
+MUST
+'Revive' action opens modal: original coupon details shown, revival options (Keep same
+discount / Adjust discount / Set new expiry), 'Confirm Revival' button (generates new code and
+marks as Live), 'Decline' button.
+
+-- 14 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 15
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST
+'Revival Requests' tab (separate sub-tab): incoming customer requests from the /expired-
+coupon-revival page. Table: Request Date | Customer email (masked to **@domain.com) |
+Coupon Requested | Customer Note | Approve / Decline buttons. Bulk approve and bulk
+decline.
+MUST Auto-approval rules toggle (Pro+): rules engine allowing auto-approve if: within X days of
+expiry + same discount value + matching category.
+3.7 Analytics (/merchant/dashboard/analytics)
+MUST Starter plan: full page locked state with upgrade prompt.
+MUST Date range picker: Last 7 / 30 / 90 days / Custom Range.
+MUST Section 1 — KPI Cards: Total Impressions, Total Clicks, Total Redemptions, Redemption
+Rate %, Estimated Revenue Driven, Average Order Value.
+MUST
+Section 2 — Charts (all using Recharts or Chart.js): (a) Dual line chart: Clicks vs Redemptions
+over selected period. (b) Bar chart: Top 5 coupons by redemptions. (c) Donut chart: Traffic
+source breakdown (Homepage / Category / Search / Campaign / Direct). (d) Bar chart: Best
+performing days of week.
+MUST Section 3 — Coupon Performance Table: Title | Code | Clicks | Redemptions | Success Rate |
+Revenue Driven | AOV | Status. Sortable columns. Export to CSV button.
+SHOULD Section 4 — Audience Insights (Pro+ only, locked for Growth): User type donut (New vs
+Returning), Top cities bar chart, Device type breakdown, Hour-of-day redemption heat map.
+SHOULD Section 5 — Revival Stats (Pro+ only): revivals this month, revenue recovered, approval rate,
+revival history table.
+3.8 Campaign Manager (/merchant/dashboard/campaigns)
+MUST Starter plan: full page locked with amber banner 'Campaign Manager available from Growth
+plan. [Upgrade]'.
+MUST
+Campaign list page: 'Create New Campaign' button. Plan usage bar (campaigns used of
+annual limit). Campaign cards in 2-col grid showing: name, type badge, status badge
+(Draft/Scheduled/Live with pulsing green dot/Ended), date range, click/redemption/revenue
+stats, actions (Edit/Duplicate/View Report/Delete).
+MUST
+Create/Edit Campaign — 4-step form: Step 1: Name, Type (Flash
+Sale/Festival/Seasonal/New User Drive/Clearance/Custom), Objective radio, internal
+description. Step 2: Attach existing listings (search + multi-select) OR create new coupon
+
+-- 15 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 16
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+inline. Step 3: Promotion Settings (Homepage slot toggle, Push notification toggle with copy
+fields, Newsletter toggle, Target audience, Social share toggle). Step 4: Review summary,
+estimated reach range, launch options (Draft / Schedule with date-time picker / Launch Now).
+Launch confirmation warning.
+3.9 Subscription & Billing (/merchant/dashboard/subscription)
+Current Plan Card
+MUST
+Large card: plan name, price, billing cycle, next renewal date, plan status badge
+(Active/Expiring/Expired/Cancelled), usage bars (listings used, campaigns used, revival
+credits for Pro). Action buttons: 'Manage Billing' + 'Upgrade Plan'.
+Plan Comparison Section
+MUST
+Heading 'Find the Right Plan'. Monthly/Annual toggle (annual shows '2 months free' savings).
+Four plan cards: Starter (Free), Growth (₹1,499/mo or ₹14,990/yr), Pro (₹3,999/mo or
+₹39,990/yr), Enterprise (Custom). Each card shows complete feature list with check/cross
+icons. Growth: 'Most Popular' banner, blue accent. Pro: 'Best Value' banner, purple accent.
+Current plan CTA disabled ('Current Plan' grey button). Non-current plan shows coloured
+upgrade button.
+MUST Below cards: trust row — 'No setup fee | Cancel anytime | 14-day free trial on Growth and Pro
+| GST invoice provided'.
+Upgrade Flow
+MUST
+Click 'Upgrade to Growth/Pro' opens a 3-step modal: Step 1: Confirm plan with
+monthly/annual toggle + feature diff list showing what's gained. Step 2: Payment form — card
+number (auto-detect Visa/Mastercard), expiry, CVV, cardholder name, billing address.
+'Powered by Razorpay' trust badge + padlock. Order summary showing amount + 18% GST +
+total. 'Upgrade & Pay ₹X' orange button. Step 3: Success animation — 'You're now on [Plan]!
+New features active immediately.' + feature unlocked list + 'Go to Dashboard' button.
+MUST Enterprise 'Contact Our Team' button opens enquiry modal: name, business, current plan,
+message, 'Submit Enquiry' button. Sends email notification to admin.
+Add-Ons Section
+MUST
+Section heading 'Boost Your Plan with Add-Ons'. 6 add-on cards in 3-column grid: (1) Expired
+Offer Revival Pack ₹499/25 revivals, (2) Flash Campaign Boost ₹799/campaign, (3)
+Homepage Featured Slot ₹999/3 days, (4) Push Notification single ₹599/send, (5) Festival
+Campaign Package ₹2,999/event, (6) Performance Analytics Report ₹799/report. For features
+already included in current plan: show 'Included in your plan' instead of buy button.
+Billing History
+MUST Table: Date | Description | Amount | GST | Total | Status (Paid/Pending/Failed coloured
+badge) | Invoice (download PDF icon). Last 12 transactions. 'Download All Invoices' button.
+
+-- 16 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 17
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+Each invoice must be a proper GST-formatted PDF with Vouchiqo company details, merchant
+details, HSN code, and amounts.
+3.10 Affiliate & Commission (/merchant/dashboard/affiliate)
+MUST Current commission model card: active model badge (CPA Only / CPA+CPC /
+CPA+CPC+CPL / Custom), rates displayed, 'Request Rate Change' link.
+MUST Commission Earnings table: Date | Listing/Campaign | Type | Quantity | Rate | Earnings |
+Status (Pending/Confirmed/Paid). Monthly summary rows. Filter by month, type, status.
+MUST Bank/Payout Details card: account holder, bank, masked account number, IFSC. 'Edit Payout
+Details' button. Payout schedule info. Next payout date + estimated amount.
+SHOULD Affiliate network integration status cards: Admitad, vCommission, Direct Tracking. Connected
+= green badge + Disconnect link. Not connected = grey Connect button.
+3.11 Notifications (/merchant/dashboard/notifications)
+MUST Tabs: All | Unread | System | Campaign | Billing. Notification items: icon (type-coded) +
+message text + timestamp + 'Mark as read' on hover. 'Mark All as Read' button.
+MUST
+Notification types: Listing Approved (green), Expiring Soon (amber), Listing Rejected (red)
+with 'See reason' link, Weekly Report Ready, Billing confirmed, Campaign ended, Milestone
+reached, Action Required.
+3.12 Account Settings (/merchant/dashboard/settings)
+MUST 5-tab settings sidebar: Business Profile | Account & Security | Notification Preferences | API
+Access | Danger Zone.
+MUST Business Profile: logo upload (circular preview, drag-drop), business name, category, website,
+GST, description (300 chars), social links (Instagram/Facebook/Twitter/LinkedIn).
+MUST
+Account & Security: edit name/email (requires re-verification)/mobile. Change password
+(current + new + confirm + strength bar). Two-Factor Authentication toggle (email OTP).
+Active sessions list with Revoke button per session.
+MUST
+Notification Preferences: toggle matrix — each notification type as a row, Email and In-App as
+columns. Include: listing approved/rejected, expiring soon (7/3/1 day selector), campaign
+events, weekly report, monthly summary, billing reminders, payment confirmed, revival
+requests.
+
+-- 17 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 18
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST
+API Access (Pro and Enterprise only — locked for Starter/Growth): API key display (masked +
+Reveal + Copy buttons), 'Regenerate Key' button with confirmation modal, API docs link,
+Webhook URL input, recent API calls log.
+MUST
+Danger Zone: 'Pause All Listings' (amber + confirmation modal), 'Deactivate Account' (red
+outline + confirmation), 'Delete Account & All Data' (red filled + type-to-confirm modal + 30-
+day recovery window info).
+3.13 Help & Support (/merchant/dashboard/support)
+MUST SLA display based on plan: Starter 72hr email, Growth 48hr email, Pro 24hr priority,
+Enterprise 4hr dedicated. Shown prominently at top of page.
+MUST Quick Help: search bar + 6 help topic cards (Getting Started, Managing Listings, Campaigns,
+Billing, Analytics, API). Each opens accordion FAQ list.
+MUST
+Contact form: Subject (dropdown: Billing Issue / Technical Bug / Coupon Question / Account
+Issue / Feature Request / Other), Message textarea, File attachment (optional). 'Submit Ticket'
+button. SLA reminder below button.
+MUST
+Ticket History table: Ticket # | Subject | Submitted | Last Updated | Status (Open/In
+Progress/Resolved coloured badge). Click row to expand thread view showing full message
+history.
+
+-- 18 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 19
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 4 ADMIN PANEL
+4. Admin Panel (/admin)
+The Admin Panel is for the platform owner only. Accessible at /admin with a separate hardcoded admin login
+(email + password, not shared with merchant or customer auth). The admin panel is the operational control
+centre for running the platform.
+CRITICAL The Admin Panel is not optional. Without it, the platform owner cannot approve merchants,
+verify offers, manage subscriptions, or operate the platform. It must be included in the quoted scope.
+4.1 Admin Dashboard
+MUST
+Platform-wide KPI overview: Total registered merchants, Total paid merchants (by plan), Total
+active coupons, Total registered users, MAU (Monthly Active Users), Total platform revenue
+this month, Pending merchant approvals count, Coupons awaiting verification count.
+MUST Charts: Revenue trend line chart (last 12 months), Merchant growth bar chart, User growth
+line chart, Platform-wide redemption rate.
+4.2 Merchant Management
+MUST
+Full merchant list table with search and filters. Columns: Business Name | Category | Plan |
+Status (Pending/Active/Suspended) | Joined Date | Active Listings | Monthly Revenue |
+Actions.
+MUST
+Merchant approval workflow: pending merchants shown in a separate 'Pending Approval'
+queue. Admin can: Approve (sends welcome email + activates dashboard), Reject (sends
+rejection email with reason), or Request More Info.
+MUST
+Individual merchant detail page: full business profile, all their listings, subscription history,
+commission transactions, support tickets, and activity log. Admin can manually change plan,
+suspend account, or add revival credits.
+MUST
+Marbella pre-configured merchant account: business name 'Marbella', category 'Home
+Improvement — Tiles, Sanitary & Granite', location Ranchi Jharkhand, login email
+marbellaranchi11@gmail.com, plan Starter, city/state Ranchi/Jharkhand pre-filled, category
+tags Tiles/Sanitary Ware/Granite/Flooring pre-selected.
+4.3 Offer Verification Queue
+
+-- 19 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 20
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST All newly submitted coupons land in a verification queue before going live. Queue shows:
+Merchant Name | Coupon Code | Discount | Category | Date Submitted | Status.
+MUST
+Admin clicks 'Verify' per coupon: shows coupon details + a 'Test Code' link (opens merchant's
+website URL). Admin confirms code works, then clicks 'Approve & Publish' (adds Verified
+badge, makes listing live, sends merchant notification) or 'Reject' (sends merchant rejection
+email with reason).
+MUST Bulk approve function for batches of clearly valid coupons. Priority queue for Pro and
+Enterprise merchant submissions.
+4.4 Revival Request Management
+MUST
+All customer revival requests from /expired-coupon-revival page listed with: Request Date |
+Customer Email | Brand Requested | Coupon Code | Request Note | Status (New/Forwarded
+to Merchant/Resolved/Declined).
+MUST
+Admin forwards request to relevant merchant (adds to merchant's Revival Requests tab in
+their dashboard) and updates status. Can also manually resolve if merchant is unresponsive
+after 48 hours.
+4.5 Subscription & Revenue Management
+MUST Subscription overview: all active, expired, and cancelled subscriptions. Filter by plan. Total
+MRR displayed at top.
+MUST Failed payment alerts: list of subscriptions where Razorpay payment failed, with retry option
+and merchant contact button.
+MUST Add-on purchase history and revenue summary.
+MUST Payout management: commission payouts to merchants. Mark commissions as Paid.
+Generate payout reports.
+4.6 Platform Content Management
+MUST
+Homepage sections management: edit Flash Deals featured listings, manage homepage
+featured merchant slots (which merchants appear in the Featured Brands section and
+homepage featured slot).
+MUST Recent Revivals social proof feed management: add/edit/remove the revival success stories
+shown on the /expired-coupon-revival page.
+
+-- 20 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 21
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST Announcement banner management: create/edit/remove sitewide announcement banners
+(e.g. 'New feature launched', 'Festival sale live').
+MUST Category management: add/edit/disable categories and sub-categories.
+4.7 User Management
+MUST User list with search. Columns: Name | Email | City | Joined | Coupons Saved | Revival
+Requests. Admin can view profile, suspend account, or delete account with data wipe.
+MUST Newsletter subscriber list with export to CSV.
+
+-- 21 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 22
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 5 SEO ARCHITECTURE
+5. SEO Architecture Requirements
+SEO is the primary organic traffic and user acquisition channel for Vouchiqo. This is not a standard 'basic
+SEO meta tags' requirement — it is a programmatic SEO architecture that must be built into the Next.js
+framework from Day 1. Adding it later requires rebuilding core page structures.
+IMPORTANT Because Vouchiqo uses Next.js, all SEO pages must use either Server-Side Rendering
+(SSR) or Static Site Generation (SSG) — NOT client-side rendering. Google cannot index client-rendered
+pages reliably. This is non-negotiable.
+5.1 Required URL Structure & Page Types
+Page Type URL Pattern SEO Title Pattern
+Homepage / Best Verified Offers & Deals in India
+[MONTH YEAR] — Vouchiqo
+All Deals /deals Today's Verified Offers & Deals — Vouchiqo
+Category page /category/[name]-coupons-
+deals
+[Category] Coupons & Deals [MONTH
+YEAR] — Vouchiqo
+Brand/Merchant page /brand/[brandname]-
+coupons
+[Brand] Coupon Codes [MONTH YEAR] —
+Up to X% Off | Vouchiqo
+Individual coupon /deal/[brand]-[title]-coupon [Brand] [X% Off] Coupon Code [MONTH
+YEAR] — Vouchiqo
+City-specific deals /deals/[city-name] Deals & Offers in [City] [MONTH YEAR] —
+Vouchiqo
+City + Category /category/[cat]-deals-[city] [Category] Deals in [City] [MONTH YEAR]
+— Vouchiqo
+Nearby Offers /nearby-offers Offers & Deals Near Me — Find Verified
+Offers Near [City] | Vouchiqo
+Expired Revival /expired-coupon-revival Expired Offer? Revive It Free — Vouchiqo
+Revival
+MUST Meta title and meta description dynamically generated for every coupon, brand, and category
+page from database fields. Titles include current month/year to signal freshness.
+MUST JSON-LD structured data on every coupon page (Schema.org Offer type) including: name,
+description, discount, validFrom, validThrough, url, seller.
+MUST XML sitemap auto-generated at /sitemap.xml, updated whenever new coupons, brands, or
+categories are added. Submit to Google Search Console.
+
+-- 22 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 23
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST robots.txt at /robots.txt allowing all public pages, disallowing /merchant, /admin, /auth, /profile,
+and /api routes.
+MUST Canonical URL tags on all pages. Pagination canonical handling (page 2, 3, etc. use ?page=2
+parameter with rel='canonical' pointing to page 1 or self-referencing as appropriate).
+MUST Open Graph and Twitter Card meta tags on all public pages for social sharing previews.
+MUST Image alt text for all coupon images, brand logos, and category images — generated
+dynamically from the brand name and offer title fields.
+
+-- 23 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 24
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 6 TECHNICAL & SECURITY REQUIREMENTS
+6. Technical & Security Requirements
+6.1 Performance
+MUST Core Web Vitals target: LCP (Largest Contentful Paint) under 2.5s on mobile 4G. FID under
+100ms. CLS under 0.1.
+MUST Next.js Image Optimization used for all images (next/image component). No unoptimised raw
+img tags on customer-facing pages.
+MUST API responses cached where appropriate (coupon lists, category pages). Cache invalidation
+on coupon update or new coupon publish.
+MUST Database queries optimised with proper MongoDB indexes on: merchant_id, category, status,
+expiry_date, city fields.
+6.2 Security
+MUST All passwords hashed using bcrypt (minimum 12 rounds). Passwords never stored in plaintext
+or logged.
+MUST JWT tokens expire in 24 hours for customers, 8 hours for merchant sessions. Refresh token
+mechanism for stay-logged-in.
+MUST Rate limiting on all auth endpoints (login, signup, forgot password, OTP). Maximum 5 failed
+attempts before 15-minute lockout.
+MUST All user inputs sanitised server-side. SQL/NoSQL injection prevention. XSS prevention via
+input escaping.
+MUST HTTPS enforced. HTTP automatically redirects to HTTPS.
+MUST Admin panel accessible from whitelisted IP addresses only (or behind additional password
+layer). Not publicly accessible.
+MUST Razorpay webhook signatures verified on every payment callback. Never trust unverified
+payment confirmations.
+
+-- 24 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 25
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+MUST CORS policy configured to allow only Vouchiqo.com origin for API endpoints.
+6.3 Responsive Design
+MUST
+All pages fully functional on: iPhone SE (375px width), standard mobile (390px), tablet
+(768px), desktop (1280px+). Breakpoints: mobile <768px, tablet 768–1024px, desktop
+>1024px.
+MUST Merchant dashboard mobile: sidebar becomes bottom tab bar (5 main tabs). All tables
+become card-list view. All multi-column forms become single column.
+MUST Touch targets minimum 44×44px on mobile. No horizontal scrolling on any mobile page
+except explicitly scrollable carousels.
+6.4 Email Notifications
+Trigger Recipient Content
+Merchant registration submitted Admin New merchant [Name] submitted application. [Review
+link]
+Merchant registration approved Merchant Welcome to Vouchiqo! Your dashboard is now active.
+[Login link]
+Merchant registration rejected Merchant Your application was not approved. [Reason].
+[Reapply link]
+Offer submitted for review Merchant Your offer [Code] is under review. Expected live within
+4 hours.
+Offer approved and live Merchant Your offer [Code] is now live on Vouchiqo. [View listing
+link]
+Offer rejected Merchant Your offer [Code] was not approved. Reason: [X]. [Edit
+and resubmit]
+Offer expiring in 3 days Merchant Your offer [Code] expires in 3 days. [Renew or extend
+link]
+Subscription payment confirmed Merchant Payment of ₹X received. Invoice attached. Your [Plan]
+is active.
+Subscription payment failed Merchant Payment failed for your [Plan]. [Update payment
+method link]
+Revival request from customer Merchant A customer has requested revival of offer [Code].
+[Review request]
+Customer OTP verification Customer Your Vouchiqo OTP is: XXXXXX. Valid for 10 minutes.
+Customer forgot password Customer Reset your Vouchiqo password. [Reset link — valid 1
+hour]
+Revival request confirmation Customer We've received your revival request for [Brand]. We'll
+update you within 48 hours.
+Revival approved — fresh code sent Customer Good news! Your offer has been revived. Your new
+code is: [CODE]. Valid until [date].
+
+-- 25 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 26
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+Trigger Recipient Content
+Weekly deals digest Customer (opted-
+in)
+Your weekly Vouchiqo deals — top 10 picks in [City]
+this week.
+MUST All emails sent from noreply@vouchiqo.com or merchant@vouchiqo.com via SendGrid. HTML
+email templates with Vouchiqo branding (logo, colours, CTA buttons). Not plain-text emails.
+6.5 Source Code & Handover Requirements
+MUST All source code committed to a private GitHub repository. Platform owner added as
+Owner/Admin of the repository before any code is written.
+MUST
+Final project handover includes: complete source code, database schema documentation, API
+documentation (Postman collection), environment variables list and setup guide, deployment
+instructions (step-by-step), admin panel login credentials.
+MUST
+Code must include inline comments on all non-obvious logic blocks, especially: subscription
+billing flow, Razorpay webhook handling, coupon verification workflow, revival request flow,
+and RBAC permission checks.
+MUST No third-party dependencies that require ongoing licensing fees beyond what is stated in this
+document. All npm packages must be MIT, Apache 2.0, or similarly permissive licensed.
+
+-- 26 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 27
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 7 SUBSCRIPTION PLANS IMPLEMENTATION
+7. Merchant Subscription Plans — Implementation Spec
+The following plan structure must be implemented in full in the Razorpay subscription system and enforced
+at the feature level throughout the merchant dashboard.
+Feature STARTER GROWTH PRO ENTERPRISE
+Monthly Price Free ₹1,499 ₹3,999 Custom
+Annual Price (2mo free) Free ₹14,990 ₹39,990 Negotiable
+Active Verified Offer
+Listings 3 15 Unlimited Unlimited
+Merchant Dashboard ✗ ✓ Basic ✓ Advanced ✓ Full Suite
+Analytics ✗ ✓ Standard ✓ Deep ✓ Custom
+Campaign Manager ✗ 1/quarter 4/year Unlimited
+Homepage Featured Slot ✗ ✗ ✓ 2 days/mo ✓ Custom
+Push Notification ✗ ✗ ✓ 1/month ✓ Unlimited
+Expired Offer Revival ✗ ✗ (add-on only) ✓ 50/month ✓ Unlimited
+Read-only API Access ✗ ✗ ✓ ✓ Full R/W
+Dedicated Account
+Manager ✗ ✗ ✗ ✓
+Commission Model CPA only CPA + CPC CPA + CPC +
+CPL Fully Custom
+Support SLA 72hr email 48hr email 24hr priority 4hr dedicated
+14-day Free Trial — ✓ ✓ —
+MUST
+Plan-gating must be enforced server-side (not just on the frontend). If a Growth merchant
+attempts to access the Revival API endpoint directly, the server returns 403 Forbidden with
+message 'Feature not available on your current plan.'
+MUST
+Razorpay plan IDs created for: vouchiqo_growth_monthly, vouchiqo_growth_annual,
+vouchiqo_pro_monthly, vouchiqo_pro_annual. Starter is free (no Razorpay plan). Enterprise is
+manual invoice.
+MUST When a merchant upgrades mid-billing-cycle, they get prorated credit for remaining days on
+old plan, and are charged the new plan rate immediately. Razorpay handles proration.
+
+-- 27 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 28
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 8 PROJECT TERMS & DELIVERABLES
+8. Project Terms, Payment Schedule & Deliverables
+8.1 Payment Schedule (Counter-Proposal)
+The following payment structure replaces the 60/20/20 terms proposed in the initial quotation. Payments are
+milestone-based and tied to specific, testable deliverables:
+# Amount Trigger Milestone — What Must Be Working
+1 20% of total Contract signed Contract signed with full SRD scope confirmed. GitHub
+repository created with founder as owner.
+2 20% of total End of Week 4
+Merchant auth (register + login + plan selection)
+working. Customer auth (signup + login) working.
+Database schema live on Atlas.
+3 20% of total End of Week 8
+Coupon posting form working end-to-end (post → verify
+queue → admin approve → live on site). Razorpay
+subscription payment tested and working. Customer
+deal browsing page live.
+4 20% of total End of Week 11
+Merchant dashboard complete with analytics, campaign
+manager, revival flow. Admin panel complete. Nearby
+offers with maps working. All 15 email notification
+triggers working.
+5 20% of total Final approval
+Complete platform deployed on Vouchiqo.com. All bugs
+from testing resolved. Full handover package (source
+code, docs, credentials) delivered.
+8.2 Timeline
+MUST Project duration: 12 weeks (90 working days as quoted). Week-by-week delivery plan must be
+provided by developer before advance payment.
+MUST
+Delay penalty: if any milestone is more than 5 working days late without prior written notice
+and an agreed revised date, the client reserves the right to withhold the next milestone
+payment until the delayed milestone is delivered and approved.
+8.3 Post-Launch Support
+MUST
+60 days post-launch bug-fix support included in the project price. Bugs are defined as:
+functionality not working as specified in this SRD. New features requested after launch are not
+bugs and will be quoted separately.
+MUST Bug response SLA: Critical bugs (site down, payments not working, auth broken) — 4 hours.
+Non-critical bugs (UI issues, minor functional errors) — 48 hours.
+
+-- 28 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 29
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SHOULD After 60-day period, developer to provide a monthly maintenance retainer quote (optional for
+client).
+8.4 Intellectual Property
+MUST
+100% of all source code, design assets, database schemas, API structures, and any other
+intellectual property created during this project is exclusively owned by the platform
+founder/client. Developer has no ownership, licensing rights, or right to reuse any part of this
+codebase for other projects.
+MUST This clause must appear verbatim in the signed contract before work begins.
+8.5 Deliverables Checklist
+☐ Complete source code in private GitHub repository (founder as owner)
+☐ Live deployment on Vouchiqo.com with SSL
+☐ MongoDB Atlas database live with production data
+☐ All Razorpay subscription plans configured and tested
+☐ Google Maps API integrated and working for /nearby-offers
+☐ SendGrid email templates live and all 15 notification triggers tested
+☐ Firebase push notification system configured
+☐ Admin panel accessible at /admin
+☐ Marbella merchant account pre-configured (marbellaranchi11@gmail.com)
+☐ Demo merchant account seeded with dummy data
+☐ Dummy coupon data (minimum 40 coupons across all categories) uploaded
+☐ API documentation (Postman collection) delivered
+☐ Database schema documentation delivered
+☐ Deployment and environment setup guide delivered
+☐ Admin login credentials delivered securely
+☐ 30-minute handover walkthrough call with founder
+
+-- 29 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 30
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+SECTION 9 FEATURE PRIORITY MATRIX
+9. Feature Priority Matrix — MVP vs Phase 2
+All features marked High Priority are mandatory for the MVP launch. Features marked Medium Priority are
+included in MVP if timeline permits; if not, they are delivered in a Phase 2 engagement. Low Priority features
+are explicitly deferred to Phase 2.
+Feature / Requirement Priority Phase Notes
+Homepage with all sections (hero, search,
+categories, flash deals, brands, how it works,
+nearby teaser, for merchants, newsletter,
+footer)
+High MVP Core user acquisition
+page
+Customer auth (signup, login, Google OAuth,
+forgot password, OTP) High MVP Required for saves,
+notifications, revival
+Customer profile with saved deals and activity
+feed High MVP Retention feature
+Deals browsing page with all filters and card
+grid High MVP Primary user journey
+Individual offer page with copy-code modal High MVP Conversion critical
+Brand pages with all merchant verified offers High MVP SEO and brand
+discovery
+Category pages (all 16 categories with SEO
+URLs) High MVP Primary SEO traffic
+driver
+Nearby offers page with Google Maps
+integration High MVP Core USP and hyperlocal
+feature
+Expired Offer Revival customer page + request
+form High MVP Primary differentiator
+Merchant auth (register 3-step + login + first
+login onboarding) High MVP Revenue-critical
+Merchant dashboard shell with navigation High MVP Foundation for all
+merchant features
+Post New Listing form (all 3 tabs + live
+preview) High MVP Merchants cannot
+operate without this
+Listings management table with full CRUD High MVP Required for merchant
+operations
+Merchant analytics dashboard (Growth+ only) High MVP Key upgrade incentive
+Subscription & billing page with all 4 plans +
+Razorpay upgrade flow High MVP Revenue engine
+Add-ons purchase flow (6 add-ons) High MVP Additional revenue
+stream
+Billing history with GST invoice PDF download High MVP Legal requirement in
+India
+
+-- 30 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 31
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+Feature / Requirement Priority Phase Notes
+Expired Offer Revival management (merchant-
+side) High MVP Core differentiator
+Campaign manager (basic — Growth+) High MVP Merchant retention
+feature
+Admin panel — merchant approval queue High MVP Cannot launch without
+this
+Admin panel — offer verification queue High MVP Quality control — non-
+negotiable
+Admin panel — subscription and revenue
+management High MVP Financial oversight
+All 15 email notification types High MVP Operational
+communications
+SEO: dynamic meta tags + JSON-LD on all
+public pages High MVP Without this, zero organic
+traffic
+SEO: city+category URL pages High MVP Local SEO traffic driver
+XML sitemap auto-generation High MVP Google indexing
+Mobile responsive (all pages) High MVP 60%+ users will be on
+mobile
+Cashback wallet (placeholder UI, no backend
+logic) Medium MVP Shows roadmap to users
+Merchant account settings (all 5 tabs) Medium MVP Needed for self-service
+Help & support with ticket system Medium MVP Reduces founder support
+time
+Affiliate & commission tracking Medium MVP Commission revenue
+tracking
+Notification centre (merchant) Medium MVP Merchant engagement
+App download section (Coming Soon with
+email capture) Medium MVP Pipeline for app launch
+City-specific deal pages (/deals/[city]) Medium MVP SEO expansion
+Audience insights in analytics (Pro+ only) Low Phase 2 Can launch without this
+Full API access for Enterprise merchants Low Phase 2 Enterprise feature, few
+clients at MVP
+WhatsApp Business API integration Low Phase 2 Nice-to-have, not launch-
+critical
+Push notification segmentation (advanced) Low Phase 2 Basic push sufficient for
+MVP
+Cashback wallet with real payout logic Low Phase 2 Requires banking/fintech
+integration
+Mobile app (iOS + Android) Low Phase 2 Separate project scope
+entirely
+
+-- 31 of 32 --
+
+Vouchiqo — Software Requirements Document Version 1.0 | Confidential | Page 32
+Vouchiqo Platform SRD | Prepared for Webitya | All features listed are mandatory unless marked SHOULD
+10. Acknowledgement & Sign-Off
+Both parties must sign this document before development begins. By signing, the developer confirms they
+have read, understood, and agree to deliver all features marked 'MUST' and 'High Priority' within the agreed
+timeline, at the agreed cost (revised to cover full scope), under the payment terms in Section 8.
+Platform Founder / Client Developer — Webitya / Aditya Kumar
+Full Name:
+_________________________________
+Full Name:
+_________________________________
+Signature:
+_________________________________
+Signature:
+_________________________________
+Date: _________________________________ Date: _________________________________
+Agreed Total Cost: ₹____________
+_________________________________
+Timeline: ______ weeks
+_________________________________
+Advance Payment (20%): ₹____________
+_________________________________
+GitHub Repository URL:
+_________________________________
+This document was prepared by the Platform Founder based on detailed platform planning discussions.
+Any questions about specific requirements should be directed to the founder before contract signing. The
+developer is expected to raise any scope concerns or clarifications in writing within 3 business days of
+receiving this document.
+
+-- 32 of 32 --
+

@@ -2,12 +2,16 @@ import { z } from "zod";
 
 export const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  phone: z.string().min(1).max(30).optional(),
+  phone: z
+    .string()
+    .regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian mobile number (starts with 6-9)")
+    .or(z.literal(""))
+    .optional(),
   location: z
     .object({
-      city: z.string().min(1).max(100).optional(),
-      state: z.string().min(1).max(100).optional(),
-      country: z.string().min(1).max(100).optional(),
+      city: z.string().max(100).optional(),
+      state: z.string().max(100).optional(),
+      country: z.string().max(100).optional(),
     })
     .optional(),
   interests: z.array(z.string()).optional(),

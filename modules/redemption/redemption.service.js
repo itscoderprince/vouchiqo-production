@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { acquireLock, releaseLock } from "@/modules/auth/auth.middleware";
 import Claim from "@/modules/claim/claim.model";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -68,6 +69,13 @@ export async function redeemCoupon(userId, claimId, couponId) {
     // Calculate savings amount
     const savingsAmount = calculateSavings(coupon);
 
+    // Fetch user details from database
+    const dbUser = await mongoose.connection.db
+      .collection("user")
+      .findOne({ _id: new mongoose.Types.ObjectId(userId) });
+    const userName = dbUser?.name || "Customer User";
+    const userEmail = dbUser?.email || "";
+
     // Create redemption record
     const redemption = await Redemption.create({
       userId,
@@ -79,6 +87,8 @@ export async function redeemCoupon(userId, claimId, couponId) {
       discountValue: coupon.discountValue,
       originalPrice: coupon.originalPrice,
       savingsAmount,
+      userName,
+      userEmail,
     });
 
     // Update claim → redeemed

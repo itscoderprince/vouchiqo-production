@@ -119,6 +119,43 @@ const merchantSchema = new Schema(
     autoApproveRevival: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
     rejectionReason: { type: String },
+
+    // KYC Compliance & Statutory Fields
+    constitution: {
+      type: String,
+      enum: ["proprietorship", "partnership", "llp", "pvt_ltd", "others"],
+      default: "proprietorship",
+    },
+    liaisonName: { type: String, trim: true },
+    liaisonDesignation: {
+      type: String,
+      enum: ["owner", "partner", "manager", "others"],
+      default: "owner",
+    },
+    liaisonPhone: { type: String, trim: true },
+    regionalHubCity: {
+      type: String,
+      enum: ["ranchi", "jamshedpur", "dhanbad", "bokaro"],
+      default: "ranchi",
+    },
+    gmapsLink: { type: String, trim: true },
+    pan: { type: String, uppercase: true, trim: true },
+    gstin: { type: String, uppercase: true, trim: true },
+    isGstExempt: { type: Boolean, default: false },
+    bankDetails: {
+      holderName: { type: String, trim: true },
+      accountType: {
+        type: String,
+        enum: ["current", "savings"],
+        default: "current",
+      },
+      accountNumber: { type: String, trim: true },
+      ifsc: { type: String, uppercase: true, trim: true },
+      bankName: { type: String, trim: true },
+      branchName: { type: String, trim: true },
+      chequeImage: { type: String }, // Cloudinary URL
+    },
+    shopImage: { type: String }, // Cloudinary URL
   },
   {
     timestamps: true,

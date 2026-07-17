@@ -43,6 +43,17 @@ export default function MerchantDashboard() {
     },
   });
 
+  // Fetch recent claims for the table
+  const { data: claimsData } = useQuery({
+    queryKey: ["merchant-recent-claims"],
+    queryFn: async () => {
+      const res = await fetch("/api/claims?limit=5");
+      if (!res.ok) return { claims: [] };
+      const json = await res.json();
+      return json.data;
+    },
+  });
+
   // Only use real DB trend data — no fake fallback numbers
   const trendData = analyticsData?.trend ?? [];
 
@@ -89,6 +100,31 @@ export default function MerchantDashboard() {
             product: r.couponId?.title || "Special Deal Offer",
             status: "Completed",
             amount: `₹${r.savingsAmount || 0}`,
+          };
+        })
+      : [];
+
+  // Map real claims from DB to table rows.
+  const recentClaims =
+    claimsData?.claims?.length > 0
+      ? claimsData.claims.map((c) => {
+          const name = c.userName || "Customer User";
+          const email = c.userEmail || "customer@vouchiqo.com";
+          const initials = name
+            .split(" ")
+            .map((w) => w[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
+          return {
+            initials,
+            bg: "bg-indigo-600",
+            name,
+            email,
+            id: c._id.toString().slice(-8).toUpperCase(),
+            product: c.coupon?.title || "Special Deal Offer",
+            status: "Claimed",
+            amount: c.coupon?.code || "VOUCHIQO",
           };
         })
       : [];
@@ -179,6 +215,7 @@ export default function MerchantDashboard() {
         {/* Bottom Section: Recent Orders & Recent Activity */}
         <RecentOrdersAndActivity
           recentRedemptions={recentRedemptions}
+          recentClaims={recentClaims}
           recentActivities={recentActivities}
         />
       </div>

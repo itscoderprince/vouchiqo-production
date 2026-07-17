@@ -115,7 +115,7 @@ export default function ExpiredCouponRevival() {
         const res = await fetch("/api/admin/settings?public=true");
         if (res.ok) {
           const json = await res.json();
-          if (json.status === "success" && json.data?.settings) {
+          if (json.success && json.data?.settings) {
             const s = json.data.settings;
             if (s.revival_stats) setStats(s.revival_stats);
             if (s.social_proof && s.social_proof.length > 0) {

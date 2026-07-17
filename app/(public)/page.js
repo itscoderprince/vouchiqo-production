@@ -4,6 +4,7 @@ import {
   getFeaturedCoupons,
   listCoupons,
 } from "@/modules/coupon/coupon.service";
+import { getPromoBanners } from "@/modules/admin/banner.service";
 import Merchant from "@/modules/merchant/merchant.model";
 import { redis } from "@/lib/redis";
 import Navbar from "@/components/layout/navbar";
@@ -53,6 +54,15 @@ export default async function Home() {
     popularMerchants = JSON.parse(JSON.stringify(rawMerchants || []));
   }
 
+  // 3.7. Fetch active promotional banners
+  let banners = [];
+  try {
+    const rawBanners = await getPromoBanners();
+    banners = JSON.parse(JSON.stringify(rawBanners || []));
+  } catch (err) {
+    console.error("Error fetching promotional banners:", err);
+  }
+
   // 4. Render the client-side component shell with hydrated database props
   return (
     <>
@@ -60,6 +70,7 @@ export default async function Home() {
         initialCoupons={featuredCoupons}
         latestCoupons={latestCoupons}
         popularMerchants={popularMerchants}
+        banners={banners}
       />
     </>
   );

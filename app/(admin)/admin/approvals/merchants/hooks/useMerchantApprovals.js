@@ -10,7 +10,7 @@ export default function useMerchantApprovals() {
         setLoading(true);
         const res = await fetch("/api/admin/merchants?status=pending");
         const json = await res.json();
-        if (json.status === "success" && json.data) {
+        if (json.success && json.data) {
           setMerchants(json.data.merchants || []);
         }
       } catch (err) {

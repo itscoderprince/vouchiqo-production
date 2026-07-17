@@ -37,6 +37,8 @@ const claimSchema = new Schema(
     },
 
     redeemedAt: { type: Date },
+    userName: { type: String },
+    userEmail: { type: String },
   },
   {
     timestamps: true,

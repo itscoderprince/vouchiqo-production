@@ -1,26 +1,35 @@
 import { connectDB } from "@/lib/mongodb";
 import { requireAuth } from "@/modules/auth/auth.middleware";
-import { claimCoupon, getUserClaims } from "@/modules/claim/claim.service";
+import { claimCoupon, getUserClaims, getMerchantClaims } from "@/modules/claim/claim.service";
+import Merchant from "@/modules/merchant/merchant.model";
 import {
   claimQuerySchema,
   createClaimSchema,
 } from "@/modules/claim/claim.validation";
 import { created, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
+import { ROLES } from "@/utils/constants";
 
 /**
  * GET /api/claims
- * Get the authenticated user's saved coupons.
+ * Get the authenticated user's (or merchant's) saved/claimed coupons.
  *
  * Query params: page, limit, status (active | redeemed | expired)
  */
 export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireAuth(request);
-
   const { searchParams } = new URL(request.url);
-  claimQuerySchema.parse(Object.fromEntries(searchParams));
 
+  if (user.role === ROLES.MERCHANT) {
+    const merchant = await Merchant.findOne({ authId: user.id });
+    if (!merchant) return ok({ claims: [] });
+
+    const result = await getMerchantClaims(merchant._id, searchParams);
+    return ok(result);
+  }
+
+  claimQuerySchema.parse(Object.fromEntries(searchParams));
   const result = await getUserClaims(user.id, searchParams);
   return ok(result);
 });

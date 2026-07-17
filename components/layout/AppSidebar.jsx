@@ -18,6 +18,7 @@ import {
   Store,
   Tag,
   Ticket,
+  Sliders,
   TrendingUp,
   User,
   Users,
@@ -118,6 +119,11 @@ export function AppSidebar({ ...props }) {
                 title: "Homepage Ticker",
                 url: "/admin/ticker",
                 icon: TrendingUp,
+              },
+              {
+                title: "Homepage Banners",
+                url: "/admin/banners",
+                icon: Sliders,
               },
               {
                 title: "Revival Requests",

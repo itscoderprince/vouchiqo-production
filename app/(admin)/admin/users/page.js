@@ -156,7 +156,13 @@ export default function UserManagement() {
                   Role
                 </TableHead>
                 <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
+                  Joined
+                </TableHead>
+                <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
                   Email Notifications
+                </TableHead>
+                <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
+                  Coupons Saved
                 </TableHead>
                 <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
                   Status
@@ -170,7 +176,7 @@ export default function UserManagement() {
               {loading
                 ? <TableRow className="hover:bg-transparent">
                     <TableCell
-                      colSpan={5}
+                      colSpan={7}
                       className="p-8 text-center text-brand-subtext font-semibold h-auto"
                     >
                       <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-brand-blue" />
@@ -180,7 +186,7 @@ export default function UserManagement() {
                 : filteredUsers.length === 0
                   ? <TableRow className="hover:bg-transparent">
                       <TableCell
-                        colSpan={5}
+                        colSpan={7}
                         className="p-8 text-center text-brand-subtext font-semibold h-auto"
                       >
                         No users found matching search query.
@@ -204,6 +210,13 @@ export default function UserManagement() {
                             {u.role}
                           </span>
                         </TableCell>
+                        <TableCell className="p-4 text-brand-subtext font-semibold">
+                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }) : "—"}
+                        </TableCell>
                         <TableCell className="p-4">
                           {u.role === "customer"
                             ? <Badge
@@ -217,6 +230,16 @@ export default function UserManagement() {
                                 {u.emailNotifications !== false
                                   ? "Subscribed"
                                   : "Unsubscribed"}
+                              </Badge>
+                            : <span className="text-brand-subtext">—</span>}
+                        </TableCell>
+                        <TableCell className="p-4">
+                          {u.role === "customer"
+                            ? <Badge
+                                variant="outline"
+                                className="rounded font-bold text-[9px] px-1.5 py-0.5 border bg-brand-blue/5 text-brand-blue border-brand-blue/20"
+                              >
+                                {u.couponsSaved || 0} Saved
                               </Badge>
                             : <span className="text-brand-subtext">—</span>}
                         </TableCell>

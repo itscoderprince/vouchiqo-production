@@ -51,13 +51,8 @@ export default function MerchantRevivals() {
   const { data, isLoading } = useQuery({
     queryKey: ["merchant-revival-requests", merchant?._id],
     queryFn: async () => {
-      if (!merchant?.businessName) return [];
-      const res = await apiFetch(`/api/revivals/customer?admin=true`);
-      const allRevivals = res.data?.revivals || [];
-      const businessNameLower = merchant.businessName.toLowerCase().trim();
-      return allRevivals.filter(
-        (r) => r.brandName.toLowerCase().trim() === businessNameLower,
-      );
+      const res = await apiFetch("/api/merchant/revivals");
+      return res.data?.revivals || [];
     },
     enabled: !!merchant?.businessName,
   });
@@ -78,7 +73,7 @@ export default function MerchantRevivals() {
   // 4. Mutation to resolve customer requests
   const resolveMutation = useMutation({
     mutationFn: async ({ revivalId, outcomeStatus, payload = {} }) => {
-      return apiFetch("/api/admin/revivals/resolve", {
+      return apiFetch("/api/merchant/revivals/resolve", {
         method: "POST",
         body: JSON.stringify({ revivalId, outcomeStatus, ...payload }),
       });

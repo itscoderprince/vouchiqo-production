@@ -44,6 +44,8 @@ const redemptionSchema = new Schema(
 
     // Calculated savings
     savingsAmount: { type: Number, default: 0 },
+    userName: { type: String },
+    userEmail: { type: String },
   },
   {
     timestamps: true,

@@ -9,19 +9,104 @@ import {
   ThumbsDown,
   ThumbsUp,
   User,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { useUser } from "@/hooks/use-user";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   const router = useRouter();
+  const { isLoggedIn } = useUser();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
   const [userVote, setUserVote] = useState(null); // 'yes' | 'no' | null
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+
+  // Fetch active saved claims for the user
+  const { data: claims = [], refetch: refetchClaims } = useQuery({
+    queryKey: ["user-claims"],
+    queryFn: async () => {
+      if (!isLoggedIn) return [];
+      const res = await fetch("/api/claims?status=active");
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data?.claims || [];
+    },
+    enabled: isLoggedIn,
+  });
+
+  const matchedClaim = claims.find((c) => c.couponId?._id === coupon._id);
+  const isSaved = !!matchedClaim;
+  const claimId = matchedClaim?._id;
+
+  // Toggle Save / Claim mutation
+  const toggleSaveMutation = useMutation({
+    mutationFn: async () => {
+      if (isSaved) {
+        const res = await fetch(`/api/claims/${claimId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to unsave coupon");
+        return { action: "unsave" };
+      } else {
+        const res = await fetch("/api/claims", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ couponId: coupon._id }),
+        });
+        if (!res.ok) throw new Error("Failed to save coupon");
+        return { action: "save" };
+      }
+    },
+    onSuccess: (data) => {
+      refetchClaims();
+      toast.success(
+        data.action === "save"
+          ? "Coupon saved to your collection!"
+          : "Coupon removed from your collection."
+      );
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update save status.");
+    },
+  });
+
+  const handleToggleSave = () => {
+    if (!isLoggedIn) {
+      toast.error("Please login to save coupons!");
+      router.push(`/login?callbackUrl=/deals/${coupon._id}`);
+      return;
+    }
+    toggleSaveMutation.mutate();
+  };
+
+  const autoClaim = async () => {
+    if (isLoggedIn && !isSaved) {
+      try {
+        await fetch("/api/claims", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ couponId: coupon._id }),
+        });
+        refetchClaims();
+      } catch (err) {
+        console.error("Auto-claim failed:", err);
+      }
+    }
+  };
 
   const merchantName = coupon.merchantId?.businessName || "Partner";
   const logoUrl = coupon.merchantId?.logo || "/placeholder-brand.png";
@@ -61,6 +146,12 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
     navigator.clipboard.writeText(coupon.code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
+
+    // Save claim event to DB in the background
+    autoClaim();
+
+    // Open Code Copied success dialog
+    setIsCopyModalOpen(true);
   };
 
   const handleShare = () => {
@@ -89,20 +180,37 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
             <span>Go Back</span>
           </button>
 
-          <div className="relative">
+          <div className="flex items-center gap-2.5">
+            {/* Save Offer Toggle Action */}
             <button
               type="button"
-              onClick={handleShare}
-              className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
+              onClick={handleToggleSave}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full border shadow-sm cursor-pointer transition-all ${
+                isSaved
+                  ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
             >
-              <span>Share</span>
-              <Share2 className="w-3.5 h-3.5" />
+              <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-white" : ""}`} />
+              <span>{isSaved ? "Saved" : "Save Offer"}</span>
             </button>
-            {showShareTooltip && (
-              <span className="absolute bottom-full right-0 mb-2 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-md whitespace-nowrap animate-fade-in">
-                Link Copied!
-              </span>
-            )}
+
+            {/* Share action */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
+              >
+                <span>Share</span>
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
+              {showShareTooltip && (
+                <span className="absolute bottom-full right-0 mb-2 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-md whitespace-nowrap animate-fade-in">
+                  Link Copied!
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -206,6 +314,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                   href={coupon.merchantId?.website || "https://google.com"}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={autoClaim}
                   className="inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-blue hover:underline transition-colors"
                 >
                   <span>Go To {merchantName} Website</span>
@@ -374,6 +483,54 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
           </div>
         </div>
       </main>
+
+      {/* Copy Success Dialog Box per SRD requirements */}
+      <Dialog open={isCopyModalOpen} onOpenChange={setIsCopyModalOpen}>
+        <DialogContent className="max-w-md bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-lg">
+          <DialogHeader className="space-y-2 pb-2">
+            <DialogTitle className="font-heading text-lg font-black text-slate-800 uppercase tracking-wide flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <span>Promo Code Copied!</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs font-medium text-slate-500">
+              Your discount coupon is copied and ready to be used at checkout.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-6 space-y-4">
+            <div className="bg-slate-50 border-2 border-dashed border-brand-blue/30 rounded-xl py-4 px-6 select-all font-mono text-xl font-black tracking-widest text-slate-800 uppercase">
+              {coupon.code}
+            </div>
+            <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+              Now visit <span className="text-slate-800 font-bold">{merchantName}</span>, shop for eligible items, and paste the code at payment checkout!
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              asChild
+              className="bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs h-10 w-full rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <a
+                href={coupon.merchantId?.website || "https://google.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={autoClaim}
+              >
+                <span>Visit {merchantName} Website</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </Button>
+            <button
+              type="button"
+              onClick={() => setIsCopyModalOpen(false)}
+              className="text-xs font-bold text-slate-400 hover:text-slate-600 py-2 cursor-pointer transition-colors"
+            >
+              Close Window
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

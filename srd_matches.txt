@@ -1,0 +1,290 @@
+[
+  {
+    "lineNum": 20,
+    "content": "Version 1.0 (Review and confirm before development begins)"
+  },
+  {
+    "lineNum": 37,
+    "content": "SECTION 1 PROJECT OVERVIEW & OBJECTIVES"
+  },
+  {
+    "lineNum": 38,
+    "content": "1. Project Overview & Objectives"
+  },
+  {
+    "lineNum": 47,
+    "content": "1.1 Platform Architecture Overview"
+  },
+  {
+    "lineNum": 50,
+    "content": "• Customer-Facing Platform — the public website where end users browse, search, save, and redeem"
+  },
+  {
+    "lineNum": 64,
+    "content": "Database MongoDB (Atlas)"
+  },
+  {
+    "lineNum": 65,
+    "content": "Use MongoDB Atlas managed cloud instance."
+  },
+  {
+    "lineNum": 120,
+    "content": "'Save More on Everything You Love' with animated typing text cycling through deal"
+  },
+  {
+    "lineNum": 149,
+    "content": "MUST How It Works — 3-step section: Find → Copy → Save. Special callout box for Expired Offer"
+  },
+  {
+    "lineNum": 155,
+    "content": "MUST Nearby Offers teaser section — location input + map preview panel. See Section 2.6 for full"
+  },
+  {
+    "lineNum": 160,
+    "content": "Business — It's Free' → /merchant/register and 'View Merchant Plans' →"
+  },
+  {
+    "lineNum": 183,
+    "content": "MUST Dashed-border code section: 'CODE:' label + monospace bold code + Copy icon. On copy:"
+  },
+  {
+    "lineNum": 187,
+    "content": "MUST Category tag pill (teal). Heart/save icon (outline = unsaved, filled red = saved). Toggle saved"
+  },
+  {
+    "lineNum": 188,
+    "content": "state on click — requires user login if not authenticated (show login modal)."
+  },
+  {
+    "lineNum": 197,
+    "content": "Right sticky sidebar (40%): Large code box (monospace, orange border) + 'Copy Code'"
+  },
+  {
+    "lineNum": 198,
+    "content": "orange button. On click: code copies AND a modal opens — 'Code Copied! Now visit [Brand]"
+  },
+  {
+    "lineNum": 199,
+    "content": "and paste at checkout.' with 'Visit [Brand] Website' button (opens brand URL new tab). Save +"
+  },
+  {
+    "lineNum": 200,
+    "content": "Share (WhatsApp, copy link) buttons. Similar deals from same category (4 cards minimum)."
+  },
+  {
+    "lineNum": 238,
+    "content": "Map markers: custom orange markers with Vouchiqo branding. Click marker: info popup"
+  },
+  {
+    "lineNum": 239,
+    "content": "showing brand name, offer title, discount, 'View Deal' button, 'Get Directions' link (opens"
+  },
+  {
+    "lineNum": 242,
+    "content": "address, 'Get Directions' link. Click item: map pans and zooms to that pin."
+  },
+  {
+    "lineNum": 248,
+    "content": "MUST Hero with heading 'Have an Expired Offer? Don't Give Up.' and sub-copy explaining the"
+  },
+  {
+    "lineNum": 267,
+    "content": "stories (name + city + brand + amount saved + time ago). Minimum 5 entries. Admin can"
+  },
+  {
+    "lineNum": 269,
+    "content": "SHOULD Live counter: 'X revival requests processed this month' — pulled from database."
+  },
+  {
+    "lineNum": 284,
+    "content": "MUST Top tab navigation: My Saves | Cashback Wallet | My Activity | Nearby Offers | Settings."
+  },
+  {
+    "lineNum": 285,
+    "content": "MUST My Saves: grid of saved offers with copy code + remove from saves options. Empty state with"
+  },
+  {
+    "lineNum": 296,
+    "content": "MUST My Activity: chronological feed of user actions (verified offers used, deals saved, revival"
+  },
+  {
+    "lineNum": 354,
+    "content": "Navigation links with Lucide icons: (1) Dashboard Overview, (2) My Listings (expandable:"
+  },
+  {
+    "lineNum": 364,
+    "content": "3.3 Dashboard Overview Page"
+  },
+  {
+    "lineNum": 366,
+    "content": "4 KPI stat cards in a row (2×2 on mobile): Total Clicks This Month, Coupon Redemptions,"
+  },
+  {
+    "lineNum": 369,
+    "content": "MUST Performance line chart: last 30 days clicks (blue) vs redemptions (orange). Toggle buttons: 7"
+  },
+  {
+    "lineNum": 372,
+    "content": "Top Performing Coupons table: Coupon Code | Discount | Category | Clicks | Redemptions |"
+  },
+  {
+    "lineNum": 392,
+    "content": "Form fields: Offer Title* (max 80 chars, live character counter), Coupon Code* (auto-"
+  },
+  {
+    "lineNum": 405,
+    "content": "Conditions (textarea for expanded view), Internal Note (not shown publicly)."
+  },
+  {
+    "lineNum": 407,
+    "content": "Submit area: 'Save as Draft' (navy outline) + 'Preview' (opens full-screen modal) + 'Submit for"
+  },
+  {
+    "lineNum": 408,
+    "content": "Review' (orange, full width). Tooltip on Submit: 'Our team verifies your offer within 4 hours"
+  },
+  {
+    "lineNum": 426,
+    "content": "Live Preview Panel"
+  },
+  {
+    "lineNum": 428,
+    "content": "Right-side panel (desktop only, 40% width) showing real-time preview of how the listing"
+  },
+  {
+    "lineNum": 430,
+    "content": "offer title, coupon code box (copy-able), discount badge, expiry, category tags, Vouchiqo"
+  },
+  {
+    "lineNum": 433,
+    "content": "MUST Filter bar: Status (All / Active / Paused / Expired / Pending Review / Draft), Type (Coupon /"
+  },
+  {
+    "lineNum": 434,
+    "content": "Deal / Offer), Category. Sort by: Newest / Most Clicked / Highest Redemption / Expiring Soon."
+  },
+  {
+    "lineNum": 436,
+    "content": "Table columns: Title | Code/Type | Discount | Category | Valid Until | Clicks | Redemptions |"
+  },
+  {
+    "lineNum": 472,
+    "content": "MUST Section 1 — KPI Cards: Total Impressions, Total Clicks, Total Redemptions, Redemption"
+  },
+  {
+    "lineNum": 475,
+    "content": "Section 2 — Charts (all using Recharts or Chart.js): (a) Dual line chart: Clicks vs Redemptions"
+  },
+  {
+    "lineNum": 479,
+    "content": "MUST Section 3 — Coupon Performance Table: Title | Code | Clicks | Redemptions | Success Rate |"
+  },
+  {
+    "lineNum": 491,
+    "content": "(Draft/Scheduled/Live with pulsing green dot/Ended), date range, click/redemption/revenue"
+  },
+  {
+    "lineNum": 492,
+    "content": "stats, actions (Edit/Duplicate/View Report/Delete)."
+  },
+  {
+    "lineNum": 502,
+    "content": "inline. Step 3: Promotion Settings (Homepage slot toggle, Push notification toggle with copy"
+  },
+  {
+    "lineNum": 503,
+    "content": "fields, Newsletter toggle, Target audience, Social share toggle). Step 4: Review summary,"
+  },
+  {
+    "lineNum": 524,
+    "content": "Click 'Upgrade to Growth/Pro' opens a 3-step modal: Step 1: Confirm plan with"
+  },
+  {
+    "lineNum": 568,
+    "content": "MUST Business Profile: logo upload (circular preview, drag-drop), business name, category, website,"
+  },
+  {
+    "lineNum": 586,
+    "content": "Reveal + Copy buttons), 'Regenerate Key' button with confirmation modal, API docs link,"
+  },
+  {
+    "lineNum": 603,
+    "content": "Progress/Resolved coloured badge). Click row to expand thread view showing full message"
+  },
+  {
+    "lineNum": 619,
+    "content": "Platform-wide KPI overview: Total registered merchants, Total paid merchants (by plan), Total"
+  },
+  {
+    "lineNum": 651,
+    "content": "Admin clicks 'Verify' per coupon: shows coupon details + a 'Test Code' link (opens merchant's"
+  },
+  {
+    "lineNum": 652,
+    "content": "website URL). Admin confirms code works, then clicks 'Approve & Publish' (adds Verified"
+  },
+  {
+    "lineNum": 667,
+    "content": "MUST Subscription overview: all active, expired, and cancelled subscriptions. Filter by plan. Total"
+  },
+  {
+    "lineNum": 690,
+    "content": "MUST User list with search. Columns: Name | Email | City | Joined | Coupons Saved | Revival"
+  },
+  {
+    "lineNum": 691,
+    "content": "Requests. Admin can view profile, suspend account, or delete account with data wipe."
+  },
+  {
+    "lineNum": 744,
+    "content": "MUST Open Graph and Twitter Card meta tags on all public pages for social sharing previews."
+  },
+  {
+    "lineNum": 761,
+    "content": "MUST Database queries optimised with proper MongoDB indexes on: merchant_id, category, status,"
+  },
+  {
+    "lineNum": 789,
+    "content": "become card-list view. All multi-column forms become single column."
+  },
+  {
+    "lineNum": 794,
+    "content": "Merchant registration submitted Admin New merchant [Name] submitted application. [Review"
+  },
+  {
+    "lineNum": 800,
+    "content": "Offer submitted for review Merchant Your offer [Code] is under review. Expected live within"
+  },
+  {
+    "lineNum": 802,
+    "content": "Offer approved and live Merchant Your offer [Code] is now live on Vouchiqo. [View listing"
+  },
+  {
+    "lineNum": 813,
+    "content": "[Review request]"
+  },
+  {
+    "lineNum": 890,
+    "content": "8.1 Payment Schedule (Counter-Proposal)"
+  },
+  {
+    "lineNum": 945,
+    "content": "☐ MongoDB Atlas database live with production data"
+  },
+  {
+    "lineNum": 977,
+    "content": "forgot password, OTP) High MVP Required for saves,"
+  },
+  {
+    "lineNum": 979,
+    "content": "Customer profile with saved deals and activity"
+  },
+  {
+    "lineNum": 983,
+    "content": "Individual offer page with copy-code modal High MVP Conversion critical"
+  },
+  {
+    "lineNum": 999,
+    "content": "preview) High MVP Merchants cannot"
+  }
+]

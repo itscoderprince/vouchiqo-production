@@ -11,7 +11,12 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: ({ email, password, name, role }) =>
-      signUp.email({ email, password, name, role }),
+      signUp.email({
+        email,
+        password,
+        name,
+        data: { role },
+      }),
 
     onSuccess: async ({ data, error }, variables) => {
       if (error) {
