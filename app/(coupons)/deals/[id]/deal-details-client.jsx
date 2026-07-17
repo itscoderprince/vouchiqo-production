@@ -399,19 +399,62 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                 </div>
               )}
 
-              {/* REDIRECT Link */}
-              <div className="pt-2">
-                <a
-                  href={coupon.merchantId?.website || "https://google.com"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={autoClaim}
-                  className="inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-blue hover:underline transition-colors"
-                >
-                  <span>Go To {merchantName} Website</span>
-                  <ExternalLink className="w-4 h-4 text-brand-blue" />
-                </a>
-              </div>
+              {/* Redirect link OR In-Store Details */}
+              {coupon.merchantId?.website ? (
+                <div className="pt-2">
+                  <a
+                    href={coupon.merchantId.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={autoClaim}
+                    className="inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-blue hover:underline transition-colors"
+                  >
+                    <span>Go To {merchantName} Website</span>
+                    <ExternalLink className="w-4 h-4 text-brand-blue" />
+                  </a>
+                </div>
+              ) : (
+                <div className="pt-4 border-t border-slate-100/80">
+                  <div className="max-w-md mx-auto bg-slate-50 border border-slate-200/60 rounded-xl p-4 text-left space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                      <span className="text-lg">📍</span>
+                      <span>Physical Store Counter Location</span>
+                    </div>
+                    {coupon.merchantId?.location ? (
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-slate-800">
+                          {coupon.merchantId.businessName}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                          {[
+                            coupon.merchantId.location.address,
+                            coupon.merchantId.location.city,
+                            coupon.merchantId.location.state,
+                            coupon.merchantId.location.pincode
+                          ].filter(Boolean).join(", ")}
+                        </p>
+                        <div className="pt-2">
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              `${coupon.merchantId.businessName} ${coupon.merchantId.location.address || ""} ${coupon.merchantId.location.city || ""} ${coupon.merchantId.location.pincode || ""}`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-black text-brand-blue hover:underline"
+                          >
+                            <span>Open in Google Maps</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-400 font-semibold italic">
+                        No physical location or website details available for this store partner.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Status Tags */}
               <ul className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs font-semibold text-slate-500 border-t border-slate-100">
@@ -627,20 +670,58 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
           </div>
 
           <div className="flex flex-col gap-2 pt-2">
-            <Button
-              asChild
-              className="bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs h-10 w-full rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
-            >
-              <a
-                href={coupon.merchantId?.website || "https://google.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={autoClaim}
+            {coupon.merchantId?.website ? (
+              <Button
+                asChild
+                className="bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs h-10 w-full rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
               >
-                <span>Visit {merchantName} Website</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </Button>
+                <a
+                  href={coupon.merchantId.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={autoClaim}
+                >
+                  <span>Visit {merchantName} Website</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </Button>
+            ) : (
+              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 text-left space-y-1.5">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                  📍 Counter Claim Address:
+                </span>
+                <p className="text-xs font-bold text-slate-800">
+                  {merchantName}
+                </p>
+                {coupon.merchantId?.location ? (
+                  <>
+                    <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                      {[
+                        coupon.merchantId.location.address,
+                        coupon.merchantId.location.city,
+                        coupon.merchantId.location.state,
+                        coupon.merchantId.location.pincode
+                      ].filter(Boolean).join(", ")}
+                    </p>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${merchantName} ${coupon.merchantId.location.address || ""} ${coupon.merchantId.location.city || ""} ${coupon.merchantId.location.pincode || ""}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-black text-brand-blue hover:underline pt-1"
+                    >
+                      <span>Get Directions on Google Maps</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </>
+                ) : (
+                  <p className="text-[11px] text-slate-400 font-semibold italic">
+                    In-Store Counter Verification Only.
+                  </p>
+                )}
+              </div>
+            )}
             <button
               type="button"
               onClick={() => setIsCopyModalOpen(false)}
