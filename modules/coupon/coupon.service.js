@@ -119,8 +119,15 @@ export async function getCouponById(couponId) {
         businessName: titleName,
         slug: slug,
         logo: "",
-        website: `https://www.${slug.toLowerCase()}.com`,
+        website: slug.toLowerCase() === "oneplus" ? "" : `https://www.${slug.toLowerCase()}.com`,
         isVerified: true,
+        location: {
+          address: "Shop 12, Ground Floor, DLF Mall of India",
+          city: "Noida",
+          state: "Uttar Pradesh",
+          pincode: "201301",
+          country: "IN",
+        }
       };
 
       const tomorrow = new Date();
@@ -211,7 +218,7 @@ export async function getCouponById(couponId) {
     _id: couponId,
     status: COUPON_STATUS.ACTIVE,
   })
-    .populate("merchantId", "businessName slug logo")
+    .populate("merchantId", "businessName slug logo website location")
     .lean();
 
   if (!coupon) throw new NotFoundError("Coupon");
