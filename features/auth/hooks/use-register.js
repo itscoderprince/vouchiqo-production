@@ -15,7 +15,7 @@ export function useRegister() {
         email,
         password,
         name,
-        data: { role },
+        role,
       }),
 
     onSuccess: async ({ data, error }, variables) => {
