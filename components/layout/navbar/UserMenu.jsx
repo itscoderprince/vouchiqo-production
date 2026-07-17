@@ -96,13 +96,13 @@ export const UserMenu = () => {
             label: "Merchant Dashboard",
             href: "/merchant/dashboard",
           },
-          { icon: Ticket, label: "Manage Coupons", href: "/merchant/coupons" },
+          { icon: Ticket, label: "Manage Offers", href: "/merchant/coupons" },
           { icon: User, label: "My Profile", href: "/merchant/profile" },
         ];
       default:
         return [
           { icon: User, label: "My Profile", href: "/profile" },
-          { icon: Ticket, label: "My Coupons", href: "/customer/claimed" },
+          { icon: Ticket, label: "My Offers", href: "/customer/claimed" },
         ];
     }
   };

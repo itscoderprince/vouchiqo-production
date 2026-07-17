@@ -94,9 +94,9 @@ export function FaqSection() {
   const col2 = HOME_FAQS.slice(5, 10);
 
   return (
-    <section className="w-full text-center animate-fade-in-up stagger-1 px-4 md:px-0">
+    <section className="w-full text-center animate-fade-in-up stagger-1 px-0 md:px-0">
       <h2
-        className="font-bold tracking-tight mb-4 md:mb-8"
+        className="font-bold tracking-tight mb-4 md:mb-8 px-4 md:px-0"
         style={{ fontSize: "clamp(18px,2.5vw,26px)", color: "#191F2E" }}
       >
         Frequently Asked Questions

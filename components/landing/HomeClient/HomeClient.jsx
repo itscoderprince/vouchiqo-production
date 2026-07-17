@@ -334,10 +334,12 @@ export function HomeClient({
 
         {/* 20. Latest Articles carousel */}
         <LatestArticles />
-
-        {/* 23. FAQ Section */}
-        <FaqSection />
       </main>
+
+      {/* 23. FAQ Section — full width on mobile */}
+      <div className="w-full max-w-7xl mx-auto px-0 md:px-8 py-6 mb-4">
+        <FaqSection />
+      </div>
 
       {/* Subscribe Now — full width, flush to footer */}
       <NewsletterSubscription />

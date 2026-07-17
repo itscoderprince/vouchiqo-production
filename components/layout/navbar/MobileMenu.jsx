@@ -7,6 +7,7 @@ import {
   MapPin,
   Menu,
   Store,
+  Ticket,
   User,
   X,
 } from "lucide-react";
@@ -121,7 +122,35 @@ export const MobileMenu = () => {
           {/* User Sign In / Profile Section */}
           <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             {session ? (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
+                {/* Profile menu links for mobile */}
+                <div className="flex flex-col gap-1 pb-2 border-b border-slate-200/60 text-left">
+                  <Link
+                    href={
+                      session.user.role === "merchant"
+                        ? "/merchant/profile"
+                        : "/profile"
+                    }
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] rounded-lg transition-all"
+                  >
+                    <User className="h-4.5 w-4.5 text-slate-400 shrink-0" />
+                    <span>My Profile</span>
+                  </Link>
+                  <Link
+                    href={
+                      session.user.role === "merchant"
+                        ? "/merchant/coupons"
+                        : "/customer/claimed"
+                    }
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] rounded-lg transition-all"
+                  >
+                    <Ticket className="h-4.5 w-4.5 text-slate-400 shrink-0" />
+                    <span>My Offers</span>
+                  </Link>
+                </div>
+
                 <div className="flex items-center gap-3 px-2">
                   {session.user.image ? (
                     // biome-ignore lint/performance/noImgElement: user avatar img

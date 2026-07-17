@@ -1,32 +1,36 @@
-export const NewsletterSubscription = () => (
-  <section className="bg-white border-t border-brand-border py-3 px-6 flex flex-col md:flex-row items-center justify-between w-full text-left">
-    <div className="flex items-center gap-4 mb-4 md:mb-0">
-      <div className="w-12 h-12 rounded-full bg-brand-surface flex items-center justify-center border border-brand-border font-black text-brand-blue text-xl">
-        V
+import { Mail } from "lucide-react";
+
+export const NewsletterSubscription = () => {
+  return (
+    <section className="bg-slate-50 border-y border-slate-200/80 py-4 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between w-full text-left gap-4 select-none">
+      <div className="flex items-center gap-3.5">
+        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100/50 text-blue-600 shrink-0 shadow-sm">
+          <Mail className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-slate-800 text-sm leading-tight">
+            Subscribe to Best Offers
+          </h3>
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+            Get the latest &amp; verified offer alerts directly in your inbox.
+          </p>
+        </div>
       </div>
-      <div>
-        <h3 className="font-bold text-brand-text">Subscribe Now</h3>
-        <p className="text-xs text-brand-subtext">
-          Get The Latest &amp; Best Coupon/Offer Alerts
-        </p>
-      </div>
-    </div>
-    <div className="flex w-full md:w-auto max-w-md">
-      <div className="relative flex-grow">
+      <div className="flex w-full md:w-auto max-w-sm gap-2 shrink-0">
         <input
           type="email"
-          placeholder="Enter Email"
-          className="w-full pl-4 pr-3 py-2.5 border border-brand-border rounded-l-md focus:outline-none focus:border-brand-blue text-xs bg-brand-surface text-brand-text font-medium"
+          placeholder="Enter your email address"
+          className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs text-slate-700 font-medium placeholder:text-slate-400/80 shadow-xs"
         />
+        <button
+          type="button"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer border-0 shadow-sm hover:shadow"
+        >
+          Subscribe
+        </button>
       </div>
-      <button
-        type="button"
-        className="bg-brand-blue hover:bg-brand-blue/90 text-white px-6 py-2.5 rounded-r-md text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border-0"
-      >
-        SUBSCRIBE NOW
-      </button>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default NewsletterSubscription;
