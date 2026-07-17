@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import {
   CheckCircle2,
   ChevronDown,
@@ -11,6 +10,7 @@ import {
   MapPin,
   Phone,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 
 /**
  * Brand sidebar: about store, FAQ accordion, contact details, share widget.

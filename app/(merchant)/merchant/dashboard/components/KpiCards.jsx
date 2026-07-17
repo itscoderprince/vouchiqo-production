@@ -1,26 +1,39 @@
 "use client";
 
 import {
-  TrendingUp,
-  TrendingDown,
-  IndianRupee,
-  Users,
-  ShoppingCart,
   Eye,
+  IndianRupee,
+  ShoppingCart,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { ResponsiveContainer, AreaChart, Area } from "recharts";
+import { Area, AreaChart, ResponsiveContainer } from "recharts";
 
 // Premium Recharts-based Sparkline component
-function RechartsSparkline({ data = [], dataKey = "value", color = "#2563eb" }) {
+function RechartsSparkline({
+  data = [],
+  dataKey = "value",
+  color = "#2563eb",
+}) {
   if (data.length === 0) return null;
   const chartData = data.map((val, idx) => ({ id: idx, value: val }));
 
   return (
     <div className="w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+        <AreaChart
+          data={chartData}
+          margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
+        >
           <defs>
-            <linearGradient id={`sparkGrad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient
+              id={`sparkGrad-${dataKey}`}
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
               <stop offset="0%" stopColor={color} stopOpacity={0.25} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
@@ -74,8 +87,11 @@ export default function KpiCards({
                   )
                 ) : null}
                 {revenueMoM !== null && (
-                  <span className={`text-xs font-semibold ${revenueMoM >= 0 ? "text-blue-600" : "text-rose-600"}`}>
-                    {revenueMoM >= 0 ? "+" : ""}{revenueMoM}%
+                  <span
+                    className={`text-xs font-semibold ${revenueMoM >= 0 ? "text-blue-600" : "text-rose-600"}`}
+                  >
+                    {revenueMoM >= 0 ? "+" : ""}
+                    {revenueMoM}%
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
@@ -112,7 +128,9 @@ export default function KpiCards({
                 {totalClaims.toLocaleString()}
               </p>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted-foreground">Coupon claims this period</span>
+                <span className="text-xs text-muted-foreground">
+                  Coupon claims this period
+                </span>
               </div>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 bg-[#2563eb]/10">
@@ -152,8 +170,11 @@ export default function KpiCards({
                   )
                 ) : null}
                 {ordersMoM !== null && (
-                  <span className={`text-xs font-semibold ${ordersMoM >= 0 ? "text-blue-600" : "text-rose-600"}`}>
-                    {ordersMoM >= 0 ? "+" : ""}{ordersMoM}%
+                  <span
+                    className={`text-xs font-semibold ${ordersMoM >= 0 ? "text-blue-600" : "text-rose-600"}`}
+                  >
+                    {ordersMoM >= 0 ? "+" : ""}
+                    {ordersMoM}%
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
@@ -190,7 +211,9 @@ export default function KpiCards({
                 {pageViews > 0 ? `${(pageViews / 1000).toFixed(1)}K` : "—"}
               </p>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted-foreground">Coupon page visits</span>
+                <span className="text-xs text-muted-foreground">
+                  Coupon page visits
+                </span>
               </div>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 bg-[#eab308]/10">

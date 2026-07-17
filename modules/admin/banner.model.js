@@ -72,10 +72,11 @@ const promoBannerSchema = new Schema(
   {
     timestamps: true,
     collection: "promo_banners",
-  }
+  },
 );
 
 const PromoBanner =
-  mongoose.models.PromoBanner ?? mongoose.model("PromoBanner", promoBannerSchema);
+  mongoose.models.PromoBanner ??
+  mongoose.model("PromoBanner", promoBannerSchema);
 
 export default PromoBanner;

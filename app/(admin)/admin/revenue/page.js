@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  AlertCircle,
+  Check,
+  IndianRupee,
+  Receipt,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -13,16 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  IndianRupee,
-  Users,
-  TrendingUp,
-  Receipt,
-  Check,
-  RefreshCw,
-  AlertCircle,
-  TrendingDown,
-} from "lucide-react";
 
 import {
   adminFetchRevenueData,

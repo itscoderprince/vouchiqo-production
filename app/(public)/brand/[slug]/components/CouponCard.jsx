@@ -143,12 +143,7 @@ export default function CouponCard({
               </div>
             ) : (
               <button
-                onClick={() =>
-                  window.open(
-                    merchant.website || "https://google.com",
-                    "_blank",
-                  )
-                }
+                onClick={() => handleCopyCode("", coupon._id)}
                 type="button"
                 className="bg-gray-900 hover:bg-black active:bg-gray-800 text-white text-[12px] font-semibold px-4 py-1.5 rounded-lg border-0 cursor-pointer transition-colors flex items-center gap-1.5"
               >

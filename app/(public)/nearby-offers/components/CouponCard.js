@@ -1,9 +1,8 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { MapPin } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Individual nearby coupon card.

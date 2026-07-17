@@ -15,10 +15,16 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -168,16 +174,26 @@ export default function MerchantSubscription() {
   if (merchant?.plan && merchant.plan !== "starter" && merchant.createdAt) {
     const signupDate = new Date(merchant.createdAt);
     const currentDate = new Date();
-    let tempDate = new Date(signupDate);
+    const tempDate = new Date(signupDate);
     let counter = 2948;
 
     while (tempDate <= currentDate) {
-      const priceVal = merchant.plan === "growth" ? 1499 : merchant.plan === "pro" ? 3999 : 9999;
+      const priceVal =
+        merchant.plan === "growth"
+          ? 1499
+          : merchant.plan === "pro"
+            ? 3999
+            : 9999;
       invoices.push({
         id: `INV-${counter++}`,
         date: tempDate.toISOString().split("T")[0],
         amount: `₹${priceVal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
-        plan: merchant.plan === "growth" ? "Growth Partner" : merchant.plan === "pro" ? "Pro Partner" : "Enterprise Partner",
+        plan:
+          merchant.plan === "growth"
+            ? "Growth Partner"
+            : merchant.plan === "pro"
+              ? "Pro Partner"
+              : "Enterprise Partner",
         status: "Paid",
       });
       tempDate.setMonth(tempDate.getMonth() + 1);
@@ -230,7 +246,10 @@ export default function MerchantSubscription() {
   return (
     <DashboardLayout
       title="Billing & Plans"
-      user={{ name: merchant?.businessName || "Merchant Partner", role: "merchant" }}
+      user={{
+        name: merchant?.businessName || "Merchant Partner",
+        role: "merchant",
+      }}
     >
       <div className="space-y-6 text-left font-sans">
         {/* Active plan card banner */}
@@ -242,7 +261,9 @@ export default function MerchantSubscription() {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-heading text-base font-bold text-brand-navy capitalize">
-                  {plans.find((p) => p.id === currentPlanId)?.name || currentPlanId} Plan
+                  {plans.find((p) => p.id === currentPlanId)?.name ||
+                    currentPlanId}{" "}
+                  Plan
                 </h3>
                 <Badge className="bg-brand-success/15 text-brand-success rounded-full border-0 font-bold text-[10px] py-0.5 px-2 hover:bg-brand-success/15 shadow-none uppercase">
                   Active
@@ -276,14 +297,20 @@ export default function MerchantSubscription() {
 
             {/* Monthly/Yearly toggle switch */}
             <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 p-2 rounded-lg">
-              <span className={`text-xs font-bold ${billingCycle === "monthly" ? "text-brand-navy" : "text-slate-400"}`}>
+              <span
+                className={`text-xs font-bold ${billingCycle === "monthly" ? "text-brand-navy" : "text-slate-400"}`}
+              >
                 Monthly
               </span>
               <Switch
                 checked={billingCycle === "yearly"}
-                onCheckedChange={(checked) => setBillingCycle(checked ? "yearly" : "monthly")}
+                onCheckedChange={(checked) =>
+                  setBillingCycle(checked ? "yearly" : "monthly")
+                }
               />
-              <span className={`text-xs font-bold flex items-center gap-1.5 ${billingCycle === "yearly" ? "text-brand-navy" : "text-slate-400"}`}>
+              <span
+                className={`text-xs font-bold flex items-center gap-1.5 ${billingCycle === "yearly" ? "text-brand-navy" : "text-slate-400"}`}
+              >
                 <span>Yearly</span>
                 <span className="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded font-bold">
                   Save 15%
@@ -374,42 +401,68 @@ export default function MerchantSubscription() {
             <Table className="w-full text-xs">
               <TableHeader className="bg-slate-50 border-b border-brand-border hover:bg-transparent">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="p-4 text-brand-navy font-bold">Feature Name</TableHead>
-                  <TableHead className="p-4 text-brand-navy font-bold">Starter Free</TableHead>
-                  <TableHead className="p-4 text-brand-navy font-bold">Growth Partner</TableHead>
-                  <TableHead className="p-4 text-brand-navy font-bold">Pro Partner</TableHead>
+                  <TableHead className="p-4 text-brand-navy font-bold">
+                    Feature Name
+                  </TableHead>
+                  <TableHead className="p-4 text-brand-navy font-bold">
+                    Starter Free
+                  </TableHead>
+                  <TableHead className="p-4 text-brand-navy font-bold">
+                    Growth Partner
+                  </TableHead>
+                  <TableHead className="p-4 text-brand-navy font-bold">
+                    Pro Partner
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-brand-border font-semibold text-brand-text">
                 <TableRow className="hover:bg-brand-surface/20">
                   <TableCell className="p-4">Active Coupon Codes</TableCell>
                   <TableCell className="p-4 text-slate-500">Max 3</TableCell>
-                  <TableCell className="p-4 text-emerald-600 font-bold">Unlimited</TableCell>
-                  <TableCell className="p-4 text-emerald-600 font-bold">Unlimited</TableCell>
+                  <TableCell className="p-4 text-emerald-600 font-bold">
+                    Unlimited
+                  </TableCell>
+                  <TableCell className="p-4 text-emerald-600 font-bold">
+                    Unlimited
+                  </TableCell>
                 </TableRow>
                 <TableRow className="hover:bg-brand-surface/20">
                   <TableCell className="p-4">Store Analytics</TableCell>
-                  <TableCell className="p-4 text-slate-500">Basic View/Claim</TableCell>
+                  <TableCell className="p-4 text-slate-500">
+                    Basic View/Claim
+                  </TableCell>
                   <TableCell className="p-4">Advanced CSV</TableCell>
-                  <TableCell className="p-4 text-brand-blue font-bold">Full Demographics</TableCell>
+                  <TableCell className="p-4 text-brand-blue font-bold">
+                    Full Demographics
+                  </TableCell>
                 </TableRow>
                 <TableRow className="hover:bg-brand-surface/20">
-                  <TableCell className="p-4">Campaign Management Wizard</TableCell>
+                  <TableCell className="p-4">
+                    Campaign Management Wizard
+                  </TableCell>
                   <TableCell className="p-4 text-slate-400">Locked</TableCell>
                   <TableCell className="p-4">Included</TableCell>
                   <TableCell className="p-4">Included</TableCell>
                 </TableRow>
                 <TableRow className="hover:bg-brand-surface/20">
-                  <TableCell className="p-4">Expired Coupon Revival SLA</TableCell>
+                  <TableCell className="p-4">
+                    Expired Coupon Revival SLA
+                  </TableCell>
                   <TableCell className="p-4 text-slate-400">Locked</TableCell>
                   <TableCell className="p-4">25 credits/mo</TableCell>
-                  <TableCell className="p-4 font-bold text-brand-blue">50 credits/mo</TableCell>
+                  <TableCell className="p-4 font-bold text-brand-blue">
+                    50 credits/mo
+                  </TableCell>
                 </TableRow>
                 <TableRow className="hover:bg-brand-surface/20">
-                  <TableCell className="p-4">API Verification Endpoint</TableCell>
+                  <TableCell className="p-4">
+                    API Verification Endpoint
+                  </TableCell>
                   <TableCell className="p-4 text-slate-400">Locked</TableCell>
                   <TableCell className="p-4 text-slate-400">Locked</TableCell>
-                  <TableCell className="p-4 text-emerald-600 font-bold">Enabled</TableCell>
+                  <TableCell className="p-4 text-emerald-600 font-bold">
+                    Enabled
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -509,12 +562,17 @@ export default function MerchantSubscription() {
       </div>
 
       {/* Razorpay checkout simulator using Shadcn Dialog */}
-      <Dialog open={isCheckoutOpen} onOpenChange={(open) => !open && setIsCheckoutOpen(false)}>
+      <Dialog
+        open={isCheckoutOpen}
+        onOpenChange={(open) => !open && setIsCheckoutOpen(false)}
+      >
         <DialogContent className="max-w-md bg-brand-bg border border-brand-border rounded-xl p-6 text-left">
           <DialogHeader className="border-b border-brand-border pb-4">
             <DialogTitle className="font-heading text-sm font-black text-brand-navy uppercase tracking-wider flex justify-between items-center w-full">
               <span>Checkout Order</span>
-              <span className="text-[10px] text-brand-subtext font-normal lowercase font-mono">sandbox</span>
+              <span className="text-[10px] text-brand-subtext font-normal lowercase font-mono">
+                sandbox
+              </span>
             </DialogTitle>
             <DialogDescription className="text-xs text-brand-subtext">
               Review transaction and complete payment safely.
@@ -564,94 +622,92 @@ export default function MerchantSubscription() {
           {/* Step 2: Payment Gateway Card Entry */}
           {checkoutStep === 2 && (
             <div className="space-y-4 font-semibold text-brand-text">
-              {upgradeMutation.isPending ? (
-                <div className="py-8 text-center space-y-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-brand-blue mx-auto" />
-                  <span className="text-xs font-bold text-brand-navy">
-                    Processing Sandbox Transaction...
-                  </span>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-brand-text uppercase">
-                      Card Number
-                    </Label>
-                    <Input
-                      type="text"
-                      placeholder="4111 2222 3333 4444"
-                      value={cardDetails.number}
-                      onChange={(e) =>
-                        setCardDetails({
-                          ...cardDetails,
-                          number: e.target.value,
-                        })
-                      }
-                      className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none font-mono"
-                    />
+              {upgradeMutation.isPending
+                ? <div className="py-8 text-center space-y-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-blue mx-auto" />
+                    <span className="text-xs font-bold text-brand-navy">
+                      Processing Sandbox Transaction...
+                    </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                : <div className="space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-brand-text uppercase">
-                        Expiry Date
+                        Card Number
                       </Label>
                       <Input
                         type="text"
-                        placeholder="MM/YY"
-                        value={cardDetails.expiry}
+                        placeholder="4111 2222 3333 4444"
+                        value={cardDetails.number}
                         onChange={(e) =>
                           setCardDetails({
                             ...cardDetails,
-                            expiry: e.target.value,
+                            number: e.target.value,
                           })
                         }
-                        className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none"
+                        className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none font-mono"
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-brand-text uppercase">
+                          Expiry Date
+                        </Label>
+                        <Input
+                          type="text"
+                          placeholder="MM/YY"
+                          value={cardDetails.expiry}
+                          onChange={(e) =>
+                            setCardDetails({
+                              ...cardDetails,
+                              expiry: e.target.value,
+                            })
+                          }
+                          className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-brand-text uppercase">
+                          CVV
+                        </Label>
+                        <Input
+                          type="password"
+                          placeholder="•••"
+                          value={cardDetails.cvv}
+                          onChange={(e) =>
+                            setCardDetails({
+                              ...cardDetails,
+                              cvv: e.target.value,
+                            })
+                          }
+                          className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-brand-text uppercase">
-                        CVV
+                        Cardholder Name
                       </Label>
                       <Input
-                        type="password"
-                        placeholder="•••"
-                        value={cardDetails.cvv}
+                        type="text"
+                        placeholder="e.g. Aigars S."
+                        value={cardDetails.name}
                         onChange={(e) =>
                           setCardDetails({
                             ...cardDetails,
-                            cvv: e.target.value,
+                            name: e.target.value,
                           })
                         }
                         className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-brand-text uppercase">
-                      Cardholder Name
-                    </Label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. Aigars S."
-                      value={cardDetails.name}
-                      onChange={(e) =>
-                        setCardDetails({
-                          ...cardDetails,
-                          name: e.target.value,
-                        })
-                      }
-                      className="bg-brand-surface border border-brand-border text-xs h-10 shadow-none"
-                    />
-                  </div>
 
-                  <Button
-                    onClick={executePayment}
-                    className="btn-primary w-full text-xs py-2.5 border-0 h-10 cursor-pointer shadow-none font-bold"
-                  >
-                    Pay ₹{totalPrice.toLocaleString()}
-                  </Button>
-                </div>
-              )}
+                    <Button
+                      onClick={executePayment}
+                      className="btn-primary w-full text-xs py-2.5 border-0 h-10 cursor-pointer shadow-none font-bold"
+                    >
+                      Pay ₹{totalPrice.toLocaleString()}
+                    </Button>
+                  </div>}
             </div>
           )}
 

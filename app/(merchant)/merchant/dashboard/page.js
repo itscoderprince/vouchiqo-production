@@ -3,13 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Plus, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import OnboardingCard from "./components/OnboardingCard";
 import KpiCards from "./components/KpiCards";
+import OnboardingCard from "./components/OnboardingCard";
 import PerformanceChart from "./components/PerformanceChart";
-import TrafficAndGoals from "./components/TrafficAndGoals";
 import RecentOrdersAndActivity from "./components/RecentOrdersAndActivity";
+import TrafficAndGoals from "./components/TrafficAndGoals";
 
 export default function MerchantDashboard() {
   const [activeMetricTab, setActiveMetricTab] = useState("revenue");
@@ -17,7 +17,9 @@ export default function MerchantDashboard() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setOnboardingDismissed(localStorage.getItem("onboarding_dismissed") === "true");
+      setOnboardingDismissed(
+        localStorage.getItem("onboarding_dismissed") === "true",
+      );
     }
   }, []);
 
@@ -61,9 +63,18 @@ export default function MerchantDashboard() {
   const overviewStats = analyticsData?.overview ?? {};
 
   // Sum real counts from database — show 0 if no data yet (no fake fallbacks)
-  const pageViews = Object.values(overviewStats).reduce((sum, s) => sum + (s.views || 0), 0);
-  const totalClaims = Object.values(overviewStats).reduce((sum, s) => sum + (s.claims || 0), 0);
-  const totalRedemptions = Object.values(overviewStats).reduce((sum, s) => sum + (s.redemptions || 0), 0);
+  const pageViews = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.views || 0),
+    0,
+  );
+  const totalClaims = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.claims || 0),
+    0,
+  );
+  const totalRedemptions = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.redemptions || 0),
+    0,
+  );
 
   // Total revenue is direct sum of database redemptions' savings
   const totalRevenue = trendData.reduce((sum, t) => sum + t.revenue, 0);

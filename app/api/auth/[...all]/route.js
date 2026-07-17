@@ -1,7 +1,7 @@
 import { toNextJsHandler } from "better-auth/next-js";
+import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
-import mongoose from "mongoose";
 import { ROLES } from "@/utils/constants";
 
 /**
@@ -31,6 +31,28 @@ export async function POST(request) {
       const email = body.email;
       const password = body.password;
 
+      if (email) {
+        await connectDB();
+        const db = mongoose.connection.db;
+        const normalizedEmail = email.toLowerCase().trim();
+        const dbUser = await db.collection("user").findOne({ email: normalizedEmail });
+        if (dbUser) {
+          const userIdStr = dbUser.id || dbUser._id.toString();
+          const merchantProfile = await db.collection("merchants").findOne({ authId: userIdStr });
+          if (merchantProfile) {
+            console.log(`[Merchant Sync] Promoting user ${normalizedEmail} to role: merchant`);
+            await db.collection("user").updateOne(
+              { _id: dbUser._id },
+              { $set: { role: ROLES.MERCHANT } }
+            );
+            await db.collection("user_profiles").updateOne(
+              { authId: userIdStr },
+              { $set: { role: ROLES.MERCHANT } }
+            );
+          }
+        }
+      }
+
       const adminUsername = process.env.ADMIN_USERNAME || "admin";
       const adminEmail = `${adminUsername}@vouchiqo.com`;
       const adminPassword = process.env.ADMIN_PASSWORD;
@@ -41,7 +63,9 @@ export async function POST(request) {
         const db = mongoose.connection.db;
 
         // Clean existing admin to ensure password / role are fresh
-        const existingAdmin = await db.collection("user").findOne({ email: adminEmail });
+        const existingAdmin = await db
+          .collection("user")
+          .findOne({ email: adminEmail });
         if (existingAdmin) {
           const adminId = existingAdmin.id || existingAdmin._id.toString();
           await db.collection("user").deleteOne({ _id: existingAdmin._id });
@@ -61,12 +85,13 @@ export async function POST(request) {
         console.log(`[Admin Sync] Created admin user: ${adminEmail}`);
 
         // Elevate role to admin
-        const adminUser = await db.collection("user").findOne({ email: adminEmail });
+        const adminUser = await db
+          .collection("user")
+          .findOne({ email: adminEmail });
         if (adminUser) {
-          await db.collection("user").updateOne(
-            { _id: adminUser._id },
-            { $set: { role: ROLES.ADMIN } }
-          );
+          await db
+            .collection("user")
+            .updateOne({ _id: adminUser._id }, { $set: { role: ROLES.ADMIN } });
           console.log(`[Admin Sync] Admin role elevated to ${ROLES.ADMIN}`);
         }
       }
@@ -77,4 +102,3 @@ export async function POST(request) {
 
   return handler.POST(request);
 }
-

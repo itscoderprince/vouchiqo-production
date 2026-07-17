@@ -1,11 +1,11 @@
 import { connectDB } from "@/lib/mongodb";
 import { requireAuth } from "@/modules/auth/auth.middleware";
+import Merchant from "@/modules/merchant/merchant.model";
 import {
-  getUserRedemptions,
   getMerchantRedemptions,
+  getUserRedemptions,
   redeemCoupon,
 } from "@/modules/redemption/redemption.service";
-import Merchant from "@/modules/merchant/merchant.model";
 import { redeemSchema } from "@/modules/redemption/redemption.validation";
 import { created, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";

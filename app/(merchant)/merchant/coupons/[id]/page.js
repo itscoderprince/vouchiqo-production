@@ -7,13 +7,13 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
-import { COUPON_CATEGORIES } from "@/utils/constants";
-import { useMerchantProfile } from "@/hooks/use-merchant";
 import {
   useCoupon,
   useUpdateCoupon,
   validateExpiryDate,
 } from "@/hooks/use-coupons";
+import { useMerchantProfile } from "@/hooks/use-merchant";
+import { COUPON_CATEGORIES } from "@/utils/constants";
 import CouponForm from "../components/CouponForm";
 
 export default function EditCouponPage() {

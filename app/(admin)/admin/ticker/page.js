@@ -2,17 +2,18 @@
 
 import {
   CheckCircle2,
-  TrendingUp,
-  RefreshCw,
-  Pin,
   Flame,
+  Pin,
+  RefreshCw,
   Tag,
+  TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import EmptyState from "@/components/shared/EmptyState";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -21,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
 
 import {
   adminFetchActiveCoupons,

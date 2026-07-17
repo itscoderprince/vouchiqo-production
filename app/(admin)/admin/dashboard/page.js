@@ -808,8 +808,12 @@ export default function AdminDashboard() {
                     ))}
                     {recentPending.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="p-8 text-center text-slate-400">
-                          No pending coupon or merchant approvals currently in queue.
+                        <TableCell
+                          colSpan={5}
+                          className="p-8 text-center text-slate-400"
+                        >
+                          No pending coupon or merchant approvals currently in
+                          queue.
                         </TableCell>
                       </TableRow>
                     )}

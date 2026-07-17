@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
 import { getCouponById } from "@/modules/coupon/coupon.service";
@@ -58,15 +59,73 @@ export default async function CouponPage({ params }) {
     coupon = await getCouponById(id);
 
     // Fetch up to 3 similar coupons in the same category
-    const rawRelated = await Coupon.find({
-      category: coupon.category,
-      status: "active",
-      expiresAt: { $gt: new Date() },
-      _id: { $ne: coupon._id },
-    })
-      .populate("merchantId", "businessName slug logo")
-      .limit(3)
-      .lean();
+    const isMockId = !mongoose.isValidObjectId(coupon._id);
+    let rawRelated = [];
+    if (coupon.category) {
+      rawRelated = await Coupon.find({
+        category: coupon.category,
+        status: "active",
+        expiresAt: { $gt: new Date() },
+        ...(isMockId ? {} : { _id: { $ne: coupon._id } }),
+      })
+        .populate("merchantId", "businessName slug logo")
+        .limit(3)
+        .lean();
+    }
+
+    // Fallback 1: If no category matches, fetch any active coupons from the DB
+    if (!rawRelated || rawRelated.length === 0) {
+      rawRelated = await Coupon.find({
+        status: "active",
+        expiresAt: { $gt: new Date() },
+        ...(isMockId ? {} : { _id: { $ne: coupon._id } }),
+      })
+        .populate("merchantId", "businessName slug logo")
+        .limit(3)
+        .lean();
+    }
+
+    // Fallback 2: If the DB is completely empty (no active coupons at all), construct mock related coupons
+    if (!rawRelated || rawRelated.length === 0) {
+      rawRelated = [
+        {
+          _id: "mock_cpn_related_1",
+          title: "Flat 10% OFF on Sony Wireless Headsets",
+          discountType: "percentage",
+          discountValue: 10,
+          category: "electronics",
+          merchantId: {
+            businessName: "Sony",
+            slug: "sony",
+            logo: "/brandlogos/10035.jpg",
+          }
+        },
+        {
+          _id: "mock_cpn_related_2",
+          title: "Flat 20% OFF on Adidas Running Shoes",
+          discountType: "percentage",
+          discountValue: 20,
+          category: "fashion",
+          merchantId: {
+            businessName: "Adidas",
+            slug: "adidas",
+            logo: "/brandlogos/10012.jpg",
+          }
+        },
+        {
+          _id: "mock_cpn_related_3",
+          title: "Up to 50% OFF on Samsung Smart TV series",
+          discountType: "percentage",
+          discountValue: 50,
+          category: "electronics",
+          merchantId: {
+            businessName: "Samsung",
+            slug: "samsung",
+            logo: "/brandlogos/10005.jpg",
+          }
+        }
+      ];
+    }
 
     relatedCoupons = JSON.parse(JSON.stringify(rawRelated || []));
   } catch (err) {

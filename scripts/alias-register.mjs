@@ -5,8 +5,8 @@
  * Usage: node --import ./scripts/alias-register.mjs scripts/seed.mjs
  */
 import { register } from "node:module";
-import { pathToFileURL, fileURLToPath } from "node:url";
 import { resolve as resolvePath } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const projectRoot = resolvePath(__filename, "../../");

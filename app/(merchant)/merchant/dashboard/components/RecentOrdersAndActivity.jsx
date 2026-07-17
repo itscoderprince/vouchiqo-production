@@ -1,8 +1,8 @@
 "use client";
 
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -27,7 +27,8 @@ export default function RecentOrdersAndActivity({
 }) {
   const [activeTab, setActiveTab] = useState("redemptions"); // "redemptions" | "claims"
 
-  const displayList = activeTab === "redemptions" ? recentRedemptions : recentClaims;
+  const displayList =
+    activeTab === "redemptions" ? recentRedemptions : recentClaims;
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -36,7 +37,9 @@ export default function RecentOrdersAndActivity({
         <CardHeader className="pb-3 border-b border-[#f1f5f9] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <CardTitle className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-              {activeTab === "redemptions" ? "Recent Orders (Redemptions)" : "Recent Coupon Claims"}
+              {activeTab === "redemptions"
+                ? "Recent Orders (Redemptions)"
+                : "Recent Coupon Claims"}
             </CardTitle>
             <CardDescription className="text-[11px] font-semibold mt-0.5">
               {activeTab === "redemptions"
@@ -148,15 +151,24 @@ export default function RecentOrdersAndActivity({
                           {tx.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className={`p-4 text-right text-slate-900 font-bold ${activeTab === "claims" ? "font-mono uppercase tracking-wider text-indigo-600" : ""}`}>
+                      <TableCell
+                        className={`p-4 text-right text-slate-900 font-bold ${activeTab === "claims" ? "font-mono uppercase tracking-wider text-indigo-600" : ""}`}
+                      >
                         {tx.amount}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center p-8 text-slate-400 font-medium">
-                      No recent {activeTab === "redemptions" ? "coupon redemptions" : "claims"} found.
+                    <TableCell
+                      colSpan={5}
+                      className="text-center p-8 text-slate-400 font-medium"
+                    >
+                      No recent{" "}
+                      {activeTab === "redemptions"
+                        ? "coupon redemptions"
+                        : "claims"}{" "}
+                      found.
                     </TableCell>
                   </TableRow>
                 )}

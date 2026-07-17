@@ -1,19 +1,19 @@
 "use client";
 
 import {
-  ChevronDown,
-  LayoutDashboard,
-  User,
-  Tag,
-  TrendingUp,
-  LogOut,
   Bookmark,
-  Wallet,
+  ChevronDown,
+  Home,
+  LayoutDashboard,
+  LogOut,
   MapPin,
   Settings,
-  Home,
   ShieldCheck,
+  Tag,
+  TrendingUp,
+  User,
   Users,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -234,7 +234,7 @@ export default function UserDropdown({
           My Account
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-brand-border" />
-        
+
         {/* Customer view */}
         {(!user.role || user.role === "customer") && (
           <>

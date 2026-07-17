@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
 import { analyticsQueue } from "@/lib/queue";
 import { redis } from "@/lib/redis";
+import { escapeRegex } from "@/lib/security";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import { ForbiddenError, NotFoundError } from "@/utils/app-error";
@@ -11,7 +13,6 @@ import {
   REDIS_TTL,
 } from "@/utils/constants";
 import { buildMeta, parsePagination, parseSort } from "@/utils/pagination";
-import { escapeRegex } from "@/lib/security";
 
 const SORTABLE_FIELDS = [
   "createdAt",
@@ -45,12 +46,17 @@ export async function createCoupon(authId, data) {
   });
 
   const plan = merchant.plan || "starter";
-  const limits = { starter: 3, growth: 15, pro: Infinity, enterprise: Infinity };
+  const limits = {
+    starter: 3,
+    growth: 15,
+    pro: Infinity,
+    enterprise: Infinity,
+  };
   const allowed = limits[plan] ?? 3;
 
   if (activeCount >= allowed) {
     throw new ForbiddenError(
-      `Your subscription plan '${plan}' allows a maximum of ${allowed} active listings. Please upgrade to create more.`
+      `Your subscription plan '${plan}' allows a maximum of ${allowed} active listings. Please upgrade to create more.`,
     );
   }
 
@@ -78,11 +84,141 @@ export async function createCoupon(authId, data) {
  * @param {string} couponId
  */
 export async function getCouponById(couponId) {
+  // If it's a mock coupon ID, construct it dynamically to prevent CastError and allow mock brand navigation!
+  if (typeof couponId === "string" && !mongoose.isValidObjectId(couponId)) {
+    if (couponId.startsWith("mock_cpn_")) {
+      let slug = "";
+      let isExpired = false;
+      let couponIndex = 1;
+      
+      if (couponId.startsWith("mock_cpn_exp_")) {
+        isExpired = true;
+        const parts = couponId.substring("mock_cpn_exp_".length).split("_");
+        couponIndex = parseInt(parts.pop()) || 1;
+        slug = parts.join("_");
+      } else {
+        const parts = couponId.substring("mock_cpn_".length).split("_");
+        couponIndex = parseInt(parts.pop()) || 1;
+        slug = parts.join("_");
+      }
+      
+      // Construct a mock merchant with a mock ID
+      let hexMerchantId = "";
+      for (let i = 0; i < Math.min(slug.length, 12); i++) {
+        hexMerchantId += slug.charCodeAt(i).toString(16).padStart(2, "0");
+      }
+      hexMerchantId = hexMerchantId.padEnd(24, "0").slice(0, 24);
+      
+      const titleName = slug
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+        
+      const mockMerchant = {
+        _id: hexMerchantId,
+        businessName: titleName,
+        slug: slug,
+        logo: "",
+        website: slug.toLowerCase() === "oneplus" ? "" : `https://www.${slug.toLowerCase()}.com`,
+        isVerified: true,
+        location: {
+          address: "Shop 12, Ground Floor, DLF Mall of India",
+          city: "Noida",
+          state: "Uttar Pradesh",
+          pincode: "201301",
+          country: "IN",
+        }
+      };
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 15);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 2);
+
+      let couponTitle = "";
+      let couponDesc = "";
+      let couponCode = "";
+      let discVal = 15;
+      let discType = "percentage";
+      
+      if (isExpired) {
+        couponTitle = `Expired Offer: Flat 20% OFF Sitewide`;
+        couponDesc = `Grab flat 20% discount on all purchases during the special weekend flash deal.`;
+        couponCode = "FLASH20";
+        discVal = 20;
+        discType = "percentage";
+      } else if (couponIndex === 1) {
+        couponTitle = `Sitewide Discount: Flat 15% OFF on all ${titleName} orders`;
+        couponDesc = `Fly or shop with ${titleName} and get an exclusive 15% discount on base fares or standard pricing. Limit one per customer.`;
+        couponCode = "SAVE15";
+        discVal = 15;
+        discType = "percentage";
+      } else if (couponIndex === 2) {
+        couponTitle = `Special Promo: Flat ₹500 Cashback on bookings above ₹4,999`;
+        couponDesc = `Get a flat ₹500 discount when your transaction value exceeds ₹4,999. Applicable to all verified digital checkouts.`;
+        couponCode = "CASH500";
+        discVal = 500;
+        discType = "fixed";
+      } else {
+        couponTitle = `Exclusive Offer: Enjoy up to 85% OFF on Seasonal Sales`;
+        couponDesc = `Unlock high value discounts on selected items or routes. No promo code needed, discount applied automatically.`;
+        couponCode = "";
+        discVal = 85;
+        discType = "percentage";
+      }
+
+      let category = "other";
+      const lowerSlug = slug.toLowerCase();
+      if (
+        lowerSlug.includes("tech") ||
+        lowerSlug.includes("oneplus") ||
+        lowerSlug.includes("samsung") ||
+        lowerSlug.includes("dell") ||
+        lowerSlug.includes("hp") ||
+        lowerSlug.includes("lenovo") ||
+        lowerSlug.includes("asus") ||
+        lowerSlug.includes("sony")
+      ) {
+        category = "electronics";
+      } else if (
+        lowerSlug.includes("zomato") ||
+        lowerSlug.includes("starbucks") ||
+        lowerSlug.includes("food")
+      ) {
+        category = "food";
+      } else if (
+        lowerSlug.includes("zara") ||
+        lowerSlug.includes("adidas") ||
+        lowerSlug.includes("nike") ||
+        lowerSlug.includes("puma") ||
+        lowerSlug.includes("style") ||
+        lowerSlug.includes("zivame")
+      ) {
+        category = "fashion";
+      }
+
+      return {
+        _id: couponId,
+        merchantId: mockMerchant,
+        category: category,
+        title: couponTitle,
+        description: couponDesc,
+        code: couponCode,
+        discountValue: discVal,
+        discountType: discType,
+        expiresAt: isExpired ? yesterday : tomorrow,
+        status: isExpired ? "expired" : "active",
+      };
+    }
+    
+    throw new NotFoundError("Coupon");
+  }
+
   const coupon = await Coupon.findOne({
     _id: couponId,
     status: COUPON_STATUS.ACTIVE,
   })
-    .populate("merchantId", "businessName slug logo")
+    .populate("merchantId", "businessName slug logo website location")
     .lean();
 
   if (!coupon) throw new NotFoundError("Coupon");

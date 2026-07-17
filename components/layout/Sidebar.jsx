@@ -11,16 +11,16 @@ import {
   LogOut,
   PlusCircle,
   Settings,
+  Sliders,
   Store,
   Tag,
-  Sliders,
   TrendingUp,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth-client";
 
 export default function Sidebar({ role = "customer" }) {
   const pathname = usePathname();

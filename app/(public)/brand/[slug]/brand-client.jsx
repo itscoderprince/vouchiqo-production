@@ -106,10 +106,12 @@ export default function BrandClient({
 
   const handleCopyCode = (code, couponId) => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(code);
+      if (code) {
+        navigator.clipboard.writeText(code);
+      }
       setCopiedCouponId(couponId);
       setTimeout(() => setCopiedCouponId(null), 2000);
-      window.open(merchant.website || "https://google.com", "_blank");
+      window.open(`/deals/${couponId}`, "_blank");
     }
   };
 

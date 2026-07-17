@@ -4,6 +4,7 @@ import { Check, Copy, History, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 import EmptyState from "@/components/shared/EmptyState";
 import {
   Table,
@@ -14,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/hooks/use-user";
-import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 
 export default function ClaimedCoupons() {
   const { user: authUser } = useUser();

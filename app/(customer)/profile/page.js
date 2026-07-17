@@ -8,12 +8,13 @@ import {
   PiggyBank,
   Wallet,
 } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 // Layout & Global Components
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ConfirmationModal from "@/components/shared/ConfirmationModal";
+import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 import ActivityTab from "./components/ActivityTab";
@@ -23,7 +24,6 @@ import SavedDealsTab from "./components/SavedDealsTab";
 import SavingsTab from "./components/SavingsTab";
 import SettingsTab from "./components/SettingsTab";
 import WalletTab from "./components/WalletTab";
-import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
 
 const DONUT_COLORS = [
   "#2563eb",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "@/lib/auth-client";
+import { signOut, useSession } from "@/lib/auth-client";
 
 const ROLE_HOME = {
   admin: "/admin/dashboard",

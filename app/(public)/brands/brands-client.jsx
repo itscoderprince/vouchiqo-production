@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  ChevronRight,
+  Gift,
+  LayoutGrid,
+  MapPin,
+  Search,
+  Store,
+  Tag,
+} from "lucide-react";
 import Link from "next/link";
-import { Tag, Search, Grid, Info, CheckCircle2, ChevronRight, LayoutGrid, Store, Gift, MapPin } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { MOCK_BRANDS_SEED, POPULAR_BRANDS } from "@/lib/mock/mock-data";
-import { SIDEBAR_NAV, POPULAR_MERCHANTS_SIDEBAR, ALPHA_LETTERS } from "@/utils/shared-navigation";
+import {
+  ALPHA_LETTERS,
+  POPULAR_MERCHANTS_SIDEBAR,
+  SIDEBAR_NAV,
+} from "@/utils/shared-navigation";
 
 const SIDEBAR_ICONS = {
   Categories: LayoutGrid,
@@ -16,16 +28,27 @@ const SIDEBAR_ICONS = {
 
 function getSidebarIcon(label, isActive) {
   const IconComponent = SIDEBAR_ICONS[label] || Tag;
-  return <IconComponent style={{ width: 16, height: 16, color: isActive ? "#ffffff" : "#4b5563", flexShrink: 0 }} />;
+  return (
+    <IconComponent
+      style={{
+        width: 14,
+        height: 14,
+        color: isActive ? "#ffffff" : "#64748b",
+        flexShrink: 0,
+      }}
+    />
+  );
 }
 
 export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeLetter, setActiveLetter] = useState("all");
-  const [gridCols, setGridCols] = useState(4);
+  const [layoutType, setLayoutType] = useState("wide"); // 'compact' or 'wide'
   const [mounted, setMounted] = useState(false);
   const [showAllMerchants, setShowAllMerchants] = useState(false);
   const [showMoreAbout, setShowMoreAbout] = useState(false);
+  const [showSearchBox, setShowSearchBox] = useState(false);
+  const [failedLogos, setFailedLogos] = useState({});
 
   useEffect(() => {
     setMounted(true);
@@ -34,6 +57,7 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
       const query = params.get("search");
       if (query) {
         setSearchQuery(query);
+        setShowSearchBox(true);
         setActiveLetter("all");
       }
     }
@@ -54,9 +78,9 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
       return {
         businessName: b.businessName,
         slug: b.slug,
-        logo: brandLogo || `/brandlogos/${10002 + (idx % 42)}.jpg`,
-        coupons: b.totalCoupons || 4,
-        offers: Math.ceil((b.totalCoupons || 4) * 0.7) + 2,
+        logo: brandLogo || "",
+        coupons: b.totalCoupons || 1,
+        offers: Math.ceil((b.totalCoupons || 1) * 0.7) + 2,
       };
     });
 
@@ -64,10 +88,8 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
     const mocks = MOCK_BRANDS_SEED.map((m, idx) => ({
       businessName: m.businessName,
       slug: m.slug,
-      logo:
-        m.logo ||
-        `/brandlogos/${10002 + ((idx + dbFormatted.length) % 42)}.jpg`,
-      coupons: 12 + (idx % 25),
+      logo: m.logo || "",
+      coupons: 1 + (idx % 3),
       offers: 8 + (idx % 15),
     })).filter((m) => !dbSlugs.has(m.slug));
 
@@ -90,150 +112,128 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
     return list;
   }, [allMergedBrands, activeLetter, searchQuery]);
 
-  // Available letters
-  const availableLetters = useMemo(() => {
-    const set = new Set(
-      allMergedBrands.map((b) => b.businessName[0].toUpperCase()),
-    );
-    return set;
-  }, [allMergedBrands]);
-
-  const formattedDate = useMemo(() => {
-    if (!mounted) return "";
-    return new Date().toLocaleDateString("en-US", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      weekday: "short",
-    });
-  }, [mounted]);
-
   const visibleMerchants = showAllMerchants
     ? POPULAR_MERCHANTS_SIDEBAR
-    : POPULAR_MERCHANTS_SIDEBAR.slice(0, 8);
+    : POPULAR_MERCHANTS_SIDEBAR.slice(0, 6);
 
   const totalOffersCount = totalCoupons + 340;
 
   return (
-    <main style={{ background: "#ffffff", minHeight: "80vh", paddingBottom: 60, width: "100%" }}>
-      {/* ── BREADCRUMB (Full Width Container) ── */}
-      <div style={{ borderBottom: "1px solid #f3f4f6", background: "#ffffff" }}>
-        <div style={{ width: "100%", padding: "12px 24px", display: "flex", gap: 8, fontSize: 13, color: "#4b5563" }}>
-          <Link href="/" style={{ color: "#2563eb", textDecoration: "none", fontWeight: 500 }}>
-            Home
-          </Link>
-          <span style={{ color: "#9ca3af" }}>/</span>
-          <span style={{ color: "#111827", fontWeight: 500 }}>Brands</span>
-        </div>
-      </div>
-
-      {/* ── PAGE HEADER (Full Width Hero-Stats Section) ── */}
-      <section
+    <main
+      style={{
+        background: "#ffffff",
+        minHeight: "80vh",
+        paddingBottom: 60,
+        width: "100%",
+      }}
+    >
+      <div
         style={{
+          maxWidth: "1400px",
+          margin: "0 auto",
           background: "#ffffff",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "24px",
-          width: "100%",
+          minHeight: "80vh",
         }}
+        className="brands-page-container w-full"
       >
-        <div
+        {/* ── BREADCRUMB (Clean & Simple) ── */}
+        <div style={{ borderBottom: "1px solid #f1f5f9", background: "#ffffff" }}>
+          <div
+            style={{
+              padding: "12px 24px",
+              display: "flex",
+              gap: 8,
+              fontSize: 12,
+              color: "#64748b",
+            }}
+          >
+            <Link
+              href="/"
+              style={{
+                color: "#4685e8",
+                textDecoration: "none",
+                fontWeight: 600,
+              }}
+            >
+              Home
+            </Link>
+            <span style={{ color: "#cbd5e1" }}>/</span>
+            <span style={{ color: "#334155", fontWeight: 600 }}>Brands</span>
+          </div>
+        </div>
+
+        {/* ── PAGE HEADER (GrabOn Mockup Style) ── */}
+        <section
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 16,
+            background: "#ffffff",
+            padding: "20px 24px 16px 24px",
+            width: "100%",
           }}
         >
-          {/* Header left */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div
               style={{
-                width: 42,
-                height: 42,
-                borderRadius: 4,
-                background: "#eff6ff",
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: "#f8fafc",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "1px solid #dbeafe",
+                border: "1px solid #e2e8f0",
+                flexShrink: 0,
               }}
             >
-              <Tag style={{ width: 20, height: 20, color: "#2563eb" }} />
+              <Tag style={{ width: 22, height: 22, color: "#475569" }} />
             </div>
             <div>
               <h1
                 style={{
-                  fontSize: 24,
+                  fontSize: "19px",
                   fontWeight: 800,
-                  color: "#000000",
+                  color: "#1e293b",
                   margin: 0,
-                  letterSpacing: "-0.5px",
+                  lineHeight: 1.2,
                 }}
               >
                 Brands
               </h1>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>
-                Browse top brands with verified offers
-              </p>
-            </div>
-
-            {/* Quick Stats Blocks */}
-            <div style={{ display: "flex", gap: 24, marginLeft: 24, paddingLeft: 24, borderLeft: "1px solid #e5e7eb" }}>
-              <div>
-                <p style={{ fontSize: 18, fontWeight: 800, color: "#000000", margin: 0 }}>
-                  {totalBrands + 24}
-                </p>
-                <p style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Total Brands
-                </p>
-              </div>
-              <div>
-                <p style={{ fontSize: 18, fontWeight: 800, color: "#000000", margin: 0 }}>
-                  {totalOffersCount.toLocaleString()}+
-                </p>
-                <p style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Total Offers
-                </p>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  fontSize: "12.5px",
+                  color: "#64748b",
+                  marginTop: 3,
+                }}
+              >
+                <span>
+                  Brands : <strong style={{ color: "#1e293b", fontWeight: 700 }}>{totalBrands}</strong>
+                </span>
+                <span>
+                  Coupons & Offers :{" "}
+                  <strong style={{ color: "#1e293b", fontWeight: 700 }}>
+                    {totalOffersCount.toLocaleString()}
+                  </strong>
+                </span>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Header right: Verification */}
-          {formattedDate && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", padding: "6px 12px", borderRadius: 4, border: "1px solid #e2e8f0" }}>
-              <CheckCircle2 style={{ width: 14, height: 14, color: "#2563eb" }} />
-              <span style={{ fontSize: 12, color: "#1e293b", fontWeight: 600 }}>
-                Verified On: {formattedDate}
-              </span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── TWO-COLUMN CONTENT GRID (Full Width Layout) ── */}
-      <div
-        style={{
-          width: "100%",
-          padding: "24px",
-          display: "grid",
-          gridTemplateColumns: "240px 1fr",
-          gap: 24,
-          alignItems: "start",
-        }}
-        className="brand-grid-layout"
-      >
-        {/* ── SIDEBAR (Left Column) ── */}
-        <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Navigation Links */}
+        {/* ── TABS BAR (GrabOn Mockup Style) ── */}
+        <div style={{ padding: "0 24px 16px 24px", width: "100%", background: "#ffffff" }}>
           <div
             style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              overflowX: "auto",
+              paddingBottom: 8,
+              borderBottom: "1px solid #f1f5f9",
+              scrollbarWidth: "none",
             }}
+            className="horizontal-tabs-scrollbar"
           >
             {SIDEBAR_NAV.map((nav) => {
               const isActive = nav.label === "Brands";
@@ -244,17 +244,19 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 10,
-                    padding: "10px 14px",
+                    gap: 6,
+                    padding: "8px 18px",
+                    borderRadius: "9999px",
+                    background: isActive ? "#4685e8" : "transparent",
+                    color: isActive ? "#ffffff" : "#475569",
+                    fontSize: "13px",
+                    fontWeight: 700,
                     textDecoration: "none",
-                    background: isActive ? "#2563eb" : "transparent",
-                    color: isActive ? "#ffffff" : "#1f2937",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #f3f4f6",
-                    transition: "all 0.2s",
+                    whiteSpace: "nowrap",
+                    transition: "all 0.15s ease",
+                    border: isActive ? "none" : "1px solid #e2e8f0",
                   }}
-                  className={isActive ? "" : "sidebar-item-hover"}
+                  className={isActive ? "" : "inactive-tab-btn"}
                 >
                   {getSidebarIcon(nav.label, isActive)}
                   <span>{nav.label}</span>
@@ -262,36 +264,32 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
               );
             })}
           </div>
+        </div>
 
-          {/* About Section */}
-          <div
-            style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              padding: "16px",
-            }}
-          >
+        {/* ── ABOUT BRANDS SECTION (GrabOn Mockup Style) ── */}
+        <section
+          style={{
+            padding: "20px 24px 20px 24px",
+            width: "100%",
+            background: "#ffffff",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <h2
               style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#000000",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                margin: "0 0 10px 0",
-                paddingBottom: 6,
-                borderBottom: "2px solid #2563eb",
-                display: "inline-block",
+                fontSize: "16px",
+                fontWeight: 800,
+                color: "#1e293b",
+                margin: 0,
               }}
             >
               About Brands
             </h2>
+            <div style={{ height: "1px", background: "#f1f5f9", width: "100%" }} />
             <p
               style={{
-                fontSize: 12,
-                color: "#4b5563",
+                fontSize: "13px",
+                color: "#475569",
                 lineHeight: 1.6,
                 margin: 0,
                 overflow: "hidden",
@@ -300,69 +298,76 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
                 WebkitBoxOrient: "vertical",
               }}
             >
-              Brand loyalty doesn&apos;t have to mean paying full price. At Vouchiqo, we bring you the best discounts on the top names in fashion, electronics, and everything in between. Discover verified promo codes and active offers.
+              Brand loyalty doesn&apos;t have to mean paying full price. At
+              Vouchiqo, we bring you the best discounts on the top names in
+              fashion, electronics, and everything in between. Whether you&apos;re
+              eyeing the latest gadget or a stylish new pair of kicks, we&apos;ve
+              got promo codes from brands like Samsung, Nike, and more to help you
+              get the best bang for your buck.
             </p>
             <button
               onClick={() => setShowMoreAbout((v) => !v)}
               style={{
                 background: "none",
                 border: "none",
-                color: "#2563eb",
-                fontSize: 11,
+                color: "#4685e8",
+                fontSize: "13px",
                 fontWeight: 700,
                 cursor: "pointer",
-                padding: "6px 0 0",
-                display: "block",
+                padding: 0,
+                alignSelf: "flex-start",
               }}
             >
-              {showMoreAbout ? "Show Less" : "Read More"}
+              {showMoreAbout ? "Less" : "More"}
             </button>
           </div>
+        </section>
 
-          {/* Popular Stores / Merchants */}
-          <div
-            style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              padding: "16px",
-            }}
-          >
-            <h3
+        {/* ── POPULAR MERCHANTS SECTION (GrabOn Mockup Style) ── */}
+        <section
+          style={{
+            padding: "0 24px 24px 24px",
+            width: "100%",
+            background: "#ffffff",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <h2
               style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#000000",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                margin: "0 0 10px 0",
-                paddingBottom: 6,
-                borderBottom: "2px solid #2563eb",
-                display: "inline-block",
+                fontSize: "16px",
+                fontWeight: 800,
+                color: "#1e293b",
+                margin: 0,
               }}
             >
-              Popular Brands
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              Popular Merchants
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {visibleMerchants.map((m) => (
                 <Link
                   key={m.label}
                   href={m.href}
                   style={{
-                    fontSize: 12,
-                    color: "#4b5563",
+                    fontSize: "13px",
+                    color: "#4685e8",
                     textDecoration: "none",
-                    fontWeight: 500,
-                    transition: "color 0.15s",
+                    fontWeight: 700,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    gap: 6,
+                    alignSelf: "flex-start",
                   }}
-                  className="sidebar-link-item"
+                  className="popular-merchant-link"
                 >
-                  <span>{m.label}</span>
-                  <ChevronRight style={{ width: 12, height: 12, color: "#9ca3af" }} />
+                  <span>{m.label} Coupons</span>
+                  <svg
+                    style={{ width: 13, height: 13, fill: "none", stroke: "#4685e8", strokeWidth: 2 }}
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
                 </Link>
               ))}
             </div>
@@ -371,82 +376,377 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
               style={{
                 background: "none",
                 border: "none",
-                color: "#2563eb",
-                fontSize: 11,
+                color: "#4685e8",
+                fontSize: "12px",
                 fontWeight: 700,
                 cursor: "pointer",
-                padding: "8px 0 0",
+                padding: 0,
+                alignSelf: "flex-start",
                 marginTop: 4,
-                display: "block",
               }}
             >
               {showAllMerchants ? "See less" : "See more"}
             </button>
           </div>
-        </aside>
+        </section>
 
-        {/* ── MAIN CONTENT AREA (Right Column) ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          
-          {/* ── POPULAR BRANDS SECTION ── */}
-          <section
+        {/* ── POPULAR BRANDS SECTION (GrabOn Mockup Style) ── */}
+        <section
+          style={{
+            padding: "0 24px 24px 24px",
+            width: "100%",
+            background: "#ffffff",
+          }}
+        >
+          <h2
             style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              padding: "16px 20px 20px",
+              fontSize: "16px",
+              fontWeight: 800,
+              color: "#1e293b",
+              marginBottom: 16,
+            }}
+          >
+            Popular Brands
+          </h2>
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              overflowX: "auto",
+              paddingBottom: 8,
+              scrollbarWidth: "none",
+            }}
+            className="horizontal-tabs-scrollbar"
+          >
+            {POPULAR_BRANDS.map((brand) => {
+              const totalOffers = brand.coupons + brand.offers;
+              return (
+                <Link
+                  key={brand.businessName}
+                  href={`/brand/${brand.slug}`}
+                  style={{ textDecoration: "none", flexShrink: 0 }}
+                >
+                  <div
+                    style={{
+                      width: 190,
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 16,
+                      background: "#ffffff",
+                      overflow: "hidden",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.02)",
+                      display: "flex",
+                      flexDirection: "column",
+                      transition: "all 0.2s ease",
+                    }}
+                    className="brand-card-hover"
+                  >
+                    <div
+                      style={{
+                        height: 90,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "#ffffff",
+                        padding: 12,
+                      }}
+                    >
+                      {brand.logo && !failedLogos[brand.slug] ? (
+                        <img
+                          src={brand.logo}
+                          alt={brand.businessName}
+                          style={{
+                            maxHeight: "100%",
+                            maxWidth: "100%",
+                            objectFit: "contain",
+                          }}
+                          onError={() => {
+                            setFailedLogos((prev) => ({ ...prev, [brand.slug]: true }));
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 font-extrabold flex items-center justify-center text-base border border-blue-100 uppercase">
+                          {brand.businessName?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        padding: "12px 14px",
+                        borderTop: "1px solid #e2e8f0",
+                        textAlign: "left",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          color: "#1e293b",
+                          margin: 0,
+                        }}
+                      >
+                        {brand.businessName}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: "#64748b",
+                          fontWeight: 600,
+                          margin: "4px 0 0",
+                        }}
+                      >
+                        {brand.coupons} Coupons • {brand.offers} Offers
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── ALL BRANDS SECTION (GrabOn Mockup Style) ── */}
+        <section
+          style={{
+            padding: "0 24px 40px 24px",
+            width: "100%",
+            background: "#ffffff",
+          }}
+        >
+          {/* Section Header with grid switcher */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
             }}
           >
             <h2
               style={{
-                fontSize: 16,
+                fontSize: "16px",
                 fontWeight: 800,
-                color: "#000000",
-                marginBottom: 16,
-                letterSpacing: "-0.2px",
+                color: "#1e293b",
+                margin: 0,
               }}
             >
-              Popular Brands
+              All Brands
             </h2>
+
+            {/* Layout switchers: || and ||| */}
+            <div style={{ display: "flex", gap: 6 }}>
+              <button
+                onClick={() => setLayoutType("compact")}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: "1px solid #cbd5e1",
+                  background: layoutType === "compact" ? "#4685e8" : "#ffffff",
+                  color: layoutType === "compact" ? "#ffffff" : "#475569",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.15s ease",
+                }}
+                className={layoutType === "compact" ? "" : "layout-btn-hover"}
+                title="Compact View (||)"
+              >
+                <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: -1 }}>||</span>
+              </button>
+              <button
+                onClick={() => setLayoutType("wide")}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: "1px solid #cbd5e1",
+                  background: layoutType === "wide" ? "#4685e8" : "#ffffff",
+                  color: layoutType === "wide" ? "#ffffff" : "#475569",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.15s ease",
+                }}
+                className={layoutType === "wide" ? "" : "layout-btn-hover"}
+                title="Wide View (|||)"
+              >
+                <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: -1 }}>|||</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Alphabet filters & Search button */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 16,
+              borderBottom: "1px solid #f1f5f9",
+              paddingBottom: 12,
+            }}
+          >
+            {/* Search Toggle Icon */}
+            <button
+              onClick={() => setShowSearchBox((v) => !v)}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                border: "1px solid #e2e8f0",
+                background: showSearchBox ? "#eff6ff" : "#ffffff",
+                color: showSearchBox ? "#4685e8" : "#64748b",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Search style={{ width: 14, height: 14 }} />
+            </button>
+
+            {/* "All" button */}
+            <button
+              onClick={() => {
+                setActiveLetter("all");
+                setSearchQuery("");
+              }}
+              style={{
+                padding: "0 14px",
+                height: 32,
+                borderRadius: "9999px",
+                border: "none",
+                background: activeLetter === "all" && !searchQuery ? "#4685e8" : "#f1f5f9",
+                color: activeLetter === "all" && !searchQuery ? "#ffffff" : "#475569",
+                fontSize: "12px",
+                fontWeight: 700,
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              All
+            </button>
+
+            {/* Alphabet letter strip */}
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                overflowX: "auto",
+                height: 32,
+                alignItems: "center",
+                scrollbarWidth: "none",
+              }}
+              className="horizontal-tabs-scrollbar"
+            >
+              {ALPHA_LETTERS.map((letter) => (
+                <button
+                  key={letter}
+                  onClick={() => {
+                    setActiveLetter(activeLetter === letter ? "all" : letter);
+                    setSearchQuery("");
+                  }}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    border: "none",
+                    background: activeLetter === letter ? "#4685e8" : "transparent",
+                    color: activeLetter === letter ? "#ffffff" : "#64748b",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Search box overlay */}
+          {showSearchBox && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                border: "1px solid #e2e8f0",
+                borderRadius: 8,
+                padding: "8px 12px",
+                background: "#f8fafc",
+                marginBottom: 16,
+              }}
+            >
+              <Search style={{ width: 14, height: 14, color: "#94a3b8" }} />
+              <input
+                placeholder="Search brands by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: "12.5px",
+                  color: "#1e293b",
+                  outline: "none",
+                  width: "100%",
+                }}
+              />
+            </div>
+          )}
+
+          {/* All Brands Grid: centered logo inside card, centered name below card */}
+          {filteredBrandsList.length > 0 ? (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                gap: 12,
+                gridTemplateColumns:
+                  layoutType === "compact"
+                    ? "repeat(3, 1fr)"
+                    : "repeat(4, 1fr)",
+                gap: "16px 12px",
               }}
+              className="all-brands-responsive-grid"
             >
-              {POPULAR_BRANDS.map((brand) => {
-                const totalOffers = brand.coupons + brand.offers;
+              {filteredBrandsList.map((brand) => {
                 return (
                   <Link
-                    key={brand.businessName}
+                    key={brand.slug}
                     href={`/brand/${brand.slug}`}
-                    style={{ textDecoration: "none" }}
+                    style={{
+                      textDecoration: "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
                   >
                     <div
                       style={{
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 6,
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 12,
                         background: "#ffffff",
-                        padding: "12px",
+                        width: "100%",
+                        height: 75,
                         display: "flex",
-                        flexDirection: "column",
-                        gap: 8,
-                        transition: "all 0.2s ease-in-out",
-                        boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 8,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.01)",
+                        transition: "all 0.2s ease",
                       }}
                       className="brand-card-hover"
                     >
-                      <div
-                        style={{
-                          height: 75,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: "#ffffff",
-                        }}
-                      >
+                      {brand.logo && !failedLogos[brand.slug] ? (
                         <img
                           src={brand.logo}
                           alt={brand.businessName}
@@ -455,291 +755,114 @@ export default function BrandsClient({ brands, totalBrands, totalCoupons }) {
                             maxWidth: "85%",
                             objectFit: "contain",
                           }}
-                          onError={(e) => {
-                            e.target.src =
-                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='1'/%3E%3C/svg%3E";
+                          onError={() => {
+                            setFailedLogos((prev) => ({ ...prev, [brand.slug]: true }));
                           }}
                         />
-                      </div>
-                      <div style={{ height: 1, background: "#f3f4f6" }} />
-                      <div style={{ textAlign: "center" }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: "#000000", margin: "0 0 2px 0" }}>
-                          {brand.businessName}
-                        </p>
-                        <p style={{ fontSize: 11, color: "#2563eb", fontWeight: 600, margin: 0 }}>
-                          {totalOffers} Active Offers
-                        </p>
-                      </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 font-extrabold flex items-center justify-center text-sm border border-blue-100 uppercase">
+                          {brand.businessName?.[0]}
+                        </div>
+                      )}
                     </div>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "#1e293b",
+                        textAlign: "center",
+                      }}
+                    >
+                      {brand.businessName}
+                    </span>
                   </Link>
                 );
               })}
             </div>
-          </section>
-
-          {/* ── ALL BRANDS SECTION ── */}
-          <section
-            style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              padding: "16px 20px 20px",
-            }}
-          >
-            {/* Header section with toggle and title */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: "#000000", margin: 0, letterSpacing: "-0.2px" }}>
-                All Brands
-              </h2>
-              
-              {/* Compact Grid Column Selector */}
-              <div style={{ display: "flex", gap: 4 }}>
-                {[3, 4, 5].map((cols) => (
-                  <button
-                    key={cols}
-                    onClick={() => setGridCols(cols)}
-                    title={`${cols} Columns`}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 4,
-                      border: "1px solid #e5e7eb",
-                      background: gridCols === cols ? "#2563eb" : "#ffffff",
-                      color: gridCols === cols ? "#ffffff" : "#4b5563",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transition: "all 0.15s",
-                    }}
-                    className={gridCols === cols ? "" : "grid-btn-hover"}
-                  >
-                    <LayoutGrid style={{ width: 14, height: 14 }} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Alphabetical filter row & Search field */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 12,
-                marginBottom: 16,
-                paddingBottom: 14,
-                borderBottom: "1px solid #f3f4f6",
-              }}
-            >
-              {/* Alpha list */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 3, flex: 1, minWidth: 0 }}>
-                <button
-                  onClick={() => setActiveLetter("all")}
-                  style={{
-                    padding: "3px 8px",
-                    borderRadius: 4,
-                    border: "1px solid",
-                    borderColor: activeLetter === "all" ? "#2563eb" : "#e5e7eb",
-                    background: activeLetter === "all" ? "#2563eb" : "transparent",
-                    color: activeLetter === "all" ? "#ffffff" : "#4b5563",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  All
-                </button>
-                {ALPHA_LETTERS.map((letter) => (
-                  <button
-                    key={letter}
-                    onClick={() => setActiveLetter(activeLetter === letter ? "all" : letter)}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 4,
-                      border: "1px solid",
-                      borderColor: activeLetter === letter ? "#2563eb" : "#e5e7eb",
-                      background: activeLetter === letter ? "#2563eb" : "transparent",
-                      color: activeLetter === letter ? "#ffffff" : "#1f2937",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    {letter}
-                  </button>
-                ))}
-              </div>
-
-              {/* Compact Search box */}
-              <div
+          ) : (
+            <div style={{ textAlign: "center", padding: "48px 0", color: "#9ca3af" }}>
+              <p style={{ fontSize: 13 }}>No brands found for &quot;{searchQuery}&quot;</p>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setActiveLetter("all");
+                }}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 4,
-                  padding: "5px 10px",
-                  background: "#ffffff",
-                  minWidth: 200,
+                  marginTop: 12,
+                  padding: "6px 16px",
+                  borderRadius: 9999,
+                  border: "none",
+                  background: "#4685e8",
+                  color: "#ffffff",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontWeight: 700,
                 }}
               >
-                <Search style={{ width: 14, height: 14, color: "#9ca3af" }} />
-                <input
-                  placeholder="Search by brands name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    fontSize: 12,
-                    color: "#000000",
-                    outline: "none",
-                    width: "100%",
-                  }}
-                />
-              </div>
+                Clear Filters
+              </button>
             </div>
-
-            {/* List grid */}
-            {filteredBrandsList.length > 0 ? (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
-                  gap: "12px",
-                }}
-                className="all-brands-responsive-grid"
-              >
-                {filteredBrandsList.map((brand) => {
-                  const totalOffers = brand.coupons + brand.offers;
-                  return (
-                    <Link
-                      key={brand.slug}
-                      href={`/brand/${brand.slug}`}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <div
-                        style={{
-                          border: "1px solid #e5e7eb",
-                          borderRadius: 6,
-                          background: "#ffffff",
-                          padding: "10px",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 6,
-                          transition: "all 0.2s ease-in-out",
-                          boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                        }}
-                        className="brand-card-hover"
-                      >
-                        <div
-                          style={{
-                            height: 60,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "#ffffff",
-                          }}
-                        >
-                          <img
-                            src={brand.logo}
-                            alt={brand.businessName}
-                            style={{
-                              maxHeight: "85%",
-                              maxWidth: "85%",
-                              objectFit: "contain",
-                            }}
-                            onError={(e) => {
-                              e.target.src =
-                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='1'/%3E%3C/svg%3E";
-                            }}
-                          />
-                        </div>
-                        <div style={{ height: 1, background: "#f3f4f6" }} />
-                        <div style={{ textAlign: "center" }}>
-                          <p style={{ fontSize: 12, fontWeight: 700, color: "#000000", margin: "0 0 1px 0" }}>
-                            {brand.businessName}
-                          </p>
-                          <p style={{ fontSize: 10, color: "#2563eb", fontWeight: 600, margin: 0 }}>
-                            {totalOffers} Offers
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "48px 0", color: "#9ca3af" }}>
-                <p style={{ fontSize: 13 }}>
-                  No brands found for &quot;{searchQuery}&quot;
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setActiveLetter("all");
-                  }}
-                  style={{
-                    marginTop: 12,
-                    padding: "6px 12px",
-                    borderRadius: 4,
-                    border: "none",
-                    background: "#2563eb",
-                    color: "#ffffff",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    fontWeight: 700,
-                  }}
-                >
-                  Clear Filter
-                </button>
-              </div>
-            )}
-          </section>
-        </div>
+          )}
+        </section>
       </div>
 
       <style>{`
-        .sidebar-item-hover:hover {
-          background: #f8fafc !important;
-          color: #2563eb !important;
+        .horizontal-tabs-scrollbar::-webkit-scrollbar {
+          display: none !important;
         }
-        .sidebar-link-item:hover {
-          color: #2563eb !important;
+        .inactive-tab-btn:hover {
+          background: #f1f5f9 !important;
+          color: #1e293b !important;
+        }
+        .popular-merchant-link:hover {
+          text-decoration: underline !important;
         }
         .brand-card-hover:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-          border-color: #2563eb !important;
-          transform: translateY(-1px);
+          box-shadow: 0 4px 16px rgba(70,133,232,0.08) !important;
+          border-color: #4685e8 !important;
+          transform: translateY(-2px);
         }
-        .grid-btn-hover:hover {
-          background: #f8fafc !important;
-          color: #2563eb !important;
-          border-color: #2563eb !important;
+        .layout-btn-hover:hover {
+          background: #f1f5f9 !important;
+          color: #1e293b !important;
+          border-color: #94a3b8 !important;
         }
-        @media (max-width: 900px) {
-          .brand-grid-layout {
-            grid-template-columns: 1fr !important;
+        .all-brands-responsive-grid {
+          grid-template-columns: ${
+            layoutType === "compact"
+              ? "repeat(5, 1fr)"
+              : "repeat(6, 1fr)"
+          };
+        }
+        @media (max-width: 1024px) {
+          .all-brands-responsive-grid {
+            grid-template-columns: ${
+              layoutType === "compact"
+                ? "repeat(4, 1fr) !important"
+                : "repeat(5, 1fr) !important"
+            };
+          }
+        }
+        @media (max-width: 768px) {
+          .all-brands-responsive-grid {
+            grid-template-columns: ${
+              layoutType === "compact"
+                ? "repeat(3, 1fr) !important"
+                : "repeat(4, 1fr) !important"
+            };
           }
         }
         @media (max-width: 640px) {
           .all-brands-responsive-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-columns: ${
+              layoutType === "compact"
+                ? "repeat(2, 1fr) !important"
+                : "repeat(3, 1fr) !important"
+            };
+          }
+          .brands-page-container {
+            box-shadow: none !important;
+            padding: 0 12px !important;
           }
         }
       `}</style>

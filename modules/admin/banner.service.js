@@ -25,16 +25,10 @@ export async function getPromoBanners() {
     status: "active",
     $and: [
       {
-        $or: [
-          { startDate: null },
-          { startDate: { $lte: now } },
-        ],
+        $or: [{ startDate: null }, { startDate: { $lte: now } }],
       },
       {
-        $or: [
-          { endDate: null },
-          { endDate: { $gte: now } },
-        ],
+        $or: [{ endDate: null }, { endDate: { $gte: now } }],
       },
     ],
   })
@@ -46,7 +40,7 @@ export async function getPromoBanners() {
     await redis.setex(
       REDIS_KEYS.BANNERS,
       REDIS_TTL.BANNERS,
-      JSON.stringify(banners)
+      JSON.stringify(banners),
     );
   } catch (err) {
     console.error("Redis error writing promo banners:", err);
@@ -95,7 +89,7 @@ export async function updateBanner(id, data) {
   const banner = await PromoBanner.findByIdAndUpdate(
     id,
     { $set: data },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
   await invalidateBannersCache();
   return banner;

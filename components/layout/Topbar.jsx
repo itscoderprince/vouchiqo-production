@@ -1,9 +1,9 @@
 "use client";
 
-import { Bell, ChevronDown, Search, User, LogOut } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Search, User } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";

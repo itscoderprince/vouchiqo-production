@@ -1,8 +1,8 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/layout/navbar";
 
 /**
  * Shared auth page shell — split-panel design with blue/white theme,

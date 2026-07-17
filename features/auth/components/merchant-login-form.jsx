@@ -1,11 +1,11 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -13,8 +13,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import { signIn, signOut } from "@/lib/auth-client";
 import { useUser } from "@/hooks/use-user";
+import { signIn, signOut } from "@/lib/auth-client";
 import { AuthCard } from "./auth-card";
 
 export function MerchantLoginForm() {
