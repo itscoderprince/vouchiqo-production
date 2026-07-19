@@ -10,12 +10,15 @@ export function useRegister() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ email, password, name, role }) =>
+    mutationFn: ({ email, password, name, role, phoneNumber }) =>
       signUp.email({
         email,
         password,
         name,
-        role,
+        data: {
+          role,
+          phoneNumber,
+        },
       }),
 
     onSuccess: async ({ data, error }, variables) => {
