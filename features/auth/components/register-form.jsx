@@ -62,7 +62,7 @@ export function RegisterForm() {
   };
 
   return (
-    <AuthCard title="Create your free account">
+    <AuthCard title="Create your free account" maxWidth="max-w-5xl">
       <form onSubmit={handleSubmit} className="space-y-3.5">
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
