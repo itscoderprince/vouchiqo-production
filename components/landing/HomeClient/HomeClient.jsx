@@ -322,11 +322,14 @@ export function HomeClient({
 
         {/* 9. Popular Stores (with Store of the Month) */}
         <PopularStores merchants={popularMerchants} />
+      </main>
 
-        {/* 9.5. How It Works (Verification) and Expired Coupon Revival Promo Callout */}
-        <HowItWorks />
-        <RevivalPromo />
+      {/* Full-bleed Edge-to-Edge Sections */}
+      <HowItWorks />
+      <RevivalPromo />
 
+      {/* Main Container */}
+      <main className="w-full px-1 md:px-8 py-2 space-y-12">
         {/* 10. Today's Top Coupons & Offers */}
         <TodayTopCoupons
           couponTab={couponTab}
