@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import {
   Dialog,
@@ -12,44 +12,28 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
-  User,
-  Heart,
-  Sparkles,
-  Home,
-  Wrench,
-  Shirt,
-  Utensils,
-  Laptop,
-  Plane,
-  GraduationCap,
-  Baby,
-  Gem,
-  Car,
-  Gamepad2,
-  ShoppingCart,
-  Briefcase,
+  Users,
   Check,
-  CheckCircle2,
-  Users
+  CheckCircle2
 } from "lucide-react";
 
-// The 15 categories from Merchant Categories_Phase 1.txt mapped to their standard database keys
+// The 15 categories from Merchant Categories_Phase 1.txt mapped to their emojis and standard database keys
 const CATEGORIES = [
-  { key: "fashion", label: "Fashion & Clothing", icon: Shirt },
-  { key: "food", label: "Food & Dining", icon: Utensils },
-  { key: "electronics", label: "Electronics & Gadgets", icon: Laptop },
-  { key: "beauty", label: "Beauty & Wellness", icon: Sparkles },
-  { key: "travel", label: "Travel & Hospitality", icon: Plane },
-  { key: "home", label: "Home & Living", icon: Home },
-  { key: "home-improvement", label: "Home Improvement", icon: Wrench },
-  { key: "fitness", label: "Fitness & Healthcare", icon: Heart },
-  { key: "education", label: "Education & Courses", icon: GraduationCap },
-  { key: "kids-baby", label: "Kids & Baby Products", icon: Baby },
-  { key: "jewellery", label: "Jewellery & Accessories", icon: Gem },
-  { key: "automotive", label: "Automobile & Auto Services", icon: Car },
-  { key: "entertainment", label: "Gaming & Entertainment", icon: Gamepad2 },
-  { key: "grocery", label: "Grocery & Essentials", icon: ShoppingCart },
-  { key: "finance", label: "Finance & Insurance", icon: Briefcase },
+  { key: "fashion", label: "Fashion & Clothing", emoji: "👗" },
+  { key: "food", label: "Food & Dining", emoji: "🍔" },
+  { key: "electronics", label: "Electronics & Gadgets", emoji: "💻" },
+  { key: "beauty", label: "Beauty & Wellness", emoji: "💅" },
+  { key: "travel", label: "Travel & Hospitality", emoji: "✈️" },
+  { key: "home", label: "Home & Living", emoji: "🏠" },
+  { key: "home-improvement", label: "Home Improvement", emoji: "🔨" },
+  { key: "fitness", label: "Fitness & Healthcare", emoji: "🏋️" },
+  { key: "education", label: "Education & Courses", emoji: "🎓" },
+  { key: "kids-baby", label: "Kids & Baby Products", emoji: "👶" },
+  { key: "jewellery", label: "Jewellery & Accessories", emoji: "💎" },
+  { key: "automotive", label: "Automobile & Auto Services", emoji: "🚗" },
+  { key: "entertainment", label: "Gaming & Entertainment", emoji: "🎮" },
+  { key: "grocery", label: "Grocery & Essentials", emoji: "🛒" },
+  { key: "finance", label: "Finance & Insurance", emoji: "💵" },
 ];
 
 export function OnboardingModal({ isOpen, onClose, onSaveComplete }) {
@@ -67,8 +51,8 @@ export function OnboardingModal({ isOpen, onClose, onSaveComplete }) {
     if (!gender) {
       return toast.error("Please select a gender preference to continue.");
     }
-    if (selectedInterests.length === 0) {
-      return toast.error("Please select at least one interest category.");
+    if (selectedInterests.length < 2) {
+      return toast.error("Please select two or more interests to proceed.");
     }
 
     setIsSaving(true);
@@ -101,30 +85,32 @@ export function OnboardingModal({ isOpen, onClose, onSaveComplete }) {
     }
   };
 
+  const isContinueEnabled = gender && selectedInterests.length >= 2;
+
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl w-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 md:p-8 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
-        <DialogHeader className="space-y-2 text-center pb-4 border-b border-slate-100 dark:border-zinc-900">
-          <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-white flex items-center justify-center gap-2">
+      <DialogContent className="max-w-2xl w-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 md:p-8 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] transition-all scrollbar-thin">
+        <DialogHeader className="space-y-2 text-center pb-6 border-b border-slate-100 dark:border-zinc-900">
+          <DialogTitle className="text-2xl font-black text-slate-800 dark:text-white flex items-center justify-center gap-2">
             Welcome to Vouchiqo! 🎉
           </DialogTitle>
-          <DialogDescription className="text-sm text-slate-500 dark:text-slate-400">
+          <DialogDescription className="text-sm font-semibold text-slate-450 dark:text-slate-400">
             Tell us about your preferences to personalize your experience and show the most relevant deals.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-6">
+        <div className="space-y-8 py-6">
           {/* Section 1: Gender Selection */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-1.5 text-sm font-bold text-slate-700 dark:text-slate-350">
+          <div className="space-y-4">
+            <Label className="flex items-center gap-1.5 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <Users className="w-4 h-4 text-brand-blue" />
-              Who are you shopping for? (Select Gender)
+              1. Who are you shopping for?
             </Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { value: "men", label: "Men" },
-                { value: "women", label: "Women" },
-                { value: "not_preferred", label: "Rather not say" },
+                { value: "men", label: "Men", emoji: "👨" },
+                { value: "women", label: "Women", emoji: "👩" },
+                { value: "not_preferred", label: "Rather not say", emoji: "👤" },
               ].map((item) => {
                 const isSelected = gender === item.value;
                 return (
@@ -132,14 +118,14 @@ export function OnboardingModal({ isOpen, onClose, onSaveComplete }) {
                     key={item.value}
                     type="button"
                     onClick={() => setGender(item.value)}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 cursor-pointer text-sm font-semibold h-24 ${
+                    className={`flex items-center sm:flex-col sm:justify-center p-4 rounded-2xl border transition-all duration-300 cursor-pointer text-sm font-bold h-16 sm:h-28 gap-3 sm:gap-2 select-none active:scale-95 ${
                       isSelected
-                        ? "bg-brand-blue/10 border-brand-blue text-brand-blue shadow-sm"
-                        : "bg-slate-50 dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800 text-slate-650 dark:text-slate-400 hover:border-slate-300 dark:hover:border-zinc-700"
+                        ? "bg-blue-50/50 dark:bg-blue-950/20 border-[#2563eb] text-[#2563eb] shadow-md shadow-blue-500/5 ring-1 ring-[#2563eb]/20"
+                        : "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:border-slate-350 dark:hover:border-zinc-700 hover:bg-slate-50/40"
                     }`}
                   >
-                    <User className={`w-6 h-6 mb-2 ${isSelected ? "text-brand-blue" : "text-slate-400"}`} />
-                    {item.label}
+                    <span className="text-2xl">{item.emoji}</span>
+                    <span className="truncate">{item.label}</span>
                   </button>
                 );
               })}
@@ -147,38 +133,34 @@ export function OnboardingModal({ isOpen, onClose, onSaveComplete }) {
           </div>
 
           {/* Section 2: Interest Categories */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-1.5 text-sm font-bold text-slate-700 dark:text-slate-350">
-              <Heart className="w-4 h-4 text-brand-blue" />
-              What are your interests? (Select Categories)
-            </Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label className="flex items-center gap-1.5 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                💡 2. Let's select your interests
+              </Label>
+              <p className="text-[12px] text-slate-450 dark:text-slate-500 font-semibold pl-5">
+                Please select two or more to proceed.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2.5 justify-center py-2">
               {CATEGORIES.map((cat) => {
                 const isSelected = selectedInterests.includes(cat.key);
-                const IconComponent = cat.icon;
                 return (
                   <button
                     key={cat.key}
                     type="button"
                     onClick={() => toggleInterest(cat.key)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer text-xs font-semibold ${
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full border text-xs font-bold transition-all duration-300 cursor-pointer select-none active:scale-95 ${
                       isSelected
-                        ? "bg-brand-blue/10 border-brand-blue text-brand-blue shadow-sm"
-                        : "bg-slate-50 dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800 text-slate-650 dark:text-slate-400 hover:border-slate-300 dark:hover:border-zinc-700"
+                        ? "bg-blue-50/50 dark:bg-blue-950/20 border-[#2563eb] text-[#2563eb] shadow-md shadow-blue-500/5 ring-1 ring-[#2563eb]/20"
+                        : "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-850 text-slate-650 dark:text-slate-400 hover:border-slate-300 dark:hover:border-zinc-700 hover:bg-slate-50/40"
                     }`}
                   >
-                    <div
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        isSelected
-                          ? "bg-brand-blue text-white"
-                          : "bg-slate-200/60 dark:bg-zinc-800 text-slate-500"
-                      }`}
-                    >
-                      <IconComponent className="w-4 h-4" />
-                    </div>
-                    <span className="flex-1 truncate">{cat.label}</span>
+                    <span className="text-base shrink-0">{cat.emoji}</span>
+                    <span className="truncate">{cat.label}</span>
                     {isSelected && (
-                      <Check className="w-4 h-4 text-brand-blue shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-[#2563eb] shrink-0 ml-0.5" />
                     )}
                   </button>
                 );
@@ -187,14 +169,18 @@ export function OnboardingModal({ isOpen, onClose, onSaveComplete }) {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-100 dark:border-zinc-900 flex justify-end gap-3">
+        <div className="pt-6 border-t border-slate-100 dark:border-zinc-900">
           <Button
             type="button"
             onClick={handleSave}
-            disabled={isSaving}
-            className="w-full sm:w-auto px-8 bg-brand-blue hover:bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 border-0 cursor-pointer shadow-md shadow-brand-blue/20"
+            disabled={!isContinueEnabled || isSaving}
+            className={`w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border-0 cursor-pointer transition-all duration-300 shadow-md ${
+              isContinueEnabled
+                ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-blue-500/25 active:scale-[0.99]"
+                : "bg-slate-100 dark:bg-zinc-900 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none"
+            }`}
           >
-            {isSaving ? "Saving..." : "Start Exploring"}
+            {isSaving ? "Saving..." : "Continue"}
             {!isSaving && <CheckCircle2 className="w-4 h-4" />}
           </Button>
         </div>
