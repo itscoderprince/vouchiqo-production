@@ -125,72 +125,74 @@ export function RegisterForm() {
           </InputGroup>
         </div>
 
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
-            <Lock className="w-3.5 h-3.5 text-brand-blue" />
-            Password
-          </Label>
-          <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
-            <InputGroupAddon>
-              <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-            </InputGroupAddon>
-            <InputGroupInput
-              type={showPassword ? "text" : "password"}
-              placeholder="Min. 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
-              required
-              minLength={8}
-            />
-            <InputGroupAddon align="inline-end" className="pr-0.5">
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </InputGroupAddon>
-          </InputGroup>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-brand-blue" />
+              Password
+            </Label>
+            <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
+              <InputGroupAddon>
+                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              </InputGroupAddon>
+              <InputGroupInput
+                type={showPassword ? "text" : "password"}
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
+                required
+                minLength={8}
+              />
+              <InputGroupAddon align="inline-end" className="pr-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
 
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
-            <Lock className="w-3.5 h-3.5 text-brand-blue" />
-            Confirm Password
-          </Label>
-          <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
-            <InputGroupAddon>
-              <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-            </InputGroupAddon>
-            <InputGroupInput
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
-              required
-              minLength={8}
-            />
-            <InputGroupAddon align="inline-end" className="pr-0.5">
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </InputGroupAddon>
-          </InputGroup>
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-brand-blue" />
+              Confirm Password
+            </Label>
+            <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
+              <InputGroupAddon>
+                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              </InputGroupAddon>
+              <InputGroupInput
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
+                required
+                minLength={8}
+              />
+              <InputGroupAddon align="inline-end" className="pr-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
         </div>
 
         <div className="flex items-start gap-2.5 py-0.5">

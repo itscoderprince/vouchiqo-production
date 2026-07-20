@@ -63,7 +63,7 @@ export function AuthCard({ title, loading = false, children }) {
       {/* Centered main content area with dynamic min-height to push footer just below the viewport fold */}
       <main className="flex-1 flex flex-col justify-start items-center pt-9 pb-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-30px)]">
         {/* Compact split-card container with less border radius (rounded-2xl) */}
-        <div className="w-full max-w-4xl bg-white dark:bg-zinc-950 border border-brand-border dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[460px] md:min-h-[500px]">
+        <div className="w-full max-w-5xl bg-white dark:bg-zinc-950 border border-brand-border dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[460px] md:min-h-[500px]">
           {/* Left Visual Panel: Blue & White theme, clean with NO text overlays */}
           <div
             className="hidden md:flex md:col-span-5 relative overflow-hidden bg-cover bg-center select-none"
