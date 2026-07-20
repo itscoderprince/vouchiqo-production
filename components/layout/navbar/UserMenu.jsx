@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { signOut, useSession } from "@/lib/auth-client";
+import { OnboardingModal } from "@/features/auth/components/onboarding-modal";
 
 export const UserMenu = () => {
   const { data: session, isPending } = useSession();
@@ -20,10 +21,40 @@ export const UserMenu = () => {
   const ref = useRef(null);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted || !session?.user || session.user.role !== "customer") return;
+
+    const storageKey = `vouchiqo_onboarded_${session.user.id}`;
+    if (localStorage.getItem(storageKey) === "true") return;
+
+    // Check database onboarding status
+    const checkOnboarding = async () => {
+      try {
+        const res = await fetch("/api/users");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            const isOnboarded = json.data?.profile?.isOnboarded;
+            if (isOnboarded) {
+              localStorage.setItem(storageKey, "true");
+            } else {
+              setShowOnboarding(true);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check onboarding status:", err);
+      }
+    };
+
+    checkOnboarding();
+  }, [mounted, session]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -181,6 +212,18 @@ export const UserMenu = () => {
             Sign Out
           </button>
         </div>
+      )}
+
+      {showOnboarding && (
+        <OnboardingModal
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          onSaveComplete={() => {
+            if (session?.user?.id) {
+              localStorage.setItem(`vouchiqo_onboarded_${session.user.id}`, "true");
+            }
+          }}
+        />
       )}
     </div>
   );

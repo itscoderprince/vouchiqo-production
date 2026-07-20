@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Phone, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -19,6 +19,7 @@ import { AuthCard } from "./auth-card";
 export function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -52,14 +53,22 @@ export function RegisterForm() {
     if (password !== confirmPassword) {
       return toast.error("Passwords do not match.");
     }
+    const cleanPhone = phoneNumber.replace(/[\s-()]/g, "");
+    if (!/^\+?\d{10,15}$/.test(cleanPhone)) {
+      return toast.error("Please enter a valid mobile number (10–15 digits).");
+    }
     if (!agreed) return toast.error("Please agree to the Terms of Service.");
-    register({ email, password, name, role: "customer" });
+    register({ email, password, name, phoneNumber: cleanPhone, role: "customer" });
   };
 
   return (
-    <AuthCard title="Create your free account">
-      <form onSubmit={handleSubmit} className="space-y-3">
+    <AuthCard title="Create your free account" maxWidth="max-w-5xl">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+            <User className="w-3.5 h-3.5 text-brand-blue" />
+            Full Name
+          </Label>
           <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
             <InputGroupAddon>
               <User className="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -77,6 +86,10 @@ export function RegisterForm() {
         </div>
 
         <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+            <Mail className="w-3.5 h-3.5 text-brand-blue" />
+            Email Address
+          </Label>
           <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
             <InputGroupAddon>
               <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -93,63 +106,93 @@ export function RegisterForm() {
         </div>
 
         <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+            <Phone className="w-3.5 h-3.5 text-brand-blue" />
+            Mobile Number
+          </Label>
           <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
             <InputGroupAddon>
-              <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              <Phone className="w-4 h-4 text-slate-400 dark:text-slate-500" />
             </InputGroupAddon>
             <InputGroupInput
-              type={showPassword ? "text" : "password"}
-              placeholder="Min. 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="tel"
+              placeholder="e.g. 9876543210"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
               required
-              minLength={8}
             />
-            <InputGroupAddon align="inline-end" className="pr-0.5">
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </InputGroupAddon>
           </InputGroup>
         </div>
 
-        <div className="space-y-1.5">
-          <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
-            <InputGroupAddon>
-              <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-            </InputGroupAddon>
-            <InputGroupInput
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
-              required
-              minLength={8}
-            />
-            <InputGroupAddon align="inline-end" className="pr-0.5">
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </InputGroupAddon>
-          </InputGroup>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-brand-blue" />
+              Password
+            </Label>
+            <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
+              <InputGroupAddon>
+                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              </InputGroupAddon>
+              <InputGroupInput
+                type={showPassword ? "text" : "password"}
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
+                required
+                minLength={8}
+              />
+              <InputGroupAddon align="inline-end" className="pr-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-brand-blue" />
+              Confirm Password
+            </Label>
+            <InputGroup className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-250/70 dark:border-zinc-800 rounded-md h-10 px-2 transition-all has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:border-brand-blue/60">
+              <InputGroupAddon>
+                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              </InputGroupAddon>
+              <InputGroupInput
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="text-base md:text-sm placeholder:font-light placeholder:text-slate-400 dark:placeholder:text-slate-600 h-full font-normal"
+                required
+                minLength={8}
+              />
+              <InputGroupAddon align="inline-end" className="pr-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-450 p-1 focus:outline-none cursor-pointer border-0 bg-transparent"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
         </div>
 
         <div className="flex items-start gap-2.5 py-0.5">

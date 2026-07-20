@@ -35,6 +35,18 @@ const userProfileSchema = new Schema(
     // User's shopping interest categories
     interests: [{ type: String }],
 
+    gender: {
+      type: String,
+      enum: ["men", "women", "not_preferred"],
+      default: null,
+    },
+
+    isOnboarded: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     location: {
       city: { type: String, trim: true },
       state: { type: String, trim: true },

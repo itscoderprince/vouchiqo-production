@@ -6,6 +6,7 @@ import {
   Loader2,
   RotateCcw,
   Sparkles,
+  Ticket
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -49,227 +50,177 @@ export function RevivalPromo() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-brand-surface via-white to-brand-surface py-20 px-4 border-t border-b border-brand-border select-none">
-      {/* Decorative background glows */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 bg-brand-success/5 rounded-full blur-3xl z-0" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-brand-blue/5 rounded-full blur-3xl z-0" />
+    <section className="relative overflow-hidden bg-slate-50 dark:bg-zinc-950/40 py-16 px-4 border-t border-b border-slate-100 dark:border-zinc-900 select-none">
+      {/* Subtle decorative background glows */}
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 bg-blue-600/5 rounded-full blur-3xl z-0" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-72 h-72 bg-indigo-600/5 rounded-full blur-3xl z-0" />
 
-      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
-        {/* Left Column: Form & Details (55%) */}
-        <div className="lg:col-span-7 space-y-6 text-left animate-fade-in-up stagger-1">
-          <Badge className="bg-blue-600/15 text-[#2563eb] hover:bg-blue-600/20 border border-[#2563eb]/20 rounded-full px-3.5 py-1 font-extrabold text-xs shadow-none gap-1.5 w-fit">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping" />
-            <span>INDIA'S ONLY EXPIRED COUPON REVIVAL</span>
-          </Badge>
+      <div className="max-w-6xl mx-auto w-full relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+          
+          {/* Left Column: Full Information & Trust */}
+          <div className="lg:col-span-7 space-y-6 text-left">
+            <Badge className="bg-blue-600/10 hover:bg-blue-600/10 text-[#2563eb] dark:text-blue-400 border-0 rounded-full px-3 py-1 font-bold text-[10px] tracking-wider uppercase w-fit shadow-none">
+              INDIA'S ONLY EXPIRED COUPON REVIVAL
+            </Badge>
 
-          <div className="space-y-3">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black font-heading text-brand-text tracking-tight leading-tight">
-              Your Expired Coupon Has Value.
-              <br />
-              <span className="text-brand-gradient">Claim It.</span>
-            </h2>
-            <p className="text-sm md:text-base text-brand-subtext max-w-xl leading-relaxed font-medium">
-              Don&apos;t throw away your expired discount codes. Vouchiqo&apos;s
-              Revival system reconnects you with the merchant and recovers your
-              savings — 48 hours, zero cost to you.
-            </p>
-          </div>
-
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 md:gap-4 py-3 border-t border-b border-brand-border max-w-lg">
-            <div>
-              <span className="block text-lg md:text-xl font-black text-brand-text">
-                5,000+
-              </span>
-              <span className="text-[9px] md:text-xs text-brand-subtext font-bold uppercase tracking-wider">
-                Revivals Processed
-              </span>
+            <div className="space-y-3">
+              <h2 className="text-3xl md:text-4xl lg:text-[44px] font-black text-[#0A2E6E] dark:text-white tracking-tight leading-[1.15]">
+                Expired coupon? <br className="hidden md:inline" />
+                It may still be <span className="text-[#2563eb]">worth something</span>.
+              </h2>
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-450 leading-relaxed font-medium max-w-lg">
+                Submit the coupon you missed. We&apos;ll reconnect with the merchant and try to recover your savings.
+              </p>
             </div>
-            <div>
-              <span className="block text-lg md:text-xl font-black text-[#2563eb]">
-                ₹25L+
-              </span>
-              <span className="text-[9px] md:text-xs text-brand-subtext font-bold uppercase tracking-wider">
-                Recovered Savings
-              </span>
+
+            {/* Trust Strip */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-450 dark:text-slate-500 border-t border-slate-200/60 dark:border-zinc-850 pt-6 max-w-xl">
+              <span>5,000+ revivals processed</span>
+              <span className="text-slate-300 dark:text-zinc-800 font-normal select-none hidden sm:inline">•</span>
+              <span>₹25L+ savings recovered</span>
+              <span className="text-slate-300 dark:text-zinc-800 font-normal select-none hidden sm:inline">•</span>
+              <span>78% approval rate</span>
             </div>
-            <div>
-              <span className="block text-lg md:text-xl font-black text-brand-warning">
-                78%
-              </span>
-              <span className="text-[9px] md:text-xs text-brand-subtext font-bold uppercase tracking-wider">
-                Approval Rate
-              </span>
+
+            <div className="pt-2">
+              <Link
+                href="/expired-coupon-revival"
+                className="text-xs font-bold text-[#2563eb] hover:text-[#1d4ed8] transition-all duration-200 flex items-center gap-1 hover:underline w-fit"
+              >
+                <span>See how Coupon Revival works</span>
+                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-250 hover:translate-x-0.5" />
+              </Link>
             </div>
           </div>
 
-          {/* Inline mini-form */}
-          <div className="max-w-xl bg-white border border-brand-border rounded-md p-6 md:p-8 shadow-xl relative">
-            {success ? (
-              <div className="text-center py-6 space-y-4 animate-fade-in-scale">
-                <div className="w-12 h-12 rounded-full bg-brand-success/20 text-brand-success flex items-center justify-center mx-auto border border-brand-success/30">
-                  <Sparkles className="w-6 h-6 fill-current" />
-                </div>
-                <h3 className="text-xl font-bold text-brand-text">
-                  Submission Successful!
-                </h3>
-                <p className="text-xs text-brand-subtext max-w-sm mx-auto leading-relaxed">
-                  We have registered your request. Our system will contact the
-                  merchant to negotiate a revival. We will reach out to you
-                  within 48 hours.
-                </p>
-                <Button
-                  onClick={() => setSuccess(false)}
-                  variant="ghost"
-                  className="text-xs font-bold text-brand-blue hover:text-brand-blue hover:bg-brand-surface mt-2 cursor-pointer"
-                >
-                  Revive Another Coupon
-                </Button>
+          {/* Right Column: Ticket Form Container */}
+          <div className="lg:col-span-5 w-full">
+            <div className="relative bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-3xl p-6 md:p-8 shadow-lg max-w-md mx-auto lg:mx-0">
+              
+              {/* Ticket Top Section */}
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <Ticket className="w-3.5 h-3.5 text-[#2563eb]" />
+                  COUPON REVIVAL TICKET
+                </span>
+                <span className="text-[10px] font-bold text-[#2563eb] bg-blue-50/60 dark:bg-blue-950/20 px-2 py-0.5 rounded-full border border-blue-100/30">
+                  FREE
+                </span>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-brand-subtext uppercase tracking-wider">
-                      Expired Code
+
+              {/* Perforated Divider with Circular Punch Cuts */}
+              <div className="relative my-5">
+                {/* Left Cutout Punch */}
+                <div className="absolute -left-[33px] md:-left-[41px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-50 dark:bg-zinc-950 border-r border-slate-200/80 dark:border-zinc-800/80 z-10" />
+                {/* Dashed Line */}
+                <div className="border-t border-dashed border-slate-200/80 dark:border-zinc-800/80 w-full" />
+                {/* Right Cutout Punch */}
+                <div className="absolute -right-[33px] md:-right-[41px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-50 dark:bg-zinc-950 border-l border-slate-200/80 dark:border-zinc-800/80 z-10" />
+              </div>
+
+              {/* Ticket Content Form */}
+              {success ? (
+                <div className="text-center py-6 space-y-4 animate-fade-in-scale">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-500/20">
+                    <Sparkles className="w-5 h-5 fill-current" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100">
+                      Request Registered!
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto leading-relaxed font-medium">
+                      We will contact the merchant to negotiate a revival. We&apos;ll email you in 48 hours.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setSuccess(false)}
+                    variant="ghost"
+                    className="text-xs font-bold text-[#2563eb] hover:text-[#1d4ed8] hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-xl mt-1 cursor-pointer"
+                  >
+                    Revive Another Coupon
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-extrabold text-slate-450 dark:text-slate-500 uppercase tracking-wider pl-0.5">
+                        Expired Code
+                      </label>
+                      <Input
+                        placeholder="e.g. ZOMATO50"
+                        value={form.code}
+                        onChange={(e) =>
+                          setForm({ ...form, code: e.target.value })
+                        }
+                        className="bg-slate-50/50 dark:bg-zinc-900/50 border-slate-200/60 dark:border-zinc-800/85 text-slate-800 dark:text-zinc-200 placeholder-slate-400/70 text-xs h-10 focus-visible:ring-1 focus-visible:ring-blue-500 rounded-xl shadow-none"
+                      />
+                    </div>
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-extrabold text-slate-450 dark:text-slate-500 uppercase tracking-wider pl-0.5">
+                        Brand Name
+                      </label>
+                      <Input
+                        placeholder="e.g. Zomato"
+                        value={form.brandName}
+                        onChange={(e) =>
+                          setForm({ ...form, brandName: e.target.value })
+                        }
+                        className="bg-slate-50/50 dark:bg-zinc-900/50 border-slate-200/60 dark:border-zinc-800/85 text-slate-800 dark:text-zinc-200 placeholder-slate-400/70 text-xs h-10 focus-visible:ring-1 focus-visible:ring-blue-500 rounded-xl shadow-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-extrabold text-slate-450 dark:text-slate-500 uppercase tracking-wider pl-0.5">
+                      Your Email Address
                     </label>
                     <Input
-                      placeholder="e.g. ZOMATO50"
-                      value={form.code}
+                      type="email"
+                      placeholder="e.g. shopper@email.com"
+                      value={form.email}
                       onChange={(e) =>
-                        setForm({ ...form, code: e.target.value })
+                        setForm({ ...form, email: e.target.value })
                       }
-                      className="bg-brand-bg border-brand-border text-brand-text placeholder-brand-subtext/60 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
+                      className="bg-slate-50/50 dark:bg-zinc-900/50 border-slate-200/60 dark:border-zinc-800/85 text-slate-800 dark:text-zinc-200 placeholder-slate-400/70 text-xs h-10 focus-visible:ring-1 focus-visible:ring-blue-500 rounded-xl shadow-none"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-brand-subtext uppercase tracking-wider">
-                      Brand Name
-                    </label>
-                    <Input
-                      placeholder="e.g. Zomato"
-                      value={form.brandName}
-                      onChange={(e) =>
-                        setForm({ ...form, brandName: e.target.value })
-                      }
-                      className="bg-brand-bg border-brand-border text-brand-text placeholder-brand-subtext/60 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
-                    />
-                  </div>
-                </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-brand-subtext uppercase tracking-wider">
-                    Your Email
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="e.g. shopper@email.com"
-                    value={form.email}
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
-                    }
-                    className="bg-brand-bg border-brand-border text-brand-text placeholder-brand-subtext/60 text-xs h-10 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue shadow-none"
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-xs text-brand-error font-semibold">
-                    {error}
-                  </p>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary w-full py-2.5 text-xs font-bold border-0 h-auto cursor-pointer shadow-none flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Revive My Coupon</span>
-                    </>
+                  {error && (
+                    <p className="text-xs text-red-500 font-semibold text-left pl-0.5">
+                      {error}
+                    </p>
                   )}
-                </Button>
-              </form>
-            )}
-          </div>
 
-          <div className="pt-2">
-            <Link
-              href="/expired-coupon-revival"
-              className="text-xs font-bold text-[#2563eb] hover:text-[#1d4ed8] transition-colors flex items-center gap-1 hover:underline"
-            >
-              <span>Learn how Vouchiqo Revival works</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold border-0 h-10 cursor-pointer shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5 rounded-xl transition-all duration-200 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Revive My Coupon</span>
+                      </>
+                    )}
+                  </Button>
+                </form>
+              )}
 
-        {/* Right Column: Animated Visual (45%) */}
-        <div className="lg:col-span-5 flex justify-center items-center select-none animate-fade-in-scale stagger-2">
-          {/* Transforming coupon CSS visual */}
-          <div className="w-[320px] h-[220px] relative flex items-center justify-center">
-            {/* Background glowing ring */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#2563eb]/10 to-[#2563eb]/10 rounded-md blur-2xl animate-pulse" />
+              {/* Ticket Footer Microcopy */}
+              <div className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-bold tracking-wide pt-4 border-t border-slate-100 dark:border-zinc-850 mt-4 select-none">
+                Free to submit &bull; Response within 48 hours
+              </div>
 
-            {/* Glowing active success border */}
-            <div className="absolute inset-2 border border-brand-success/15 rounded-md animate-pulse z-0" />
-
-            {/* Expired cracked coupon (sliding left, fading out) */}
-            <div className="absolute left-4 w-52 h-32 bg-white border border-brand-error/20 rounded-md p-4 flex flex-col justify-between shadow-lg transform -rotate-6 animate-float z-10 opacity-60 hover:opacity-80 transition-opacity">
-              <div className="flex justify-between items-start">
-                <span className="text-[8px] font-black text-brand-error border border-brand-error/30 px-1 py-0.5 rounded bg-brand-error/5">
-                  EXPIRED
-                </span>
-                <span className="text-[14px] text-brand-subtext font-bold">
-                  ✂️
-                </span>
-              </div>
-              <div className="text-left space-y-1">
-                <h4 className="text-xs font-bold text-brand-subtext line-through">
-                  Flat 30% OFF
-                </h4>
-                <div className="w-full h-1 bg-brand-border rounded-full" />
-              </div>
-              {/* Crack overlay line */}
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_45%,#E5484D_48%,#E5484D_52%,transparent_55%)] opacity-20 pointer-events-none" />
-            </div>
-
-            {/* Fresh revived coupon (sliding right, glowing checkmark) */}
-            <div
-              className="absolute right-4 w-52 h-32 bg-white border border-brand-success/30 rounded-md p-4 flex flex-col justify-between shadow-xl transform rotate-3 animate-float z-20"
-              style={{ animationDelay: "1.5s" }}
-            >
-              <div className="flex justify-between items-start">
-                <span className="text-[8px] font-black text-brand-success border border-brand-success/20 px-1.5 py-0.5 rounded bg-brand-success/10 animate-pulse">
-                  REVIVED
-                </span>
-                {/* Green checkmark circle */}
-                <div className="w-5 h-5 rounded-full bg-brand-success text-white flex items-center justify-center shadow-md animate-bounce">
-                  <CheckCircle2 className="w-3.5 h-3.5 fill-white/10" />
-                </div>
-              </div>
-              <div className="text-left space-y-1">
-                <h4 className="text-xs font-black text-brand-text">
-                  Flat 30% OFF
-                </h4>
-                <span className="text-[9px] text-[#2563eb] font-bold">
-                  Successfully Verified Code!
-                </span>
-              </div>
-              <div className="border-t border-dashed border-brand-border pt-2 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#2563eb] font-black">
-                  ACTIVE NOW
-                </span>
-                <span className="text-[9px] text-brand-subtext">→</span>
-              </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>

@@ -33,7 +33,8 @@ export function MerchantRegisterForm() {
     <AuthCard title="Merchant Partner Registration">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-brand-text">
+          <Label className="flex items-center gap-1.5 text-sm font-medium text-brand-text">
+            <Store className="w-3.5 h-3.5 text-brand-blue" />
             Brand Name
           </Label>
           <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">
@@ -53,7 +54,8 @@ export function MerchantRegisterForm() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-brand-text">
+          <Label className="flex items-center gap-1.5 text-sm font-medium text-brand-text">
+            <Mail className="w-3.5 h-3.5 text-brand-blue" />
             Business Email
           </Label>
           <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">
@@ -72,7 +74,8 @@ export function MerchantRegisterForm() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-brand-text">
+          <Label className="flex items-center gap-1.5 text-sm font-medium text-brand-text">
+            <Lock className="w-3.5 h-3.5 text-brand-blue" />
             Password
           </Label>
           <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">

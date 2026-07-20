@@ -22,6 +22,9 @@ const FaqSection = dynamicImport(() =>
 const LatestArticles = dynamicImport(() =>
   import("../LatestArticles").then((mod) => mod.LatestArticles),
 );
+const RevivalPromo = dynamicImport(() =>
+  import("../RevivalPromo").then((mod) => mod.RevivalPromo),
+);
 
 // Layout elements
 import Footer from "@/components/layout/Footer";
@@ -319,6 +322,10 @@ export function HomeClient({
 
         {/* 9. Popular Stores (with Store of the Month) */}
         <PopularStores merchants={popularMerchants} />
+
+        {/* 9.5. How It Works (Verification) and Expired Coupon Revival Promo Callout */}
+        <HowItWorks />
+        <RevivalPromo />
 
         {/* 10. Today's Top Coupons & Offers */}
         <TodayTopCoupons

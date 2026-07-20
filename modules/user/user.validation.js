@@ -18,6 +18,8 @@ export const updateUserSchema = z.object({
     })
     .optional(),
   interests: z.array(z.string()).optional(),
+  gender: z.enum(["men", "women", "not_preferred"]).nullable().optional(),
+  isOnboarded: z.boolean().optional(),
   emailNotifications: z.boolean().optional(),
   smsNotifications: z.boolean().optional(),
   expiryAlerts: z.boolean().optional(),
