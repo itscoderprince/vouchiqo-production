@@ -1,8 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Heart, SlidersHorizontal, Star } from "lucide-react";
+import { Check, CheckCircle2, Heart, SlidersHorizontal, Sparkles, Star, TrendingUp } from "lucide-react";
 import Link from "next/link";
+
+function TwitterGreenTick({ className = "w-4.5 h-4.5" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-label="Verified account"
+      className={`${className} flex-shrink-0 text-emerald-500 fill-current`}
+    >
+      <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.26.16-.42.24-.88.24-1.35 0-2.13-1.73-3.86-3.86-3.86-.47 0-.93.08-1.35.24C14.5 2.45 13.26 1.57 11.83 1.57s-2.67.88-3.26 2.19c-.42-.16-.88-.24-1.35-.24-2.13 0-3.86 1.73-3.86 3.86 0 .47.08.93.24 1.35C2.32 9.33 1.44 10.57 1.44 12s.88 2.67 2.19 3.26c-.16.42-.24.88-.24 1.35 0 2.13 1.73 3.86 3.86 3.86.47 0 .93-.08 1.35-.24.59 1.31 1.83 2.19 3.26 2.19s2.67-.88 3.26-2.19c.42.16.88.24 1.35.24 2.13 0 3.86-1.73 3.86-3.86 0-.47-.08-.93-.24-1.35 1.31-.59 2.19-1.83 2.19-3.26zm-11.4 4.54l-4.14-4.14 1.41-1.41 2.73 2.73 6.09-6.09 1.41 1.41-7.5 7.5z" />
+    </svg>
+  );
+}
 
 export default function BrandHeader({
   merchant,
@@ -133,26 +145,36 @@ export default function BrandHeader({
                 )}
               </div>
 
-              {/* Brand name + badges */}
-              <div className="space-y-1.5 pb-4 text-left">
-                <div className="flex flex-wrap items-center gap-2">
+              {/* Brand name + badges (with top gap spacing) */}
+              <div className="pt-3 sm:pt-4 space-y-1.5 pb-4 text-left">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <h1
-                    className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight"
+                    className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight"
                     style={{
                       fontFamily: "var(--font-inter), Inter, sans-serif",
                     }}
                   >
                     {merchant.businessName}
                   </h1>
+
+                  {/* Verified Text first (neutral text), then Green Twitter Tick */}
                   {merchant.isVerified !== false && (
-                    <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Verified
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-700">
+                      <span>Verified</span>
+                      <TwitterGreenTick className="w-4 h-4 text-emerald-500" />
                     </span>
                   )}
-                  {merchant.plan && (
-                    <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                      {merchant.plan} Partner
+
+                  {/* Growth Partner Text first (neutral text), then Icon */}
+                  {merchant.plan ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-700 capitalize">
+                      <span>{merchant.plan} Partner</span>
+                      <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-700">
+                      <span>Growth Partner</span>
+                      <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
                     </span>
                   )}
                 </div>
@@ -162,7 +184,7 @@ export default function BrandHeader({
                   style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
                 >
                   {coupons.length} active deals · validated on{" "}
-                  <span className="text-gray-700 font-medium">{todayStr}</span>
+                  <span className="text-gray-700 font-semibold">{todayStr}</span>
                 </p>
 
                 {/* Mobile star rating */}
@@ -184,56 +206,67 @@ export default function BrandHeader({
               </div>
             </div>
 
-            {/* Right: Actions */}
+            {/* Right: Actions (Rating, Follow, Existing User Toggle) */}
             <div
               className={`${
                 showMobileFilters ? "flex" : "hidden"
-              } sm:flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pb-4 flex-wrap w-full sm:w-auto mt-2 sm:mt-0`}
+              } sm:flex flex-wrap items-center gap-2.5 pb-4 w-full sm:w-auto mt-3 sm:mt-0`}
             >
-              {/* Star rating */}
+              {/* Star rating pill button */}
               <button
                 onClick={handleRate}
                 type="button"
                 disabled={isRated}
-                title="Rate this store"
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 disabled:opacity-60"
+                title={isRated ? "Rating submitted" : "Click to rate this merchant"}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-200/80 bg-amber-50/70 hover:bg-amber-100/80 transition-all text-xs font-bold text-amber-900 shadow-2xs disabled:opacity-75 cursor-pointer"
                 style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
               >
-                <div className="flex text-yellow-400">
+                <div className="flex items-center gap-0.5 text-amber-400">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-3.5 h-3.5 ${i < Math.floor(ratingVal) ? "fill-current" : ""} stroke-current`}
+                      className={`w-3.5 h-3.5 ${
+                        i < Math.floor(ratingVal)
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-amber-200 fill-amber-100"
+                      }`}
                     />
                   ))}
                 </div>
-                <span className="text-xs text-gray-500">
-                  {ratingVal.toFixed(1)} ({votesCount})
+                <span className="text-amber-900 font-extrabold">
+                  {ratingVal.toFixed(1)}
+                </span>
+                <span className="text-amber-700/80 font-medium text-[11px]">
+                  ({votesCount})
                 </span>
               </button>
 
-              {/* Follow */}
+              {/* Follow button */}
               <button
                 onClick={handleFollow}
                 type="button"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-[13px] font-medium transition-all ${
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer ${
                   isFollowing
-                    ? "bg-blue-600 border-blue-600 text-white"
-                    : "bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600"
+                    ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
+                    : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                 }`}
                 style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
               >
                 <Heart
-                  className={`w-3.5 h-3.5 ${isFollowing ? "fill-white" : ""}`}
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    isFollowing ? "fill-rose-500 text-rose-500" : "text-slate-500"
+                  }`}
                 />
                 <span>{isFollowing ? "Following" : "Follow"}</span>
-                <span className="text-xs opacity-70">({followers})</span>
+                <span className="text-[11px] opacity-70 font-semibold">
+                  ({followers})
+                </span>
               </button>
 
-              {/* Existing User toggle */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50">
+              {/* Existing User toggle pill */}
+              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50/90 shadow-2xs">
                 <span
-                  className="text-[12px] font-medium text-gray-600 whitespace-nowrap"
+                  className="text-xs font-semibold text-slate-700 whitespace-nowrap flex items-center gap-1"
                   style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
                 >
                   Existing User
@@ -241,13 +274,14 @@ export default function BrandHeader({
                 <button
                   type="button"
                   onClick={() => setExistingUser((prev) => !prev)}
-                  className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    existingUser ? "bg-blue-600" : "bg-gray-300"
+                  aria-label="Toggle Existing User Deals"
+                  className={`relative inline-flex h-4.5 w-8 flex-shrink-0 cursor-pointer rounded-full border-1 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    existingUser ? "bg-blue-600" : "bg-slate-300"
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      existingUser ? "translate-x-4" : "translate-x-0"
+                    className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                      existingUser ? "translate-x-3.5" : "translate-x-0"
                     }`}
                   />
                 </button>

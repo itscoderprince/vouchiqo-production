@@ -104,6 +104,7 @@ const couponSchema = new Schema(
   {
     timestamps: true,
     collection: "coupons",
+    strict: false,
   },
 );
 

@@ -28,7 +28,7 @@ export const GET = asyncHandler(async (request) => {
 
 /**
  * POST /api/campaigns
- * Creates a campaign for the authenticated merchant.
+ * Creates a campaign for the authenticated merchant following the 6-section spec.
  */
 export const POST = asyncHandler(async (request) => {
   await connectDB();
@@ -37,19 +37,26 @@ export const POST = asyncHandler(async (request) => {
   const merchant = await Merchant.findOne({ authId: user.id });
   if (!merchant) throw new NotFoundError("Merchant profile");
 
-  // Gate campaigns to Growth+ plans
-  if (merchant.plan === "starter") {
+  // Gate campaigns to Growth+ plans unless add-on is present
+  const body = await request.json();
+  if (merchant.plan === "starter" && !body.isAddonPurchased) {
     throw new ForbiddenError(
-      "Campaign Manager is only available on Growth plans and above.",
+      "Campaigns require Growth plan or Flash Campaign Boost add-on (₹799).",
     );
   }
 
-  const body = await request.json();
   const {
     name,
     type,
     objective,
+    headline,
+    subHeadline,
     description,
+    bannerUrl,
+    offerDetails,
+    timing,
+    targeting,
+    readiness,
     couponIds,
     settings,
     status,
@@ -64,19 +71,29 @@ export const POST = asyncHandler(async (request) => {
   const campaign = await Campaign.create({
     merchantId: merchant._id,
     name,
-    type,
+    type: type || "flash",
     objective,
+    headline,
+    subHeadline,
     description,
+    bannerUrl,
+    offerDetails: offerDetails || {},
+    timing: timing || {
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+    },
+    targeting: targeting || {},
+    readiness: readiness || {},
     couponIds: couponIds || [],
     settings: {
       homepageSlot: !!settings?.homepageSlot,
       pushNotification: !!settings?.pushNotification,
       newsletter: !!settings?.newsletter,
     },
-    status: status || "draft",
-    startDate: startDate ? new Date(startDate) : undefined,
-    endDate: endDate ? new Date(endDate) : undefined,
+    status: status || "pending_review",
+    startDate: startDate ? new Date(startDate) : timing?.startDate ? new Date(timing.startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : timing?.endDate ? new Date(timing.endDate) : undefined,
   });
 
-  return created(campaign, "Campaign created successfully");
+  return created(campaign, "Campaign submitted for review successfully");
 });

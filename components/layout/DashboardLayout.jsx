@@ -51,11 +51,11 @@ export default function DashboardLayout({ title, user, children }) {
   return (
     <TooltipProvider>
       <SidebarProvider style={{ "--sidebar-width": "240px" }}>
-        <div className="min-h-screen flex bg-background text-foreground w-full">
+        <div className="min-h-screen flex bg-sidebar text-sidebar-foreground w-full">
           <AppSidebar />
-          <SidebarInset className="bg-background flex-1 flex flex-col min-w-0">
+          <SidebarInset className="bg-sidebar flex-1 flex flex-col min-w-0">
             <Topbar title={title} user={user} />
-            <main className="p-6 space-y-6 w-full flex-grow">{children}</main>
+            <main className="p-4 space-y-6 w-full grow">{children}</main>
           </SidebarInset>
         </div>
       </SidebarProvider>

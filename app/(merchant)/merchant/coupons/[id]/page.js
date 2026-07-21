@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/DashboardSkeleton";
+import { Button } from "@/components/ui/button";
 import {
   useCoupon,
   useUpdateCoupon,
@@ -179,18 +180,20 @@ export default function EditCouponPage() {
         role: "merchant",
       }}
     >
-      <div className="space-y-6">
-        {/* Back Link */}
-        <div className="flex items-center justify-between border-b border-brand-border pb-3">
-          <Link
-            href="/merchant/coupons"
-            className="flex items-center gap-1.5 text-xs font-bold text-brand-navy hover:text-brand-blue"
-            style={{ textDecoration: "none" }}
+      <div className="flex flex-col gap-6 text-left font-sans w-full max-w-[1300px] mx-auto">
+        {/* Top Header Bar */}
+        <div className="flex items-center justify-between py-1">
+          <Button
+            variant="ghost"
+            asChild
+            className="p-1.5 h-auto text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Listings</span>
-          </Link>
-          <span className="text-[10px] bg-brand-surface border border-brand-border px-2 py-0.5 rounded font-bold text-brand-subtext">
+            <Link href="/merchant/coupons" className="flex items-center gap-2 text-xs font-bold">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Listings</span>
+            </Link>
+          </Button>
+          <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1 rounded-xl">
             ID: {id}
           </span>
         </div>
@@ -209,8 +212,8 @@ export default function EditCouponPage() {
           isPending={updateMutation.isPending}
           submitText="Save Offer Changes"
           isEdit={true}
-          couponCategories={COUPON_CATEGORIES}
           merchantPlan={merchant?.plan}
+          merchantName={merchant?.businessName || "Store Name"}
         />
       </div>
     </DashboardLayout>

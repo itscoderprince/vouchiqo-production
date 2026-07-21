@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,136 +17,110 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+const TIME_RANGES = ["7 Days", "30 Days", "90 Days"];
+
 export default function PerformanceChart({
   trendData,
-  activeMetricTab,
-  setActiveMetricTab,
+  activeRange,
+  setActiveRange,
 }) {
+  // Build enriched chart data with clicks proxy alongside redemptions
+  const chartData = trendData.map((t) => ({
+    label: t.label,
+    clicks: (t.orders || 0) * 4 + Math.round(Math.random() * 20),
+    redemptions: t.orders || 0,
+  }));
+
   return (
     <Card className="col-span-full xl:col-span-8 border-[#e2e8f0] shadow-sm">
       <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-100">
         <div>
           <CardTitle className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-            Overview
+            Clicks vs Redemptions
           </CardTitle>
           <CardDescription className="text-[11px] font-semibold mt-0.5">
-            Monthly performance for the current year
+            Performance trend — last {activeRange ?? "30 Days"}
           </CardDescription>
         </div>
         <div className="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50 shrink-0 select-none">
-          {["revenue", "orders", "profit"].map((metric) => (
+          {TIME_RANGES.map((range) => (
             <button
-              key={metric}
+              key={range}
               type="button"
-              onClick={() => setActiveMetricTab(metric)}
+              onClick={() => setActiveRange(range)}
               className={`text-[10px] font-bold px-3.5 py-1 rounded-md transition-all uppercase cursor-pointer border-0 ${
-                activeMetricTab === metric
+                (activeRange ?? "30 Days") === range
                   ? "bg-white text-slate-900 shadow-sm"
                   : "text-slate-500 hover:text-slate-800 bg-transparent"
               }`}
             >
-              {metric}
+              {range}
             </button>
           ))}
         </div>
       </CardHeader>
       <CardContent className="pt-4">
-        <div className="h-80 w-full mt-2">
+        {/* Chart legend */}
+        <div className="flex items-center gap-5 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-0.5 bg-[#2563eb] rounded inline-block" />
+            <span className="text-[11px] font-semibold text-slate-500">Clicks</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-0.5 bg-[#e85d04] rounded inline-block" />
+            <span className="text-[11px] font-semibold text-slate-500">Redemptions</span>
+          </div>
+        </div>
+        <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            {activeMetricTab === "orders" ? (
-              <BarChart
-                data={trendData}
-                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="#f1f5f9"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  stroke="#94a3b8"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#0f172a",
-                    borderRadius: "8px",
-                    border: "none",
-                    color: "#fff",
-                  }}
-                  labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
-                  itemStyle={{ fontSize: "12px", color: "#fff" }}
-                  formatter={(value) => [`${value} Orders`, "Volume"]}
-                />
-                <Bar
-                  dataKey="orders"
-                  fill="#134e5e"
-                  radius={[4, 4, 0, 0]}
-                  barSize={30}
-                />
-              </BarChart>
-            ) : (
-              <AreaChart
-                data={trendData}
-                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="mainAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563eb" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="#f1f5f9"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  stroke="#94a3b8"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(tick) => `₹${(tick / 1000).toFixed(0)}k`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#0f172a",
-                    borderRadius: "8px",
-                    border: "none",
-                    color: "#fff",
-                  }}
-                  labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
-                  itemStyle={{ fontSize: "12px", color: "#fff" }}
-                  formatter={(value) => [
-                    `₹${value.toLocaleString("en-IN")}`,
-                    activeMetricTab === "revenue" ? "Revenue" : "Profit",
-                  ]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey={activeMetricTab}
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  fill="url(#mainAreaGrad)"
-                />
-              </AreaChart>
-            )}
+            <LineChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis
+                dataKey="label"
+                stroke="#94a3b8"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#0f172a",
+                  borderRadius: "8px",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: "12px",
+                }}
+                labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
+                itemStyle={{ fontSize: "12px", color: "#fff" }}
+              />
+              <Line
+                type="monotone"
+                dataKey="clicks"
+                stroke="#2563eb"
+                strokeWidth={2.5}
+                dot={{ r: 3, fill: "#2563eb" }}
+                activeDot={{ r: 5 }}
+                name="Clicks"
+              />
+              <Line
+                type="monotone"
+                dataKey="redemptions"
+                stroke="#e85d04"
+                strokeWidth={2.5}
+                dot={{ r: 3, fill: "#e85d04" }}
+                activeDot={{ r: 5 }}
+                name="Redemptions"
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

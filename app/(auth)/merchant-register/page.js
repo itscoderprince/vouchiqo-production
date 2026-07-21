@@ -1,11 +1,11 @@
-import { MerchantRegisterForm } from "@/features/auth/components/merchant-register-form";
+import { MerchantOnboardingWizard } from "@/features/auth/components/merchant-onboarding-wizard";
 
 export const metadata = {
-  title: "Merchant Registration | Vouchiqo",
+  title: "Merchant Onboarding | Vouchiqo",
   description:
-    "Create your merchant account on Vouchiqo to list and manage promotional offers.",
+    "Complete 6-section merchant onboarding application for Ranchi and Jharkhand.",
 };
 
 export default function MerchantRegisterPage() {
-  return <MerchantRegisterForm />;
+  return <MerchantOnboardingWizard />;
 }

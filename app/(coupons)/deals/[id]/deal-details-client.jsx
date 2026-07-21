@@ -30,7 +30,7 @@ import { useUser } from "@/hooks/use-user";
 
 export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   const router = useRouter();
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, user } = useUser();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
   const [userVote, setUserVote] = useState(null); // 'yes' | 'no' | null
@@ -59,14 +59,35 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
     enabled: isLoggedIn && !isMockCoupon,
   });
 
-  const matchedClaim = claims.find((c) => c.couponId?._id === coupon._id);
+  const matchedClaim = useMemo(() => {
+    if (!claims || !Array.isArray(claims)) return null;
+    return claims.find((c) => {
+      if (!c || !c.couponId) return false;
+      const cId = typeof c.couponId === "object" ? (c.couponId._id || c.couponId.id) : c.couponId;
+      return String(cId) === String(coupon._id);
+    });
+  }, [claims, coupon._id]);
+
   const isSaved = isMockCoupon ? localMockSaved : !!matchedClaim;
-  const claimId = isMockCoupon
-    ? `mock_clm_${coupon._id.slice(-8)}`
-    : matchedClaim?._id;
-  const uniqueClaimCode = claimId
-    ? `VQ-${coupon.code || "DEAL"}-${claimId.slice(-8).toUpperCase()}`
-    : null;
+
+  const claimId = useMemo(() => {
+    if (isMockCoupon) return `mock_clm_${String(coupon._id).slice(-8)}`;
+    if (matchedClaim?._id) return String(matchedClaim._id);
+    if (matchedClaim?.id) return String(matchedClaim.id);
+    if (isLoggedIn) {
+      const uId = String(user?.id || user?._id || "user").slice(-4);
+      const cId = String(coupon._id || "deal").slice(-4);
+      return `clm_${uId}${cId}`;
+    }
+    return null;
+  }, [isMockCoupon, matchedClaim, isLoggedIn, user, coupon._id]);
+
+  const uniqueClaimCode = useMemo(() => {
+    if (!claimId) return null;
+    const prefixCode = (coupon.code || "DEAL").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+    const suffix = String(claimId).replace(/[^A-Z0-9]/gi, "").slice(-8).toUpperCase();
+    return `VQ-${prefixCode || "DEAL"}-${suffix}`;
+  }, [claimId, coupon.code]);
 
   // Toggle Save / Claim mutation
   const toggleSaveMutation = useMutation({

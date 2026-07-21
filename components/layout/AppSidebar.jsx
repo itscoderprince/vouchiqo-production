@@ -7,6 +7,7 @@ import {
   Bookmark,
   Building2,
   CheckSquare,
+  Clock,
   CreditCard,
   HelpCircle,
   History,
@@ -154,7 +155,7 @@ export function AppSidebar({ ...props }) {
             title: "Overview",
             items: [
               {
-                title: "Dashboard Overview",
+                title: "Dashboard",
                 url: "/merchant/dashboard",
                 icon: Home,
               },
@@ -173,9 +174,17 @@ export function AppSidebar({ ...props }) {
                 url: "/merchant/coupons",
                 icon: Layers,
                 subItems: [
-                  { title: "Coupons", url: "/merchant/coupons" },
-                  { title: "Deals & Offers", url: "/merchant/coupons?type=deal" },
-                  { title: "Expired Coupons", url: "/merchant/coupons?status=expired" },
+                  { title: "Coupons", url: "/merchant/coupons", icon: Ticket },
+                  {
+                    title: "Deals & Offers",
+                    url: "/merchant/coupons?type=deal",
+                    icon: Sparkles,
+                  },
+                  {
+                    title: "Expired Coupons",
+                    url: "/merchant/coupons?status=expired",
+                    icon: Clock,
+                  },
                 ],
               },
               {
@@ -293,9 +302,9 @@ export function AppSidebar({ ...props }) {
 
   return (
     <Sidebar collapsible="icon" side="left" {...props}>
-      <SidebarHeader className="border-b border-sidebar-border px-3 py-2">
+      <SidebarHeader className="h-15 flex items-center justify-center border-b border-sidebar-border px-3.5 py-0">
         <div
-          className={`flex items-center gap-2.5 ${isCollapsed ? "justify-center" : ""}`}
+          className={`flex items-center gap-2.5 w-full ${isCollapsed ? "justify-center" : ""}`}
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-xs shadow-xs">
             V
@@ -315,7 +324,7 @@ export function AppSidebar({ ...props }) {
       <SidebarContent className="px-2 py-2">
         <NavMain groups={groups} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border">
         <NavUser user={user} role={role} />
       </SidebarFooter>
       <SidebarRail />

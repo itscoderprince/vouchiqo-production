@@ -58,7 +58,7 @@ export const createCouponSchema = z.object({
       isOnline: z.boolean().default(true),
     })
     .optional(),
-});
+}).passthrough();
 
 export const updateCouponSchema = createCouponSchema.partial();
 

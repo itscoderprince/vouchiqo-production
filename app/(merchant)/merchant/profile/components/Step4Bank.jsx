@@ -1,4 +1,8 @@
+"use client";
+
 import { CreditCard, FileText, Upload, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,17 +20,24 @@ export default function Step4Bank({
   uploadingCheque,
 }) {
   return (
-    <div className="bg-brand-bg border border-brand-border rounded-xl p-5 shadow-sm space-y-5">
-      <h3 className="font-heading text-sm font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center gap-2">
-        <CreditCard className="w-4 h-4 text-brand-blue" />
-        <span>4. Settlement Bank Particulars &amp; Documentation</span>
-      </h3>
+    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5 text-left">
+      <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <CreditCard className="w-4 h-4 text-emerald-600" />
+          <span>4. Settlement Bank Particulars &amp; Documentation</span>
+        </h3>
+        <Badge variant="outline" className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border-emerald-200">
+          Step 4 of 4
+        </Badge>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Account Holder Name */}
         <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <User className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <User className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
             <span>Bank Account Legal Holder Name</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
           </Label>
           <Input
             type="text"
@@ -41,18 +52,20 @@ export default function Step4Bank({
                 },
               })
             }
-            className="text-xs focus-visible:ring-brand-blue"
+            className="bg-white border-slate-200 text-xs h-10 rounded-xl font-medium"
             required
           />
         </div>
 
+        {/* Account Type */}
         <div className="space-y-1.5 font-sans">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <CreditCard className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <CreditCard className="w-3.5 h-3.5 text-purple-600 mr-0.5" />
             <span>Account Typology</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
           </Label>
           <Select
-            value={formData.bankDetails.accountType}
+            value={formData.bankDetails.accountType || "current"}
             onValueChange={(val) =>
               setFormData({
                 ...formData,
@@ -60,24 +73,22 @@ export default function Step4Bank({
               })
             }
           >
-            <SelectTrigger className="text-xs h-9 border-brand-border shadow-none text-brand-navy font-semibold">
+            <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
               <SelectValue placeholder="Account Type" />
             </SelectTrigger>
-            <SelectContent className="bg-brand-bg border border-brand-border">
-              <SelectItem value="current" className="text-xs text-brand-navy">
-                Current Account
-              </SelectItem>
-              <SelectItem value="savings" className="text-xs text-brand-navy">
-                Savings Account
-              </SelectItem>
+            <SelectContent className="z-[300]">
+              <SelectItem value="current">Current Account</SelectItem>
+              <SelectItem value="savings">Savings Account</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
+        {/* Account Number */}
         <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <CreditCard className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <CreditCard className="w-3.5 h-3.5 text-emerald-600 mr-0.5" />
             <span>Core Account Serial Number</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
           </Label>
           <Input
             type="text"
@@ -93,20 +104,22 @@ export default function Step4Bank({
                 },
               })
             }
-            className="text-xs focus-visible:ring-brand-blue font-mono"
+            className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono font-bold"
             required
           />
         </div>
 
+        {/* IFSC Code */}
         <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <CreditCard className="w-3.5 h-3.5 text-brand-blue" />
-            <span>IFSC Code Number</span>
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <FileText className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
+            <span>Bank IFSC Code</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
           </Label>
           <Input
             type="text"
             maxLength={11}
-            placeholder="11 characters (e.g. HDFC0000123)"
+            placeholder="e.g. HDFC0000123"
             value={formData.bankDetails.ifsc}
             onChange={(e) =>
               setFormData({
@@ -117,44 +130,11 @@ export default function Step4Bank({
                 },
               })
             }
-            className="text-xs focus-visible:ring-brand-blue font-mono uppercase"
+            className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
             required
           />
         </div>
-
-        <div className="space-y-2 sm:col-span-2">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <FileText className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Upload Cancelled Cheque / Account Passbook</span>
-          </Label>
-          <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-5 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-28 overflow-hidden">
-            {formData.bankDetails.chequeImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={formData.bankDetails.chequeImage}
-                alt="Cancelled Cheque"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <>
-                <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
-                <span className="text-[10px] text-brand-subtext font-semibold">
-                  {uploadingCheque
-                    ? "Uploading..."
-                    : "Upload cancelled cheque (PDF or Image)"}
-                </span>
-              </>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, "bankDetails.chequeImage")}
-              disabled={uploadingCheque}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-            />
-          </div>
-        </div>
       </div>
-    </div>
+    </Card>
   );
 }

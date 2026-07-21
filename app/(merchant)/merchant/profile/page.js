@@ -2,10 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
+  CreditCard,
+  Loader2,
+  MapPin,
+  Shield,
   Store,
   X,
 } from "lucide-react";
@@ -228,17 +233,20 @@ export default function MerchantBusinessProfile() {
       if (!formData.address)
         return "Complete physical store address is required.";
       if (!formData.city) return "Store city location is required.";
-      if (!formData.gmapsLink)
-        return "Google Maps navigation link is required.";
-      const gmapsRegex =
-        /^https:\/\/(www\.)?(google\.com\/maps|maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\//i;
-      if (!gmapsRegex.test(formData.gmapsLink)) {
-        return "Google Maps hyperlink must use domain prefix like https://www.google.com/maps/ or https://maps.app.goo.gl/";
+      if (formData.gmapsLink) {
+        const gmapsRegex =
+          /^https:\/\/(www\.)?(google\.com\/maps|maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\//i;
+        if (!gmapsRegex.test(formData.gmapsLink)) {
+          return "Google Maps hyperlink must use domain prefix like https://www.google.com/maps/ or https://maps.app.goo.gl/";
+        }
       }
     }
     if (currentStep === 3) {
       const panTrimmed = (formData.pan || "").trim().toUpperCase();
-      if (panTrimmed && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panTrimmed)) {
+      if (!panTrimmed) {
+        return "Permanent Account Number (PAN) is required.";
+      }
+      if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panTrimmed)) {
         return "Invalid PAN format. Must be a valid 10-character code (e.g. ABCDE1234F).";
       }
       if (!formData.isGstExempt) {
@@ -274,7 +282,11 @@ export default function MerchantBusinessProfile() {
     return null;
   };
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const errorMsg = validateStep(step);
     if (errorMsg) {
       toast.error(errorMsg);
@@ -283,7 +295,11 @@ export default function MerchantBusinessProfile() {
     setStep((prev) => Math.min(prev + 1, 4));
   };
 
-  const handleBack = () => {
+  const handleBack = (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
@@ -319,6 +335,9 @@ export default function MerchantBusinessProfile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (step !== 4) {
+      return; // Do NOT allow form submission unless user is on Step 4 and explicitly clicks submit!
+    }
     const errorMsg = validateStep(4);
     if (errorMsg) {
       toast.error(errorMsg);
@@ -474,49 +493,86 @@ export default function MerchantBusinessProfile() {
         role: "merchant",
       }}
     >
-      <div className="flex flex-col gap-6 text-left font-sans">
-        {/* Step Indicator tracker */}
-        <div className="bg-brand-bg border border-brand-border p-5 rounded-xl shadow-sm space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-heading text-base font-bold text-brand-navy">
-              KYC &amp; Business Profile Wizard
-            </h3>
-            <div className="flex items-center gap-3">
-              {merchant && (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="text-xs font-bold text-brand-subtext hover:text-brand-navy cursor-pointer transition-colors"
-                >
-                  Cancel Edit
-                </button>
-              )}
-              <span className="text-xs font-bold text-brand-blue uppercase">
-                Step {step} of 4
-              </span>
+      <div className="flex flex-col gap-6 text-left font-sans w-full max-w-[1200px] mx-auto">
+        {/* Full-width Top Stepper Header */}
+        <div className="w-full flex flex-col gap-3 py-1">
+          {merchant && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="text-xs font-bold text-slate-500 hover:text-slate-900 cursor-pointer transition-colors"
+              >
+                Cancel Edit
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* Stepper bar */}
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((s) => (
-              <div
-                key={s}
-                className={`h-2 rounded-full transition-all ${
-                  step >= s
-                    ? "bg-brand-blue"
-                    : "bg-brand-surface border border-brand-border"
-                }`}
-              />
-            ))}
+          {/* Stepper Navigation Bar */}
+          <div className="flex items-center w-full gap-3 sm:gap-6 pt-1">
+            {[
+              { number: 1, label: "Identity", icon: Store },
+              { number: 2, label: "Location", icon: MapPin },
+              { number: 3, label: "KYC Details", icon: Shield },
+              { number: 4, label: "Bank Account", icon: CreditCard },
+            ].map((s, idx) => {
+              const isActive = step === s.number;
+              const isCompleted = step > s.number;
+              const isLast = idx === 3;
+              const Icon = s.icon;
+              return (
+                <div
+                  key={s.number}
+                  className={`flex items-center gap-3 ${!isLast ? "flex-1" : ""}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (s.number < step) setStep(s.number);
+                    }}
+                    className={`flex items-center gap-2 text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      isActive
+                        ? "text-slate-900 font-extrabold"
+                        : isCompleted
+                        ? "text-emerald-600 font-bold"
+                        : "text-slate-400 font-medium"
+                    }`}
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                        isActive
+                          ? "bg-[#e85d04] text-white shadow-xs"
+                          : isCompleted
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-200/80 text-slate-500"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-4 h-4 stroke-[3]" />
+                      ) : (
+                        <Icon className="w-3.5 h-3.5" />
+                      )}
+                    </span>
+                    <span>{s.label}</span>
+                  </button>
+                  {!isLast && (
+                    <div
+                      className={`h-0.5 flex-1 rounded-full transition-colors ${
+                        isCompleted ? "bg-emerald-500" : "bg-slate-200"
+                      }`}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {saveMutation.isSuccess && (
-            <div className="flex gap-2.5 p-3.5 rounded-lg bg-brand-success/5 border border-brand-success/15 text-brand-success text-xs font-semibold items-center">
+            <div className="flex gap-2.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold items-center">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>KYC Profile Details Saved! Awaiting admin activation.</span>
+              <span>KYC Profile Details Saved! Awaiting admin verification.</span>
             </div>
           )}
 
@@ -552,38 +608,40 @@ export default function MerchantBusinessProfile() {
             />
           )}
 
-          {/* Stepper Wizard Controls */}
-          <div className="flex justify-between items-center bg-brand-bg border border-brand-border p-4 rounded-xl shadow-sm">
+          {/* Integrated Semantic Action Controls (Bottom Bar) */}
+          <div className="flex justify-between items-center pt-2">
             <Button
               type="button"
-              onClick={handleBack}
+              variant="outline"
+              onClick={(e) => handleBack(e)}
               disabled={step === 1}
-              className="bg-brand-surface border border-brand-border hover:bg-slate-50 text-brand-navy text-xs h-9 px-4 flex items-center gap-1 font-bold rounded-lg cursor-pointer shadow-none"
+              className="text-slate-700 border-slate-200 hover:bg-slate-50 text-xs h-10 px-5 flex items-center gap-1.5 font-bold rounded-xl cursor-pointer disabled:opacity-50"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Previous Step</span>
             </Button>
 
-            {step < 4
-              ? <Button
-                  type="button"
-                  onClick={handleNext}
-                  className="bg-brand-blue hover:bg-blue-600 text-white text-xs h-9 px-4 flex items-center gap-1 font-bold rounded-lg cursor-pointer border-0 shadow-none ml-auto"
-                >
-                  <span>Continue</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              : <Button
-                  type="submit"
-                  disabled={saveMutation.isPending}
-                  className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs h-9 px-6 flex items-center gap-1 font-bold rounded-lg cursor-pointer border-0 shadow-none ml-auto"
-                >
-                  <span>
-                    {saveMutation.isPending
-                      ? "Submitting..."
-                      : "Submit Registration"}
-                  </span>
-                </Button>}
+            {step < 4 ? (
+              <Button
+                type="button"
+                onClick={(e) => handleNext(e)}
+                className="bg-[#e85d04] hover:bg-orange-600 text-white text-xs h-10 px-6 flex items-center gap-1.5 font-bold rounded-xl cursor-pointer shadow-xs border-0 ml-auto"
+              >
+                <span>Continue</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={saveMutation.isPending}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs h-10 px-8 flex items-center gap-2 font-bold rounded-xl cursor-pointer shadow-xs border-0 ml-auto"
+              >
+                {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>
+                  {saveMutation.isPending ? "Submitting..." : "Submit Registration"}
+                </span>
+              </Button>
+            )}
           </div>
         </form>
       </div>

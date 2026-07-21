@@ -1,12 +1,53 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Check, Info, Lock, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Calendar as CalendarIcon,
+  Check,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  Eye,
+  FileText,
+  Gift,
+  Globe,
+  HelpCircle,
+  Image as ImageIcon,
+  Info,
+  Layers,
+  Link2,
+  Lock,
+  MapPin,
+  MessageSquare,
+  Percent,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  Tag,
+  Target,
+  Ticket,
+  Upload,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,37 +57,110 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
-import { COUPON_CATEGORIES } from "@/utils/constants";
+import { cn } from "@/lib/utils";
+
+const OFFER_TYPES = [
+  {
+    id: "code",
+    name: "Offer with Code",
+    icon: Ticket,
+    desc: "Customer copies code for online checkout or presents a Smart Code at counter in-store.",
+    bestFor: "Best for: Restaurants, salons, retail stores, or online checkouts.",
+    color: "border-blue-500 bg-blue-50/40 text-blue-900",
+  },
+  {
+    id: "deal",
+    name: "Deal / Direct Link",
+    icon: Link2,
+    desc: "No code required. Clicking the deal opens your pre-discounted page directly.",
+    bestFor: "Best for: E-commerce sites, product sales pages, online bookings.",
+    color: "border-[#e85d04] bg-orange-50/40 text-orange-900",
+  },
+  {
+    id: "special",
+    name: "Special Offer / Gift",
+    icon: Gift,
+    desc: "Non-standard format: BOGO, free gift with purchase, free service upgrade, bundle deals.",
+    bestFor: "Best for: BOGO meals, free treatments, gym trials, package deals.",
+    color: "border-purple-500 bg-purple-50/40 text-purple-900",
+  },
+];
+
+const CATEGORIES = [
+  { id: "fashion", label: "Fashion & Clothing" },
+  { id: "food", label: "Food & Dining" },
+  { id: "electronics", label: "Electronics & Gadgets" },
+  { id: "beauty", label: "Beauty & Wellness" },
+  { id: "travel", label: "Travel & Hospitality" },
+  { id: "home", label: "Home & Living" },
+  { id: "home-improvement", label: "Home Improvement" },
+  { id: "fitness", label: "Fitness & Healthcare" },
+  { id: "education", label: "Education & Courses" },
+  { id: "kids-baby", label: "Kids & Baby Products" },
+  { id: "jewellery", label: "Jewellery & Accessories" },
+  { id: "automotive", label: "Automobile & Auto Services" },
+  { id: "entertainment", label: "Gaming & Entertainment" },
+  { id: "grocery", label: "Grocery & Essentials" },
+  { id: "finance", label: "Finance & Insurance" },
+];
+
+const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function CreateCoupon() {
-  const [listingType, setListingType] = useState("coupon"); // "coupon" | "deal" | "special"
-  const [step, setStep] = useState(1);
+  const queryClient = useQueryClient();
+  const [activeSection, setActiveSection] = useState("A");
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Full 5-Section State matching Claude_Merchant Offer Form.pdf
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    // Section A
+    offerType: "code", // "code" | "deal" | "special"
+
+    // Section B
+    headline: "",
+    shortDescription: "",
+    category: "home-improvement",
+    image: "",
+
+    // Section C-1: Code
     code: "",
-    category: COUPON_CATEGORIES[0], // "food"
-    discountType: "percentage",
+    discountType: "% Off",
     discountValue: "",
+    maxCap: "",
+    minOrderValue: "",
+
+    // Section C-2: Deal Link
+    dealUrl: "",
     originalPrice: "",
     salePrice: "",
-    dealUrl: "",
-    expiresAt: "",
+
+    // Section C-3: Special Gift
+    specialOfferType: "Buy One Get One (BOGO)",
+    offerDetails: "",
+    redemptionMethod: "Show Vouchiqo Smart Code at counter",
+
+    // Section D: Validity & Restrictions
+    startDate: "",
+    endDate: "",
     usageLimit: "",
-    integrationType: "static",
-    apiEndpoint: "",
-    image: "",
-    specialOfferType: "gift", // "gift" | "bogo" | "points" | "referral" | "bundle"
-    redemptionMethod: "online", // "online" | "instore" | "whatsapp" | "email"
-    isFeatured: false,
+    perCustomerLimit: "1",
+    targetAudience: "All Customers (Default)",
+    geographicRestriction: "Ranchi only — in-store at my listed address",
+    validDays: [],
+    validHours: "",
+
+    // Section E: Terms & Submission
+    termsAndConditions: "",
+    combinability: "No — cannot be combined with any other offer",
+    honouredAllDays: "Yes — every day during the validity period",
+    internalNote: "",
+    agreed1: false,
+    agreed2: false,
+    agreed3: false,
+    agreed4: false,
   });
-
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [formError, setFormError] = useState("");
-
-  const queryClient = useQueryClient();
 
   // Fetch merchant profile
   const { data: merchant } = useQuery({
@@ -59,11 +173,14 @@ export default function CreateCoupon() {
     },
   });
 
-  const isProOrEnterprise =
-    merchant?.plan === "pro" || merchant?.plan === "enterprise";
-
-  const handleNext = () => setStep((prev) => Math.min(prev + 1, 3));
-  const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
+  const generateRandomCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "SAVE";
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData((prev) => ({ ...prev, code }));
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -85,7 +202,7 @@ export default function CreateCoupon() {
       const imageUrl = json.data?.url;
 
       setFormData((prev) => ({ ...prev, image: imageUrl }));
-      toast.success("Listing image uploaded!");
+      toast.success("Offer image uploaded!");
     } catch (err) {
       toast.error("Failed to upload image.");
     } finally {
@@ -93,851 +210,836 @@ export default function CreateCoupon() {
     }
   };
 
+  const toggleDay = (day) => {
+    setFormData((prev) => {
+      const exists = prev.validDays.includes(day);
+      const updated = exists
+        ? prev.validDays.filter((d) => d !== day)
+        : [...prev.validDays, day];
+      return { ...prev, validDays: updated };
+    });
+  };
+
   const mutation = useMutation({
-    mutationFn: async (newCoupon) => {
+    mutationFn: async (payload) => {
       const res = await fetch("/api/coupons", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newCoupon),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.message || "Failed to create listing.");
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || "Failed to submit offer.");
       }
-
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
-      queryClient.invalidateQueries({ queryKey: ["coupons"] });
-      setSuccess(true);
+      toast.success("Offer submitted for verification! 4-hour SLA active.");
+      window.location.href = "/merchant/coupons";
     },
     onError: (err) => {
-      setFormError(err.message || "An unexpected error occurred.");
+      toast.error(err.message || "Something went wrong.");
     },
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError("");
-
-    const expiresDate = new Date(formData.expiresAt);
-    if (Number.isNaN(expiresDate.getTime())) {
-      setFormError("Please enter a valid expiry date.");
+  const handleSubmitOffer = () => {
+    // Validation checks
+    if (!formData.headline) {
+      toast.error("Offer Headline is required");
+      setActiveSection("B");
+      return;
+    }
+    if (!formData.shortDescription) {
+      toast.error("Short Description is required");
+      setActiveSection("B");
       return;
     }
 
-    if (expiresDate <= new Date()) {
-      setFormError("Expiry date must be in the future.");
+    if (formData.offerType === "code") {
+      if (!formData.code) {
+        toast.error("Offer Code is required");
+        setActiveSection("C");
+        return;
+      }
+      if (!formData.discountValue && formData.discountType !== "Free Shipping") {
+        toast.error("Discount Value is required");
+        setActiveSection("C");
+        return;
+      }
+    } else if (formData.offerType === "deal") {
+      if (!formData.dealUrl) {
+        toast.error("Direct Deal URL is required");
+        setActiveSection("C");
+        return;
+      }
+    } else if (formData.offerType === "special") {
+      if (!formData.offerDetails) {
+        toast.error("Offer Details text is required");
+        setActiveSection("C");
+        return;
+      }
+    }
+
+    if (!formData.startDate || !formData.endDate) {
+      toast.error("Start Date and End Date are required");
+      setActiveSection("D");
       return;
     }
 
-    // Prepare payload depending on Listing Type
-    const parsedMaxClaims = parseInt(formData.usageLimit, 10);
-    let payload = {
-      title: formData.title,
-      description: formData.description || undefined,
-      category: formData.category,
-      expiresAt: expiresDate.toISOString(),
-      // Only include maxClaims if it is a valid positive integer
-      maxClaims:
-        !Number.isNaN(parsedMaxClaims) && parsedMaxClaims > 0
-          ? parsedMaxClaims
-          : undefined,
-      image: formData.image || undefined,
-      isFeatured: isProOrEnterprise ? formData.isFeatured : false,
+    if (!formData.termsAndConditions) {
+      toast.error("Terms & Conditions are required");
+      setActiveSection("E");
+      return;
+    }
+
+    if (!formData.agreed1 || !formData.agreed2 || !formData.agreed3 || !formData.agreed4) {
+      toast.error("Please confirm all 4 mandatory checkboxes before submitting");
+      setActiveSection("E");
+      return;
+    }
+
+    // Map discount type enum to backend schema
+    let backendDiscountType = "percentage";
+    if (formData.offerType === "code") {
+      if (formData.discountType.includes("Flat")) backendDiscountType = "fixed";
+      else if (formData.discountType.includes("Free")) backendDiscountType = "freebie";
+    } else if (formData.offerType === "special") {
+      backendDiscountType = "freebie";
+    }
+
+    // Prepare full payload matching exact backend schema
+    const payload = {
+      title: formData.headline,
+      description: formData.shortDescription,
+      code: formData.code || "DEALOFFER",
+      discountType: backendDiscountType,
+      discountValue: Number(formData.discountValue) || 0,
+      originalPrice: Number(formData.originalPrice) || undefined,
+      salePrice: Number(formData.salePrice) || undefined,
+      category: formData.category, // Validated slug: "home-improvement", "fashion", "food", etc.
+      image: formData.image,
+      expiresAt: new Date(formData.endDate).toISOString(),
+      maxClaims: Number(formData.usageLimit) || undefined,
+
+      // Rich Section Metadata
+      offerType: formData.offerType,
+      headline: formData.headline,
+      shortDescription: formData.shortDescription,
+      maxCap: Number(formData.maxCap) || undefined,
+      minOrderValue: Number(formData.minOrderValue) || undefined,
+      dealUrl: formData.dealUrl,
+      specialOfferType: formData.specialOfferType,
+      offerDetails: formData.offerDetails,
+      redemptionMethod: formData.redemptionMethod,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      perCustomerLimit: formData.perCustomerLimit,
+      targetAudience: formData.targetAudience,
+      geographicRestriction: formData.geographicRestriction,
+      validDays: formData.validDays,
+      validHours: formData.validHours,
+      termsAndConditions: formData.termsAndConditions,
+      combinability: formData.combinability,
+      honouredAllDays: formData.honouredAllDays,
+      internalNote: formData.internalNote,
+      status: "active",
+      location: {
+        city: merchant?.address?.city || "Ranchi",
+        state: merchant?.address?.state || "Jharkhand",
+        isOnline: formData.geographicRestriction.includes("All India"),
+      },
     };
-
-    if (listingType === "coupon") {
-      const parsedDiscount = parseFloat(formData.discountValue);
-      payload = {
-        ...payload,
-        code:
-          formData.code.toUpperCase() ||
-          `SAVE-${Math.floor(1000 + Math.random() * 9000)}`,
-        discountType: formData.discountType,
-        // Only send discountValue if positive — Zod rejects 0
-        discountValue:
-          !Number.isNaN(parsedDiscount) && parsedDiscount > 0
-            ? parsedDiscount
-            : undefined,
-      };
-    } else if (listingType === "deal") {
-      const origPrice = parseFloat(formData.originalPrice);
-      const salePrice = parseFloat(formData.salePrice);
-      const computedDiscount =
-        !Number.isNaN(origPrice) && !Number.isNaN(salePrice)
-          ? origPrice - salePrice
-          : undefined;
-      payload = {
-        ...payload,
-        code: `DEAL-${Math.floor(1000 + Math.random() * 9000)}`,
-        discountType: "fixed",
-        discountValue:
-          computedDiscount !== undefined && computedDiscount > 0
-            ? computedDiscount
-            : undefined,
-        originalPrice: !Number.isNaN(origPrice) ? origPrice : undefined,
-        salePrice: !Number.isNaN(salePrice) ? salePrice : undefined,
-        dealUrl: formData.dealUrl || undefined,
-      };
-    } else if (listingType === "special") {
-      payload = {
-        ...payload,
-        code: `GIFT-${Math.floor(1000 + Math.random() * 9000)}`,
-        discountType: "freebie",
-        // Freebie — omit discountValue; schema accepts optional
-        tags: [formData.specialOfferType, formData.redemptionMethod],
-      };
-    }
 
     mutation.mutate(payload);
   };
 
+  const SECTIONS = [
+    { number: 1, key: "A", name: "Offer Type", icon: Tag },
+    { number: 2, key: "B", name: "Basic Details", icon: FileText },
+    { number: 3, key: "C", name: "Discount & Code", icon: Ticket },
+    { number: 4, key: "D", name: "Validity & Limits", icon: CalendarIcon },
+    { number: 5, key: "E", name: "Terms & Submit", icon: ShieldCheck },
+  ];
+
+  const currentSectionObj = SECTIONS.find((s) => s.key === activeSection) || SECTIONS[0];
+  const selectedCategoryLabel = CATEGORIES.find((c) => c.id === formData.category)?.label || "Home Improvement";
+
   return (
     <DashboardLayout
-      title="Create Offer Listing"
-      user={{ name: merchant?.businessName || "Merchant", role: "merchant" }}
+      title="Create New Coupon / Deal"
+      user={{
+        name: merchant?.businessName || "Merchant Partner",
+        role: "merchant",
+      }}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left items-start">
-        {/* Left Column: Form (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Listing type selector */}
-          <div className="bg-brand-bg border border-brand-border p-4 rounded-xl shadow-sm space-y-3">
-            <Label className="text-xs font-bold text-brand-text uppercase block">
-              Choose Listing Format
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                {
-                  id: "coupon",
-                  label: "Promo Code",
-                  desc: "Monospace promo code",
-                },
-                {
-                  id: "deal",
-                  label: "Sale/Flat Offer",
-                  desc: "Discounted price list",
-                },
-                {
-                  id: "special",
-                  label: "Special/Gift",
-                  desc: "Loyalty, BOGO, or Freebie",
-                },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    setListingType(t.id);
-                    setStep(1);
-                  }}
-                  className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
-                    listingType === t.id
-                      ? "border-brand-navy bg-brand-surface shadow-sm ring-1 ring-brand-navy"
-                      : "border-brand-border hover:bg-brand-surface/40"
-                  }`}
-                >
-                  <span className="block text-xs font-bold text-brand-navy">
-                    {t.label}
-                  </span>
-                  <span className="block text-[9px] text-brand-subtext font-medium mt-0.5 leading-snug">
-                    {t.desc}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Step Progress Indicators */}
-          <div className="flex items-center justify-between bg-brand-bg border border-brand-border p-4 rounded-xl shadow-sm">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center gap-2.5">
+      <div className="flex flex-col gap-6 text-left font-sans w-full max-w-[1300px] mx-auto">
+        {/* FULL WIDTH STEPPER BAR AT TOP (No Card background) */}
+        <div className="w-full flex items-center gap-4 py-2">
+          <Button
+            variant="ghost"
+            asChild
+            className="p-1.5 h-auto text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl cursor-pointer shrink-0"
+          >
+            <Link href="/merchant/coupons">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </Button>
+          <div className="flex items-center flex-1 w-full gap-3 sm:gap-6">
+            {SECTIONS.map((sec, idx) => {
+              const isActive = activeSection === sec.key;
+              const isPast = currentSectionObj.number > sec.number;
+              const isLast = idx === SECTIONS.length - 1;
+              return (
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
-                    step === s
-                      ? "bg-brand-navy text-white"
-                      : step > s
-                        ? "bg-brand-success text-white"
-                        : "bg-brand-surface border border-brand-border text-brand-subtext"
-                  }`}
+                  key={sec.key}
+                  className={`flex items-center gap-3 ${!isLast ? "flex-1" : ""}`}
                 >
-                  {step > s ? <Check className="w-4 h-4" /> : s}
-                </div>
-                <span
-                  className={`text-xs font-bold ${step === s ? "text-brand-navy" : "text-brand-subtext"}`}
-                >
-                  {s === 1 ? "Details" : s === 2 ? "Rules" : "Publish"}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Form Card */}
-          <div className="bg-brand-bg border border-brand-border rounded-xl p-6 shadow-sm">
-            {success
-              ? <div className="text-center py-8 space-y-5">
-                  <div className="mx-auto w-12 h-12 bg-brand-success/10 text-brand-success rounded-full flex items-center justify-center border border-brand-success/20">
-                    <Check className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <h3 className="font-heading text-lg font-bold text-brand-text">
-                      Listing Created Successfully!
-                    </h3>
-                    <p className="text-xs text-brand-subtext max-w-xs mx-auto leading-relaxed">
-                      Your campaign has been submitted to the platform. It is
-                      now active and ready for customers.
-                    </p>
-                  </div>
-                  <Link
-                    href="/merchant/coupons"
-                    className="btn-primary text-xs py-2 px-6 rounded-lg inline-flex items-center justify-center font-bold border-0 cursor-pointer shadow-none h-auto"
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection(sec.key)}
+                    className={`flex items-center gap-2 text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      isActive
+                        ? "text-slate-900 font-extrabold"
+                        : isPast
+                        ? "text-emerald-600 font-bold"
+                        : "text-slate-400 font-medium"
+                    }`}
                   >
-                    Return to Listings
-                  </Link>
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                        isActive
+                          ? "bg-[#e85d04] text-white shadow-xs"
+                          : isPast
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-200/80 text-slate-500"
+                      }`}
+                    >
+                      {isPast ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : sec.number}
+                    </span>
+                    <span>{sec.name}</span>
+                  </button>
+                  {!isLast && (
+                    <div
+                      className={`h-0.5 flex-1 rounded-full transition-colors ${
+                        isPast ? "bg-emerald-500" : "bg-slate-200"
+                      }`}
+                    />
+                  )}
                 </div>
-              : <form onSubmit={handleSubmit} className="space-y-5">
-                  {formError && (
-                    <div className="p-3.5 rounded-lg bg-brand-error/5 border border-brand-error/15 text-brand-error text-xs font-semibold text-center">
-                      {formError}
-                    </div>
-                  )}
-
-                  {/* Step 1: Details */}
-                  {step === 1 && (
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-bold text-brand-navy font-heading uppercase tracking-wider border-b border-brand-border pb-3">
-                        Step 1: Campaign Details
-                      </h3>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-brand-text uppercase">
-                          Offer Title / Headline
-                        </Label>
-                        <Input
-                          type="text"
-                          placeholder="e.g. 50% Off your next dinner"
-                          value={formData.title}
-                          onChange={(e) =>
-                            setFormData({ ...formData, title: e.target.value })
-                          }
-                          className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 focus-visible:border-brand-blue"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-brand-text uppercase">
-                          Category
-                        </Label>
-                        <Select
-                          value={formData.category}
-                          onValueChange={(val) =>
-                            setFormData({
-                              ...formData,
-                              category: val,
-                            })
-                          }
-                        >
-                          <SelectTrigger className="w-full bg-brand-surface border border-brand-border text-xs rounded-lg h-10 px-3 shadow-none focus:ring-0 focus:ring-offset-0">
-                            <SelectValue placeholder="Select Category" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-brand-bg border border-brand-border">
-                            {COUPON_CATEGORIES.map((cat) => (
-                              <SelectItem
-                                key={cat}
-                                value={cat}
-                                className="text-xs font-semibold capitalize"
-                              >
-                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-brand-text uppercase">
-                          Terms / Description
-                        </Label>
-                        <Textarea
-                          placeholder="Detail maximum discount caps, eligibility, and validation rules..."
-                          value={formData.description}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              description: e.target.value,
-                            })
-                          }
-                          rows={3}
-                          className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full min-h-[80px] p-3 shadow-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 focus-visible:border-brand-blue"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 2: Rules */}
-                  {step === 2 && (
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-bold text-brand-navy font-heading uppercase tracking-wider border-b border-brand-border pb-3">
-                        Step 2: Campaign Rules
-                      </h3>
-
-                      {listingType === "coupon" && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs font-bold text-brand-text uppercase">
-                                Discount Type
-                              </Label>
-                              <Select
-                                value={formData.discountType}
-                                onValueChange={(val) =>
-                                  setFormData({
-                                    ...formData,
-                                    discountType: val,
-                                  })
-                                }
-                              >
-                                <SelectTrigger className="w-full bg-brand-surface border border-brand-border text-xs rounded-lg h-10 px-3 shadow-none">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-brand-bg border border-brand-border">
-                                  <SelectItem
-                                    value="percentage"
-                                    className="text-xs font-semibold"
-                                  >
-                                    Percentage OFF (%)
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="fixed"
-                                    className="text-xs font-semibold"
-                                  >
-                                    Fixed Cash OFF (₹)
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs font-bold text-brand-text uppercase">
-                                Value
-                              </Label>
-                              <Input
-                                type="number"
-                                placeholder="e.g. 50"
-                                value={formData.discountValue}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    discountValue: e.target.value,
-                                  })
-                                }
-                                className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-bold text-brand-text uppercase">
-                              Monospace Promo Code
-                            </Label>
-                            <Input
-                              type="text"
-                              placeholder="e.g. BURGER50"
-                              value={formData.code}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  code: e.target.value.toUpperCase(),
-                                })
-                              }
-                              className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none font-mono uppercase"
-                              required
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {listingType === "deal" && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs font-bold text-brand-text uppercase">
-                                Original Price (₹)
-                              </Label>
-                              <Input
-                                type="number"
-                                placeholder="e.g. 1500"
-                                value={formData.originalPrice}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    originalPrice: e.target.value,
-                                  })
-                                }
-                                className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                                required
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs font-bold text-brand-text uppercase">
-                                Sale Price (₹)
-                              </Label>
-                              <Input
-                                type="number"
-                                placeholder="e.g. 999"
-                                value={formData.salePrice}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    salePrice: e.target.value,
-                                  })
-                                }
-                                className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-bold text-brand-text uppercase">
-                              Direct Deal Link / URL
-                            </Label>
-                            <Input
-                              type="url"
-                              placeholder="https://myshop.com/product/deal"
-                              value={formData.dealUrl}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  dealUrl: e.target.value,
-                                })
-                              }
-                              className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {listingType === "special" && (
-                        <div className="space-y-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-bold text-brand-text uppercase">
-                              Offer Style / Type
-                            </Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                              {[
-                                { id: "gift", label: "Free Gift" },
-                                { id: "bogo", label: "Buy 1 Get 1" },
-                                { id: "points", label: "Loyalty Points" },
-                                { id: "referral", label: "Referral Bonus" },
-                                { id: "bundle", label: "Bundle Deal" },
-                              ].map((o) => (
-                                <label
-                                  key={o.id}
-                                  className="border border-brand-border p-2 rounded-lg flex items-center gap-2 cursor-pointer text-xs font-bold bg-brand-surface hover:bg-slate-100 select-none"
-                                >
-                                  <input
-                                    type="radio"
-                                    name="specialOfferType"
-                                    value={o.id}
-                                    checked={formData.specialOfferType === o.id}
-                                    onChange={(e) =>
-                                      setFormData({
-                                        ...formData,
-                                        specialOfferType: e.target.value,
-                                      })
-                                    }
-                                    className="w-4 h-4 text-brand-blue"
-                                  />
-                                  <span>{o.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-bold text-brand-text uppercase">
-                              Redemption Channel
-                            </Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                              {[
-                                { id: "online", label: "Online Code" },
-                                { id: "instore", label: "In-Store Scan" },
-                                { id: "whatsapp", label: "WhatsApp Chat" },
-                                { id: "email", label: "Email Coupon" },
-                              ].map((rc) => (
-                                <label
-                                  key={rc.id}
-                                  className="border border-brand-border p-2 rounded-lg flex items-center gap-2 cursor-pointer text-[10px] font-bold bg-brand-surface hover:bg-slate-100 select-none"
-                                >
-                                  <input
-                                    type="radio"
-                                    name="redemptionMethod"
-                                    value={rc.id}
-                                    checked={
-                                      formData.redemptionMethod === rc.id
-                                    }
-                                    onChange={(e) =>
-                                      setFormData({
-                                        ...formData,
-                                        redemptionMethod: e.target.value,
-                                      })
-                                    }
-                                    className="w-3 h-3 text-brand-blue"
-                                  />
-                                  <span>{rc.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-bold text-brand-text uppercase">
-                            Expiry Date
-                          </Label>
-                          <Input
-                            type="date"
-                            value={formData.expiresAt}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                expiresAt: e.target.value,
-                              })
-                            }
-                            className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-bold text-brand-text uppercase">
-                            Usage Limit (Optional)
-                          </Label>
-                          <Input
-                            type="number"
-                            placeholder="e.g. 500"
-                            value={formData.usageLimit}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                usageLimit: e.target.value,
-                              })
-                            }
-                            className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Image Uploader for Deals and Special Offers */}
-                      {listingType !== "coupon" && (
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-bold text-brand-text uppercase">
-                            Upload Promotional Graphic / Image
-                          </Label>
-                          <div className="relative border border-dashed border-brand-border rounded-lg p-5 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-28 flex flex-col items-center justify-center overflow-hidden">
-                            {formData.image
-                              ? // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={formData.image}
-                                  alt="Upload"
-                                  className="w-full h-full object-contain"
-                                />
-                              : <>
-                                  <Upload className="w-5 h-5 text-brand-subtext mb-2" />
-                                  <span className="text-[10px] text-brand-subtext font-semibold">
-                                    {uploadingImage
-                                      ? "Uploading..."
-                                      : "Click to select a file"}
-                                  </span>
-                                </>}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              disabled={uploadingImage}
-                              className="absolute inset-0 opacity-0 cursor-pointer"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Step 3: Publish Settings */}
-                  {step === 3 && (
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-bold text-brand-navy font-heading uppercase tracking-wider border-b border-brand-border pb-3">
-                        Step 3: Publish settings
-                      </h3>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-brand-text uppercase">
-                          Verification mode
-                        </Label>
-                        <Select
-                          value={formData.integrationType}
-                          onValueChange={(val) =>
-                            setFormData({
-                              ...formData,
-                              integrationType: val,
-                            })
-                          }
-                        >
-                          <SelectTrigger className="w-full bg-brand-surface border border-brand-border text-xs rounded-lg h-10 px-3 shadow-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-brand-bg border border-brand-border">
-                            <SelectItem
-                              value="static"
-                              className="text-xs font-semibold"
-                            >
-                              Static Codes (No Webhook API)
-                            </SelectItem>
-                            <SelectItem
-                              value="api"
-                              className="text-xs font-semibold"
-                            >
-                              Dynamic Webhook verification
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {formData.integrationType === "api" && (
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-bold text-brand-text uppercase">
-                            Webhook API Verification Endpoint
-                          </Label>
-                          <Input
-                            type="url"
-                            placeholder="https://mystore.com/api/vouchers/verify"
-                            value={formData.apiEndpoint}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                apiEndpoint: e.target.value,
-                              })
-                            }
-                            className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {/* Featured Placement toggle (plan gated) */}
-                      <div
-                        className={`p-4 rounded-xl border flex justify-between items-center ${
-                          isProOrEnterprise
-                            ? "border-brand-navy/20 bg-brand-surface"
-                            : "border-slate-200 bg-slate-50 opacity-75"
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-brand-navy">
-                              Pin to Homepage Featured Deals
-                            </span>
-                            {!isProOrEnterprise && (
-                              <Lock className="w-3.5 h-3.5 text-slate-400" />
-                            )}
-                          </div>
-                          <p className="text-[10px] text-brand-subtext font-semibold">
-                            Starter and Growth plans are locked out. Elevation
-                            requires Pro plan.
-                          </p>
-                        </div>
-
-                        <input
-                          type="checkbox"
-                          checked={formData.isFeatured}
-                          disabled={!isProOrEnterprise}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              isFeatured: e.target.checked,
-                            })
-                          }
-                          className={`w-4 h-4 cursor-pointer ${
-                            !isProOrEnterprise
-                              ? "cursor-not-allowed opacity-50"
-                              : ""
-                          }`}
-                        />
-                      </div>
-
-                      <div className="flex gap-2.5 p-3.5 rounded-lg bg-brand-surface border border-brand-border text-xs text-brand-subtext leading-relaxed">
-                        <Info className="w-4 h-4 text-brand-blue flex-shrink-0" />
-                        <span>
-                          By submitting this campaign, you authorize Vouchiqo to
-                          list it immediately. Expired campaigns can be revived
-                          manually.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Controls */}
-                  <div className="flex justify-between border-t border-brand-border pt-4 mt-6">
-                    {step > 1
-                      ? <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={handleBack}
-                          className="btn-tertiary text-xs py-2 px-4 flex items-center gap-1.5 border border-brand-border rounded-lg cursor-pointer h-auto shadow-none hover:bg-brand-surface font-semibold"
-                        >
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>Back</span>
-                        </Button>
-                      : <div></div>}
-
-                    {step < 3
-                      ? <Button
-                          type="button"
-                          onClick={handleNext}
-                          className="btn-primary text-xs py-2 px-6 flex items-center gap-1.5 border-0 h-auto cursor-pointer shadow-none"
-                        >
-                          <span>Next Step</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Button>
-                      : <Button
-                          type="submit"
-                          disabled={mutation.isPending}
-                          className="btn-primary text-xs py-2 px-6 border-0 h-auto cursor-pointer shadow-none"
-                        >
-                          {mutation.isPending
-                            ? "Creating..."
-                            : "Publish Campaign"}
-                        </Button>}
-                  </div>
-                </form>}
+              );
+            })}
           </div>
         </div>
 
-        {/* Right Column: Live Preview Panel (5 cols) */}
-        <div className="lg:col-span-5 sticky top-6">
-          <div className="bg-brand-bg border border-brand-border rounded-xl p-5 shadow-sm space-y-4">
-            <h3 className="font-heading text-xs font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3">
-              Live Listing Preview
-            </h3>
+        {/* 2-COLUMN LAYOUT: FORM ON LEFT (7 COLS), LIVE CARD PREVIEW ON RIGHT (5 COLS) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT COLUMN: FORM STEPS */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* SECTION A: Offer Type */}
+            {activeSection === "A" && (
+              <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Select Offer Type</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Choose how customers redeem this offer.
+                  </p>
+                </div>
 
-            {/* Simulated Coupon Card */}
-            <div className="border border-brand-border rounded-2xl bg-white shadow-sm overflow-hidden text-left relative transition-all duration-300 hover:shadow-md">
-              <div className="absolute top-3 right-3 bg-brand-success/10 text-brand-success border border-brand-success/20 text-[8px] font-bold py-0.5 px-2 rounded-full flex items-center gap-0.5">
-                <Check className="w-2.5 h-2.5" />
-                <span>Verified</span>
-              </div>
+                <div className="space-y-3">
+                  {OFFER_TYPES.map((type) => {
+                    const Icon = type.icon;
+                    const isSelected = formData.offerType === type.id;
+                    return (
+                      <div
+                        key={type.id}
+                        onClick={() => setFormData({ ...formData, offerType: type.id })}
+                        className={cn(
+                          "p-4 rounded-2xl border-2 cursor-pointer transition-all",
+                          isSelected
+                            ? `${type.color} border-slate-900 shadow-xs`
+                            : "border-slate-200/80 bg-white hover:border-slate-300"
+                        )}
+                      >
+                        <div className="flex items-center gap-3 mb-1">
+                          <Icon className="w-5 h-5 text-slate-800 shrink-0" />
+                          <span className="text-sm font-bold text-slate-900">{type.name}</span>
+                        </div>
+                        <p className="text-xs text-slate-600 font-medium leading-relaxed pl-8">
+                          {type.desc}
+                        </p>
+                        <span className="text-[11px] text-slate-400 font-semibold block pt-2 pl-8">
+                          {type.bestFor}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              {listingType !== "coupon" && formData.image
-                ? <div className="h-32 bg-slate-100 overflow-hidden relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={formData.image}
-                      alt="Promo Graphic"
-                      className="w-full h-full object-cover"
+                <div className="flex justify-end pt-2">
+                  <Button
+                    onClick={() => setActiveSection("B")}
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Continue to Basic Details</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* SECTION B: Basic Details */}
+            {activeSection === "B" && (
+              <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Basic Offer Details</h3>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Headline */}
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <FileText className="w-3.5 h-3.5 text-blue-600" /> Offer Headline / Title *
+                    </Label>
+                    <Input
+                      type="text"
+                      maxLength={70}
+                      placeholder="e.g. Flat 20% off on all Italian Marble Tiles"
+                      value={formData.headline}
+                      onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
+                      className="bg-white border-slate-200 text-xs h-10 rounded-xl font-medium"
+                    />
+                    <span className="text-[10px] text-slate-400 block text-right font-medium">
+                      {formData.headline.length}/70 chars
+                    </span>
+                  </div>
+
+                  {/* Short Description */}
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <MessageSquare className="w-3.5 h-3.5 text-emerald-600" /> Short Description *
+                    </Label>
+                    <Textarea
+                      maxLength={160}
+                      rows={3}
+                      placeholder="e.g. Get 20% discount on total invoice amount for all premium tiles."
+                      value={formData.shortDescription}
+                      onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                      className="bg-white border-slate-200 text-xs leading-relaxed rounded-xl"
                     />
                   </div>
-                : <div className="h-3 bg-gradient-to-r from-brand-navy to-brand-blue" />}
 
-              <div className="p-5 space-y-4 font-semibold text-brand-text text-xs">
-                {/* Brand Header */}
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-brand-navy text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    {merchant?.logo
-                      ? // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={merchant.logo}
-                          alt="Logo"
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      : merchant?.businessName?.[0] || "M"}
+                  {/* Category Select using Shadcn Select */}
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <Layers className="w-3.5 h-3.5 text-purple-600" /> Primary Category *
+                    </Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(val) => setFormData({ ...formData, category: val })}
+                    >
+                      <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[300]">
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <h5 className="font-bold text-brand-navy leading-none">
-                      {merchant?.businessName || "Your Store"}
-                    </h5>
-                    <span className="text-[9px] text-brand-subtext font-bold uppercase tracking-wider block mt-0.5">
-                      {formData.category}
+
+                  {/* Offer Image URL */}
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <ImageIcon className="w-3.5 h-3.5 text-orange-600" /> Offer Image URL (Optional)
+                    </Label>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/marble-tile-deal.jpg"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveSection("A")}
+                    className="text-xs font-bold rounded-xl border-slate-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+                  </Button>
+                  <Button
+                    onClick={() => setActiveSection("C")}
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Continue to Discount &amp; Code</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* SECTION C: Discount & Code */}
+            {activeSection === "C" && (
+              <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Discount &amp; Code Mechanics</h3>
+                </div>
+
+                {formData.offerType === "code" && (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <Ticket className="w-3.5 h-3.5 text-orange-600" /> Offer Code *
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={generateRandomCode}
+                          className="text-[11px] font-bold text-[#e85d04] hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Auto-generate Code
+                        </button>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="e.g. MARBLE20"
+                        value={formData.code}
+                        onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase().replace(/\s/g, "") })}
+                        className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <Percent className="w-3.5 h-3.5 text-blue-600" /> Discount Format *
+                        </Label>
+                        <Select
+                          value={formData.discountType}
+                          onValueChange={(val) => setFormData({ ...formData, discountType: val })}
+                        >
+                          <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                            <SelectValue placeholder="Discount format" />
+                          </SelectTrigger>
+                          <SelectContent className="z-[300]">
+                            <SelectItem value="% Off">% Off (Percentage Discount)</SelectItem>
+                            <SelectItem value="Flat ₹ Off">Flat ₹ Off (Fixed Amount)</SelectItem>
+                            <SelectItem value="Free Shipping">Free Shipping / Delivery</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> Discount Value *
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 20 (for 20%)"
+                          value={formData.discountValue}
+                          onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
+                          className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> Max Discount Cap (₹)
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 2000"
+                          value={formData.maxCap}
+                          onChange={(e) => setFormData({ ...formData, maxCap: e.target.value })}
+                          className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <Tag className="w-3.5 h-3.5 text-amber-600" /> Min Order Value (₹)
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 5000"
+                          value={formData.minOrderValue}
+                          onChange={(e) => setFormData({ ...formData, minOrderValue: e.target.value })}
+                          className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {formData.offerType === "deal" && (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <Link2 className="w-3.5 h-3.5 text-orange-600" /> Direct Deal URL *
+                      </Label>
+                      <Input
+                        type="url"
+                        placeholder="https://yourstore.com/sale-page"
+                        value={formData.dealUrl}
+                        onChange={(e) => setFormData({ ...formData, dealUrl: e.target.value })}
+                        className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <DollarSign className="w-3.5 h-3.5 text-slate-600" /> Original Price (₹)
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 2000"
+                          value={formData.originalPrice}
+                          onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
+                          className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                          <Tag className="w-3.5 h-3.5 text-[#e85d04]" /> Sale Price (₹)
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 1499"
+                          value={formData.salePrice}
+                          onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+                          className="bg-white border-slate-200 text-xs h-10 rounded-xl font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {formData.offerType === "special" && (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <Gift className="w-3.5 h-3.5 text-purple-600" /> Special Offer Format *
+                      </Label>
+                      <Select
+                        value={formData.specialOfferType}
+                        onValueChange={(val) => setFormData({ ...formData, specialOfferType: val })}
+                      >
+                        <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                          <SelectValue placeholder="Select special format" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[300]">
+                          <SelectItem value="Buy One Get One (BOGO)">Buy One Get One (BOGO)</SelectItem>
+                          <SelectItem value="Free Gift with Purchase">Free Gift with Purchase</SelectItem>
+                          <SelectItem value="Free Upgrade / Treatment">Free Upgrade / Service</SelectItem>
+                          <SelectItem value="Bundle / Combo Price">Bundle / Combo Package</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <FileText className="w-3.5 h-3.5 text-slate-700" /> Offer Details Text *
+                      </Label>
+                      <Textarea
+                        rows={3}
+                        placeholder="e.g. Buy any 2 Marble Slabs and get 1 Grout Sealer packet completely FREE."
+                        value={formData.offerDetails}
+                        onChange={(e) => setFormData({ ...formData, offerDetails: e.target.value })}
+                        className="bg-white border-slate-200 text-xs rounded-xl"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveSection("B")}
+                    className="text-xs font-bold rounded-xl border-slate-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+                  </Button>
+                  <Button
+                    onClick={() => setActiveSection("D")}
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Continue to Validity &amp; Limits</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* SECTION D: Validity & Limits */}
+            {activeSection === "D" && (
+              <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Validity &amp; Restrictions</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <Clock className="w-3.5 h-3.5 text-blue-600" /> Start Date *
+                      </Label>
+                      <DatePicker
+                        value={formData.startDate}
+                        onChange={(val) => setFormData({ ...formData, startDate: val })}
+                        placeholder="Select start date"
+                        iconColor="text-blue-600"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <Clock className="w-3.5 h-3.5 text-rose-600" /> End Date *
+                      </Label>
+                      <DatePicker
+                        value={formData.endDate}
+                        onChange={(val) => setFormData({ ...formData, endDate: val })}
+                        placeholder="Select end date"
+                        iconColor="text-rose-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <Users className="w-3.5 h-3.5 text-purple-600" /> Total Usage Limit (Optional)
+                      </Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 100 total redemptions"
+                        value={formData.usageLimit}
+                        onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value })}
+                        className="bg-white border-slate-200 text-xs h-10 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <Lock className="w-3.5 h-3.5 text-amber-600" /> Per Customer Limit
+                      </Label>
+                      <Select
+                        value={formData.perCustomerLimit}
+                        onValueChange={(val) => setFormData({ ...formData, perCustomerLimit: val })}
+                      >
+                        <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                          <SelectValue placeholder="Limit per user" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[300]">
+                          <SelectItem value="1">1 time per user</SelectItem>
+                          <SelectItem value="2">2 times per user</SelectItem>
+                          <SelectItem value="unlimited">Unlimited per user</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Valid Days */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <CalendarIcon className="w-3.5 h-3.5 text-emerald-600" /> Valid Days of Week (Optional)
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {DAYS_OF_WEEK.map((day) => {
+                        const isSelected = formData.validDays.includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(day)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                              isSelected
+                                ? "bg-slate-900 text-white border-slate-900"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                            )}
+                          >
+                            {day.slice(0, 3)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveSection("C")}
+                    className="text-xs font-bold rounded-xl border-slate-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+                  </Button>
+                  <Button
+                    onClick={() => setActiveSection("E")}
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Continue to Terms &amp; Submit</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* SECTION E: Terms & Submission */}
+            {activeSection === "E" && (
+              <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Terms &amp; Compliance</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <FileText className="w-3.5 h-3.5 text-slate-700" /> Terms &amp; Conditions (Numbered) *
+                    </Label>
+                    <Textarea
+                      rows={4}
+                      placeholder="1. Valid on bill ₹5,000+. 2. Max discount ₹2,000. 3. Cannot be combined with other offers."
+                      value={formData.termsAndConditions}
+                      onChange={(e) => setFormData({ ...formData, termsAndConditions: e.target.value })}
+                      className="bg-white border-slate-200 text-xs leading-relaxed rounded-xl"
+                    />
+                  </div>
+
+                  {/* Mandatory Compliance Checkboxes */}
+                  <div className="border-t border-slate-100 pt-4 space-y-3">
+                    <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-900 uppercase tracking-wide">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Mandatory Merchant Agreements
+                    </Label>
+                    <div className="space-y-2">
+                      {[
+                        { key: "agreed1", text: "My offer is genuine, tested, and will be honored at counter." },
+                        { key: "agreed2", text: "All terms including minimum order and max cap are accurately disclosed." },
+                        { key: "agreed3", text: "My counter billing staff is briefed and ready to process Smart Codes." },
+                        { key: "agreed4", text: "I understand Vouchiqo compliance checks and honor all customer redemptions." },
+                      ].map((chk) => {
+                        const isChecked = formData[chk.key];
+                        return (
+                          <label
+                            key={chk.key}
+                            className={cn(
+                              "flex items-start gap-3 p-3.5 rounded-xl border text-xs cursor-pointer transition-all",
+                              isChecked
+                                ? "bg-emerald-50/60 border-emerald-300 text-emerald-950 font-semibold"
+                                : "bg-slate-50/50 border-slate-200/80 text-slate-700 hover:border-slate-300 font-medium"
+                            )}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(val) => setFormData({ ...formData, [chk.key]: !!val })}
+                              className="mt-0.5 shrink-0"
+                            />
+                            <span className="leading-relaxed select-none">{chk.text}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-4 border-t border-slate-100">
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveSection("D")}
+                    className="text-xs font-bold rounded-xl border-slate-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+                  </Button>
+                  <Button
+                    onClick={handleSubmitOffer}
+                    disabled={mutation.isPending}
+                    className="bg-[#e85d04] hover:bg-orange-600 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-xs"
+                  >
+                    {mutation.isPending ? "Submitting..." : "Submit Offer for Review"}
+                  </Button>
+                </div>
+              </Card>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: LIVE COUPON CARD PREVIEW (5 COLS) */}
+          <div className="lg:col-span-5 lg:sticky lg:top-6 space-y-4">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  <Eye className="w-4 h-4 text-[#e85d04]" /> Live Offer Preview
+                </span>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200/60 text-[10px] font-bold">
+                  Live Preview
+                </Badge>
+              </div>
+
+              {/* Live Coupon Preview Item */}
+              <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-xs">
+                {/* Banner or image header */}
+                <div
+                  className="h-32 bg-slate-900 relative flex items-end p-4 bg-cover bg-center"
+                  style={{
+                    backgroundImage: formData.image
+                      ? `url(${formData.image})`
+                      : "linear-gradient(to right, #0f172a, #1e293b)",
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                  <div className="relative z-10 flex items-center justify-between w-full">
+                    <Badge className="bg-[#e85d04] text-white font-bold text-[9px] uppercase px-2 py-0.5 border-0">
+                      {formData.offerType.toUpperCase()}
+                    </Badge>
+                    <span className="text-white text-[10px] font-bold bg-black/50 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20">
+                      {merchant?.businessName || "Store Name"}
                     </span>
                   </div>
                 </div>
 
-                {/* Details */}
-                <div className="space-y-1">
-                  <h4 className="font-bold text-brand-navy text-sm leading-tight">
-                    {formData.title || "Enter Listing Title"}
-                  </h4>
-                  <p className="text-[10px] text-brand-subtext leading-snug font-medium line-clamp-2">
-                    {formData.description ||
-                      "Enter detailed instructions or coupon details."}
-                  </p>
-                </div>
+                <div className="p-4 space-y-3.5">
+                  {/* Headline & Short description */}
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 leading-snug">
+                      {formData.headline || "Flat 20% off on all Italian Marble Tiles"}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1 line-clamp-2">
+                      {formData.shortDescription || "Get 20% discount on total invoice amount for all premium tiles."}
+                    </p>
+                  </div>
 
-                {/* Code Box / Price tag */}
-                {listingType === "coupon"
-                  ? <div className="border border-dashed border-brand-navy/30 bg-brand-surface rounded-xl p-3 flex justify-between items-center">
-                      <span className="font-mono font-bold text-brand-navy text-sm uppercase">
-                        {formData.code || "PROMOCODE"}
-                      </span>
-                      <span className="bg-brand-warning text-white text-[9px] font-bold py-0.5 px-2 rounded-full uppercase tracking-wider">
-                        {formData.discountType === "percentage"
-                          ? `${formData.discountValue || "0"}% OFF`
-                          : `₹${formData.discountValue || "0"} OFF`}
-                      </span>
-                    </div>
-                  : listingType === "deal"
-                    ? <div className="flex justify-between items-center py-2 border-y border-slate-100">
-                        <div className="space-y-0.5">
-                          <span className="text-slate-400 line-through text-[10px] block">
-                            Was ₹{formData.originalPrice || "0"}
-                          </span>
-                          <span className="text-brand-success font-black text-sm block">
-                            Now ₹{formData.salePrice || "0"}
-                          </span>
-                        </div>
-                        <span className="bg-brand-warning text-white text-[9px] font-bold py-1 px-3 rounded-full uppercase tracking-wider">
-                          Save ₹
-                          {(parseFloat(formData.originalPrice) || 0) -
-                            (parseFloat(formData.salePrice) || 0)}
-                        </span>
-                      </div>
-                    : <div className="border border-dashed border-brand-blue/30 bg-blue-50/50 rounded-xl p-3 flex justify-between items-center">
-                        <span className="font-bold text-brand-blue uppercase text-[10px]">
-                          {formData.specialOfferType === "gift"
-                            ? "🎁 Free Gift"
-                            : formData.specialOfferType === "bogo"
-                              ? "🏷️ Buy 1 Get 1"
-                              : formData.specialOfferType === "points"
-                                ? "⭐ Loyalty Points"
-                                : formData.specialOfferType === "referral"
-                                  ? "👥 Referral Reward"
-                                  : "📦 Special Bundle"}
-                        </span>
-                        <span className="bg-brand-navy text-white text-[8px] font-bold py-0.5 px-1.5 rounded uppercase tracking-wider">
-                          {formData.redemptionMethod}
-                        </span>
-                      </div>}
+                  {/* Promo Code & Discount Pill */}
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                    <span className="text-slate-500 font-semibold">
+                      Code: <span className="font-mono text-slate-900 font-bold uppercase">{formData.code || "SAVE20"}</span>
+                    </span>
+                    <span className="text-[#e85d04] font-black">
+                      {formData.discountValue ? `${formData.discountValue}% OFF` : "SPECIAL OFFER"}
+                    </span>
+                  </div>
 
-                {/* Expiry display */}
-                <div className="flex justify-between items-center text-[10px] text-brand-subtext font-bold">
-                  <span>Expires:</span>
-                  <span>
-                    {formData.expiresAt
-                      ? new Date(formData.expiresAt).toLocaleDateString(
-                          "en-IN",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          },
-                        )
-                      : "DD MMM YYYY"}
-                  </span>
+                  {/* Location & Category snippet */}
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold border-t border-slate-100 pt-2">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      {merchant?.address?.city || "Ranchi"}
+                    </span>
+                    <span className="text-slate-600 font-bold">{selectedCategoryLabel}</span>
+                  </div>
+
+                  {/* Action button preview */}
+                  <Button className="w-full bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl shadow-xs cursor-default">
+                    Get In-Store Claim Code
+                  </Button>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>

@@ -32,10 +32,14 @@ export default function SidebarSection({
         <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 pb-3 border-b border-gray-50 mb-3">
           About {merchant.businessName}
         </h3>
-        <p className="text-[13px] text-gray-600 leading-relaxed font-normal">
-          {merchant.longDescription ||
-            merchant.description ||
-            `Verified discount coupons and offers for ${merchant.businessName}. All deals are tested and curated by our team.`}
+        <p className="text-[13px] text-slate-600 leading-relaxed font-normal">
+          {(() => {
+            const text = merchant.longDescription || merchant.description;
+            if (text && text.trim().length > 20 && !text.includes("sfsf")) {
+              return text;
+            }
+            return `Welcome to ${merchant.businessName}! Explore the latest verified discount coupons, promo codes, and exclusive store offers. Save more on every purchase with real, tested deals curated daily for you.`;
+          })()}
         </p>
         {merchant.website && (
           <a

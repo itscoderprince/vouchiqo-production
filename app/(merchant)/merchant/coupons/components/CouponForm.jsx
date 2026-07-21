@@ -1,19 +1,30 @@
 "use client";
 
 import {
-  Calendar,
+  Calendar as CalendarIcon,
+  Check,
+  Eye,
   FileText,
   FolderOpen,
   IndianRupee,
+  Layers,
   Loader2,
+  Lock,
+  MapPin,
+  MessageSquare,
   Percent,
+  Plus,
   Save,
   Settings,
+  ShieldCheck,
   Tag,
   Ticket,
   Users,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,21 +34,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-function FieldLabel({ icon: Icon, children, hint }) {
-  return (
-    <Label className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5 mb-1.5 text-left">
-      {Icon && <Icon className="w-3.5 h-3.5 text-brand-blue" />}
-      <span>{children}</span>
-      {hint && (
-        <span className="text-[10px] font-medium text-brand-subtext normal-case tracking-normal">
-          ({hint})
-        </span>
-      )}
-    </Label>
-  );
-}
+const CATEGORIES = [
+  { id: "fashion", label: "Fashion & Clothing" },
+  { id: "food", label: "Food & Dining" },
+  { id: "electronics", label: "Electronics & Gadgets" },
+  { id: "beauty", label: "Beauty & Wellness" },
+  { id: "travel", label: "Travel & Hospitality" },
+  { id: "home", label: "Home & Living" },
+  { id: "home-improvement", label: "Home Improvement" },
+  { id: "fitness", label: "Fitness & Healthcare" },
+  { id: "education", label: "Education & Courses" },
+  { id: "kids-baby", label: "Kids & Baby Products" },
+  { id: "jewellery", label: "Jewellery & Accessories" },
+  { id: "automotive", label: "Automobile & Auto Services" },
+  { id: "entertainment", label: "Gaming & Entertainment" },
+  { id: "grocery", label: "Grocery & Essentials" },
+  { id: "finance", label: "Finance & Insurance" },
+];
 
 export default function CouponForm({
   formData,
@@ -48,262 +64,231 @@ export default function CouponForm({
   isPending,
   submitText = "Save Offer",
   isEdit = false,
-  couponCategories = [],
   merchantPlan = "starter",
+  merchantName = "Store Name",
 }) {
+  const selectedCategoryObj = CATEGORIES.find(
+    (c) => c.id === formData.category || c.label === formData.category
+  ) || CATEGORIES[0];
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left items-start"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-start"
     >
-      {/* Form Content (7 columns) */}
+      {/* LEFT COLUMN: FORM CARDS (7 COLS) */}
       <div className="lg:col-span-7 space-y-6">
-        {/* Listing format selector - only if not editing */}
-        {!isEdit && (
-          <div className="bg-white border border-brand-border p-4 rounded-xl shadow-sm space-y-3">
-            <FieldLabel icon={Settings}>Choose Listing Format</FieldLabel>
-            <div className="grid grid-cols-3 gap-2">
+        {/* Listing Format Selector (only if not editing) */}
+        {!isEdit && setListingType && (
+          <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-3">
+            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
+              <Settings className="w-3.5 h-3.5 text-blue-600" /> Choose Listing Format
+            </Label>
+            <div className="grid grid-cols-3 gap-2.5">
               {[
-                {
-                  id: "coupon",
-                  label: "Promo Code",
-                  desc: "Monospace promo code",
-                },
-                {
-                  id: "deal",
-                  label: "Sale/Flat Offer",
-                  desc: "Discounted price list",
-                },
-                {
-                  id: "special",
-                  label: "Special/Gift",
-                  desc: "Loyalty, BOGO, or Freebie",
-                },
+                { id: "coupon", label: "Promo Code", desc: "Code for checkout / in-store" },
+                { id: "deal", label: "Sale / Flat Offer", desc: "Discounted price link" },
+                { id: "special", label: "Special / Gift", desc: "BOGO or Freebie package" },
               ].map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => setListingType(t.id)}
-                  className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                     listingType === t.id
-                      ? "border-brand-navy bg-brand-surface shadow-sm ring-1 ring-brand-navy"
-                      : "border-brand-border hover:bg-brand-surface/40"
+                      ? "border-[#e85d04] bg-orange-50/50 shadow-2xs font-bold text-slate-900"
+                      : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                   }`}
                 >
-                  <span className="block text-xs font-bold text-brand-navy">
-                    {t.label}
-                  </span>
-                  <span className="block text-[9px] text-brand-subtext font-medium mt-0.5 leading-snug">
+                  <span className="block text-xs font-bold">{t.label}</span>
+                  <span className="block text-[10px] text-slate-400 font-medium mt-0.5 leading-snug">
                     {t.desc}
                   </span>
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
-        <div className="bg-white border border-brand-border rounded-xl p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-brand-navy font-heading uppercase tracking-wider border-b border-brand-border pb-3">
-            {isEdit ? "Edit Campaign Details" : "Campaign Details"}
-          </h3>
-
-          {/* Title */}
-          <div className="space-y-1">
-            <FieldLabel icon={Tag}>Offer Title / Headline</FieldLabel>
-            <Input
-              type="text"
-              placeholder="e.g. 50% Off your next dinner"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 focus-visible:border-brand-blue"
-              required
-            />
+        {/* Card 1: Main Offer Details */}
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="text-base font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <FileText className="w-4 h-4 text-blue-600" /> Edit Campaign Details
+            </h3>
           </div>
 
-          {/* Grid 1: Category & Code */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <FieldLabel icon={FolderOpen}>Category</FieldLabel>
-              <Select
-                value={formData.category}
-                onValueChange={(val) =>
-                  setFormData({ ...formData, category: val })
-                }
-              >
-                <SelectTrigger className="w-full bg-brand-surface border border-brand-border text-xs rounded-lg h-10 px-3 shadow-none">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-brand-border">
-                  {couponCategories.map((cat) => (
-                    <SelectItem
-                      key={cat}
-                      value={cat}
-                      className="text-xs font-semibold capitalize"
-                    >
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <FieldLabel icon={Ticket}>Promo Code</FieldLabel>
+          <div className="space-y-4">
+            {/* Offer Title */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                <Tag className="w-3.5 h-3.5 text-blue-600" /> Offer Title / Headline *
+              </Label>
               <Input
                 type="text"
-                placeholder="e.g. SAVE50"
-                value={formData.code}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    code: e.target.value.toUpperCase(),
-                  })
-                }
-                className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none uppercase font-mono"
+                maxLength={70}
+                placeholder="e.g. Free Drink with Meal"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="bg-white border-slate-200 text-xs h-10 rounded-xl font-medium"
                 required
               />
             </div>
-          </div>
 
-          {/* Grid 2: Discount Type & Value */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <FieldLabel icon={Percent}>Discount Type</FieldLabel>
-              <Select
-                value={formData.discountType}
-                onValueChange={(val) =>
-                  setFormData({ ...formData, discountType: val })
-                }
-              >
-                <SelectTrigger className="w-full bg-brand-surface border border-brand-border text-xs rounded-lg h-10 px-3 shadow-none">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-brand-border">
-                  <SelectItem
-                    value="percentage"
-                    className="text-xs font-semibold"
-                  >
-                    Percentage OFF (%)
-                  </SelectItem>
-                  <SelectItem value="fixed" className="text-xs font-semibold">
-                    Fixed Cash OFF (₹)
-                  </SelectItem>
-                  <SelectItem value="freebie" className="text-xs font-semibold">
-                    Freebie/Gift
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {formData.discountType !== "freebie" && (
-              <div className="space-y-1">
-                <FieldLabel
-                  icon={
-                    formData.discountType === "percentage"
-                      ? Percent
-                      : IndianRupee
-                  }
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Category */}
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                  <Layers className="w-3.5 h-3.5 text-purple-600" /> Category *
+                </Label>
+                <Select
+                  value={selectedCategoryObj.id}
+                  onValueChange={(val) => setFormData({ ...formData, category: val })}
                 >
-                  Discount Value{" "}
-                  {formData.discountType === "percentage" ? "(%)" : "(₹)"}
-                </FieldLabel>
+                  <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[300]">
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Promo Code */}
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                  <Ticket className="w-3.5 h-3.5 text-orange-600" /> Promo Code *
+                </Label>
                 <Input
-                  type="number"
-                  placeholder={
-                    formData.discountType === "percentage" ? "50" : "200"
-                  }
-                  value={formData.discountValue}
+                  type="text"
+                  placeholder="FREEDRINK"
+                  value={formData.code}
                   onChange={(e) =>
-                    setFormData({ ...formData, discountValue: e.target.value })
+                    setFormData({
+                      ...formData,
+                      code: e.target.value.toUpperCase().replace(/\s/g, ""),
+                    })
                   }
-                  className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
+                  className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
                   required
                 />
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Terms / Description */}
-          <div className="space-y-1">
-            <FieldLabel icon={FileText}>Terms / Description</FieldLabel>
-            <Textarea
-              placeholder="Detail maximum discount caps, eligibility, and validation rules..."
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              rows={3}
-              className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full min-h-[80px] p-3 shadow-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 focus-visible:border-brand-blue"
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Discount Type */}
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                  <Percent className="w-3.5 h-3.5 text-blue-600" /> Discount Type *
+                </Label>
+                <Select
+                  value={formData.discountType || "percentage"}
+                  onValueChange={(val) => setFormData({ ...formData, discountType: val })}
+                >
+                  <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                    <SelectValue placeholder="Discount format" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[300]">
+                    <SelectItem value="percentage">% Percentage Off</SelectItem>
+                    <SelectItem value="fixed">Flat ₹ Amount Off</SelectItem>
+                    <SelectItem value="freebie">Free Gift / Freebie</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <div className="bg-white border border-brand-border rounded-xl p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-brand-navy font-heading uppercase tracking-wider border-b border-brand-border pb-3">
-            Limits & Expiry Details
-          </h3>
+              {/* Discount Value */}
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                  <IndianRupee className="w-3.5 h-3.5 text-emerald-600" /> Discount Value (₹ or %)
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={formData.discountValue}
+                  onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
+                  className="bg-white border-slate-200 text-xs h-10 rounded-xl font-medium"
+                />
+              </div>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Expiry Date */}
-            <div className="space-y-1">
-              <FieldLabel icon={Calendar}>Expiry Date</FieldLabel>
-              <Input
-                type="date"
-                value={formData.expiresAt}
-                onChange={(e) =>
-                  setFormData({ ...formData, expiresAt: e.target.value })
-                }
-                className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
+            {/* Description / Terms */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                <MessageSquare className="w-3.5 h-3.5 text-slate-600" /> Terms / Description *
+              </Label>
+              <Textarea
+                rows={3}
+                placeholder="Enjoy great deals and savings on your order..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="bg-white border-slate-200 text-xs leading-relaxed rounded-xl font-medium"
                 required
               />
             </div>
+          </div>
+        </Card>
 
-            {/* Usage Limit */}
-            <div className="space-y-1">
-              <FieldLabel icon={Users}>Claims Limit</FieldLabel>
+        {/* Card 2: Limits & Expiry Details */}
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="text-base font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4 text-rose-600" /> Limits &amp; Expiry Details
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Expiry Date DatePicker */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                <CalendarIcon className="w-3.5 h-3.5 text-blue-600" /> Expiry Date *
+              </Label>
+              <DatePicker
+                value={formData.expiresAt}
+                onChange={(val) => setFormData({ ...formData, expiresAt: val })}
+                placeholder="Select expiry date"
+                iconColor="text-blue-600"
+              />
+            </div>
+
+            {/* Claims Limit */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                <Users className="w-3.5 h-3.5 text-purple-600" /> Claims Limit
+              </Label>
               <Input
                 type="number"
                 placeholder="e.g. 500"
                 value={formData.maxClaims}
-                onChange={(e) =>
-                  setFormData({ ...formData, maxClaims: e.target.value })
-                }
-                className="bg-brand-surface border border-brand-border rounded-lg text-xs w-full h-10 px-3 shadow-none"
+                onChange={(e) => setFormData({ ...formData, maxClaims: e.target.value })}
+                className="bg-white border-slate-200 text-xs h-10 rounded-xl"
               />
             </div>
 
-            {/* Status Toggle - only if editing */}
+            {/* Campaign Status (if editing) */}
             {isEdit && (
-              <div className="space-y-1">
-                <FieldLabel icon={Settings}>Campaign Status</FieldLabel>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                  <Settings className="w-3.5 h-3.5 text-slate-600" /> Campaign Status
+                </Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, status: val })
-                  }
+                  onValueChange={(val) => setFormData({ ...formData, status: val })}
                 >
-                  <SelectTrigger className="w-full bg-brand-surface border border-brand-border text-xs rounded-lg h-10 px-3 shadow-none">
+                  <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-brand-border">
-                    <SelectItem
-                      value="active"
-                      className="text-xs font-semibold text-brand-success"
-                    >
+                  <SelectContent className="z-[300]">
+                    <SelectItem value="active" className="text-emerald-700 font-bold">
                       Active / Enabled
                     </SelectItem>
-                    <SelectItem
-                      value="paused"
-                      className="text-xs font-semibold text-amber-500"
-                    >
+                    <SelectItem value="paused" className="text-amber-700 font-bold">
                       Paused / Suspended
                     </SelectItem>
-                    <SelectItem
-                      value="expired"
-                      className="text-xs font-semibold text-brand-error"
-                    >
+                    <SelectItem value="expired" className="text-rose-700 font-bold">
                       Expired / Closed
                     </SelectItem>
                   </SelectContent>
@@ -311,131 +296,128 @@ export default function CouponForm({
               </div>
             )}
 
-            {/* Featured Placement Toggle (Pro/Enterprise gated) */}
-            <div className="space-y-1 sm:col-span-3 border-t border-brand-border pt-4 mt-2 text-left">
+            {/* Featured Placement Switch */}
+            <div className="sm:col-span-3 border-t border-slate-100 pt-4 mt-2">
               <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-brand-navy block">
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">
                     Featured Homepage Placement
                   </span>
-                  <span className="text-[10px] text-brand-subtext font-semibold block">
-                    Pin this deal to the homepage hero grid to drive 5x more
-                    clicks.
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Pin this deal to the homepage hero grid for 5x visibility.
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Lock badge if not Pro/Enterprise */}
-                  {!(
-                    merchantPlan === "pro" || merchantPlan === "enterprise"
-                  ) && (
-                    <span className="bg-amber-50 text-amber-600 border border-amber-200 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <div className="flex items-center gap-3">
+                  {!(merchantPlan === "pro" || merchantPlan === "enterprise") && (
+                    <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-[10px] font-bold">
                       Pro/Enterprise Only
-                    </span>
+                    </Badge>
                   )}
-                  <button
-                    type="button"
-                    disabled={
-                      !(merchantPlan === "pro" || merchantPlan === "enterprise")
-                    }
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        isFeatured: !formData.isFeatured,
-                      })
-                    }
-                    className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      formData.isFeatured ? "bg-brand-blue" : "bg-slate-200"
-                    } ${!(merchantPlan === "pro" || merchantPlan === "enterprise") ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        formData.isFeatured ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
+                  <Switch
+                    disabled={!(merchantPlan === "pro" || merchantPlan === "enterprise")}
+                    checked={formData.isFeatured}
+                    onCheckedChange={(val) => setFormData({ ...formData, isFeatured: val })}
+                  />
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="btn-primary w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-0 h-auto cursor-pointer shadow-none"
-        >
-          {isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          <span>{isPending ? "Saving..." : submitText}</span>
-        </Button>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-[#e85d04] hover:bg-orange-600 text-white text-xs font-bold py-3 rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-2 mt-4"
+          >
+            {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            <span>{isPending ? "Saving..." : submitText}</span>
+          </Button>
+        </Card>
       </div>
 
-      {/* Real-time Preview Sidebar (5 columns) */}
+      {/* RIGHT COLUMN: REAL-TIME CARD PREVIEW (5 COLS) */}
       <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-6">
-        <h4 className="text-xs font-bold text-brand-text uppercase tracking-wider text-left">
-          Real-time Card Preview
-        </h4>
-
-        {/* Simulated Coupon Card */}
-        <div className="bg-white border border-brand-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          {/* Header Box */}
-          <div className="bg-brand-surface p-4 flex justify-between items-start border-b border-brand-border">
-            <div className="space-y-1">
-              <span className="text-[9px] bg-brand-blue/10 text-brand-blue font-bold px-2 py-0.5 rounded capitalize">
-                {formData.category}
-              </span>
-              <h3 className="font-heading text-sm font-extrabold text-brand-navy leading-snug">
-                {formData.title || "Offer Title / Coupon Headline"}
-              </h3>
-            </div>
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
+              <Eye className="w-4 h-4 text-[#e85d04]" /> Real-Time Card Preview
+            </span>
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200/60 text-[10px] font-bold">
+              Live Preview
+            </Badge>
           </div>
 
-          {/* Body */}
-          <div className="p-4 space-y-4">
-            <p className="text-xs text-brand-subtext font-medium leading-relaxed italic">
-              {formData.description ||
-                "Describe campaign guidelines, restrictions, or terms..."}
-            </p>
-
-            {/* Simulated Monospace Code Banner */}
-            <div className="bg-brand-surface border border-dashed border-brand-border rounded-xl p-3.5 flex flex-col items-center justify-center space-y-1">
-              <span className="text-[10px] text-brand-subtext font-bold uppercase tracking-wider">
-                Use Promo Code
-              </span>
-              <span className="font-mono text-base font-black text-brand-navy tracking-widest uppercase">
-                {formData.code || "SAVE50"}
-              </span>
+          {/* Live Preview Item */}
+          <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-xs">
+            <div
+              className="h-32 bg-slate-900 relative flex items-end p-4 bg-cover bg-center"
+              style={{
+                backgroundImage: formData.image
+                  ? `url(${formData.image})`
+                  : "linear-gradient(to right, #0f172a, #1e293b)",
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+              <div className="relative z-10 flex items-center justify-between w-full">
+                <Badge className="bg-blue-600 text-white font-bold text-[9px] uppercase px-2 py-0.5 border-0">
+                  {selectedCategoryObj.label}
+                </Badge>
+                <span className="text-white text-[10px] font-bold bg-black/50 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20">
+                  {merchantName}
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-brand-subtext border-t border-slate-100 pt-3">
+            <div className="p-4 space-y-3.5">
               <div>
-                <span className="block text-[10px] text-slate-400 font-bold uppercase">
-                  Discount
+                <h4 className="text-sm font-black text-slate-900 leading-snug">
+                  {formData.title || "Free Drink with Meal"}
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium mt-1 line-clamp-2">
+                  {formData.description || "Enjoy great deals and savings on Free Drink with Meal."}
+                </p>
+              </div>
+
+              {/* Monospace Code box */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-center space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Use Promo Code
                 </span>
-                <span className="text-brand-blue font-bold">
-                  {formData.discountType === "percentage"
-                    ? `${formData.discountValue || "0"}% OFF`
-                    : formData.discountType === "fixed"
+                <span className="font-mono text-base font-black text-slate-900 uppercase tracking-widest block">
+                  {formData.code || "FREEDRINK"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-500 border-t border-slate-100 pt-3">
+                <div>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">Discount</span>
+                  <span className="text-[#e85d04] font-black">
+                    {formData.discountType === "percentage"
+                      ? `${formData.discountValue || "0"}% OFF`
+                      : formData.discountType === "fixed"
                       ? `₹${formData.discountValue || "0"} OFF`
                       : "Free Gift"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] text-slate-400 font-bold uppercase">
-                  Valid Until
-                </span>
-                <span className="text-brand-navy font-bold">
-                  {formData.expiresAt
-                    ? new Date(formData.expiresAt).toLocaleDateString()
-                    : "Select Date"}
-                </span>
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">Valid Until</span>
+                  <span className="text-slate-900 font-bold">
+                    {formData.expiresAt
+                      ? new Date(formData.expiresAt).toLocaleDateString("en-US", {
+                          month: "numeric",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Select Date"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </form>
   );

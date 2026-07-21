@@ -16,14 +16,56 @@ const campaignSchema = new Schema(
     type: {
       type: String,
       required: true,
-    }, // e.g. "flash", "festival", "seasonal", "new-user", "clearance", "custom"
+    }, // e.g. "flash", "festival", "new-user", "seasonal", "loyalty", "bundle", "revival"
     objective: {
+      type: String,
+      trim: true,
+    },
+    headline: {
+      type: String,
+      trim: true,
+    },
+    subHeadline: {
       type: String,
       trim: true,
     },
     description: {
       type: String,
       trim: true,
+    },
+    bannerUrl: {
+      type: String,
+      trim: true,
+    },
+    offerDetails: {
+      offerType: { type: String },
+      discountValue: { type: Number },
+      maxCap: { type: Number },
+      minOrderValue: { type: Number },
+      redemptionLimit: { type: Number },
+      code: { type: String, trim: true },
+      redemptionInstructions: { type: String },
+      termsAndConditions: { type: String },
+    },
+    timing: {
+      startDate: { type: Date },
+      endDate: { type: Date },
+      hasCountdownTimer: { type: Boolean, default: true },
+      hasPreTeaser: { type: Boolean, default: false },
+      preTeaserHeadline: { type: String },
+    },
+    targeting: {
+      audience: { type: String, default: "all" },
+      targetCity: { type: String },
+      addOns: [{ type: String }],
+      pushSendTime: { type: Date },
+      preferredEmailSubject: { type: String },
+    },
+    readiness: {
+      staffReady: { type: String },
+      stockConfirmation: { type: String },
+      internalNote: { type: String },
+      checkpointsConfirmed: { type: Boolean, default: false },
     },
     couponIds: [
       {
@@ -38,8 +80,8 @@ const campaignSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["draft", "scheduled", "live", "ended"],
-      default: "draft",
+      enum: ["draft", "pending_review", "scheduled", "live", "ended", "rejected"],
+      default: "pending_review",
     },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -47,6 +89,7 @@ const campaignSchema = new Schema(
   {
     timestamps: true,
     collection: "campaigns",
+    strict: false,
   },
 );
 

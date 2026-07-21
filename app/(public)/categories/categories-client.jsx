@@ -111,11 +111,9 @@ export default function CategoriesClient({
   totalCoupons,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeLetter, setActiveLetter] = useState("all");
-  const [gridCols, setGridCols] = useState(4);
-  const [mounted, setMounted] = useState(false);
   const [showAllMerchants, setShowAllMerchants] = useState(false);
   const [showMoreAbout, setShowMoreAbout] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -133,21 +131,13 @@ export default function CategoriesClient({
 
   const filteredCategories = useMemo(() => {
     let list = categories;
-    if (activeLetter !== "all") {
-      list = list.filter((c) => c.title.toUpperCase().startsWith(activeLetter));
-    }
     if (searchQuery.trim()) {
       list = list.filter((c) =>
         c.title.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
     return list;
-  }, [categories, activeLetter, searchQuery]);
-
-  const availableLetters = useMemo(() => {
-    const set = new Set(categories.map((c) => c.title[0].toUpperCase()));
-    return set;
-  }, [categories]);
+  }, [categories, searchQuery]);
 
   const visibleSidebarMerchants = showAllMerchants
     ? POPULAR_MERCHANTS_SIDEBAR
@@ -537,7 +527,7 @@ export default function CategoriesClient({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
                 gap: 12,
               }}
             >
@@ -562,6 +552,7 @@ export default function CategoriesClient({
                         transition: "all 0.2s ease-in-out",
                         boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
                         textAlign: "center",
+                        height: "100%",
                       }}
                       className="brand-card-hover"
                     >
@@ -631,138 +622,57 @@ export default function CategoriesClient({
               padding: "16px 20px 20px",
             }}
           >
+            {/* All Categories Header: Title + Search aligned on right */}
             <div
               style={{
                 display: "flex",
-                justifycontent: "space-between",
+                justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 16,
+                marginBottom: 20,
                 flexWrap: "wrap",
                 gap: 12,
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: "#000000",
-                  margin: 0,
-                  letterSpacing: "-0.2px",
-                }}
-              >
-                All Categories
-              </h2>
-              <div style={{ display: "flex", gap: 4 }}>
-                {[3, 4, 5].map((cols) => (
-                  <button
-                    key={cols}
-                    onClick={() => setGridCols(cols)}
-                    title={`${cols} Columns`}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 4,
-                      border: "1px solid #e5e7eb",
-                      background: gridCols === cols ? "#2563eb" : "#ffffff",
-                      color: gridCols === cols ? "#ffffff" : "#4b5563",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transition: "all 0.15s",
-                    }}
-                    className={gridCols === cols ? "" : "grid-btn-hover"}
-                  >
-                    <LayoutGrid style={{ width: 14, height: 14 }} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Alpha + Search */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifycontent: "space-between",
-                flexWrap: "wrap",
-                gap: 12,
-                marginBottom: 16,
                 paddingBottom: 14,
                 borderBottom: "1px solid #f3f4f6",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 3,
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                <button
-                  onClick={() => setActiveLetter("all")}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <h2
                   style={{
-                    padding: "3px 8px",
-                    borderRadius: 4,
-                    border: "1px solid",
-                    borderColor: activeLetter === "all" ? "#2563eb" : "#e5e7eb",
-                    background:
-                      activeLetter === "all" ? "#2563eb" : "transparent",
-                    color: activeLetter === "all" ? "#ffffff" : "#4b5563",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: "#000000",
+                    margin: 0,
+                    letterSpacing: "-0.2px",
                   }}
                 >
-                  All
-                </button>
-                {ALPHA_LETTERS.map((letter) => (
-                  <button
-                    key={letter}
-                    onClick={() =>
-                      setActiveLetter(activeLetter === letter ? "all" : letter)
-                    }
-                    disabled={!availableLetters.has(letter)}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 4,
-                      border: "1px solid",
-                      borderColor:
-                        activeLetter === letter ? "#2563eb" : "#e5e7eb",
-                      background:
-                        activeLetter === letter ? "#2563eb" : "transparent",
-                      color:
-                        activeLetter === letter
-                          ? "#ffffff"
-                          : availableLetters.has(letter)
-                            ? "#1f2937"
-                            : "#d1d5db",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      cursor: availableLetters.has(letter)
-                        ? "pointer"
-                        : "default",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    {letter}
-                  </button>
-                ))}
+                  All Categories
+                </h2>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "#2563eb",
+                    background: "#eff6ff",
+                    padding: "3px 10px",
+                    borderRadius: 12,
+                    border: "1px solid #dbeafe",
+                  }}
+                >
+                  {filteredCategories.length} Categories
+                </span>
               </div>
+
+              {/* Search Box on Right Side of Header */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  gap: 8,
                   border: "1px solid #e5e7eb",
-                  borderRadius: 4,
-                  padding: "5px 10px",
+                  borderRadius: 6,
+                  padding: "6px 12px",
                   background: "#ffffff",
-                  minWidth: 200,
+                  minWidth: 240,
                 }}
               >
                 <Search style={{ width: 14, height: 14, color: "#9ca3af" }} />
@@ -782,15 +692,14 @@ export default function CategoriesClient({
               </div>
             </div>
 
-            {/* Grid */}
+            {/* All Categories Evenly Aligned 3-Column Grid */}
             {filteredCategories.length > 0 ? (
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
-                  gap: "12px",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                  gap: "14px",
                 }}
-                className="all-categories-responsive-grid"
               >
                 {filteredCategories.map((cat) => {
                   const { Icon, bg, color } = getCategoryIcon(cat.slug);
@@ -805,7 +714,7 @@ export default function CategoriesClient({
                           border: "1px solid #e5e7eb",
                           borderRadius: 6,
                           background: "#ffffff",
-                          padding: "14px 10px",
+                          padding: "16px 12px",
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "center",
@@ -813,31 +722,32 @@ export default function CategoriesClient({
                           transition: "all 0.2s ease-in-out",
                           boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
                           textAlign: "center",
+                          height: "100%",
                         }}
                         className="brand-card-hover"
                       >
                         <div
                           style={{
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             background: bg,
-                            borderRadius: 6,
+                            borderRadius: 8,
                           }}
                         >
                           <Icon
-                            style={{ width: 20, height: 20, color: color }}
+                            style={{ width: 22, height: 22, color: color }}
                           />
                         </div>
                         <div>
                           <p
                             style={{
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: 700,
                               color: "#000000",
-                              margin: "0 0 2px",
+                              margin: "0 0 3px",
                             }}
                           >
                             {cat.title}
@@ -888,7 +798,6 @@ export default function CategoriesClient({
                 <button
                   onClick={() => {
                     setSearchQuery("");
-                    setActiveLetter("all");
                   }}
                   style={{
                     marginTop: 12,

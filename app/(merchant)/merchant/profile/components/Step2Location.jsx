@@ -1,4 +1,9 @@
-import { Image, ImageIcon, Link2, MapPin, Upload } from "lucide-react";
+"use client";
+
+import { Image, Link2, MapPin, Sparkles, Upload } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -9,6 +14,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  INDIAN_CITIES,
+  lookupByPincode,
+  lookupStateByCity,
+} from "@/utils/indianGeoLookup";
 
 export default function Step2Location({
   formData,
@@ -18,20 +28,59 @@ export default function Step2Location({
   uploadingLogo,
   uploadingBanner,
 }) {
-  return (
-    <div className="bg-brand-bg border border-brand-border rounded-xl p-5 shadow-sm space-y-5">
-      <h3 className="font-heading text-sm font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center gap-2">
-        <MapPin className="w-4 h-4 text-brand-blue" />
-        <span>2. Visuals, Location &amp; Coordination</span>
-      </h3>
+  const [isGeoLoading, setIsGeoLoading] = useState(false);
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+  // Handle City Change
+  const handleCityChange = (cityName) => {
+    const geo = lookupStateByCity(cityName);
+    setFormData({
+      ...formData,
+      city: cityName,
+      state: geo ? geo.state : formData.state,
+      pincode: geo && !formData.pincode ? geo.pincode : formData.pincode,
+    });
+  };
+
+  // Handle PIN Code Change
+  const handlePincodeChange = async (pin) => {
+    setFormData((prev) => ({ ...prev, pincode: pin }));
+
+    if (pin.length === 6) {
+      setIsGeoLoading(true);
+      const geo = await lookupByPincode(pin);
+      setIsGeoLoading(false);
+
+      if (geo) {
+        setFormData((prev) => ({
+          ...prev,
+          city: geo.city || prev.city,
+          state: geo.state || prev.state,
+        }));
+      }
+    }
+  };
+
+  return (
+    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5 text-left">
+      <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-rose-600" />
+          <span>2. Visuals, Pan-India Location &amp; Coordination</span>
+        </h3>
+        <Badge variant="outline" className="text-[10px] font-bold bg-rose-50 text-rose-700 border-rose-200">
+          Step 2 of 4
+        </Badge>
+      </div>
+
+      {/* Media Uploads Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="space-y-2 md:col-span-1">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <Image className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <Image className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
             <span>Shop Photograph</span>
+            <span className="text-slate-400 font-normal text-[11px] normal-case ml-1">(Optional)</span>
           </Label>
-          <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-2 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-32 overflow-hidden">
+          <div className="relative group flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50 hover:bg-slate-100/80 cursor-pointer h-28 overflow-hidden">
             {formData.shopImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -41,8 +90,8 @@ export default function Step2Location({
               />
             ) : (
               <>
-                <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
-                <span className="text-[10px] text-brand-subtext font-semibold">
+                <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors mb-1" />
+                <span className="text-[10px] text-slate-500 font-semibold">
                   {uploadingShop ? "Uploading..." : "Upload Shop Front"}
                 </span>
               </>
@@ -58,11 +107,12 @@ export default function Step2Location({
         </div>
 
         <div className="space-y-2 md:col-span-1">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <Image className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <Image className="w-3.5 h-3.5 text-orange-600 mr-0.5" />
             <span>Store Logo</span>
+            <span className="text-slate-400 font-normal text-[11px] normal-case ml-1">(Optional)</span>
           </Label>
-          <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-4 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-32 overflow-hidden">
+          <div className="relative group flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50 hover:bg-slate-100/80 cursor-pointer h-28 overflow-hidden">
             {formData.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -72,8 +122,8 @@ export default function Step2Location({
               />
             ) : (
               <>
-                <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
-                <span className="text-[10px] text-brand-subtext font-semibold">
+                <Upload className="w-5 h-5 text-slate-400 group-hover:text-orange-600 transition-colors mb-1" />
+                <span className="text-[10px] text-slate-500 font-semibold">
                   {uploadingLogo ? "Uploading..." : "Upload Logo"}
                 </span>
               </>
@@ -89,11 +139,12 @@ export default function Step2Location({
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <Image className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <Image className="w-3.5 h-3.5 text-purple-600 mr-0.5" />
             <span>Cover Banner</span>
+            <span className="text-slate-400 font-normal text-[11px] normal-case ml-1">(Optional)</span>
           </Label>
-          <div className="relative group flex flex-col items-center justify-center border border-dashed border-brand-border rounded-lg p-2 bg-brand-surface hover:bg-brand-surface/75 cursor-pointer h-32 overflow-hidden">
+          <div className="relative group flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50 hover:bg-slate-100/80 cursor-pointer h-28 overflow-hidden">
             {formData.banner ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -103,9 +154,9 @@ export default function Step2Location({
               />
             ) : (
               <>
-                <Upload className="w-5 h-5 text-brand-subtext group-hover:text-brand-blue transition-colors mb-2" />
-                <span className="text-[10px] text-brand-subtext font-semibold">
-                  {uploadingBanner ? "Uploading..." : "Upload Cover"}
+                <Upload className="w-5 h-5 text-slate-400 group-hover:text-purple-600 transition-colors mb-1" />
+                <span className="text-[10px] text-slate-500 font-semibold">
+                  {uploadingBanner ? "Uploading..." : "Upload Cover Banner"}
                 </span>
               </>
             )}
@@ -120,45 +171,96 @@ export default function Step2Location({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5 font-sans">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Regional Launch Hub City</span>
+      {/* Address & Pan-India Auto-fill Fields */}
+      <div className="space-y-4 pt-2">
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <MapPin className="w-3.5 h-3.5 text-rose-600 mr-0.5" />
+            <span>Storefront Physical Address</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
           </Label>
-          <Select
-            value={formData.regionalHubCity}
-            onValueChange={(val) =>
-              setFormData({ ...formData, regionalHubCity: val })
+          <Textarea
+            rows={2}
+            placeholder="Flat/Plot No, Floor, Building Name, Commercial Area"
+            value={formData.address}
+            onChange={(e) =>
+              setFormData({ ...formData, address: e.target.value })
             }
-          >
-            <SelectTrigger className="text-xs h-9 border-brand-border shadow-none text-brand-navy font-semibold">
-              <SelectValue placeholder="Select Hub City" />
-            </SelectTrigger>
-            <SelectContent className="bg-brand-bg border border-brand-border">
-              <SelectItem value="ranchi" className="text-xs text-brand-navy">
-                Ranchi
-              </SelectItem>
-              <SelectItem
-                value="jamshedpur"
-                className="text-xs text-brand-navy"
-              >
-                Jamshedpur
-              </SelectItem>
-              <SelectItem value="dhanbad" className="text-xs text-brand-navy">
-                Dhanbad
-              </SelectItem>
-              <SelectItem value="bokaro" className="text-xs text-brand-navy">
-                Bokaro
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            className="bg-white border-slate-200 text-xs rounded-xl font-medium"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* PIN Code with Auto-Lookup */}
+          <div className="space-y-1.5">
+            <Label className="flex items-center justify-between text-xs font-bold text-slate-800 uppercase tracking-wide">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-blue-600 mr-0.5" /> PIN Code
+                <span className="text-rose-500 font-bold ml-0.5">*</span>
+              </span>
+              {isGeoLoading && (
+                <span className="text-[10px] text-blue-600 font-bold animate-pulse">
+                  Auto-filling...
+                </span>
+              )}
+            </Label>
+            <Input
+              type="text"
+              maxLength={6}
+              placeholder="e.g. 802301 or 834001"
+              value={formData.pincode || ""}
+              onChange={(e) => handlePincodeChange(e.target.value)}
+              className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono font-bold"
+              required
+            />
+          </div>
+
+          {/* Select City / Custom City */}
+          <div className="space-y-1.5 font-sans">
+            <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600 mr-0.5" /> City / District
+              <span className="text-rose-500 font-bold ml-0.5">*</span>
+            </Label>
+            <Select
+              value={formData.city || ""}
+              onValueChange={handleCityChange}
+            >
+              <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+                <SelectValue placeholder="Select or type City" />
+              </SelectTrigger>
+              <SelectContent className="z-[300]">
+                {INDIAN_CITIES.map((c) => (
+                  <SelectItem key={`${c.city}-${c.state}`} value={c.city}>
+                    {c.city} ({c.state})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* State (Auto-Filled) */}
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 mr-0.5" /> State (Auto-filled)
+              <span className="text-rose-500 font-bold ml-0.5">*</span>
+            </Label>
+            <Input
+              type="text"
+              placeholder="State auto-detected"
+              value={formData.state || ""}
+              onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+              className="bg-slate-50 border-slate-200 text-xs h-10 rounded-xl font-bold text-slate-900"
+              required
+            />
+          </div>
         </div>
 
         <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <Link2 className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <Link2 className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
             <span>Google Maps Location Hyperlink</span>
+            <span className="text-slate-400 font-normal text-[11px] normal-case ml-1">(Optional)</span>
           </Label>
           <Input
             type="url"
@@ -167,56 +269,10 @@ export default function Step2Location({
             onChange={(e) =>
               setFormData({ ...formData, gmapsLink: e.target.value })
             }
-            className="text-xs focus-visible:ring-brand-blue"
-            required
-          />
-        </div>
-
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Storefront Physical Address</span>
-          </Label>
-          <Textarea
-            placeholder="Flat/Plot No, Floor, Building Name, Commercial Area, Pincode"
-            value={formData.address}
-            onChange={(e) =>
-              setFormData({ ...formData, address: e.target.value })
-            }
-            className="text-xs min-h-[70px] focus-visible:ring-brand-blue"
-            required
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Store City</span>
-          </Label>
-          <Input
-            type="text"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="text-xs focus-visible:ring-brand-blue"
-            required
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Store State</span>
-          </Label>
-          <Input
-            type="text"
-            value={formData.state}
-            onChange={(e) =>
-              setFormData({ ...formData, state: e.target.value })
-            }
-            className="text-xs focus-visible:ring-brand-blue"
+            className="bg-white border-slate-200 text-xs h-10 rounded-xl font-medium"
           />
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

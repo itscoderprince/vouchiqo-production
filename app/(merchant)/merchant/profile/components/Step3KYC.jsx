@@ -1,21 +1,63 @@
-import { FileText, Shield } from "lucide-react";
+"use client";
+
+import { FileCheck, FileText, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Step3KYC({ formData, setFormData }) {
   return (
-    <div className="bg-brand-bg border border-brand-border rounded-xl p-5 shadow-sm space-y-5">
-      <h3 className="font-heading text-sm font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center gap-2">
-        <Shield className="w-4 h-4 text-brand-blue" />
-        <span>3. Financial Accounting &amp; Statutory KYC</span>
-      </h3>
+    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5 text-left">
+      <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <Shield className="w-4 h-4 text-purple-600" />
+          <span>3. Financial Accounting &amp; Statutory KYC</span>
+        </h3>
+        <Badge variant="outline" className="text-[10px] font-bold bg-purple-50 text-purple-700 border-purple-200">
+          Step 3 of 4
+        </Badge>
+      </div>
 
       <div className="space-y-4">
+        {/* Primary Identity Document Selection */}
         <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-            <FileText className="w-3.5 h-3.5 text-brand-blue" />
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <FileCheck className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
+            <span>Primary Identity Document Type</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
+          </Label>
+          <Select
+            value={formData.docType || "GST Registration Certificate"}
+            onValueChange={(val) => setFormData({ ...formData, docType: val })}
+          >
+            <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="z-[300]">
+              <SelectItem value="GST Registration Certificate">GST Registration Certificate (Preferred)</SelectItem>
+              <SelectItem value="Udyam / MSME Certificate">Udyam / MSME Registration Certificate</SelectItem>
+              <SelectItem value="Trade Licence">Trade Licence (Municipal Corporation)</SelectItem>
+              <SelectItem value="Shop & Establishment Act">Shop &amp; Establishment Act Registration</SelectItem>
+              <SelectItem value="Owner PAN Card">PAN Card of Business Owner</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* PAN Input */}
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <FileText className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
             <span>Permanent Account Number (PAN)</span>
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
           </Label>
           <Input
             type="text"
@@ -25,15 +67,18 @@ export default function Step3KYC({ formData, setFormData }) {
             onChange={(e) =>
               setFormData({ ...formData, pan: e.target.value.toUpperCase() })
             }
-            className="text-xs focus-visible:ring-brand-blue font-mono uppercase"
+            className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
+            required
           />
         </div>
 
+        {/* GSTIN Input */}
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase mb-1">
-              <FileText className="w-3.5 h-3.5 text-brand-blue" />
+            <Label className="flex items-center gap-1 text-xs font-bold text-slate-800 uppercase tracking-wide">
+              <FileText className="w-3.5 h-3.5 text-blue-600 mr-0.5" />
               <span>GST Identification Number (GSTIN)</span>
+              <span className="text-slate-400 font-normal text-[11px] normal-case ml-1">(Optional if Exempt)</span>
             </Label>
             <Input
               type="text"
@@ -47,11 +92,11 @@ export default function Step3KYC({ formData, setFormData }) {
                 })
               }
               disabled={formData.isGstExempt}
-              className="text-xs focus-visible:ring-brand-blue font-mono uppercase"
+              className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
             />
           </div>
 
-          <div className="flex items-center space-x-2 pt-1 border border-brand-border/40 p-3 bg-brand-surface rounded-lg">
+          <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer select-none">
             <Checkbox
               id="gst-exempt"
               checked={formData.isGstExempt}
@@ -62,18 +107,13 @@ export default function Step3KYC({ formData, setFormData }) {
                   gstin: checked ? "" : formData.gstin,
                 })
               }
-              className="w-4 h-4 rounded-sm border-brand-border"
             />
-            <label
-              htmlFor="gst-exempt"
-              className="text-xs text-brand-subtext font-semibold select-none cursor-pointer leading-tight"
-            >
-              I certify that my commercial enterprise is currently unregistered
-              under the Indian GST regime as an exempt micro-merchant.
-            </label>
-          </div>
+            <span className="text-xs text-slate-700 font-semibold leading-relaxed">
+              I certify that my commercial enterprise is currently unregistered under the Indian GST regime as an exempt micro-merchant (turnover under ₹40 Lakhs).
+            </span>
+          </label>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
