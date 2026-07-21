@@ -2,7 +2,7 @@
 
 import { LogOut } from "lucide-react";
 import Link from "next/link";
-import { useSidebar } from "@/components/ui/sidebar";
+import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/use-user";
 
 export function NavUser({ user, role = "admin" }) {
@@ -10,59 +10,52 @@ export function NavUser({ user, role = "admin" }) {
   const { logout } = useUser();
   const isCollapsed = state === "collapsed";
 
-  const initials = user.name
+  const initials = user?.name
     ? user.name
         .split(" ")
         .map((w) => w[0])
         .join("")
         .slice(0, 2)
         .toUpperCase()
-    : "AS";
+    : "V";
 
   const formattedRole = role
     ? role.charAt(0).toUpperCase() + role.slice(1)
     : "User";
 
   return (
-    <div
-      className={`flex items-center w-full ${isCollapsed ? "justify-center" : "gap-2"}`}
-    >
-      {/* Profile Card */}
-      <Link
-        href="/profile"
-        className={`flex items-center transition-colors hover:bg-slate-50 overflow-hidden ${
-          isCollapsed
-            ? "justify-center p-1 rounded-full"
-            : "flex-1 gap-3 rounded-lg px-2 py-2"
-        }`}
+    <div className="flex items-center w-full justify-between gap-2">
+      <SidebarMenuButton
+        asChild
+        size="lg"
+        className="flex-1 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
       >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-[11px] font-bold text-white shadow-sm overflow-hidden">
-          {user?.image ? (
-            <img
-              src={user.image}
-              alt={user.name || "User Avatar"}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            initials
-          )}
-        </div>
-        {!isCollapsed && (
-          <div className="flex flex-1 flex-col text-left leading-tight min-w-0">
-            <span className="text-sm font-semibold text-slate-800 truncate">
-              {user.name || "Aigars S."}
-            </span>
-            {formattedRole !== "Customer" && (
-              <span className="text-[11px] text-slate-400 font-medium truncate uppercase tracking-wider">
-                {formattedRole}
-              </span>
+        <Link href="/profile" className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground text-xs font-semibold overflow-hidden">
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt={user.name || "User Avatar"}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              initials
             )}
           </div>
-        )}
-      </Link>
+          {!isCollapsed && (
+            <div className="grid flex-1 text-left text-xs leading-tight min-w-0">
+              <span className="truncate font-semibold text-sidebar-foreground">
+                {user?.name || "User"}
+              </span>
+              <span className="truncate text-[10px] text-sidebar-foreground/60 uppercase font-medium">
+                {formattedRole}
+              </span>
+            </div>
+          )}
+        </Link>
+      </SidebarMenuButton>
 
-      {/* Direct Logout Button */}
       {!isCollapsed && (
         <button
           type="button"
@@ -70,9 +63,10 @@ export function NavUser({ user, role = "admin" }) {
             await logout();
           }}
           aria-label="Log out"
-          className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-750 transition-colors border-0 bg-transparent cursor-pointer"
+          title="Log out"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-destructive transition-colors border-0 bg-transparent cursor-pointer shrink-0"
         >
-          <LogOut className="h-4 w-4 text-red-500" />
+          <LogOut className="h-4 w-4" />
         </button>
       )}
     </div>

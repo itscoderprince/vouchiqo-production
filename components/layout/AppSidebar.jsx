@@ -20,7 +20,6 @@ import {
   Tag,
   Ticket,
   TrendingUp,
-  User,
   Users,
   Wallet,
 } from "lucide-react";
@@ -76,7 +75,7 @@ export function AppSidebar({ ...props }) {
             title: "Overview",
             items: [
               {
-                title: "Go to Homepage",
+                title: "Homepage",
                 url: "/",
                 icon: Home,
               },
@@ -101,7 +100,7 @@ export function AppSidebar({ ...props }) {
                 icon: Users,
               },
               {
-                title: "Merchant Intelligence",
+                title: "Demand Intelligence",
                 url: "/admin/merchant-demand",
                 icon: Building2,
               },
@@ -149,7 +148,7 @@ export function AppSidebar({ ...props }) {
             title: "Overview",
             items: [
               {
-                title: "Go to Homepage",
+                title: "Homepage",
                 url: "/",
                 icon: Home,
               },
@@ -159,7 +158,7 @@ export function AppSidebar({ ...props }) {
                 icon: LayoutDashboard,
               },
               {
-                title: "Business Analytics",
+                title: "Analytics",
                 url: "/merchant/analytics",
                 icon: TrendingUp,
               },
@@ -247,7 +246,7 @@ export function AppSidebar({ ...props }) {
                 icon: Settings,
               },
               {
-                title: "Go to Homepage",
+                title: "Homepage",
                 url: "/",
                 icon: Home,
               },
@@ -260,57 +259,30 @@ export function AppSidebar({ ...props }) {
   const groups = getNavGroups();
 
   return (
-    <Sidebar
-      collapsible="icon"
-      style={{
-        "--sidebar": "var(--brand-bg)",
-        "--sidebar-foreground": "var(--brand-subtext)",
-        "--sidebar-border": "var(--brand-border)",
-        "--sidebar-accent": "var(--brand-surface)",
-        "--sidebar-accent-foreground": "var(--brand-navy)",
-      }}
-      {...props}
-    >
-      <SidebarHeader className="p-0 border-b border-sidebar-border">
+    <Sidebar collapsible="icon" side="left" {...props}>
+      <SidebarHeader className="border-b border-sidebar-border px-3 py-3">
         <div
-          className={`flex h-[60px] items-center gap-2 ${isCollapsed ? "justify-center px-0" : "px-3"}`}
+          className={`flex items-center gap-2.5 ${isCollapsed ? "justify-center" : ""}`}
         >
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0f172a] text-white">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-3.5 w-3.5 text-white"
-            >
-              <path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z" />
-            </svg>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-xs shadow-xs">
+            V
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col text-left leading-tight">
-              <span className="text-xs font-semibold tracking-tight text-slate-800 truncate max-w-[170px]">
-                {user.name || "Vouchiqo"}
+            <div className="flex flex-col text-left leading-tight min-w-0">
+              <span className="text-sm font-semibold tracking-tight text-sidebar-foreground truncate">
+                Vouchiqo
               </span>
-              <span className="text-[9px] font-medium uppercase tracking-wider text-slate-400">
-                Dashboard
+              <span className="text-[10px] font-medium uppercase tracking-wider text-sidebar-foreground/60">
+                {role} Console
               </span>
             </div>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent
-        className={`py-2 ${isCollapsed ? "px-1" : "px-2"} space-y-2`}
-      >
+      <SidebarContent className="px-2 py-2">
         <NavMain groups={groups} />
       </SidebarContent>
-      <SidebarFooter
-        className={`border-t border-sidebar-border ${isCollapsed ? "p-1.5 flex justify-center" : "p-3"}`}
-      >
+      <SidebarFooter className="border-t border-sidebar-border p-2">
         <NavUser user={user} role={role} />
       </SidebarFooter>
       <SidebarRail />

@@ -9,7 +9,7 @@ import {
 
 /**
  * Shared sidebar used by Brands, Categories, Merchants, Campaigns listing pages.
- * Contains navigation tabs, about section, and popular merchants list.
+ * Clean, raw shadcn style sidebar component.
  *
  * @param {string} activeNavKey - The `label` from SIDEBAR_NAV that should be highlighted
  * @param {string} aboutTitle - Title for the "About" section
@@ -33,142 +33,70 @@ export default function Sidebar({
     : POPULAR_MERCHANTS_SIDEBAR.slice(0, 6);
 
   return (
-    <aside>
+    <aside className="w-full space-y-4 text-left select-none">
       {/* Navigation Tabs */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          border: "1px solid #e8eaf0",
-          overflow: "hidden",
-          marginBottom: 16,
-        }}
-      >
-        {navWithActive.map((nav) => (
-          <Link
-            key={nav.label}
-            href={nav.href}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "11px 16px",
-              textDecoration: "none",
-              background: nav.active ? "#3b5bdb" : "transparent",
-              color: nav.active ? "#fff" : "#374151",
-              fontSize: 14,
-              fontWeight: nav.active ? 700 : 500,
-              borderBottom: "1px solid #f1f3f9",
-              transition: "background 0.15s",
-            }}
-          >
-            <img
-              src={nav.icon}
-              alt={nav.label}
-              width={20}
-              height={20}
-              style={{
-                filter: nav.active ? "brightness(0) invert(1)" : "none",
-              }}
-            />
-            {nav.label}
-          </Link>
-        ))}
+      <div className="bg-white dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xs">
+        <div className="p-1.5 space-y-0.5">
+          {navWithActive.map((nav) => (
+            <Link
+              key={nav.label}
+              href={nav.href}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                nav.active
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <img
+                src={nav.icon}
+                alt={nav.label}
+                className={`w-4 h-4 transition-all ${
+                  nav.active
+                    ? "brightness-0 invert dark:brightness-100 dark:invert-0"
+                    : "opacity-75"
+                }`}
+              />
+              <span>{nav.label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* About Section */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          border: "1px solid #e8eaf0",
-          padding: "16px",
-          marginBottom: 16,
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#111827",
-            marginBottom: 10,
-            paddingBottom: 8,
-            borderBottom: "2px solid #3b5bdb",
-            display: "inline-block",
-          }}
-        >
-          {aboutTitle}
-        </h2>
-        <p
-          style={{
-            fontSize: 13,
-            color: "#6b7280",
-            lineHeight: 1.6,
-            margin: 0,
-            overflow: showMoreAbout ? "visible" : "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: showMoreAbout ? "unset" : 3,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
-          {aboutText}
-        </p>
-        <button
-          onClick={() => setShowMoreAbout((v) => !v)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#3b5bdb",
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            padding: "6px 0 0",
-          }}
-        >
-          {showMoreAbout ? "Less" : "More"}
-        </button>
-      </div>
+      {aboutText && (
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 shadow-xs space-y-2">
+          <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider border-b border-slate-100 dark:border-zinc-850 pb-2">
+            {aboutTitle}
+          </h2>
+          <p
+            className={`text-xs text-slate-500 dark:text-slate-400 leading-relaxed ${
+              showMoreAbout ? "" : "line-clamp-3"
+            }`}
+          >
+            {aboutText}
+          </p>
+          {aboutText.length > 120 && (
+            <button
+              onClick={() => setShowMoreAbout((v) => !v)}
+              className="text-xs font-semibold text-primary hover:underline bg-transparent border-0 p-0 cursor-pointer"
+            >
+              {showMoreAbout ? "Show less" : "Read more"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Popular Merchants */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          border: "1px solid #e8eaf0",
-          padding: "16px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#111827",
-            marginBottom: 10,
-            paddingBottom: 8,
-            borderBottom: "2px solid #3b5bdb",
-            display: "inline-block",
-          }}
-        >
+      <div className="bg-white dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 shadow-xs space-y-3">
+        <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider border-b border-slate-100 dark:border-zinc-850 pb-2">
           Popular Merchants
         </h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="flex flex-col gap-1.5">
           {visibleMerchants.map((m) => (
             <Link
               key={m.label}
               href={m.href}
-              style={{
-                fontSize: 13,
-                color: "#374151",
-                textDecoration: "none",
-                fontWeight: 500,
-                transition: "color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#3b5bdb";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#374151";
-              }}
+              className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors py-0.5"
             >
               {m.label}
             </Link>
@@ -176,15 +104,7 @@ export default function Sidebar({
         </div>
         <button
           onClick={() => setShowAllMerchants((v) => !v)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#3b5bdb",
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            padding: "8px 0 0",
-          }}
+          className="text-xs font-semibold text-primary hover:underline bg-transparent border-0 p-0 cursor-pointer pt-1"
         >
           {showAllMerchants ? "See less" : "See more"}
         </button>
