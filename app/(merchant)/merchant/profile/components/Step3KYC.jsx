@@ -1,6 +1,14 @@
 "use client";
 
-import { CheckCircle2, FileCheck, FileImage, FileText, Loader2, Shield, Upload } from "lucide-react";
+import {
+  CheckCircle2,
+  FileCheck,
+  FileImage,
+  FileText,
+  Loader2,
+  Shield,
+  Upload,
+} from "lucide-react";
 import { FormInput, FormSelect } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -24,14 +32,20 @@ const DOC_TYPES = [
 ];
 
 export default function Step3KYC({
-  formData,
-  setFormData,
+  register,
+  setValue,
+  watch,
+  errors,
   handleImageUpload,
   uploadingDoc,
 }) {
+  const docType = watch("docType") || "GST Registration Certificate";
+  const docImage = watch("docImage");
+  const isGstExempt = watch("isGstExempt");
+
   const selectedDocLabel =
-    DOC_TYPES.find((d) => d.value === formData.docType)?.label ||
-    formData.docType ||
+    DOC_TYPES.find((d) => d.value === docType)?.label ||
+    docType ||
     "Primary Identity Document";
 
   return (
@@ -51,28 +65,30 @@ export default function Step3KYC({
 
       <div className="space-y-4">
         <FormSelect
-          name="docType"
           label="Primary Identity Document Type"
           icon={FileCheck}
           options={DOC_TYPES}
-          value={formData.docType || "GST Registration Certificate"}
-          onValueChange={(val) => setFormData({ ...formData, docType: val })}
           required
+          value={docType}
+          onValueChange={(val) =>
+            setValue("docType", val, { shouldValidate: true })
+          }
+          error={errors.docType}
         />
 
         {/* PRIMARY DOCUMENT IMAGE UPLOAD */}
         <div className="space-y-2">
           <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
             <FileImage className="w-4 h-4 text-purple-600" />
-            Upload Document Image ({formData.docType || "GST Certificate"})
+            Upload Document Image ({docType})
           </span>
 
           <div className="relative group flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-4 bg-purple-50/30 hover:bg-purple-50/70 transition-all cursor-pointer min-h-[120px] overflow-hidden text-center">
-            {formData.docImage ? (
+            {docImage ? (
               <div className="space-y-2 w-full flex flex-col items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={formData.docImage}
+                  src={docImage}
                   alt={selectedDocLabel}
                   className="max-h-36 max-w-full object-contain rounded-lg border border-purple-200 shadow-2xs"
                 />
@@ -92,7 +108,9 @@ export default function Step3KYC({
                   <Upload className="w-6 h-6 text-purple-500 group-hover:text-purple-700 transition-colors mx-auto mb-1" />
                 )}
                 <span className="text-xs text-slate-800 font-bold block">
-                  {uploadingDoc ? "Uploading Document..." : `Click to Upload ${formData.docType || "Document Image"}`}
+                  {uploadingDoc
+                    ? "Uploading Document..."
+                    : `Click to Upload ${docType}`}
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium block">
                   Supports JPG, PNG, WEBP formats up to 10MB
@@ -111,44 +129,45 @@ export default function Step3KYC({
         </div>
 
         <FormInput
-          name="pan"
-          label="Permanent Account Number (PAN) (Optional)"
+          label="Permanent Account Number (PAN)"
           icon={FileText}
           maxLength={10}
           placeholder="10-digit alphanumeric (e.g. ABCDE1234F)"
-          value={formData.pan}
+          {...register("pan")}
           onChange={(e) =>
-            setFormData({ ...formData, pan: e.target.value.toUpperCase() })
+            setValue("pan", e.target.value.toUpperCase(), {
+              shouldValidate: true,
+            })
           }
+          error={errors.pan}
           className="font-mono uppercase font-bold"
         />
 
         <div className="space-y-3">
           <FormInput
-            name="gstin"
-            label="GST Identification Number (GSTIN) (Optional)"
+            label="GST Identification Number (GSTIN)"
             icon={FileText}
             maxLength={15}
             placeholder="15-digit alphanumeric (e.g. 22AAAAA1111A1Z1)"
-            value={formData.gstin}
+            {...register("gstin")}
             onChange={(e) =>
-              setFormData({ ...formData, gstin: e.target.value.toUpperCase() })
+              setValue("gstin", e.target.value.toUpperCase(), {
+                shouldValidate: true,
+              })
             }
-            disabled={formData.isGstExempt}
+            disabled={isGstExempt}
+            error={errors.gstin}
             className="font-mono uppercase font-bold"
           />
 
           <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer select-none">
             <Checkbox
               id="gst-exempt"
-              checked={formData.isGstExempt}
-              onCheckedChange={(checked) =>
-                setFormData({
-                  ...formData,
-                  isGstExempt: !!checked,
-                  gstin: checked ? "" : formData.gstin,
-                })
-              }
+              checked={isGstExempt}
+              onCheckedChange={(checked) => {
+                setValue("isGstExempt", !!checked, { shouldValidate: true });
+                if (checked) setValue("gstin", "", { shouldValidate: true });
+              }}
             />
             <span className="text-xs text-slate-700 font-semibold leading-relaxed">
               I certify that my commercial enterprise is currently unregistered

@@ -209,7 +209,8 @@ export function OnboardingModal({
             Welcome to Vouchiqo!
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 font-normal max-w-md mx-auto leading-tight">
-            Welcome to Vouchiqo! Select your shopping preferences to discover customized discounts &amp; regional deals.
+            Welcome to Vouchiqo! Select your shopping preferences to discover
+            customized discounts &amp; regional deals.
           </DialogDescription>
         </DialogHeader>
 
@@ -229,9 +230,24 @@ export function OnboardingModal({
 
             <div className="grid grid-cols-3 gap-2">
               {[
-                { value: "men", label: "Men", icon: User, iconColor: "text-blue-600" },
-                { value: "women", label: "Women", icon: Heart, iconColor: "text-pink-600" },
-                { value: "not_preferred", label: "Everyone", icon: Users, iconColor: "text-amber-600" },
+                {
+                  value: "men",
+                  label: "Men",
+                  icon: User,
+                  iconColor: "text-blue-600",
+                },
+                {
+                  value: "women",
+                  label: "Women",
+                  icon: Heart,
+                  iconColor: "text-pink-600",
+                },
+                {
+                  value: "not_preferred",
+                  label: "Everyone",
+                  icon: Users,
+                  iconColor: "text-amber-600",
+                },
               ].map((item) => {
                 const isSelected = gender === item.value;
                 const GenderIcon = item.icon;
@@ -246,7 +262,9 @@ export function OnboardingModal({
                         : "bg-slate-50/60 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-100/60"
                     }`}
                   >
-                    <GenderIcon className={`w-3.5 h-3.5 ${isSelected ? "text-[#e85d04]" : item.iconColor}`} />
+                    <GenderIcon
+                      className={`w-3.5 h-3.5 ${isSelected ? "text-[#e85d04]" : item.iconColor}`}
+                    />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -262,7 +280,8 @@ export function OnboardingModal({
                   2. SELECT YOUR FAVORITE CATEGORIES *
                 </Label>
                 <p className="text-[10px] text-slate-500 font-normal">
-                  Pick at least 3 categories to build your feed ({selectedInterests.length} selected)
+                  Pick at least 3 categories to build your feed (
+                  {selectedInterests.length} selected)
                 </p>
               </div>
               <Badge
@@ -330,4 +349,3 @@ export function OnboardingModal({
     </Dialog>
   );
 }
-

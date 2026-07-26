@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavMain } from "@/components/layout/NavMain";
 import { NavUser } from "@/components/layout/NavUser";
 import { Badge } from "@/components/ui/badge";
@@ -46,7 +46,9 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 
 // Map DB plan slug → display label shown in the sidebar badge
 const PLAN_LABELS = {
@@ -58,29 +60,227 @@ const PLAN_LABELS = {
 
 export function AppSidebar({ ...props }) {
   const pathname = usePathname();
-  const { user: authUser, role: authRole } = useUser();
+  const { user: authUser } = useUser();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [merchantPlan, setMerchantPlan] = useState(null);
 
-  const role = pathname.startsWith("/admin")
-    ? "admin"
-    : pathname.startsWith("/merchant")
-      ? "merchant"
-      : authUser?.role || "customer";
+  // Real-time admin pending action badge counts
+  const [adminBadges, setAdminBadges] = useState({
+    pendingMerchants: 0,
+    pendingCoupons: 0,
+    pendingCampaigns: 0,
+  });
 
-  const isMerchant = role === "merchant";
+  // Real-time merchant sidebar badge counts
+  const [merchantBadges, setMerchantBadges] = useState({
+    status: "approved",
+    totalCoupons: 0,
+    activeCoupons: 0,
+    expiredCoupons: 0,
+    totalCampaigns: 0,
+    unreadNotifications: 0,
+  });
 
-  // Fetch actual plan from DB whenever we're on a merchant route
+  const userRole = authUser?.role;
+  const isAdmin = userRole === "admin" || pathname.startsWith("/admin");
+  const isMerchant = !isAdmin && (userRole === "merchant" || pathname.startsWith("/merchant"));
+  const role = isAdmin ? "admin" : isMerchant ? "merchant" : userRole || "customer";
+
+  // Activity Seen tracking state (stored in localStorage)
+  const [seenState, setSeenState] = useState(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const saved = localStorage.getItem("vouchiqo_sidebar_seen");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Fetch merchant profile & live sidebar badges
+  const fetchMerchantBadges = useCallback(async () => {
+    if (!isMerchant) return;
+    try {
+      const res = await fetch("/api/merchant/badges");
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json?.data) {
+        if (json.data.plan) setMerchantPlan(json.data.plan);
+        setMerchantBadges({
+          status: json.data.status || "approved",
+          totalCoupons: json.data.totalCoupons || 0,
+          activeCoupons: json.data.activeCoupons || 0,
+          expiredCoupons: json.data.expiredCoupons || 0,
+          totalCampaigns: json.data.totalCampaigns || 0,
+          unreadNotifications: json.data.unreadNotifications || 0,
+        });
+      }
+    } catch {
+      // Ignore network errors gracefully
+    }
+  }, [isMerchant]);
+
   useEffect(() => {
     if (!isMerchant) return;
-    fetch("/api/merchants/me")
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (json?.data?.plan) setMerchantPlan(json.data.plan);
-      })
-      .catch(() => {});
-  }, [isMerchant]);
+    fetchMerchantBadges();
+    const interval = setInterval(fetchMerchantBadges, 15000);
+    return () => clearInterval(interval);
+  }, [isMerchant, fetchMerchantBadges]);
+
+  // Real-time polling for admin notification counts from merchant submissions
+  const fetchAdminBadges = useCallback(async () => {
+    if (!isAdmin) return;
+    try {
+      const res = await fetch("/api/admin/analytics");
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json?.data?.badges) {
+        setAdminBadges({
+          pendingMerchants: json.data.badges.pendingMerchants || 0,
+          pendingCoupons: json.data.badges.pendingCoupons || 0,
+          pendingCampaigns: json.data.badges.pendingCampaigns || 0,
+        });
+      }
+    } catch {
+      // Ignore network errors gracefully
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchAdminBadges();
+    const interval = setInterval(fetchAdminBadges, 15000);
+    return () => clearInterval(interval);
+  }, [isAdmin, fetchAdminBadges]);
+
+  // Real-time instant updates for sidebar badges on all platform WebSocket events
+  const handleRealtimeBadgeUpdate = useCallback(() => {
+    if (isAdmin) fetchAdminBadges();
+    if (isMerchant) fetchMerchantBadges();
+  }, [isAdmin, isMerchant, fetchAdminBadges, fetchMerchantBadges]);
+
+  useRealtime(SOCKET_EVENTS.APPLICATION_NEW, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.COUPON_SUBMITTED, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.CAMPAIGN_SUBMITTED, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.CAMPAIGN_STATUS_CHANGED, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.NOTIFICATION_NEW, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.COUPON_CLAIMED, handleRealtimeBadgeUpdate);
+  useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, handleRealtimeBadgeUpdate);
+
+  // Automatically mark items as seen when user visits/views the target page in real time
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    setSeenState((prev) => {
+      const updated = { ...prev };
+      let changed = false;
+
+      // Initialize baseline on first load if undefined
+      if (
+        updated.seenCoupons === undefined &&
+        merchantBadges.totalCoupons > 0
+      ) {
+        updated.seenCoupons = merchantBadges.totalCoupons;
+        changed = true;
+      }
+      if (
+        updated.seenCampaigns === undefined &&
+        merchantBadges.totalCampaigns > 0
+      ) {
+        updated.seenCampaigns = merchantBadges.totalCampaigns;
+        changed = true;
+      }
+      if (
+        updated.seenAdminMerchants === undefined &&
+        adminBadges.pendingMerchants > 0
+      ) {
+        updated.seenAdminMerchants = adminBadges.pendingMerchants;
+        changed = true;
+      }
+      if (
+        updated.seenAdminCoupons === undefined &&
+        adminBadges.pendingCoupons > 0
+      ) {
+        updated.seenAdminCoupons = adminBadges.pendingCoupons;
+        changed = true;
+      }
+      if (
+        updated.seenAdminCampaigns === undefined &&
+        adminBadges.pendingCampaigns > 0
+      ) {
+        updated.seenAdminCampaigns = adminBadges.pendingCampaigns;
+        changed = true;
+      }
+
+      // Merchant visits Coupons / Listings
+      if (pathname.startsWith("/merchant/coupons")) {
+        if (updated.seenCoupons !== merchantBadges.totalCoupons) {
+          updated.seenCoupons = merchantBadges.totalCoupons;
+          changed = true;
+        }
+      }
+
+      // Merchant visits Campaigns
+      if (pathname.startsWith("/merchant/campaigns")) {
+        if (updated.seenCampaigns !== merchantBadges.totalCampaigns) {
+          updated.seenCampaigns = merchantBadges.totalCampaigns;
+          changed = true;
+        }
+      }
+
+      // Merchant visits Notifications
+      if (pathname.startsWith("/merchant/notifications")) {
+        if (updated.seenNotifications !== merchantBadges.unreadNotifications) {
+          updated.seenNotifications = merchantBadges.unreadNotifications;
+          changed = true;
+        }
+      }
+
+      // Admin visits Merchant Approvals / Directory
+      if (
+        pathname.startsWith("/admin/approvals/merchants") ||
+        pathname.startsWith("/admin/merchants")
+      ) {
+        if (updated.seenAdminMerchants !== adminBadges.pendingMerchants) {
+          updated.seenAdminMerchants = adminBadges.pendingMerchants;
+          changed = true;
+        }
+      }
+
+      // Admin visits Coupon Moderation
+      if (
+        pathname.startsWith("/admin/approvals/coupons") ||
+        pathname.startsWith("/admin/offers")
+      ) {
+        if (updated.seenAdminCoupons !== adminBadges.pendingCoupons) {
+          updated.seenAdminCoupons = adminBadges.pendingCoupons;
+          changed = true;
+        }
+      }
+
+      // Admin visits Campaign Queue
+      if (pathname.startsWith("/admin/campaigns")) {
+        if (updated.seenAdminCampaigns !== adminBadges.pendingCampaigns) {
+          updated.seenAdminCampaigns = adminBadges.pendingCampaigns;
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        try {
+          localStorage.setItem(
+            "vouchiqo_sidebar_seen",
+            JSON.stringify(updated),
+          );
+        } catch {}
+        return updated;
+      }
+      return prev;
+    });
+  }, [pathname, merchantBadges, adminBadges]);
 
   const user = authUser
     ? {
@@ -90,15 +290,49 @@ export function AppSidebar({ ...props }) {
         image: authUser.image,
       }
     : {
-        name: isMerchant ? "Marbella Tiles & Sanitary" : "Super Admin",
-        email: isMerchant ? "owner@marbella.in" : "admin@vouchiqo.com",
+        name: isMerchant ? "Merchant Partner" : "Super Admin",
+        email: isMerchant ? "merchant@vouchiqo.com" : "admin@vouchiqo.com",
         avatar: `/avatars/${role}.jpg`,
         image: null,
       };
 
   const getNavGroups = () => {
+    // Unseen Activity Counts for Merchant
+    const unseenCoupons =
+      seenState.seenCoupons !== undefined
+        ? Math.max(0, merchantBadges.totalCoupons - seenState.seenCoupons)
+        : 0;
+
+    const unseenCampaigns =
+      seenState.seenCampaigns !== undefined
+        ? Math.max(0, merchantBadges.totalCampaigns - seenState.seenCampaigns)
+        : 0;
+
+    const unseenNotifications =
+      seenState.seenNotifications === merchantBadges.unreadNotifications
+        ? 0
+        : merchantBadges.unreadNotifications;
+
+    // Unseen Activity Counts for Admin
+    const unseenAdminMerchants =
+      seenState.seenAdminMerchants === adminBadges.pendingMerchants
+        ? 0
+        : adminBadges.pendingMerchants;
+
+    const unseenAdminCoupons =
+      seenState.seenAdminCoupons === adminBadges.pendingCoupons
+        ? 0
+        : adminBadges.pendingCoupons;
+
+    const unseenAdminCampaigns =
+      seenState.seenAdminCampaigns === adminBadges.pendingCampaigns
+        ? 0
+        : adminBadges.pendingCampaigns;
+
+    const totalUnseenAdminApprovals = unseenAdminMerchants + unseenAdminCoupons;
+
     switch (role) {
-      case "admin":
+      case "admin": {
         return [
           {
             title: "OVERVIEW",
@@ -118,16 +352,32 @@ export function AppSidebar({ ...props }) {
                 url: "/admin/approvals/merchants",
                 icon: ShieldCheck,
                 defaultOpen: true,
+                badge:
+                  totalUnseenAdminApprovals > 0
+                    ? String(totalUnseenAdminApprovals)
+                    : null,
+                badgeColor:
+                  "bg-red-500 text-white font-extrabold shadow-sm shadow-red-500/30",
                 subItems: [
                   {
                     title: "Merchant Approvals",
                     url: "/admin/approvals/merchants",
                     icon: ShieldCheck,
+                    badge:
+                      unseenAdminMerchants > 0
+                        ? String(unseenAdminMerchants)
+                        : null,
+                    badgeColor: "bg-red-500 text-white font-extrabold",
                   },
                   {
                     title: "Offer Moderation",
                     url: "/admin/approvals/coupons",
                     icon: Tag,
+                    badge:
+                      unseenAdminCoupons > 0
+                        ? String(unseenAdminCoupons)
+                        : null,
+                    badgeColor: "bg-red-500 text-white font-extrabold",
                   },
                   {
                     title: "Offer Verification",
@@ -145,6 +395,11 @@ export function AppSidebar({ ...props }) {
                 title: "Merchant Directory",
                 url: "/admin/merchants",
                 icon: Store,
+                badge:
+                  unseenAdminMerchants > 0
+                    ? String(unseenAdminMerchants)
+                    : null,
+                badgeColor: "bg-red-500 text-white font-extrabold",
               },
             ],
           },
@@ -155,11 +410,20 @@ export function AppSidebar({ ...props }) {
                 title: "Campaign Hub",
                 url: "/admin/campaigns/queue",
                 icon: Megaphone,
+                badge:
+                  unseenAdminCampaigns > 0
+                    ? String(unseenAdminCampaigns)
+                    : null,
                 subItems: [
                   {
                     title: "Campaign Queue",
                     url: "/admin/campaigns/queue",
                     icon: Megaphone,
+                    badge:
+                      unseenAdminCampaigns > 0
+                        ? String(unseenAdminCampaigns)
+                        : null,
+                    badgeColor: "bg-red-500 text-white font-extrabold",
                   },
                   {
                     title: "Live Monitoring",
@@ -269,6 +533,7 @@ export function AppSidebar({ ...props }) {
             ],
           },
         ];
+      }
       case "merchant":
         return [
           {
@@ -284,11 +549,16 @@ export function AppSidebar({ ...props }) {
                 url: "/merchant/coupons",
                 icon: Layers,
                 tourId: "tour-my-listings",
+                badge: unseenCoupons > 0 ? String(unseenCoupons) : null,
+                badgeColor:
+                  "bg-red-500 text-white font-extrabold shadow-sm shadow-red-500/30",
                 subItems: [
                   {
                     title: "All Listings",
                     url: "/merchant/coupons",
                     icon: Ticket,
+                    badge: unseenCoupons > 0 ? String(unseenCoupons) : null,
+                    badgeColor: "bg-red-500 text-white font-extrabold",
                   },
                   {
                     title: "Active Offers",
@@ -317,12 +587,18 @@ export function AppSidebar({ ...props }) {
                 title: "Campaigns",
                 url: "/merchant/campaigns",
                 icon: Megaphone,
+                badge: unseenCampaigns > 0 ? String(unseenCampaigns) : null,
+                badgeColor:
+                  "bg-red-500 text-white font-extrabold shadow-sm shadow-red-500/30",
               },
               {
                 title: "Notifications",
                 url: "/merchant/notifications",
                 icon: Bell,
-                badge: "4",
+                badge:
+                  unseenNotifications > 0 ? String(unseenNotifications) : null,
+                badgeColor:
+                  "bg-red-500 text-white font-black shadow-sm shadow-red-500/40 animate-pulse",
               },
               {
                 title: "Subscription & Billing",
@@ -343,6 +619,15 @@ export function AppSidebar({ ...props }) {
                 title: "Application Tracking",
                 url: "/merchant/application-status",
                 icon: ShieldCheck,
+                badge: merchantBadges.status
+                  ? merchantBadges.status.toUpperCase()
+                  : "UNDER AUDIT",
+                badgeColor:
+                  merchantBadges.status === "approved"
+                    ? "bg-emerald-600 text-white font-extrabold"
+                    : merchantBadges.status === "rejected"
+                      ? "bg-red-600 text-white font-extrabold"
+                      : "bg-amber-500 text-slate-950 font-black",
               },
               {
                 title: "Account Settings",
@@ -415,9 +700,7 @@ export function AppSidebar({ ...props }) {
       className="bg-white text-slate-900 border-r border-slate-200 shadow-sm font-sans"
       {...props}
     >
-      <SidebarHeader
-        className="h-16 flex items-center justify-center border-b border-slate-200 bg-white px-3.5 py-0"
-      >
+      <SidebarHeader className="h-16 flex items-center justify-center border-b border-slate-200 bg-white px-3.5 py-0">
         <div
           className={`flex items-center gap-2.5 w-full ${isCollapsed ? "justify-center" : ""}`}
         >
@@ -432,30 +715,26 @@ export function AppSidebar({ ...props }) {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col text-left leading-tight min-w-0 flex-1">
-              <span
-                className="text-sm font-black tracking-tight truncate text-slate-900"
-              >
+              <span className="text-sm font-black tracking-tight truncate text-slate-900">
                 {role === "admin" ? "Super Admin" : user.name}
               </span>
               <div className="flex items-center gap-1 mt-0.5">
-                <Badge
-                  className="bg-blue-50 text-blue-700 border-blue-200 text-[8px] font-extrabold px-1.5 py-0"
-                >
-                  {merchantPlan ? (PLAN_LABELS[merchantPlan] ?? merchantPlan.toUpperCase()) : "PARTNER"}
+                <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[8px] font-extrabold px-1.5 py-0">
+                  {merchantPlan
+                    ? (PLAN_LABELS[merchantPlan] ?? merchantPlan.toUpperCase())
+                    : role === "admin"
+                      ? "PLATFORM ADMIN"
+                      : "PARTNER"}
                 </Badge>
               </div>
             </div>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent
-        className="px-2 py-3 bg-white text-slate-900"
-      >
+      <SidebarContent className="px-2 py-3 bg-white text-slate-900">
         <NavMain groups={groups} isMerchant={isMerchant} />
       </SidebarContent>
-      <SidebarFooter
-        className="border-t border-slate-200 bg-white"
-      >
+      <SidebarFooter className="border-t border-slate-200 bg-white">
         <NavUser user={user} role={role} />
       </SidebarFooter>
       <SidebarRail />

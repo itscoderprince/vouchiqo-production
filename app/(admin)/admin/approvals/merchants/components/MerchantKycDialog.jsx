@@ -8,8 +8,8 @@ import {
   FileText,
   Globe,
   Image as ImageIcon,
-  MapPin,
   Mail,
+  MapPin,
   Phone,
   ShieldCheck,
   Store,
@@ -60,13 +60,19 @@ export default function MerchantKycDialog({
                   </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-xs text-slate-500 font-normal">
-                  Detailed KYC audit, location verification, statutory identity documents, and settlement bank credentials.
+                  Detailed KYC audit, location verification, statutory identity
+                  documents, and settlement bank credentials.
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-              <span>Submitted: {merchant.createdAt ? new Date(merchant.createdAt).toLocaleDateString("en-IN") : "Recent"}</span>
+              <span>
+                Submitted:{" "}
+                {merchant.createdAt
+                  ? new Date(merchant.createdAt).toLocaleDateString("en-IN")
+                  : "Recent"}
+              </span>
             </div>
           </div>
         </DialogHeader>
@@ -105,30 +111,50 @@ export default function MerchantKycDialog({
               {/* Card 1: Core Business Overview */}
               <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
                 <h4 className="text-xs font-medium text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                  <Building2 className="w-4 h-4 text-blue-600" /> Business Overview
+                  <Building2 className="w-4 h-4 text-blue-600" /> Business
+                  Overview
                 </h4>
                 <div className="space-y-2">
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Business Name</span>
-                    <span className="font-semibold text-slate-900 text-xs">{merchant.businessName}</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Business Name
+                    </span>
+                    <span className="font-semibold text-slate-900 text-xs">
+                      {merchant.businessName}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Category</span>
-                    <span className="font-medium text-slate-800 capitalize">{merchant.category || "General"}</span>
-                    {merchant.category === "others" && merchant.customCategoryNotes && (
-                      <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900">
-                        <span className="font-semibold block text-[10px] uppercase text-blue-700">Special Category Notes (20+ Words):</span>
-                        <p className="text-[11px] font-normal leading-relaxed">{merchant.customCategoryNotes}</p>
-                      </div>
-                    )}
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Category
+                    </span>
+                    <span className="font-medium text-slate-800 capitalize">
+                      {merchant.category || "General"}
+                    </span>
+                    {merchant.category === "others" &&
+                      merchant.customCategoryNotes && (
+                        <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900">
+                          <span className="font-semibold block text-[10px] uppercase text-blue-700">
+                            Special Category Notes (20+ Words):
+                          </span>
+                          <p className="text-[11px] font-normal leading-relaxed">
+                            {merchant.customCategoryNotes}
+                          </p>
+                        </div>
+                      )}
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Constitution Type</span>
-                    <span className="font-medium text-slate-800 uppercase">{merchant.constitution || "Proprietorship"}</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Constitution Type
+                    </span>
+                    <span className="font-medium text-slate-800 uppercase">
+                      {merchant.constitution || "Proprietorship"}
+                    </span>
                   </div>
                   {merchant.website && (
                     <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Official Website</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        Official Website
+                      </span>
                       <a
                         href={merchant.website}
                         target="_blank"
@@ -145,24 +171,47 @@ export default function MerchantKycDialog({
               {/* Card 2: Contact & Authorized Liaison */}
               <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
                 <h4 className="text-xs font-medium text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                  <UserCheck className="w-4 h-4 text-blue-600" /> Contact &amp; Liaison
+                  <UserCheck className="w-4 h-4 text-blue-600" /> Contact &amp;
+                  Liaison
                 </h4>
                 <div className="space-y-2">
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Authorized Liaison Name</span>
-                    <span className="font-semibold text-slate-900">{merchant.liaisonName || merchant.contactPerson || "Store Owner"}</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Authorized Liaison Name
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {merchant.liaisonName ||
+                        merchant.contactPerson ||
+                        "Store Owner"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Designation</span>
-                    <span className="font-medium text-slate-800 capitalize">{merchant.liaisonDesignation || "Owner"}</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Designation
+                    </span>
+                    <span className="font-medium text-slate-800 capitalize">
+                      {merchant.liaisonDesignation || "Owner"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Contact Email</span>
-                    <span className="font-mono text-slate-800 flex items-center gap-1"><Mail className="w-3 h-3 text-slate-400" /> {merchant.contactEmail}</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Contact Email
+                    </span>
+                    <span className="font-mono text-slate-800 flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-slate-400" />{" "}
+                      {merchant.contactEmail}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Contact Phone &amp; WhatsApp</span>
-                    <span className="font-mono text-slate-800 flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" /> {merchant.contactPhone || merchant.whatsappNumber || "N/A"}</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Contact Phone &amp; WhatsApp
+                    </span>
+                    <span className="font-mono text-slate-800 flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-slate-400" />{" "}
+                      {merchant.contactPhone ||
+                        merchant.whatsappNumber ||
+                        "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -170,29 +219,42 @@ export default function MerchantKycDialog({
               {/* Card 3: Physical Address & Coordinates */}
               <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
                 <h4 className="text-xs font-medium text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                  <MapPin className="w-4 h-4 text-blue-600" /> Store Location &amp; Coordinates
+                  <MapPin className="w-4 h-4 text-blue-600" /> Store Location
+                  &amp; Coordinates
                 </h4>
                 <div className="space-y-2">
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Street Address</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Street Address
+                    </span>
                     <span className="font-medium text-slate-800 block leading-snug">
                       {merchant.location?.address || "Registered Address"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">City &amp; State</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        City &amp; State
+                      </span>
                       <span className="font-medium text-slate-900">
-                        {merchant.location?.city ? `${merchant.location.city}, ${merchant.location.state || ""}` : "Ranchi, Jharkhand"}
+                        {merchant.location?.city
+                          ? `${merchant.location.city}, ${merchant.location.state || ""}`
+                          : "Ranchi, Jharkhand"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">PIN Code</span>
-                      <span className="font-mono font-medium text-slate-900">{merchant.location?.pincode || "N/A"}</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        PIN Code
+                      </span>
+                      <span className="font-mono font-medium text-slate-900">
+                        {merchant.location?.pincode || "N/A"}
+                      </span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">GPS Pinpoint Coordinates</span>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      GPS Pinpoint Coordinates
+                    </span>
                     <span className="font-mono text-xs font-medium text-blue-700 block">
                       Lat: {lat} | Lng: {lng}
                     </span>
@@ -204,7 +266,8 @@ export default function MerchantKycDialog({
                       rel="noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline pt-1"
                     >
-                      <ExternalLink className="w-3 h-3" /> View Location on Google Maps
+                      <ExternalLink className="w-3 h-3" /> View Location on
+                      Google Maps
                     </a>
                   )}
                 </div>
@@ -213,8 +276,12 @@ export default function MerchantKycDialog({
 
             {merchant.description && (
               <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/80 space-y-1">
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Business Description</span>
-                <p className="text-xs text-slate-700 leading-relaxed font-normal">{merchant.description}</p>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Business Description
+                </span>
+                <p className="text-xs text-slate-700 leading-relaxed font-normal">
+                  {merchant.description}
+                </p>
               </div>
             )}
           </TabsContent>
@@ -223,19 +290,25 @@ export default function MerchantKycDialog({
           <TabsContent value="legal" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Primary Document Type</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Primary Document Type
+                </span>
                 <span className="font-semibold text-blue-700">
                   {merchant.docType || "GST Registration Certificate"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Permanent Account Number (PAN)</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Permanent Account Number (PAN)
+                </span>
                 <span className="font-mono font-semibold text-slate-900">
                   {merchant.pan || "Not Provided (Optional)"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">GSTIN Registration</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  GSTIN Registration
+                </span>
                 <span className="font-mono font-semibold text-slate-900">
                   {merchant.isGstExempt
                     ? "Exempt Micro-Merchant"
@@ -248,7 +321,8 @@ export default function MerchantKycDialog({
             <div className="p-4 bg-blue-50/30 rounded-xl border border-blue-200 text-center space-y-3">
               <div className="flex items-center justify-between border-b border-blue-100 pb-2">
                 <span className="text-xs font-medium text-slate-900 block">
-                  Primary Identity Document Image ({merchant.docType || "GST Certificate"})
+                  Primary Identity Document Image (
+                  {merchant.docType || "GST Certificate"})
                 </span>
                 {merchant.docImage && (
                   <a
@@ -286,25 +360,36 @@ export default function MerchantKycDialog({
           <TabsContent value="bank" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Account Holder Name</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Account Holder Name
+                </span>
                 <span className="font-semibold text-slate-900">
-                  {merchant.bankDetails?.holderName || merchant.businessName || "N/A"}
+                  {merchant.bankDetails?.holderName ||
+                    merchant.businessName ||
+                    "N/A"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Account Typology</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Account Typology
+                </span>
                 <span className="font-semibold text-slate-900 uppercase">
                   {merchant.bankDetails?.accountType || "Current"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Account Serial Number</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Account Serial Number
+                </span>
                 <span className="font-mono font-semibold text-slate-900">
-                  {merchant.bankDetails?.accountNumber || "Not Provided (Optional)"}
+                  {merchant.bankDetails?.accountNumber ||
+                    "Not Provided (Optional)"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Bank IFSC Code</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                  Bank IFSC Code
+                </span>
                 <span className="font-mono font-semibold text-slate-900">
                   {merchant.bankDetails?.ifsc || "Not Provided (Optional)"}
                 </span>
@@ -313,7 +398,9 @@ export default function MerchantKycDialog({
 
             {merchant.bankDetails?.chequeImage && (
               <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-medium text-slate-900 block">Cancelled Cheque / Bank Proof Photograph</span>
+                <span className="text-xs font-medium text-slate-900 block">
+                  Cancelled Cheque / Bank Proof Photograph
+                </span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={merchant.bankDetails.chequeImage}
@@ -328,7 +415,9 @@ export default function MerchantKycDialog({
           <TabsContent value="visuals" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-semibold text-slate-900 block">Shop Front Photograph</span>
+                <span className="text-xs font-semibold text-slate-900 block">
+                  Shop Front Photograph
+                </span>
                 {merchant.shopImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -339,13 +428,17 @@ export default function MerchantKycDialog({
                 ) : (
                   <div className="py-8 text-center space-y-1">
                     <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                    <span className="text-xs text-slate-400 font-normal block">No shop front photo uploaded</span>
+                    <span className="text-xs text-slate-400 font-normal block">
+                      No shop front photo uploaded
+                    </span>
                   </div>
                 )}
               </div>
 
               <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-semibold text-slate-900 block">Store Brand Logo</span>
+                <span className="text-xs font-semibold text-slate-900 block">
+                  Store Brand Logo
+                </span>
                 {merchant.logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -356,24 +449,30 @@ export default function MerchantKycDialog({
                 ) : (
                   <div className="py-8 text-center space-y-1">
                     <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                    <span className="text-xs text-slate-400 font-normal block">No store logo uploaded</span>
+                    <span className="text-xs text-slate-400 font-normal block">
+                      No store logo uploaded
+                    </span>
                   </div>
                 )}
               </div>
 
               <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-semibold text-slate-900 block">Store Banner Image</span>
+                <span className="text-xs font-semibold text-slate-900 block">
+                  Store Banner Image
+                </span>
                 {merchant.banner ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={merchant.banner}
-                    alt="Banner Image"
+                    alt="Store Banner"
                     className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
                   />
                 ) : (
                   <div className="py-8 text-center space-y-1">
                     <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                    <span className="text-xs text-slate-400 font-normal block">No banner image uploaded</span>
+                    <span className="text-xs text-slate-400 font-normal block">
+                      No banner image uploaded
+                    </span>
                   </div>
                 )}
               </div>
@@ -409,18 +508,31 @@ export default function MerchantKycDialog({
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
           <Button
             variant="outline"
-            onClick={() => onAction(merchant._id, "reject")}
+            onClick={() => onAction(merchant._id, "rejected")}
             className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200 text-xs font-normal rounded-lg cursor-pointer shadow-none gap-1.5 px-4"
           >
             <X className="w-4 h-4" /> Reject Application
           </Button>
 
-          <Button
-            onClick={() => onAction(merchant._id, "approve")}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-normal rounded-lg cursor-pointer shadow-none gap-1.5 px-5"
-          >
-            <Check className="w-4 h-4" /> Approve &amp; Activate Merchant
-          </Button>
+          <div className="flex items-center gap-2">
+            {(merchant.status === "pending" || !merchant.status) && (
+              <Button
+                onClick={() => onAction(merchant._id, "form_accepted")}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-5"
+              >
+                <Check className="w-4 h-4" /> Accept Form for Review
+              </Button>
+            )}
+
+            {(merchant.status === "form_accepted" || merchant.status === "under_review" || merchant.status === "pending" || !merchant.status) && (
+              <Button
+                onClick={() => onAction(merchant._id, "approved")}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-5"
+              >
+                <Check className="w-4 h-4" /> Approve & Activate Merchant
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

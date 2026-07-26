@@ -12,20 +12,30 @@ import {
 
 /**
  * ConfirmDeleteModal — Reusable delete confirmation modal dialog.
- * Can be imported anywhere across merchant and admin panels.
+ * Canonical component for all delete confirmation interactions.
  */
 export default function ConfirmDeleteModal({
   open,
+  isOpen,
   onOpenChange,
-  title = "Confirm Delete Coupon",
+  onClose,
+  title = "Confirm Delete",
   itemName = "",
   description,
   onConfirm,
   onCancel,
   isPending = false,
 }) {
+  const isModalOpen = open ?? isOpen ?? false;
+
+  const handleOpenChange = (newOpenState) => {
+    if (onOpenChange) onOpenChange(newOpenState);
+    if (!newOpenState && onClose) onClose();
+  };
+
   const handleCancel = () => {
     if (onCancel) onCancel();
+    if (onClose) onClose();
     if (onOpenChange) onOpenChange(false);
   };
 
@@ -43,7 +53,7 @@ export default function ConfirmDeleteModal({
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md bg-white p-6 rounded-2xl border border-slate-200 shadow-lg text-left">
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-base font-bold text-slate-800">

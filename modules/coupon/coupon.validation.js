@@ -6,59 +6,67 @@ import { COUPON_CATEGORIES } from "@/utils/constants";
  * All user input is validated through these before hitting services.
  */
 
-export const createCouponSchema = z.object({
-  title: z
-    .string()
-    .min(5, "Title must be at least 5 characters")
-    .max(120, "Title cannot exceed 120 characters"),
+export const createCouponSchema = z
+  .object({
+    title: z
+      .string()
+      .min(5, "Title must be at least 5 characters")
+      .max(120, "Title cannot exceed 120 characters"),
 
-  description: z
-    .string()
-    .max(500, "Description cannot exceed 500 characters")
-    .optional(),
+    description: z
+      .string()
+      .max(500, "Description cannot exceed 500 characters")
+      .optional(),
 
-  code: z
-    .string()
-    .min(3, "Coupon code must be at least 3 characters")
-    .max(30, "Coupon code cannot exceed 30 characters")
-    .toUpperCase(),
+    code: z
+      .string()
+      .min(3, "Coupon code must be at least 3 characters")
+      .max(30, "Coupon code cannot exceed 30 characters")
+      .toUpperCase(),
 
-  discountType: z.enum(["percentage", "fixed", "freebie"]),
+    discountType: z.enum(["percentage", "fixed", "freebie"]),
 
-  discountValue: z.number().positive().optional(),
+    discountValue: z.number().nonnegative().optional(),
 
-  originalPrice: z.number().positive().optional(),
+    originalPrice: z.number().nonnegative().optional(),
 
-  category: z.enum(COUPON_CATEGORIES),
+    category: z.enum(COUPON_CATEGORIES),
 
-  tags: z.array(z.string().max(30)).max(10).optional(),
+    tags: z.array(z.string().max(30)).max(10).optional(),
 
-  image: z.string().url("Image must be a valid URL").optional(),
+    image: z
+      .string()
+      .url("Image must be a valid URL")
+      .optional()
+      .or(z.literal("")),
 
-  maxClaims: z.number().int().positive().optional(),
-  maxRedemptions: z.number().int().positive().optional(),
+    maxClaims: z.number().int().positive().optional(),
+    maxRedemptions: z.number().int().positive().optional(),
 
-  isFeatured: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
 
-  status: z.enum(["active", "paused", "expired"]).optional(),
+    status: z
+      .enum(["pending", "active", "paused", "expired", "deleted"])
+      .optional(),
 
-  expiresAt: z
-    .string()
-    .datetime({ message: "expiresAt must be a valid ISO 8601 date" })
-    .refine(
-      (val) => new Date(val) > new Date(),
-      "Expiry date must be in the future",
-    ),
+    expiresAt: z
+      .string()
+      .datetime({ message: "expiresAt must be a valid ISO 8601 date" })
+      .refine(
+        (val) => new Date(val) > new Date(),
+        "Expiry date must be in the future",
+      ),
 
-  location: z
-    .object({
-      city: z.string().optional(),
-      state: z.string().optional(),
-      country: z.string().optional(),
-      isOnline: z.boolean().default(true),
-    })
-    .optional(),
-}).passthrough();
+    location: z
+      .object({
+        city: z.string().optional(),
+        state: z.string().optional(),
+        country: z.string().optional(),
+        isOnline: z.boolean().default(false),
+      })
+      .optional(),
+  })
+  .passthrough();
 
 export const updateCouponSchema = createCouponSchema.partial();
 
@@ -75,6 +83,8 @@ export const couponQuerySchema = z.object({
     .optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
   merchantId: z.string().optional(),
-  status: z.enum(["active", "paused", "expired", "deleted"]).optional(),
+  status: z
+    .enum(["pending", "active", "paused", "expired", "deleted"])
+    .optional(),
   allDates: z.coerce.boolean().optional(),
 });

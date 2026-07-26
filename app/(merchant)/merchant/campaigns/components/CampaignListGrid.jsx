@@ -77,7 +77,7 @@ export default function CampaignListGrid({
             <div className="grid grid-cols-3 gap-1 py-2 px-2 bg-slate-50/80 rounded-xl border border-slate-100 text-center">
               <div>
                 <span className="text-sm font-extrabold text-slate-900 block leading-tight">
-                  {camp.stats?.clicks ?? "12,840"}
+                  {(camp.stats?.clicks ?? camp.clicks ?? 0).toLocaleString()}
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
                   CLICKS
@@ -85,7 +85,11 @@ export default function CampaignListGrid({
               </div>
               <div className="border-x border-slate-200/60">
                 <span className="text-sm font-extrabold text-slate-900 block leading-tight">
-                  {camp.stats?.redemptions ?? "1,820"}
+                  {(
+                    camp.stats?.redemptions ??
+                    camp.redemptions ??
+                    0
+                  ).toLocaleString()}
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
                   REDEMPTIONS
@@ -93,7 +97,8 @@ export default function CampaignListGrid({
               </div>
               <div>
                 <span className="text-sm font-extrabold text-slate-900 block leading-tight">
-                  {camp.stats?.revenue ?? "₹482K"}
+                  {camp.stats?.revenue ??
+                    `₹${((camp.stats?.redemptions ?? camp.redemptions ?? 0) * 250).toLocaleString()}`}
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
                   REVENUE

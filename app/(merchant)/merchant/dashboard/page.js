@@ -1,10 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Clock, Info, ShoppingCart, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useRealtime } from "@/hooks/use-realtime";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import KpiCards from "./components/KpiCards";
 import OnboardingCard from "./components/OnboardingCard";
 import PerformanceChart from "./components/PerformanceChart";
@@ -16,6 +19,7 @@ import TrafficAndGoals from "./components/TrafficAndGoals";
 
 export default function MerchantDashboard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [activeRange, setActiveRange] = useState("30 Days");
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
@@ -26,6 +30,31 @@ export default function MerchantDashboard() {
       );
     }
   }, []);
+
+  // Listen for real-time customer coupon claims
+  useRealtime(SOCKET_EVENTS.COUPON_CLAIMED, (data) => {
+    toast.success(
+      `New Claim! "${data.couponTitle || "Offer"}" saved by a customer.`,
+      {
+        icon: "🎉",
+        duration: 5000,
+      },
+    );
+    queryClient.invalidateQueries({ queryKey: ["merchant-analytics"] });
+    queryClient.invalidateQueries({ queryKey: ["merchant-recent-claims"] });
+  });
+
+  // Listen for real-time customer coupon redemptions
+  useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, (data) => {
+    toast.success(
+      `Coupon Redeemed! "${data.couponTitle || "Offer"}" (Saved ₹${data.savingsAmount || 0})`,
+      { icon: "💰", duration: 5000 },
+    );
+    queryClient.invalidateQueries({ queryKey: ["merchant-analytics"] });
+    queryClient.invalidateQueries({
+      queryKey: ["merchant-recent-redemptions"],
+    });
+  });
 
   // Fetch merchant analytics from real API
   const { data: analyticsData } = useQuery({
@@ -88,7 +117,10 @@ export default function MerchantDashboard() {
     (sum, s) => sum + (s.redemptions || 0),
     0,
   );
-  const totalRevenue = trendData.reduce((sum, t) => sum + t.revenue, 0);
+  const totalRevenue = trendData.reduce(
+    (sum, t) => sum + (Number(t?.revenue) || 0),
+    0,
+  );
 
   // Month-over-month change
   function momChange(key) {
@@ -239,7 +271,9 @@ export default function MerchantDashboard() {
                 APPLICATION UNDER REVIEW
               </h2>
               <p className="text-xs text-amber-800 max-w-lg mx-auto font-medium">
-                Your merchant profile &amp; KYC verification are currently under review by our super admin team. Account features will be activated upon approval (usually 24–48 hours).
+                Your merchant profile &amp; KYC verification are currently under
+                review by our super admin team. Account features will be
+                activated upon approval (usually 24–48 hours).
               </p>
             </div>
             <div className="flex items-center justify-center gap-3 pt-1">

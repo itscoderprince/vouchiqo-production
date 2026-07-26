@@ -1,5 +1,8 @@
 import { connectDB } from "@/lib/mongodb";
+import { dispatchEvent } from "@/lib/socket/dispatcher";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireAuth } from "@/modules/auth/auth.middleware";
+import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import {
   getMerchantRedemptions,
@@ -48,5 +51,38 @@ export const POST = asyncHandler(async (request) => {
   const { claimId, couponId } = redeemSchema.parse(body);
 
   const redemption = await redeemCoupon(user.id, claimId, couponId);
+
+  // Emit socket event and DB notification to the coupon's merchant
+  const couponDoc = await Coupon.findById(couponId).lean();
+  if (couponDoc?.merchantId) {
+    const merchantDoc = await Merchant.findById(couponDoc.merchantId).lean();
+    const merchantUserId = merchantDoc?.authId || merchantDoc?.userId;
+
+    if (merchantUserId) {
+      const payload = {
+        redemptionId: redemption._id || redemption.id,
+        couponId: couponDoc._id,
+        couponTitle: couponDoc.title,
+        savingsAmount: redemption.savingsAmount || 0,
+        redeemedAt: new Date().toISOString(),
+      };
+
+      await dispatchEvent({
+        target: "user",
+        userId: String(merchantUserId),
+        event: SOCKET_EVENTS.COUPON_REDEEMED,
+        payload,
+        notify: {
+          userId: String(merchantUserId),
+          type: "coupon_redeemed",
+          category: "campaign",
+          title: "Coupon Redeemed!",
+          message: `A customer successfully redeemed offer '${couponDoc.title}'.`,
+          metadata: payload,
+        },
+      });
+    }
+  }
+
   return created(redemption, "Coupon redeemed successfully");
 });

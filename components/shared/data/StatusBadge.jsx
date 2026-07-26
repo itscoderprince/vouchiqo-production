@@ -11,6 +11,7 @@ import {
   PauseCircle,
   Star,
   XCircle,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,12 +20,48 @@ import { cn } from "@/lib/utils";
  * Add more status values here as the product grows.
  */
 const STATUS_CONFIG = {
-  // Generic
+  // Generic & Live statuses
   active: {
     label: "Active",
     icon: CheckCircle2,
     classes: "bg-emerald-50 text-emerald-700 border-emerald-200",
     dot: "bg-emerald-500",
+  },
+  live: {
+    label: "Live",
+    icon: Zap,
+    classes: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  paused: {
+    label: "Paused",
+    icon: PauseCircle,
+    classes: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-400",
+  },
+  ended: {
+    label: "Ended",
+    icon: XCircle,
+    classes: "bg-slate-100 text-slate-500 border-slate-200",
+    dot: "bg-slate-400",
+  },
+  not_contacted: {
+    label: "Not Contacted",
+    icon: Clock,
+    classes: "bg-slate-100 text-slate-500 border-slate-200",
+    dot: "bg-slate-300",
+  },
+  suspended: {
+    label: "Suspended",
+    icon: Ban,
+    classes: "bg-red-50 text-red-600 border-red-200",
+    dot: "bg-red-400",
+  },
+  under_review: {
+    label: "Under Review",
+    icon: Eye,
+    classes: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-400",
   },
   inactive: {
     label: "Inactive",

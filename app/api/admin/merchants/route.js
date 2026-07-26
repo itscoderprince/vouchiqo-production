@@ -1,4 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
+import { dispatchEvent } from "@/lib/socket/dispatcher";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import {
   listMerchants,
@@ -35,5 +37,46 @@ export const PUT = asyncHandler(async (request) => {
 
   const { merchantId, status, rejectionReason } = await request.json();
   const merchant = await reviewMerchant(merchantId, status, rejectionReason);
+
+  const payload = {
+    merchantId: merchant._id || merchant.id,
+    status: merchant.status,
+    businessName: merchant.businessName,
+    rejectionReason: merchant.rejectionReason || "",
+  };
+
+  // Broadcast to Admin desk
+  await dispatchEvent({ target: "admins", event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, payload });
+
+  // Direct socket & DB notification to merchant user
+  const merchantUserId = merchant?.authId || merchant?.userId;
+  if (merchantUserId) {
+    const isApproved = status === "approved";
+    const isRejected = status === "rejected";
+
+    await dispatchEvent({
+      target: "user",
+      userId: String(merchantUserId),
+      event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+      payload,
+      notify: {
+        userId: String(merchantUserId),
+        type: isApproved ? "merchant_approved" : isRejected ? "merchant_rejected" : "application_status_changed",
+        category: "system",
+        title: isApproved
+          ? "Merchant Account Approved & Live"
+          : isRejected
+            ? "Merchant Application Rejected"
+            : `Application Status Changed (${status})`,
+        message: isApproved
+          ? `Your business profile '${merchant.businessName}' has been verified and is live on Vouchiqo.`
+          : isRejected
+            ? `Your application for '${merchant.businessName}' was rejected: ${merchant.rejectionReason || "Check credentials."}`
+            : `Status for '${merchant.businessName}' updated to ${status}.`,
+        metadata: payload,
+      },
+    });
+  }
+
   return ok(merchant, `Merchant ${status}`);
 });

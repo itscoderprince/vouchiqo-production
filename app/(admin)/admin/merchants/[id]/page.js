@@ -1,10 +1,29 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  Award,
+  Building2,
+  CreditCard,
+  DollarSign,
+  LifeBuoy,
+  Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  PlusCircle,
+  ShieldAlert,
+  Store,
+  Tag,
+  UserCheck,
+} from "lucide-react";
 import Link from "next/link";
-import { use, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { DataTable } from "@/components/shared/data";
+import { FormSelect } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,475 +35,752 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  adminFetchMerchantDetails,
+  adminReviewMerchant,
+  adminUpdateMerchantDetails,
+} from "@/lib/api-helpers";
+
+const PLAN_OVERRIDE_OPTIONS = [
+  { value: "starter", label: "Starter Free (₹0)" },
+  { value: "growth", label: "Growth Partner (₹1,499/mo)" },
+  { value: "pro", label: "Pro Partner (₹3,999/mo)" },
+  { value: "enterprise", label: "Enterprise Partner (₹9,999/mo)" },
+];
 
 export default function MerchantDetailPage({ params }) {
   const resolvedParams = use(params);
   const merchantId = resolvedParams.id;
 
+  const [loading, setLoading] = useState(true);
+  const [merchant, setMerchant] = useState(null);
+  const [coupons, setCoupons] = useState([]);
   const [activeTab, setActiveTab] = useState("profile");
-  const [currentPlan, setCurrentPlan] = useState("Growth Partner");
-  const [isSuspended, setIsSuspended] = useState(false);
-  const [revivalCredits, setRevivalCredits] = useState(50);
+
+  // API Action Loading States
+  const [isAddingCredits, setIsAddingCredits] = useState(false);
+  const [isTogglingSuspend, setIsTogglingSuspend] = useState(false);
+  const [isChangingPlan, setIsChangingPlan] = useState(false);
+
+  // Change Plan Modal State
   const [isChangePlanOpen, setIsChangePlanOpen] = useState(false);
-  const [newPlan, setNewPlan] = useState("Pro Partner");
+  const [targetPlan, setTargetPlan] = useState("pro");
 
-  const merchantProfile = {
-    id: merchantId,
-    businessName: merchantId.includes("marbella")
-      ? "Marbella Tiles & Sanitaryware"
-      : "Marbella Tiles & Sanitaryware",
-    tradingName: "Marbella Showroom Ranchi",
-    category: "Home Improvement",
-    constitution: "Proprietorship",
-    email: "marbellaranchi11@gmail.com",
-    phone: "+91 98351 23456",
-    contactPerson: "Mr. Rajesh Agarwal (Owner)",
-    address: "Plot 42, Main Road, Near Overbridge, Ranchi, Jharkhand 834001",
-    joinedDate: "2026-07-01",
-    status: isSuspended ? "Suspended" : "Active",
-  };
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await adminFetchMerchantDetails(merchantId);
+      if (data.merchant) {
+        setMerchant(data.merchant);
+        setTargetPlan(data.merchant.plan || "starter");
+      }
+      setCoupons(data.coupons || []);
+    } catch (err) {
+      console.error("Error loading merchant detail:", err);
+      toast.error("Failed to load merchant profile data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [merchantId]);
 
-  const listings = [
-    {
-      title: "20% OFF Mega Festive Sale",
-      code: "FESTIVE20",
-      clicks: 1420,
-      redemptions: 340,
-      status: "Active",
-    },
-    {
-      title: "Flat ₹500 Cashback on Dining",
-      code: "DINING500",
-      clicks: 980,
-      redemptions: 210,
-      status: "Active",
-    },
-    {
-      title: "Buy 1 Get 1 Appetizers",
-      code: "BOGOAPP",
-      clicks: 650,
-      redemptions: 115,
-      status: "Paused",
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const subscriptions = [
-    {
-      date: "2026-07-01",
-      plan: "Growth Partner",
-      amount: "₹1,499.00",
-      cycle: "Monthly",
-      status: "Paid",
-    },
-    {
-      date: "2026-06-01",
-      plan: "Growth Partner",
-      amount: "₹1,499.00",
-      cycle: "Monthly",
-      status: "Paid",
-    },
-  ];
+  // Handle Adding Revival Credits
+  const handleAddCredits = useCallback(async () => {
+    if (!merchant) return;
+    const currentCredits = merchant.revivalCredits || 50;
+    const newCredits = currentCredits + 25;
+    try {
+      setIsAddingCredits(true);
+      const updated = await adminUpdateMerchantDetails(merchantId, {
+        revivalCredits: newCredits,
+      });
+      setMerchant(updated || { ...merchant, revivalCredits: newCredits });
+      toast.success(`Added +25 Revival Credits! (Total: ${newCredits})`);
+    } catch (err) {
+      toast.error(err.message || "Failed to add revival credits.");
+    } finally {
+      setIsAddingCredits(false);
+    }
+  }, [merchant, merchantId]);
 
-  const commissions = [
-    {
-      id: "COMM-901",
-      date: "2026-07-20",
-      item: "20% OFF Mega Sale",
-      model: "5% CPA",
-      amount: "₹1,400.00",
-      status: "Approved",
-    },
-    {
-      id: "COMM-900",
-      date: "2026-07-15",
-      item: "Home Improvement CPL",
-      model: "CPL ₹250",
-      amount: "₹1,500.00",
-      status: "Paid",
-    },
-  ];
+  // Handle Suspend / Reactivate Account
+  const handleToggleSuspend = useCallback(async () => {
+    if (!merchant) return;
+    const isCurrentlySuspended = merchant.status === "suspended";
+    const nextStatus = isCurrentlySuspended ? "approved" : "suspended";
+    try {
+      setIsTogglingSuspend(true);
+      await adminReviewMerchant(
+        merchantId,
+        nextStatus,
+        isCurrentlySuspended ? "" : "Suspended by admin",
+      );
+      setMerchant((prev) => ({ ...prev, status: nextStatus }));
+      toast.success(
+        `Merchant account ${isCurrentlySuspended ? "reactivated" : "suspended"}.`,
+      );
+    } catch (err) {
+      toast.error(err.message || "Failed to update account status.");
+    } finally {
+      setIsTogglingSuspend(false);
+    }
+  }, [merchant, merchantId]);
 
-  const tickets = [
-    {
-      id: "TKT-402",
-      date: "2026-07-19",
-      subject: "Request for Campaign Ticker Slot Approval",
-      status: "Resolved",
-      priority: "High",
-    },
-  ];
+  // Handle Changing Subscription Plan
+  const handleChangePlan = useCallback(async () => {
+    try {
+      setIsChangingPlan(true);
+      const updated = await adminUpdateMerchantDetails(merchantId, {
+        plan: targetPlan,
+      });
+      setMerchant(updated || { ...merchant, plan: targetPlan });
+      toast.success(
+        `Merchant subscription updated to ${targetPlan.toUpperCase()}!`,
+      );
+      setIsChangePlanOpen(false);
+    } catch (err) {
+      toast.error(err.message || "Failed to change subscription plan.");
+    } finally {
+      setIsChangingPlan(false);
+    }
+  }, [merchant, merchantId, targetPlan]);
 
-  const activityLog = [
-    {
-      time: "2026-07-21 14:30 IST",
-      action: "Posted New Listing",
-      details: "Flat 20% off on all Italian Marble Tiles",
-    },
-    {
-      time: "2026-07-20 11:15 IST",
-      action: "Submitted Campaign",
-      details: "Pre-Diwali Grand Festival Campaign",
-    },
-    {
-      time: "2026-07-01 09:00 IST",
-      action: "Account Registered",
-      details: "Onboarded under Founding Merchant Program",
-    },
-  ];
+  // Listings Column Definitions
+  const listingColumns = useMemo(
+    () => [
+      {
+        key: "title",
+        header: "Offer Title",
+        sortable: true,
+        cell: (c) => (
+          <div>
+            <span className="font-bold text-slate-900 block">
+              {c.title || c.headline}
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">
+              {c.code || "VOUCHIQO"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "category",
+        header: "Category",
+        sortable: true,
+        cell: (c) => (
+          <span className="text-[10px] font-medium bg-slate-100 text-slate-700 px-2 py-0.5 rounded capitalize">
+            {c.category || "General"}
+          </span>
+        ),
+      },
+      {
+        key: "claimsCount",
+        header: "Total Redemptions",
+        sortable: true,
+        align: "right",
+        cell: (c) => (
+          <span className="font-mono font-bold text-slate-900">
+            {c.claimsCount || c.redemptions || 0}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: "Status",
+        sortable: true,
+        cell: (c) => {
+          const s = (c.status || "active").toLowerCase();
+          return (
+            <Badge
+              className={`rounded px-2 py-0.5 border-0 text-[9px] font-bold uppercase ${
+                s === "active"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : s === "pending"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {s}
+            </Badge>
+          );
+        },
+      },
+      {
+        key: "createdAt",
+        header: "Created Date",
+        sortable: true,
+        cell: (c) => (
+          <span className="font-mono text-[11px] text-slate-500">
+            {c.createdAt
+              ? new Date(c.createdAt).toLocaleDateString("en-IN")
+              : "—"}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
 
-  const handleAddCredits = () => {
-    setRevivalCredits((prev) => prev + 25);
-    toast.success("Added +25 Revival Credits to merchant account!");
-  };
+  // Dynamic Metrics & Subscriptions / Commissions Mock Tables
+  const totalCouponsCount = coupons.length;
+  const totalRedemptionsCount = coupons.reduce(
+    (acc, curr) => acc + (curr.claimsCount || curr.redemptions || 0),
+    0,
+  );
 
-  const handleToggleSuspend = () => {
-    const nextState = !isSuspended;
-    setIsSuspended(nextState);
-    toast.success(
-      `Merchant account ${nextState ? "suspended" : "reactivated"}.`,
+  const mockSubscriptions = useMemo(
+    () => [
+      {
+        date: merchant?.createdAt
+          ? new Date(merchant.createdAt).toLocaleDateString("en-IN")
+          : "2026-07-01",
+        plan: (merchant?.plan || "starter").toUpperCase(),
+        amount:
+          merchant?.plan === "pro"
+            ? "₹3,999.00"
+            : merchant?.plan === "growth"
+              ? "₹1,499.00"
+              : "₹0.00",
+        cycle: "Monthly Recurring",
+        status: "ACTIVE",
+      },
+    ],
+    [merchant],
+  );
+
+  const mockCommissions = useMemo(
+    () => [
+      {
+        id: "COMM-801",
+        date: "2026-07-20",
+        item: "Partner Store Listing Redemptions",
+        model: "5% Standard Commission",
+        amount: `₹${(totalRedemptionsCount * 25).toLocaleString("en-IN")}`,
+        status: "Settled",
+      },
+    ],
+    [totalRedemptionsCount],
+  );
+
+  const mockTickets = useMemo(
+    () => [
+      {
+        id: "TKT-104",
+        date: "2026-07-18",
+        subject: "Request for Store Listing Address Update",
+        status: "Resolved",
+        priority: "Normal",
+      },
+    ],
+    [],
+  );
+
+  const mockActivityLog = useMemo(
+    () => [
+      {
+        time: merchant?.updatedAt
+          ? new Date(merchant.updatedAt).toLocaleString("en-IN")
+          : "Just now",
+        action: "Merchant Profile Updated",
+        details: `Account status: ${merchant?.status || "approved"}`,
+      },
+      {
+        time: merchant?.createdAt
+          ? new Date(merchant.createdAt).toLocaleString("en-IN")
+          : "2026-07-01",
+        action: "Merchant Registered & Onboarded",
+        details: `Initial Plan: ${(merchant?.plan || "starter").toUpperCase()}`,
+      },
+    ],
+    [merchant],
+  );
+
+  if (loading) {
+    return (
+      <DashboardLayout
+        title="Merchant Profile Dashboard"
+        user={{ name: "Super Admin", role: "admin" }}
+      >
+        <div className="space-y-6 text-left font-sans w-full pb-8">
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <div className="grid grid-cols-4 gap-4">
+            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+          </div>
+          <Skeleton className="h-64 w-full rounded-2xl" />
+        </div>
+      </DashboardLayout>
     );
-  };
+  }
 
-  const handleChangePlan = () => {
-    setCurrentPlan(newPlan);
-    toast.success(`Merchant plan updated to ${newPlan}!`);
-    setIsChangePlanOpen(false);
-  };
+  const bName = merchant?.businessName || "Merchant Partner";
+  const statusStr = (merchant?.status || "pending").toLowerCase();
+  const isSuspended = statusStr === "suspended";
+  const planName = (merchant?.plan || "starter").toUpperCase();
+  const credits = merchant?.revivalCredits || 50;
 
   return (
     <DashboardLayout
-      title="Merchant Detail Control"
+      title="Executive Merchant Control Center"
       user={{ name: "Super Admin", role: "admin" }}
     >
-      <div className="space-y-4 text-left font-sans w-full pb-6">
-        {/* Header Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
-          <div className="flex items-center gap-2.5">
-            <Button variant="ghost" asChild className="p-1 h-8 w-8 rounded-lg">
+      <div className="space-y-6 text-left font-sans w-full pb-8">
+        {/* Top Header & Breadcrumb */}
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" asChild className="p-1.5 h-auto rounded-xl">
               <Link href="/admin/merchants">
-                <ArrowLeft className="w-4 h-4 text-slate-600" />
+                <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-semibold text-slate-900">
-                  {merchantProfile.businessName}
+                <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Store className="w-5 h-5 text-blue-600" /> {bName}
                 </h1>
                 <Badge
-                  className={`rounded px-2 py-0.5 text-[9px] font-medium border-0 ${isSuspended ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"}`}
+                  className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold border-0 uppercase ${
+                    isSuspended
+                      ? "bg-rose-100 text-rose-800"
+                      : statusStr === "approved" || statusStr === "active"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-amber-100 text-amber-800"
+                  }`}
                 >
-                  {merchantProfile.status}
+                  {merchant?.status || "Approved"}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="text-[9px] font-bold border-slate-200 uppercase"
+                >
+                  {planName} PLAN
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                {merchantProfile.email} • {merchantProfile.address}
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Merchant ID:{" "}
+                <span className="font-mono text-slate-800">{merchantId}</span> •
+                Registered:{" "}
+                {merchant?.createdAt
+                  ? new Date(merchant.createdAt).toLocaleDateString("en-IN")
+                  : "—"}
               </p>
             </div>
           </div>
 
-          {/* ADMIN MANUAL CONTROL ACTIONS */}
+          {/* Header Action Buttons with Loading States */}
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              disabled={isAddingCredits}
               onClick={handleAddCredits}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-8 px-3 cursor-pointer shadow-2xs"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl h-9 px-3.5 cursor-pointer shadow-xs"
             >
-              + Add 25 Revival Credits ({revivalCredits})
+              {isAddingCredits
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                : <PlusCircle className="w-3.5 h-3.5 mr-1" />}
+              <span>+ Add 25 Credits ({credits})</span>
             </Button>
+
             <Button
               variant="outline"
               onClick={() => setIsChangePlanOpen(true)}
-              className="text-xs font-medium rounded-lg border-slate-200 h-8 px-3 cursor-pointer bg-white"
+              className="text-xs font-bold rounded-xl border-slate-200 h-9 px-3.5 cursor-pointer bg-white"
             >
-              Change Plan ({currentPlan})
+              <Award className="w-3.5 h-3.5 mr-1 text-purple-600" /> Change Plan
             </Button>
+
             <Button
+              disabled={isTogglingSuspend}
               onClick={handleToggleSuspend}
-              className={`text-xs font-medium rounded-lg h-8 px-3 cursor-pointer ${isSuspended ? "bg-emerald-600 text-white" : "bg-slate-900 text-white"}`}
+              className={`text-xs font-bold rounded-xl h-9 px-3.5 cursor-pointer ${
+                isSuspended
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-900 text-white"
+              }`}
             >
-              {isSuspended ? "Reactivate Account" : "Suspend Account"}
+              {isTogglingSuspend
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                : isSuspended
+                  ? <UserCheck className="w-3.5 h-3.5 mr-1" />
+                  : <ShieldAlert className="w-3.5 h-3.5 mr-1" />}
+              <span>
+                {isSuspended ? "Reactivate Account" : "Suspend Account"}
+              </span>
             </Button>
           </div>
         </div>
 
-        {/* 6 MASTER TABS */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-3">
-          <TabsList className="bg-slate-100/80 p-1 rounded-xl border border-slate-200/80 flex flex-wrap gap-1 justify-start h-auto w-full">
+        {/* 4 EXECUTIVE KPI SUMMARY CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-semibold">
+          <Card className="p-4 rounded-2xl bg-white border-slate-200/80 shadow-xs space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Active Offers Listed
+            </span>
+            <p className="text-2xl font-black text-slate-900">
+              {totalCouponsCount}
+            </p>
+          </Card>
+          <Card className="p-4 rounded-2xl bg-white border-slate-200/80 shadow-xs space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Total Redemptions
+            </span>
+            <p className="text-2xl font-black text-emerald-600">
+              {totalRedemptionsCount.toLocaleString()}
+            </p>
+          </Card>
+          <Card className="p-4 rounded-2xl bg-white border-slate-200/80 shadow-xs space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Est Revenue (₹)
+            </span>
+            <p className="text-2xl font-black text-blue-600">
+              ₹{(totalRedemptionsCount * 250).toLocaleString("en-IN")}
+            </p>
+          </Card>
+          <Card className="p-4 rounded-2xl bg-white border-slate-200/80 shadow-xs space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Revival Credits Balance
+            </span>
+            <p className="text-2xl font-black text-[#e85d04]">⚡ {credits}</p>
+          </Card>
+        </div>
+
+        {/* 6 MASTER TABS NAVIGATION */}
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full space-y-4"
+        >
+          <TabsList className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 flex flex-wrap gap-1 justify-start h-auto w-full">
             <TabsTrigger
               value="profile"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
+              className="text-xs font-bold rounded-xl px-3 py-2 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
             >
-              Business Profile
+              <Building2 className="w-3.5 h-3.5 mr-1" /> Business Profile
             </TabsTrigger>
             <TabsTrigger
               value="listings"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
+              className="text-xs font-bold rounded-xl px-3 py-2 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
             >
-              All Listings ({listings.length})
+              <Tag className="w-3.5 h-3.5 mr-1" /> Offer Listings (
+              {totalCouponsCount})
             </TabsTrigger>
             <TabsTrigger
               value="subscriptions"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
+              className="text-xs font-bold rounded-xl px-3 py-2 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
             >
-              Subscription History
+              <CreditCard className="w-3.5 h-3.5 mr-1" /> Subscription History
             </TabsTrigger>
             <TabsTrigger
               value="commissions"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
+              className="text-xs font-bold rounded-xl px-3 py-2 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
             >
-              Commission Transactions
+              <DollarSign className="w-3.5 h-3.5 mr-1" /> Commission Ledger
             </TabsTrigger>
             <TabsTrigger
               value="tickets"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
+              className="text-xs font-bold rounded-xl px-3 py-2 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
             >
-              Support Tickets ({tickets.length})
+              <LifeBuoy className="w-3.5 h-3.5 mr-1" /> Support Tickets
             </TabsTrigger>
             <TabsTrigger
               value="activity"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
+              className="text-xs font-bold rounded-xl px-3 py-2 cursor-pointer data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs"
             >
-              Activity Log
+              <Activity className="w-3.5 h-3.5 mr-1" /> Activity Log
             </TabsTrigger>
           </TabsList>
 
           {/* TAB 1: BUSINESS PROFILE */}
-          <TabsContent value="profile" className="pt-3">
-            <Card className="border-slate-200/80 shadow-2xs rounded-xl bg-white p-4 space-y-3">
-              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-                Full Business &amp; Contact Profile
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div className="p-2.5 bg-slate-50 rounded-lg space-y-0.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium text-[11px] block">
-                    Legal Entity Name
+          <TabsContent value="profile">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-blue-600" /> Full Verified
+                  Merchant Profile
+                </h3>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-bold border-slate-200"
+                >
+                  KYC Verified
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
+                <div className="p-4 bg-slate-50 rounded-xl space-y-1 border border-slate-100">
+                  <span className="text-slate-400 font-bold text-[10px] uppercase block">
+                    Legal Business Name
                   </span>
-                  <span className="font-semibold text-slate-900">
-                    {merchantProfile.businessName}
-                  </span>
-                </div>
-                <div className="p-2.5 bg-slate-50 rounded-lg space-y-0.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium text-[11px] block">
-                    Trading / Brand Name
-                  </span>
-                  <span className="font-semibold text-slate-900">
-                    {merchantProfile.tradingName}
-                  </span>
-                </div>
-                <div className="p-2.5 bg-slate-50 rounded-lg space-y-0.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium text-[11px] block">
-                    Business Constitution
-                  </span>
-                  <span className="font-semibold text-slate-900">
-                    {merchantProfile.constitution}
+                  <span className="font-bold text-slate-900 text-sm">
+                    {bName}
                   </span>
                 </div>
-                <div className="p-2.5 bg-slate-50 rounded-lg space-y-0.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium text-[11px] block">
-                    Primary Category
+                <div className="p-4 bg-slate-50 rounded-xl space-y-1 border border-slate-100">
+                  <span className="text-slate-400 font-bold text-[10px] uppercase block">
+                    Contact Email Address
                   </span>
-                  <span className="font-semibold text-slate-900">
-                    {merchantProfile.category}
-                  </span>
-                </div>
-                <div className="p-2.5 bg-slate-50 rounded-lg space-y-0.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium text-[11px] block">
-                    Authorized Liaison
-                  </span>
-                  <span className="font-semibold text-slate-900">
-                    {merchantProfile.contactPerson} ({merchantProfile.phone})
+                  <span className="font-mono text-slate-900 text-sm flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-slate-400" />{" "}
+                    {merchant?.contactEmail || merchant?.email || "—"}
                   </span>
                 </div>
-                <div className="p-2.5 bg-slate-50 rounded-lg space-y-0.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium text-[11px] block">
-                    Physical Showroom Address
+                <div className="p-4 bg-slate-50 rounded-xl space-y-1 border border-slate-100">
+                  <span className="text-slate-400 font-bold text-[10px] uppercase block">
+                    Business Category
                   </span>
-                  <span className="font-semibold text-slate-900">
-                    {merchantProfile.address}
+                  <span className="font-bold text-slate-900 text-sm capitalize">
+                    {merchant?.category || "General Retail"}
+                  </span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl space-y-1 border border-slate-100">
+                  <span className="text-slate-400 font-bold text-[10px] uppercase block">
+                    Primary Phone Contact
+                  </span>
+                  <span className="font-mono text-slate-900 text-sm flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />{" "}
+                    {merchant?.phone ||
+                      merchant?.contactPhone ||
+                      "+91 98351 23456"}
+                  </span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl space-y-1 border border-slate-100 md:col-span-2">
+                  <span className="text-slate-400 font-bold text-[10px] uppercase block">
+                    Store Location / Address
+                  </span>
+                  <span className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#e85d04]" />{" "}
+                    {merchant?.address ||
+                      merchant?.location?.address ||
+                      "Ranchi, Jharkhand, India"}
                   </span>
                 </div>
               </div>
             </Card>
           </TabsContent>
 
-          {/* TAB 2: LISTINGS */}
-          <TabsContent value="listings" className="pt-3">
-            <Card className="border-slate-200/80 shadow-2xs rounded-xl bg-white p-4 space-y-3">
-              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-                Merchant Offer Listings
+          {/* TAB 2: OFFER LISTINGS */}
+          <TabsContent value="listings">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Merchant Offer Listings ({totalCouponsCount})
               </h3>
-              <Table className="w-full text-xs">
-                <TableHeader className="bg-slate-50/80">
-                  <TableRow>
-                    <TableHead className="font-medium text-slate-600">Offer Title</TableHead>
-                    <TableHead className="font-medium text-slate-600">Code</TableHead>
-                    <TableHead className="font-medium text-slate-600">Clicks</TableHead>
-                    <TableHead className="font-medium text-slate-600">Redemptions</TableHead>
-                    <TableHead className="font-medium text-slate-600">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {listings.map((l, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-medium text-slate-900">{l.title}</TableCell>
-                      <TableCell className="font-mono text-slate-600">{l.code}</TableCell>
-                      <TableCell className="text-slate-700">{l.clicks}</TableCell>
-                      <TableCell className="font-semibold text-slate-900">
-                        {l.redemptions}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-medium">{l.status}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={listingColumns}
+                data={coupons}
+                searchable={true}
+                searchPlaceholder="Search merchant offers..."
+                defaultPageSize={10}
+                emptyState="No offers currently listed for this merchant."
+              />
             </Card>
           </TabsContent>
 
-          {/* TAB 3: SUBSCRIPTIONS */}
-          <TabsContent value="subscriptions" className="pt-3">
-            <Card className="border-slate-200/80 shadow-2xs rounded-xl bg-white p-4 space-y-3">
-              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-                Subscription Billing History
+          {/* TAB 3: SUBSCRIPTION HISTORY */}
+          <TabsContent value="subscriptions">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Subscription &amp; Billing History
               </h3>
-              <Table className="w-full text-xs">
-                <TableHeader className="bg-slate-50/80">
-                  <TableRow>
-                    <TableHead className="font-medium text-slate-600">Billing Date</TableHead>
-                    <TableHead className="font-medium text-slate-600">Plan Tier</TableHead>
-                    <TableHead className="font-medium text-slate-600">Amount</TableHead>
-                    <TableHead className="font-medium text-slate-600">Cycle</TableHead>
-                    <TableHead className="font-medium text-slate-600">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {subscriptions.map((s, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="text-slate-700">{s.date}</TableCell>
-                      <TableCell className="font-medium text-slate-900">{s.plan}</TableCell>
-                      <TableCell className="font-semibold text-slate-900">{s.amount}</TableCell>
-                      <TableCell className="text-slate-700">{s.cycle}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] font-medium">
-                          {s.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={[
+                  {
+                    key: "date",
+                    header: "Billing Date",
+                    cell: (s) => (
+                      <span className="font-mono text-xs">{s.date}</span>
+                    ),
+                  },
+                  {
+                    key: "plan",
+                    header: "Plan Tier",
+                    cell: (s) => (
+                      <span className="font-bold text-slate-900">{s.plan}</span>
+                    ),
+                  },
+                  {
+                    key: "amount",
+                    header: "Amount Paid",
+                    cell: (s) => (
+                      <span className="font-mono font-bold text-slate-900">
+                        {s.amount}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "cycle",
+                    header: "Cycle",
+                    cell: (s) => (
+                      <span className="text-xs text-slate-500">{s.cycle}</span>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    header: "Status",
+                    cell: (s) => (
+                      <Badge className="bg-emerald-100 text-emerald-800 text-[9px] font-bold">
+                        {s.status}
+                      </Badge>
+                    ),
+                  },
+                ]}
+                data={mockSubscriptions}
+                searchable={false}
+                defaultPageSize={10}
+              />
             </Card>
           </TabsContent>
 
-          {/* TAB 4: COMMISSIONS */}
-          <TabsContent value="commissions" className="pt-3">
-            <Card className="border-slate-200/80 shadow-2xs rounded-xl bg-white p-4 space-y-3">
-              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-                Commission Transactions
+          {/* TAB 4: COMMISSION LEDGER */}
+          <TabsContent value="commissions">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Commission &amp; Settlement Ledger
               </h3>
-              <Table className="w-full text-xs">
-                <TableHeader className="bg-slate-50/80">
-                  <TableRow>
-                    <TableHead className="font-medium text-slate-600">ID</TableHead>
-                    <TableHead className="font-medium text-slate-600">Date</TableHead>
-                    <TableHead className="font-medium text-slate-600">Listing</TableHead>
-                    <TableHead className="font-medium text-slate-600">Model</TableHead>
-                    <TableHead className="font-medium text-slate-600">Amount</TableHead>
-                    <TableHead className="font-medium text-slate-600">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {commissions.map((c, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-mono text-slate-600">{c.id}</TableCell>
-                      <TableCell className="text-slate-700">{c.date}</TableCell>
-                      <TableCell className="font-medium text-slate-900">{c.item}</TableCell>
-                      <TableCell className="text-slate-700">{c.model}</TableCell>
-                      <TableCell className="font-semibold text-slate-900">{c.amount}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-medium">
-                          {c.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={[
+                  {
+                    key: "id",
+                    header: "Transaction ID",
+                    cell: (c) => (
+                      <span className="font-mono text-xs font-bold">
+                        {c.id}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "date",
+                    header: "Date",
+                    cell: (c) => (
+                      <span className="font-mono text-xs">{c.date}</span>
+                    ),
+                  },
+                  {
+                    key: "item",
+                    header: "Listing Item",
+                    cell: (c) => (
+                      <span className="font-bold text-slate-900">{c.item}</span>
+                    ),
+                  },
+                  {
+                    key: "model",
+                    header: "Model",
+                    cell: (c) => (
+                      <span className="text-xs text-slate-600">{c.model}</span>
+                    ),
+                  },
+                  {
+                    key: "amount",
+                    header: "Commission",
+                    cell: (c) => (
+                      <span className="font-mono font-bold text-[#e85d04]">
+                        {c.amount}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    header: "Status",
+                    cell: (c) => (
+                      <Badge className="bg-blue-100 text-blue-800 text-[9px] font-bold">
+                        {c.status}
+                      </Badge>
+                    ),
+                  },
+                ]}
+                data={mockCommissions}
+                searchable={false}
+                defaultPageSize={10}
+              />
             </Card>
           </TabsContent>
 
-          {/* TAB 5: TICKETS */}
-          <TabsContent value="tickets" className="pt-4">
-            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 uppercase">
-                Support Tickets
+          {/* TAB 5: SUPPORT TICKETS */}
+          <TabsContent value="tickets">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Merchant Support Tickets
               </h3>
-              <Table className="w-full text-xs">
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead>Ticket ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tickets.map((t, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-mono">{t.id}</TableCell>
-                      <TableCell>{t.date}</TableCell>
-                      <TableCell className="font-bold">{t.subject}</TableCell>
-                      <TableCell>{t.priority}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-emerald-100 text-emerald-800">
-                          {t.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={[
+                  {
+                    key: "id",
+                    header: "Ticket ID",
+                    cell: (t) => (
+                      <span className="font-mono text-xs font-bold">
+                        {t.id}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "date",
+                    header: "Date Filed",
+                    cell: (t) => (
+                      <span className="font-mono text-xs">{t.date}</span>
+                    ),
+                  },
+                  {
+                    key: "subject",
+                    header: "Subject",
+                    cell: (t) => (
+                      <span className="font-bold text-slate-900">
+                        {t.subject}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "priority",
+                    header: "Priority",
+                    cell: (t) => (
+                      <span className="text-xs font-semibold text-amber-700">
+                        {t.priority}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    header: "Status",
+                    cell: (t) => (
+                      <Badge className="bg-emerald-100 text-emerald-800 text-[9px] font-bold">
+                        {t.status}
+                      </Badge>
+                    ),
+                  },
+                ]}
+                data={mockTickets}
+                searchable={false}
+                defaultPageSize={10}
+              />
             </Card>
           </TabsContent>
 
           {/* TAB 6: ACTIVITY LOG */}
-          <TabsContent value="activity" className="pt-4">
-            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 uppercase">
-                Merchant Activity Timeline
+          <TabsContent value="activity">
+            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Merchant Account Activity Log
               </h3>
-              <div className="space-y-3 pt-2">
-                {activityLog.map((a, i) => (
+              <div className="space-y-3 font-semibold text-xs">
+                {mockActivityLog.map((act, idx) => (
                   <div
-                    key={i}
-                    className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex justify-between"
+                    key={idx}
+                    className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl flex justify-between items-center"
                   >
                     <div>
                       <span className="font-bold text-slate-900 block">
-                        {a.action}
+                        {act.action}
                       </span>
-                      <span className="text-slate-500">{a.details}</span>
+                      <span className="text-slate-500 font-medium">
+                        {act.details}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {a.time}
+                    <span className="font-mono text-[10px] text-slate-400">
+                      {act.time}
                     </span>
                   </div>
                 ))}
@@ -493,54 +789,50 @@ export default function MerchantDetailPage({ params }) {
           </TabsContent>
         </Tabs>
 
-        {/* MANUALLY CHANGE PLAN DIALOG */}
-        <Dialog open={isChangePlanOpen} onOpenChange={setIsChangePlanOpen}>
+        {/* CHANGE PLAN OVERRIDE MODAL */}
+        <Dialog
+          open={isChangePlanOpen}
+          onOpenChange={() => !isChangingPlan && setIsChangePlanOpen(false)}
+        >
           <DialogContent className="max-w-md bg-white p-6 rounded-2xl">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-base font-bold text-slate-900">
                 Manually Change Merchant Subscription Plan
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                Override subscription tier for {merchantProfile.businessName}.
+                Override subscription tier for {bName}.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-3 pt-2">
-              <Label className="text-xs font-bold text-slate-800">
-                Select Target Subscription Tier
-              </Label>
-              <Select value={newPlan} onValueChange={setNewPlan}>
-                <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 font-bold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="z-[300]">
-                  <SelectItem value="Starter Free">
-                    Starter Free (₹0)
-                  </SelectItem>
-                  <SelectItem value="Growth Partner">
-                    Growth Partner (₹1,499/mo)
-                  </SelectItem>
-                  <SelectItem value="Pro Partner">
-                    Pro Partner (₹3,999/mo)
-                  </SelectItem>
-                  <SelectItem value="Enterprise Partner">
-                    Enterprise Partner (₹9,999/mo)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="pt-2">
+              <FormSelect
+                name="targetPlan"
+                label="Select Target Subscription Tier"
+                options={PLAN_OVERRIDE_OPTIONS}
+                value={targetPlan}
+                onValueChange={setTargetPlan}
+                triggerClassName="bg-white border-slate-200 text-xs h-10 rounded-xl font-bold"
+              />
             </div>
+
             <DialogFooter className="pt-4 flex gap-2">
               <Button
                 variant="outline"
+                disabled={isChangingPlan}
                 onClick={() => setIsChangePlanOpen(false)}
                 className="text-xs font-bold rounded-xl"
               >
                 Cancel
               </Button>
               <Button
+                disabled={isChangingPlan}
                 onClick={handleChangePlan}
                 className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl"
               >
-                Save &amp; Apply Plan Override
+                {isChangingPlan
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                  : null}
+                <span>Save &amp; Apply Plan Override</span>
               </Button>
             </DialogFooter>
           </DialogContent>

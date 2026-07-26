@@ -36,14 +36,39 @@ export const PUT = asyncHandler(async (request, { params }) => {
   const body = await request.json();
   const data = updateCouponSchema.parse(body);
 
+  let coupon;
   // If only changing status (pause/resume), use dedicated function
   if (Object.keys(data).length === 1 && data.status) {
-    const coupon = await setCouponStatus(id, user.id, data.status);
-    return ok(coupon, `Coupon ${data.status}`);
+    coupon = await setCouponStatus(id, user.id, data.status);
+  } else {
+    coupon = await updateCoupon(id, user.id, data);
   }
 
-  const coupon = await updateCoupon(id, user.id, data);
-  return ok(coupon, "Coupon updated");
+  // Socket emissions for real-time updates across admin and merchant desks
+  try {
+    const { emitToAdmins, emitToMerchants } = await import(
+      "@/lib/socket/server"
+    );
+    const { SOCKET_EVENTS } = await import("@/lib/socket/events");
+
+    const payload = {
+      couponId: String(coupon._id || coupon.id),
+      status: coupon.status,
+      isVerified: coupon.isVerified,
+      title: coupon.title,
+      rejectionReason: coupon.rejectionReason || "",
+    };
+
+    emitToAdmins(SOCKET_EVENTS.COUPON_STATUS_CHANGED, payload);
+    emitToMerchants(SOCKET_EVENTS.COUPON_STATUS_CHANGED, payload);
+    if (coupon.status === "pending") {
+      emitToAdmins(SOCKET_EVENTS.COUPON_SUBMITTED, payload);
+    }
+  } catch (err) {
+    console.error("[PUT /api/coupons/:id] Socket emit error:", err);
+  }
+
+  return ok(coupon, "Coupon updated successfully");
 });
 
 /**
@@ -56,5 +81,19 @@ export const DELETE = asyncHandler(async (request, { params }) => {
   const { id } = await params;
 
   await deleteCoupon(id, user.id);
+
+  try {
+    const { emitToAdmins, emitToMerchants } = await import(
+      "@/lib/socket/server"
+    );
+    const { SOCKET_EVENTS } = await import("@/lib/socket/events");
+
+    const payload = { couponId: String(id), status: "deleted" };
+    emitToAdmins(SOCKET_EVENTS.COUPON_STATUS_CHANGED, payload);
+    emitToMerchants(SOCKET_EVENTS.COUPON_STATUS_CHANGED, payload);
+  } catch (err) {
+    console.error("[DELETE /api/coupons/:id] Socket emit error:", err);
+  }
+
   return noContent();
 });

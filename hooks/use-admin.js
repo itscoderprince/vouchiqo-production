@@ -7,24 +7,385 @@ import { qk } from "@/lib/query-keys";
 
 /**
  * Centralized TanStack Query hooks for all admin operations.
- * Replaces the useState+useEffect pattern used with lib/api-helpers
- * across content, featured, revenue, revivals, ticker, and users pages.
+ * Single source of truth for admin data fetching, mutations, and cache management.
  */
 
 // ─────────────────────────────────────────────
-// Featured Deals
+// Admin Coupons / Moderation / Offers
 // ─────────────────────────────────────────────
 
 /**
- * Fetch all coupons for the admin featured-deals page.
+ * Fetch coupons with server-side filters (status, search, isVerified).
  */
-export function useAdminCoupons({ status } = {}) {
+export function useAdminCoupons({ status = "", search = "", isVerified } = {}) {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (search) params.set("search", search);
+  if (isVerified !== undefined && isVerified !== null) {
+    params.set("isVerified", String(isVerified));
+  }
+  const qs = params.toString();
+
+  return useQuery({
+    queryKey: qk.admin.coupons({ status, search, isVerified }),
+    queryFn: async () => {
+      const json = await apiFetch(`/api/admin/coupons${qs ? `?${qs}` : ""}`);
+      return json.data?.coupons || [];
+    },
+    staleTime: 5_000,
+    refetchInterval: 3_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Fetch pending coupons specifically for moderation desk.
+ */
+export function useAdminPendingCoupons() {
+  return useQuery({
+    queryKey: qk.admin.pendingCoupons(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/coupons?status=pending");
+      return json.data?.coupons || [];
+    },
+    staleTime: 5_000,
+    refetchInterval: 3_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Approve a pending coupon.
+ */
+export function useApproveAdminCoupon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (couponId) =>
+      apiFetch("/api/admin/coupons", {
+        method: "PUT",
+        body: { couponId, isVerified: true, status: "active" },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-coupons"],
+        exact: false,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: qk.admin.pendingCoupons(),
+        refetchType: "active",
+      });
+      toast.success("Offer approved and published!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to approve offer.");
+    },
+  });
+}
+
+/**
+ * Reject a pending coupon with a reason.
+ */
+export function useRejectAdminCoupon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ couponId, reason }) =>
+      apiFetch("/api/admin/coupons", {
+        method: "PUT",
+        body: {
+          couponId,
+          isVerified: false,
+          status: "paused",
+          rejectionReason: reason,
+        },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-coupons"],
+        exact: false,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: qk.admin.pendingCoupons(),
+        refetchType: "active",
+      });
+      toast.success("Offer rejected.");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to reject offer.");
+    },
+  });
+}
+
+/**
+ * Update arbitrary fields on an admin coupon.
+ */
+export function useUpdateAdminCoupon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ couponId, ...updateData }) =>
+      apiFetch("/api/admin/coupons", {
+        method: "PUT",
+        body: { couponId, ...updateData },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.pendingCoupons() });
+      toast.success("Offer updated successfully!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update offer.");
+    },
+  });
+}
+
+/**
+ * Delete a coupon from the admin desk.
+ */
+export function useDeleteAdminCoupon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (couponId) =>
+      apiFetch(`/api/admin/coupons?id=${couponId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.pendingCoupons() });
+      toast.success("Offer deleted.");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete offer.");
+    },
+  });
+}
+
+// ─────────────────────────────────────────────
+// Merchants Management
+// ─────────────────────────────────────────────
+
+/**
+ * Fetch all registered merchants.
+ */
+export function useAdminMerchants(params = {}) {
+  const { status = "", search = "", limit = 100 } = params;
+  const sp = new URLSearchParams();
+  if (status) sp.set("status", status);
+  if (search) sp.set("search", search);
+  if (limit) sp.set("limit", String(limit));
+  const qs = sp.toString();
+
+  return useQuery({
+    queryKey: qk.admin.merchants(params),
+    queryFn: async () => {
+      const json = await apiFetch(`/api/admin/merchants${qs ? `?${qs}` : ""}`);
+      return json.data?.merchants || json.data || [];
+    },
+    staleTime: 2_000,
+    refetchInterval: 4_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Fetch merchant details and their listed coupons.
+ */
+export function useAdminMerchantDetail(merchantId) {
+  return useQuery({
+    queryKey: qk.admin.merchantDetail(merchantId),
+    enabled: !!merchantId,
+    queryFn: async () => {
+      const json = await apiFetch(`/api/admin/merchants/${merchantId}`);
+      return json.data || { merchant: null, coupons: [] };
+    },
+  });
+}
+
+/**
+ * Review/Approve/Reject a merchant account application.
+ */
+export function useReviewMerchant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ merchantId, status, rejectionReason }) =>
+      apiFetch("/api/admin/merchants", {
+        method: "PUT",
+        body: { merchantId, status, rejectionReason },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
+      toast.success("Merchant status updated!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update merchant status.");
+    },
+  });
+}
+
+/**
+ * Update merchant profile details from admin portal.
+ */
+export function useUpdateAdminMerchant(merchantId) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (updateData) =>
+      apiFetch(`/api/admin/merchants/${merchantId}`, {
+        method: "PUT",
+        body: updateData,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
+      queryClient.invalidateQueries({
+        queryKey: qk.admin.merchantDetail(merchantId),
+      });
+      toast.success("Merchant details updated!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update merchant details.");
+    },
+  });
+}
+
+// ─────────────────────────────────────────────
+// Campaign Moderation & Management
+// ─────────────────────────────────────────────
+
+/**
+ * Fetch campaigns by status (pending, live, scheduled, etc.).
+ */
+export function useAdminCampaigns(status = "") {
   const qs = status ? `?status=${status}` : "";
   return useQuery({
-    queryKey: ["admin-coupons", status],
+    queryKey: qk.admin.campaigns({ status }),
     queryFn: async () => {
-      const json = await apiFetch(`/api/admin/coupons${qs}`);
-      return json.data?.coupons || [];
+      const json = await apiFetch(`/api/admin/campaigns${qs}`);
+      return json.data?.campaigns || [];
+    },
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * Fetch single campaign details.
+ */
+export function useAdminCampaignDetail(campaignId) {
+  return useQuery({
+    queryKey: qk.admin.campaignDetail(campaignId),
+    enabled: !!campaignId,
+    queryFn: async () => {
+      const json = await apiFetch(`/api/admin/campaigns/${campaignId}`);
+      return json.data?.campaign || null;
+    },
+  });
+}
+
+/**
+ * Fetch campaign queue (pending approval).
+ */
+export function useAdminCampaignQueue() {
+  return useQuery({
+    queryKey: qk.admin.campaignQueue(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/campaigns?status=pending");
+      return json.data?.campaigns || [];
+    },
+    staleTime: 10_000,
+  });
+}
+
+/**
+ * Fetch campaign analytics summary.
+ */
+export function useAdminCampaignAnalytics() {
+  return useQuery({
+    queryKey: qk.admin.campaignAnalytics(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/analytics");
+      return json.data || {};
+    },
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Review/Approve/Reject a merchant marketing campaign.
+ */
+export function useReviewCampaign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ campaignId, ...statusData }) =>
+      apiFetch("/api/admin/campaigns", {
+        method: "PUT",
+        body: { campaignId, ...statusData },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-campaigns"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.campaignQueue() });
+      toast.success("Campaign updated successfully!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update campaign.");
+    },
+  });
+}
+
+// ─────────────────────────────────────────────
+// Banners Management
+// ─────────────────────────────────────────────
+
+/**
+ * Fetch homepage/category promotional banners.
+ */
+export function useAdminBanners() {
+  return useQuery({
+    queryKey: qk.admin.banners(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/banners");
+      return json.data?.banners || json.data || [];
+    },
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * Create a new promotional banner.
+ */
+export function useCreateBanner() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bannerData) =>
+      apiFetch("/api/admin/banners", { method: "POST", body: bannerData }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.banners() });
+      toast.success("Banner created!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to create banner.");
+    },
+  });
+}
+
+/**
+ * Delete a promotional banner.
+ */
+export function useDeleteBanner() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bannerId) =>
+      apiFetch(`/api/admin/banners?id=${bannerId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.banners() });
+      toast.success("Banner deleted.");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete banner.");
     },
   });
 }
@@ -33,12 +394,9 @@ export function useAdminCoupons({ status } = {}) {
 // Platform Content / Settings
 // ─────────────────────────────────────────────
 
-/**
- * Fetch platform settings (revival stats, social proof, categories).
- */
 export function useAdminSettings() {
   return useQuery({
-    queryKey: ["admin-settings"],
+    queryKey: qk.admin.settings(),
     queryFn: async () => {
       const json = await apiFetch("/api/admin/settings");
       return json.data?.settings || {};
@@ -46,9 +404,6 @@ export function useAdminSettings() {
   });
 }
 
-/**
- * Update a single platform setting key.
- */
 export function useUpdateAdminSetting() {
   const queryClient = useQueryClient();
 
@@ -56,7 +411,8 @@ export function useUpdateAdminSetting() {
     mutationFn: async ({ key, value }) =>
       apiFetch("/api/admin/settings", { method: "PUT", body: { key, value } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.settings() });
+      toast.success("Setting updated.");
     },
   });
 }
@@ -65,12 +421,9 @@ export function useUpdateAdminSetting() {
 // SaaS Revenue
 // ─────────────────────────────────────────────
 
-/**
- * Fetch platform revenue, subscription tiers, invoices, payouts.
- */
 export function useAdminRevenue() {
   return useQuery({
-    queryKey: ["admin-revenue"],
+    queryKey: qk.admin.revenue(),
     queryFn: async () => {
       const json = await apiFetch("/api/admin/revenue");
       return json.data || {};
@@ -78,9 +431,6 @@ export function useAdminRevenue() {
   });
 }
 
-/**
- * Mark a payout as paid.
- */
 export function useUpdatePayoutStatus() {
   const queryClient = useQueryClient();
 
@@ -91,7 +441,8 @@ export function useUpdatePayoutStatus() {
         body: { payoutId, status },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-revenue"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.revenue() });
+      toast.success("Payout status updated.");
     },
   });
 }
@@ -100,12 +451,9 @@ export function useUpdatePayoutStatus() {
 // Revival Management
 // ─────────────────────────────────────────────
 
-/**
- * Fetch pending merchant revival requests.
- */
 export function useMerchantRevivals() {
   return useQuery({
-    queryKey: ["admin-merchant-revivals"],
+    queryKey: qk.admin.merchantRevivals(),
     queryFn: async () => {
       const json = await apiFetch("/api/revivals?status=pending");
       return json.data?.revivals || [];
@@ -113,12 +461,9 @@ export function useMerchantRevivals() {
   });
 }
 
-/**
- * Fetch customer revival requests.
- */
 export function useCustomerRevivals() {
   return useQuery({
-    queryKey: ["admin-customer-revivals"],
+    queryKey: qk.admin.customerRevivals(),
     queryFn: async () => {
       const json = await apiFetch("/api/revivals/customer?admin=true");
       return json.data?.revivals || [];
@@ -126,9 +471,6 @@ export function useCustomerRevivals() {
   });
 }
 
-/**
- * Approve or reject a merchant revival request.
- */
 export function useReviewMerchantRevival() {
   const queryClient = useQueryClient();
 
@@ -139,14 +481,12 @@ export function useReviewMerchantRevival() {
         body: { revivalId, status, reviewNote: "Moderated by admin" },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-merchant-revivals"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.merchantRevivals() });
+      toast.success("Revival request reviewed.");
     },
   });
 }
 
-/**
- * Update a customer revival request status.
- */
 export function useReviewCustomerRevival() {
   const queryClient = useQueryClient();
 
@@ -157,7 +497,8 @@ export function useReviewCustomerRevival() {
         body: { revivalId, status },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-customer-revivals"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.customerRevivals() });
+      toast.success("Customer revival updated.");
     },
   });
 }
@@ -166,12 +507,9 @@ export function useReviewCustomerRevival() {
 // Ticker Management
 // ─────────────────────────────────────────────
 
-/**
- * Fetch active coupons for the homepage ticker configuration.
- */
 export function useTickerCoupons() {
   return useQuery({
-    queryKey: ["admin-ticker-coupons"],
+    queryKey: qk.admin.tickerCoupons(),
     queryFn: async () => {
       const json = await apiFetch("/api/admin/coupons?status=active");
       return json.data?.coupons || [];
@@ -179,9 +517,6 @@ export function useTickerCoupons() {
   });
 }
 
-/**
- * Toggle isFeatured or isHot flag on a coupon.
- */
 export function useToggleCouponFlag() {
   const queryClient = useQueryClient();
 
@@ -192,12 +527,12 @@ export function useToggleCouponFlag() {
         body: { couponId, [field]: !currentValue },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-ticker-coupons"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.tickerCoupons() });
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
-      toast.success("Coupon flag updated and home cache busted!");
+      toast.success("Coupon flag updated!");
     },
     onError: () => {
-      toast.error("Failed to update coupon flags.");
+      toast.error("Failed to update coupon flag.");
     },
   });
 }
@@ -206,22 +541,32 @@ export function useToggleCouponFlag() {
 // User Management
 // ─────────────────────────────────────────────
 
-/**
- * Fetch all platform users.
- */
-export function useAdminUsers() {
+export function useAdminUsers(filters = {}) {
+  const {
+    role = "",
+    isActive = "",
+    merchantStatus = "",
+    search = "",
+  } = filters;
+
+  const params = new URLSearchParams();
+  if (role) params.set("role", role);
+  if (isActive !== "") params.set("isActive", isActive);
+  if (merchantStatus) params.set("merchantStatus", merchantStatus);
+  if (search) params.set("search", search);
+  const qs = params.toString();
+
   return useQuery({
-    queryKey: ["admin-users"],
+    queryKey: qk.admin.users({ role, isActive, merchantStatus, search }),
     queryFn: async () => {
-      const json = await apiFetch("/api/admin/users");
+      const json = await apiFetch(`/api/admin/users${qs ? `?${qs}` : ""}`);
       return json.data?.users || [];
     },
+    placeholderData: (prev) => prev,
+    staleTime: 30_000,
   });
 }
 
-/**
- * Toggle a user's active/suspended status.
- */
 export function useToggleUserStatus() {
   const queryClient = useQueryClient();
 
@@ -231,16 +576,32 @@ export function useToggleUserStatus() {
         method: "PUT",
         body: { authId, isActive: !isActive },
       }),
-    onSuccess: () => {
+    onMutate: async ({ authId, isActive }) => {
+      await queryClient.cancelQueries({ queryKey: ["admin-users"] });
+      const prev = queryClient.getQueriesData({ queryKey: ["admin-users"] });
+      queryClient.setQueriesData({ queryKey: ["admin-users"] }, (old) =>
+        Array.isArray(old)
+          ? old.map((u) =>
+              u.authId === authId ? { ...u, isActive: !isActive } : u,
+            )
+          : old,
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) {
+        ctx.prev.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
+      }
+      toast.error("Failed to update user status.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });
 }
 
-/**
- * Export newsletter subscribers (CSV download). Not a query — uses the mutation
- * pattern because it's user-initiated.
- */
 export function useExportSubscribers() {
   return useMutation({
     mutationFn: async () => {

@@ -1,23 +1,36 @@
 "use client";
 
-import { Percent, Plus, Search, Ticket } from "lucide-react";
+import { Check, Percent, Plus, Search, Ticket } from "lucide-react";
 import Link from "next/link";
+import { useWatch } from "react-hook-form";
+import { FormInput, FormSelect } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+const OFFER_TYPES = [
+  {
+    value: "Percentage Discount (% off)",
+    label: "Percentage Discount (% off)",
+  },
+  { value: "Flat ₹ Amount Off", label: "Flat ₹ Amount Off" },
+  {
+    value: "Buy One Get One (BOGO)",
+    label: "Buy One Get One (BOGO)",
+  },
+  {
+    value: "Free Gift / Service with Purchase",
+    label: "Free Gift / Service with Purchase",
+  },
+  { value: "Bundle / Combo Pricing", label: "Bundle / Combo Pricing" },
+];
 
 export default function StepListings({
-  campaignData,
-  setCampaignData,
+  control,
+  register,
+  setValue,
+  watch,
+  errors,
   filteredCoupons,
   listingSearch,
   setListingSearch,
@@ -25,119 +38,112 @@ export default function StepListings({
   onBack,
   onNext,
 }) {
+  const selectedOfferType = useWatch({ control, name: "offerType" });
+  const rawCouponIds = useWatch({ control, name: "couponIds" });
+  const attachedCouponIds = Array.isArray(rawCouponIds) ? rawCouponIds : [];
+
   return (
-    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-bold text-slate-900">Attach Listings</h3>
+    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6 text-left font-sans">
+      <div className="border-b border-slate-100 pb-3">
+        <h3 className="text-base font-bold text-slate-900">
+          Step 2: Attach Listings
+        </h3>
+        <p className="text-xs text-slate-500 font-medium mt-0.5">
+          Set campaign promo code, offer type &amp; select coupons to attach to
+          this campaign
+        </p>
       </div>
 
-      <div className="space-y-4">
-        {/* Promo Code & Offer Type settings */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-              <Ticket className="w-3.5 h-3.5 text-orange-600" /> Campaign Promo
-              Code *
-            </Label>
-            <Input
-              type="text"
-              placeholder="e.g. SAVE20"
-              value={campaignData.code}
-              onChange={(e) =>
-                setCampaignData({
-                  ...campaignData,
-                  code: e.target.value.toUpperCase().replace(/\s/g, ""),
-                })
-              }
-              className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-              <Percent className="w-3.5 h-3.5 text-blue-600" /> Offer Type *
-            </Label>
-            <Select
-              value={campaignData.offerType}
-              onValueChange={(val) =>
-                setCampaignData({ ...campaignData, offerType: val })
-              }
-            >
-              <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
-                <SelectValue placeholder="Select offer type" />
-              </SelectTrigger>
-              <SelectContent className="z-[300]">
-                <SelectItem value="Percentage Discount (% off)">
-                  Percentage Discount (% off)
-                </SelectItem>
-                <SelectItem value="Flat ₹ Amount Off">
-                  Flat ₹ Amount Off
-                </SelectItem>
-                <SelectItem value="Buy One Get One (BOGO)">
-                  Buy One Get One (BOGO)
-                </SelectItem>
-                <SelectItem value="Free Gift / Service with Purchase">
-                  Free Gift / Service with Purchase
-                </SelectItem>
-                <SelectItem value="Bundle / Combo Pricing">
-                  Bundle / Combo Pricing
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="space-y-5">
+        {/* Promo Code & Offer Type settings in 2-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <FormInput
+            label="Campaign Promo Code"
+            icon={Ticket}
+            type="text"
+            placeholder="e.g. SAVE20"
+            required
+            {...register("code")}
+            onChange={(e) =>
+              setValue(
+                "code",
+                e.target.value.toUpperCase().replace(/\s/g, ""),
+                { shouldValidate: true },
+              )
+            }
+            error={errors.code}
+            className="font-mono uppercase font-bold text-base"
+          />
+
+          <FormSelect
+            label="Offer Type"
+            icon={Percent}
+            options={OFFER_TYPES}
+            required
+            value={selectedOfferType}
+            onValueChange={(val) =>
+              setValue("offerType", val, { shouldValidate: true })
+            }
+            error={errors.offerType}
+          />
         </div>
 
         {/* Search coupons */}
-        <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-          <Input
-            type="text"
-            placeholder="Search coupons or deals..."
-            value={listingSearch}
-            onChange={(e) => setListingSearch(e.target.value)}
-            className="pl-10 bg-white border-slate-200 text-xs h-10 rounded-xl"
-          />
-        </div>
+        <FormInput
+          icon={Search}
+          type="text"
+          placeholder="Search coupons or deals by title or code..."
+          value={listingSearch}
+          onChange={(e) => setListingSearch(e.target.value)}
+        />
 
         {/* Coupon selection list */}
         <div className="border border-slate-200/80 rounded-2xl overflow-hidden divide-y divide-slate-100">
           {filteredCoupons.length === 0 ? (
-            <div className="p-4 text-center text-xs text-slate-400 font-medium">
-              No active coupons found matching search.
+            <div className="p-6 text-center text-xs text-slate-400 font-semibold">
+              No coupons found matching search.
             </div>
           ) : (
             filteredCoupons.map((couponItem) => {
-              const isAttached = campaignData.couponIds.includes(
-                couponItem._id,
-              );
+              const isAttached = attachedCouponIds.includes(couponItem._id);
               return (
-                <label
+                <div
                   key={couponItem._id}
-                  className={`p-3.5 flex items-center justify-between cursor-pointer transition-colors ${
-                    isAttached ? "bg-orange-50/40" : "hover:bg-slate-50"
-                  }`}
+                  onClick={() => toggleCouponAttachment(couponItem._id)}
+                  className={cn(
+                    "p-4 flex items-center justify-between cursor-pointer transition-all select-none",
+                    isAttached
+                      ? "bg-blue-50/70 border-l-4 border-l-blue-600"
+                      : "hover:bg-slate-50/80",
+                  )}
                 >
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={isAttached}
-                      onCheckedChange={() =>
-                        toggleCouponAttachment(couponItem._id)
-                      }
-                    />
+                  <div className="flex items-center gap-3.5">
+                    {/* Plain CSS checkbox indicator — no Radix internal setState */}
+                    <span
+                      className={cn(
+                        "flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border transition-colors",
+                        isAttached
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-slate-300 bg-white",
+                      )}
+                    >
+                      {isAttached && <Check className="h-3 w-3 stroke-[3]" />}
+                    </span>
                     <div>
                       <span className="text-xs font-bold text-slate-900 block">
                         {couponItem.title}
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400 font-semibold uppercase">
-                        {couponItem.code || "NO CODE"}
+                      <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">
+                        {couponItem.code || "DEALOFFER"}
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-blue-600">
+                  <span className="text-xs font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200/80">
                     {couponItem.discountType === "percentage"
-                      ? `${couponItem.discountValue}% OFF`
-                      : `₹${couponItem.discountValue} OFF`}
+                      ? `${couponItem.discountValue || 0}% OFF`
+                      : `₹${couponItem.discountValue || 0} OFF`}
                   </span>
-                </label>
+                </div>
               );
             })
           )}
@@ -146,9 +152,9 @@ export default function StepListings({
         <Link
           href="/merchant/coupons"
           target="_blank"
-          className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           <span>Create new coupon for this campaign</span>
         </Link>
       </div>
@@ -158,15 +164,15 @@ export default function StepListings({
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-slate-700 border-slate-200 text-xs font-bold rounded-xl"
+          className="text-slate-700 border-slate-200 text-xs font-bold rounded-xl h-9 px-4 cursor-pointer"
         >
-          &lt; Back
+          Back
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-9 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
         >
-          Next &gt;
+          Next
         </Button>
       </div>
     </Card>

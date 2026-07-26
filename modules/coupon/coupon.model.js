@@ -68,8 +68,8 @@ const couponSchema = new Schema(
 
     status: {
       type: String,
-      enum: Object.values(COUPON_STATUS),
-      default: COUPON_STATUS.ACTIVE,
+      enum: ["pending", "active", "paused", "expired", "deleted"],
+      default: COUPON_STATUS.PENDING,
       index: true,
     },
 
@@ -96,7 +96,7 @@ const couponSchema = new Schema(
       city: { type: String, trim: true },
       state: { type: String, trim: true },
       country: { type: String, trim: true },
-      isOnline: { type: Boolean, default: true },
+      isOnline: { type: Boolean, default: false },
     },
 
     // Admin-controlled flags
@@ -125,6 +125,10 @@ couponSchema.index(
   { weights: { title: 10, tags: 5, description: 1 } },
 );
 
-const Coupon = mongoose.models.Coupon ?? mongoose.model("Coupon", couponSchema);
+if (mongoose.models.Coupon) {
+  delete mongoose.models.Coupon;
+}
+
+const Coupon = mongoose.model("Coupon", couponSchema);
 
 export default Coupon;

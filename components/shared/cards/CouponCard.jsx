@@ -109,8 +109,8 @@ export default function CouponCard({
       {/* Bottom Section */}
       <div className="p-3.5 bg-slate-50/50">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             <span>Active Today</span>
           </span>
           {isExpiringSoon && (

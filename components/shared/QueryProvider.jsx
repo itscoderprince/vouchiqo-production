@@ -12,6 +12,8 @@ export const STALE = {
   static: 10 * 60 * 1000, // 10 min — merchants list, categories
 };
 
+import { SocketProvider } from "@/components/shared/SocketProvider";
+
 export default function QueryProvider({ children }) {
   const [queryClient] = useState(
     () =>
@@ -31,6 +33,8 @@ export default function QueryProvider({ children }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <SocketProvider>{children}</SocketProvider>
+    </QueryClientProvider>
   );
 }

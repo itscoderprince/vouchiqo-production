@@ -1,7 +1,12 @@
 "use client";
 
-import { Calendar as CalendarIcon, Sparkles } from "lucide-react";
-import { useState } from "react";
+import {
+  Calendar as CalendarIcon,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +23,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  adminFetchScheduledCampaigns,
+  adminReviewCampaign,
+} from "@/lib/api-helpers";
 
 const FESTIVAL_DATES = [
   {
@@ -42,37 +52,14 @@ const FESTIVAL_DATES = [
   },
 ];
 
-const SCHEDULED_CAMPAIGNS = [
-  {
-    id: "sch-1",
-    name: "Pre-Diwali Grand Renovation Sale",
-    merchant: "Marbella Tiles & Sanitary",
-    type: "festival",
-    startDate: "2026-10-25T10:00",
-    endDate: "2026-11-02T23:59",
-    hasCountdownTimer: true,
-    hasPreTeaser: true,
-    teaserHeadline: "🔥 Pre-Diwali Booking Deals Unlocking Soon!",
-    canAdjust: true, // Launch > 2 hours away
-  },
-  {
-    id: "sch-2",
-    name: "Summer Blast Flash Sale",
-    merchant: "Burger House",
-    type: "flash",
-    startDate: "2026-07-25T12:00",
-    endDate: "2026-07-28T23:59",
-    hasCountdownTimer: true,
-    hasPreTeaser: false,
-    teaserHeadline: "",
-    canAdjust: true,
-  },
-];
-
 export default function AdminCampaignCalendarPage() {
-  const [campaigns, setCampaigns] = useState(SCHEDULED_CAMPAIGNS);
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+
+  // API Loading State
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form states inside adjustment modal
   const [editStartDate, setEditStartDate] = useState("");
@@ -81,48 +68,145 @@ export default function AdminCampaignCalendarPage() {
   const [editTeaser, setEditTeaser] = useState(true);
   const [editTeaserHeadline, setEditTeaserHeadline] = useState("");
 
-  const handleOpenAdjust = (cmp) => {
-    setSelectedCampaign(cmp);
-    setEditStartDate(cmp.startDate.split("T")[0]);
-    setEditEndDate(cmp.endDate.split("T")[0]);
-    setEditCountdown(cmp.hasCountdownTimer);
-    setEditTeaser(cmp.hasPreTeaser);
-    setEditTeaserHeadline(cmp.teaserHeadline || "");
-    setIsAdjustModalOpen(true);
-  };
+  const fetchScheduled = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await adminFetchScheduledCampaigns();
+      setCampaigns(data);
+    } catch (err) {
+      console.error("Error loading scheduled campaigns:", err);
+      toast.error("Failed to load scheduled campaign calendar.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleSaveSchedule = (e) => {
-    e.preventDefault();
-    setCampaigns((prev) =>
-      prev.map((c) =>
-        c.id === selectedCampaign.id
-          ? {
-              ...c,
-              startDate: `${editStartDate}T10:00`,
-              endDate: `${editEndDate}T23:59`,
-              hasCountdownTimer: editCountdown,
-              hasPreTeaser: editTeaser,
-              teaserHeadline: editTeaserHeadline,
-            }
-          : c,
-      ),
-    );
-    toast.success("Campaign schedule & teaser settings updated successfully!");
-    setIsAdjustModalOpen(false);
-  };
+  useEffect(() => {
+    fetchScheduled();
+  }, [fetchScheduled]);
+
+  const handleOpenAdjust = useCallback((cmp) => {
+    setSelectedCampaign(cmp);
+    const startStr = cmp.startDate
+      ? new Date(cmp.startDate).toISOString().split("T")[0]
+      : cmp.timing?.startDate
+        ? new Date(cmp.timing.startDate).toISOString().split("T")[0]
+        : "";
+    const endStr = cmp.endDate
+      ? new Date(cmp.endDate).toISOString().split("T")[0]
+      : cmp.timing?.endDate
+        ? new Date(cmp.timing.endDate).toISOString().split("T")[0]
+        : "";
+
+    setEditStartDate(startStr);
+    setEditEndDate(endStr);
+    setEditCountdown(cmp.timing?.hasCountdownTimer ?? true);
+    setEditTeaser(cmp.timing?.hasPreTeaser ?? true);
+    setEditTeaserHeadline(cmp.timing?.preTeaserHeadline || cmp.headline || "");
+    setIsAdjustModalOpen(true);
+  }, []);
+
+  const handleSaveSchedule = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (!selectedCampaign) return;
+
+      const targetId = selectedCampaign._id || selectedCampaign.id;
+      try {
+        setIsSaving(true);
+        await adminReviewCampaign(targetId, {
+          scheduleDate: editStartDate,
+          endDate: editEndDate,
+          timing: {
+            startDate: new Date(`${editStartDate}T10:00:00`),
+            endDate: new Date(`${editEndDate}T23:59:59`),
+            hasCountdownTimer: editCountdown,
+            hasPreTeaser: editTeaser,
+            preTeaserHeadline: editTeaserHeadline,
+          },
+        });
+
+        setCampaigns((prev) =>
+          prev.map((c) =>
+            c._id === targetId || c.id === targetId
+              ? {
+                  ...c,
+                  startDate: `${editStartDate}T10:00`,
+                  endDate: `${editEndDate}T23:59`,
+                  timing: {
+                    ...c.timing,
+                    hasCountdownTimer: editCountdown,
+                    hasPreTeaser: editTeaser,
+                    preTeaserHeadline: editTeaserHeadline,
+                  },
+                }
+              : c,
+          ),
+        );
+        toast.success("Campaign launch schedule & teaser updated!");
+        setIsAdjustModalOpen(false);
+      } catch (err) {
+        toast.error(err.message || "Failed to update campaign schedule.");
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      selectedCampaign,
+      editStartDate,
+      editEndDate,
+      editCountdown,
+      editTeaser,
+      editTeaserHeadline,
+    ],
+  );
+
+  const formattedCampaigns = useMemo(() => {
+    return campaigns.map((c) => ({
+      ...c,
+      id: c._id || c.id,
+      merchantName:
+        c.merchantId?.businessName || c.merchant || "Merchant Partner",
+      startFormatted: c.startDate
+        ? new Date(c.startDate).toLocaleString("en-IN", {
+            dateStyle: "short",
+            timeStyle: "short",
+          })
+        : c.timing?.startDate
+          ? new Date(c.timing.startDate).toLocaleString("en-IN", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "—",
+      endFormatted: c.endDate
+        ? new Date(c.endDate).toLocaleString("en-IN", {
+            dateStyle: "short",
+            timeStyle: "short",
+          })
+        : c.timing?.endDate
+          ? new Date(c.timing.endDate).toLocaleString("en-IN", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "—",
+      hasCountdown: c.timing?.hasCountdownTimer ?? c.hasCountdownTimer ?? true,
+      hasPreTeaser: c.timing?.hasPreTeaser ?? c.hasPreTeaser ?? false,
+      teaserHeadline: c.timing?.preTeaserHeadline || c.teaserHeadline || "",
+    }));
+  }, [campaigns]);
 
   return (
     <DashboardLayout
       title="Campaign Calendar & Scheduling"
       user={{ name: "Super Admin", role: "admin" }}
     >
-      <div className="space-y-6 text-left font-sans w-full">
+      <div className="space-y-6 text-left font-sans w-full pb-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-[#e85d04]" /> Campaign
-              Scheduling &amp; Calendar (/admin/campaigns/calendar)
+              Scheduling &amp; Calendar
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
               Go-live date/time pickers, countdown timers, pre-launch teasers
@@ -158,59 +242,93 @@ export default function AdminCampaignCalendarPage() {
 
         {/* Scheduled Campaigns List */}
         <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Scheduled Campaigns Queue
-          </h3>
-          <div className="space-y-4">
-            {campaigns.map((c) => (
-              <div
-                key={c.id}
-                className="p-4 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 bg-slate-50/50"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-slate-900 text-sm">
-                      {c.name}
-                    </h4>
-                    <Badge className="bg-blue-100 text-blue-800 text-[9px] font-bold">
-                      {c.merchant}
-                    </Badge>
-                    {c.hasCountdownTimer && (
-                      <Badge className="bg-orange-100 text-orange-800 text-[9px] font-bold">
-                        Countdown Active
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Go-Live:{" "}
-                    <strong className="text-slate-900 font-mono">
-                      {c.startDate}
-                    </strong>{" "}
-                    • End:{" "}
-                    <strong className="text-slate-900 font-mono">
-                      {c.endDate}
-                    </strong>
-                  </p>
-                  {c.hasPreTeaser && (
-                    <span className="text-[11px] font-semibold text-purple-700 block">
-                      🔮 Pre-Teaser: &quot;{c.teaserHeadline}&quot;
-                    </span>
-                  )}
-                </div>
-
-                <Button
-                  onClick={() => handleOpenAdjust(c)}
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl cursor-pointer shrink-0"
-                >
-                  Adjust Launch Schedule &amp; Teaser
-                </Button>
-              </div>
-            ))}
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Scheduled Campaigns Queue
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              onClick={fetchScheduled}
+              className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer"
+            >
+              {loading
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 mr-1" />
+                : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+              <span>Refresh</span>
+            </Button>
           </div>
+
+          {loading
+            ? <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="p-4 border border-slate-200 rounded-2xl space-y-2"
+                  >
+                    <Skeleton className="h-5 w-1/3 rounded-md" />
+                    <Skeleton className="h-4 w-1/2 rounded-md" />
+                  </div>
+                ))}
+              </div>
+            : formattedCampaigns.length === 0
+              ? <div className="p-8 text-center text-xs text-slate-400">
+                  No scheduled campaigns found in the calendar queue.
+                </div>
+              : <div className="space-y-4">
+                  {formattedCampaigns.map((c) => (
+                    <div
+                      key={c.id}
+                      className="p-4 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 bg-slate-50/50"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-bold text-slate-900 text-sm">
+                            {c.name || "Scheduled Campaign"}
+                          </h4>
+                          <Badge className="bg-blue-100 text-blue-800 text-[9px] font-bold">
+                            {c.merchantName}
+                          </Badge>
+                          {c.hasCountdown && (
+                            <Badge className="bg-orange-100 text-orange-800 text-[9px] font-bold">
+                              Countdown Active
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 font-medium">
+                          Go-Live:{" "}
+                          <strong className="text-slate-900 font-mono">
+                            {c.startFormatted}
+                          </strong>{" "}
+                          • End:{" "}
+                          <strong className="text-slate-900 font-mono">
+                            {c.endFormatted}
+                          </strong>
+                        </p>
+                        {c.hasPreTeaser && (
+                          <span className="text-[11px] font-semibold text-purple-700 block">
+                            🔮 Pre-Teaser: &quot;{c.teaserHeadline}&quot;
+                          </span>
+                        )}
+                      </div>
+
+                      <Button
+                        onClick={() => handleOpenAdjust(c)}
+                        className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl cursor-pointer shrink-0"
+                      >
+                        Adjust Launch Schedule &amp; Teaser
+                      </Button>
+                    </div>
+                  ))}
+                </div>}
         </Card>
 
         {/* ADJUST SCHEDULE MODAL */}
-        <Dialog open={isAdjustModalOpen} onOpenChange={setIsAdjustModalOpen}>
+        <Dialog
+          open={isAdjustModalOpen}
+          onOpenChange={() => !isSaving && setIsAdjustModalOpen(false)}
+        >
           <DialogContent className="max-w-md bg-white p-6 rounded-2xl">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-base font-bold text-slate-900">
@@ -285,6 +403,7 @@ export default function AdminCampaignCalendarPage() {
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={isSaving}
                   onClick={() => setIsAdjustModalOpen(false)}
                   className="text-xs font-bold rounded-xl"
                 >
@@ -292,9 +411,13 @@ export default function AdminCampaignCalendarPage() {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={isSaving}
                   className="bg-slate-900 text-white text-xs font-bold rounded-xl"
                 >
-                  Save Schedule
+                  {isSaving
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    : null}
+                  <span>Save Schedule</span>
                 </Button>
               </DialogFooter>
             </form>

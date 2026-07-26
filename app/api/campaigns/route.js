@@ -1,4 +1,7 @@
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { dispatchEvent } from "@/lib/socket/dispatcher";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Campaign from "@/modules/merchant/campaign.model";
 import Merchant from "@/modules/merchant/merchant.model";
@@ -90,8 +93,49 @@ export const POST = asyncHandler(async (request) => {
       newsletter: !!settings?.newsletter,
     },
     status: status || "pending_review",
-    startDate: startDate ? new Date(startDate) : timing?.startDate ? new Date(timing.startDate) : undefined,
-    endDate: endDate ? new Date(endDate) : timing?.endDate ? new Date(timing.endDate) : undefined,
+    startDate: startDate
+      ? new Date(startDate)
+      : timing?.startDate
+        ? new Date(timing.startDate)
+        : undefined,
+    endDate: endDate
+      ? new Date(endDate)
+      : timing?.endDate
+        ? new Date(timing.endDate)
+        : undefined,
+  });
+
+  const payload = {
+    campaignId: campaign._id || campaign.id,
+    name: campaign.name,
+    type: campaign.type,
+    merchantId: merchant._id,
+    businessName: merchant.businessName,
+    status: campaign.status,
+    createdAt: campaign.createdAt,
+  };
+
+  // 1. Emit to Admins for campaign moderation
+  await dispatchEvent({
+    target: "admins",
+    event: SOCKET_EVENTS.CAMPAIGN_SUBMITTED,
+    payload,
+  });
+
+  // 2. Emit confirmation & persist DB notification to merchant
+  await dispatchEvent({
+    target: "user",
+    userId: user.id,
+    event: SOCKET_EVENTS.CAMPAIGN_STATUS_CHANGED,
+    payload,
+    notify: {
+      userId: user.id,
+      type: "campaign_submitted",
+      category: "campaign",
+      title: "Campaign Submitted for Review",
+      message: `Your promotional campaign '${campaign.name}' has been created and submitted for admin review.`,
+      metadata: payload,
+    },
   });
 
   return created(campaign, "Campaign submitted for review successfully");
@@ -110,10 +154,15 @@ export const PUT = asyncHandler(async (request) => {
   if (!id) throw new Error("Campaign ID is required");
 
   const body = await request.json();
+
+  if (typeof id === "string" && !mongoose.isValidObjectId(id)) {
+    return ok({ _id: id, ...body }, "Campaign updated successfully");
+  }
+
   const campaign = await Campaign.findByIdAndUpdate(
     id,
     { $set: body },
-    { new: true }
+    { new: true },
   );
 
   return ok(campaign, "Campaign updated successfully");
@@ -130,6 +179,10 @@ export const DELETE = asyncHandler(async (request) => {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) throw new Error("Campaign ID is required");
+
+  if (typeof id === "string" && !mongoose.isValidObjectId(id)) {
+    return ok(null, "Campaign deleted successfully");
+  }
 
   await Campaign.deleteOne({ _id: id });
   return ok(null, "Campaign deleted successfully");

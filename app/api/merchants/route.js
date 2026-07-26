@@ -1,4 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
+import { dispatchEvent } from "@/lib/socket/dispatcher";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireAuth, requireRole } from "@/modules/auth/auth.middleware";
 import {
   createMerchant,
@@ -34,5 +36,41 @@ export const POST = asyncHandler(async (request) => {
   const data = createMerchantSchema.parse(body);
 
   const merchant = await createMerchant(user.id, data);
+
+  const payload = {
+    merchantId: merchant._id || merchant.id,
+    businessName: merchant.businessName,
+    contactEmail: merchant.contactEmail,
+    category: merchant.category,
+    createdAt: merchant.createdAt,
+  };
+
+  // Broadcast new merchant application to Admins
+  await dispatchEvent({
+    target: "admins",
+    event: SOCKET_EVENTS.APPLICATION_NEW,
+    payload,
+  });
+
+  // Direct socket & DB notification to applicant merchant user
+  await dispatchEvent({
+    target: "user",
+    userId: user.id,
+    event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+    payload: {
+      merchantId: merchant._id || merchant.id,
+      status: "pending",
+      businessName: merchant.businessName,
+    },
+    notify: {
+      userId: user.id,
+      type: "application_submitted",
+      category: "system",
+      title: "Merchant Profile Submitted",
+      message: `Your business profile '${merchant.businessName}' has been submitted and is pending verification.`,
+      metadata: payload,
+    },
+  });
+
   return created(merchant, "Merchant profile created. Pending admin approval.");
 });

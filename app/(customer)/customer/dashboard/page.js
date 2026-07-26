@@ -129,16 +129,58 @@ export default function CustomerDashboard() {
   const username = user.name ? user.name.split(" ")[0] : "User";
   const title = `${username} Dashboard`;
 
+  // Dynamic Welcome Message depending on visit count & time of day
+  const [welcomeInfo, setWelcomeInfo] = useState({
+    heading: `Welcome back, ${username}!`,
+    subtitle: "Check out your updated savings timeline and active claims below.",
+  });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const storageKey = `vouchiqo_visit_count_${user.id}`;
+    let visits = Number(localStorage.getItem(storageKey) || 0) + 1;
+    localStorage.setItem(storageKey, String(visits));
+
+    const currentHour = new Date().getHours();
+    let timeGreeting = "Welcome back";
+    if (currentHour >= 5 && currentHour < 12) timeGreeting = "Good morning";
+    else if (currentHour >= 12 && currentHour < 17) timeGreeting = "Good afternoon";
+    else if (currentHour >= 17 && currentHour < 22) timeGreeting = "Good evening";
+
+    if (visits === 1) {
+      setWelcomeInfo({
+        heading: `Welcome to Vouchiqo, ${username}! 🎉`,
+        subtitle:
+          "We're excited to have you here! Explore exclusive local offers, claim your first coupon, and start saving today.",
+      });
+    } else if (visits === 2) {
+      setWelcomeInfo({
+        heading: `Great to see you again, ${username}! 🚀`,
+        subtitle:
+          "Ready for your next deal? Check out active claims, trending brand offers, and local discounts below.",
+      });
+    } else {
+      const activeText =
+        activeClaimsCount > 0
+          ? `You have ${activeClaimsCount} active claim(s) ready to redeem at local stores!`
+          : "Check out your updated savings timeline, claimed coupons, and active offers below.";
+      setWelcomeInfo({
+        heading: `${timeGreeting}, ${username}!`,
+        subtitle: activeText,
+      });
+    }
+  }, [user?.id, username, activeClaimsCount]);
+
   return (
     <DashboardLayout title={title} user={user}>
       {/* Compact Welcome Banner using clean, minimal black & blue design, less rounding (rounded-md) */}
       <div className="bg-slate-950 dark:bg-zinc-900 border border-slate-900 dark:border-zinc-800 text-white p-4 rounded-md relative overflow-hidden shadow-sm">
         <div className="relative z-10 space-y-0.5">
           <h2 className="text-lg font-normal tracking-tight">
-            Welcome back, <span className="font-semibold">{username}</span>!
+            {welcomeInfo.heading}
           </h2>
           <p className="text-[11px] text-slate-400 font-light">
-            Check out your updated savings timeline and active claims below.
+            {welcomeInfo.subtitle}
           </p>
         </div>
       </div>

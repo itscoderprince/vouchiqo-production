@@ -1,18 +1,14 @@
 "use client";
 
 import {
-  Briefcase,
   Building,
   Building2,
   Check,
   ChevronRight,
-  CreditCard,
   FileCheck,
-  FileText,
   Globe,
   Hash,
   Image as ImageIcon,
-  Landmark,
   Loader2,
   Lock,
   Mail,
@@ -20,9 +16,7 @@ import {
   MapPin,
   Phone,
   PhoneCall,
-  ShieldCheck,
   Store,
-  Tag,
   Upload,
   User,
   X,
@@ -100,6 +94,7 @@ export function MerchantOnboardingWizard() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [duplicateErrors, setDuplicateErrors] = useState({});
 
   // File Uploading States
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -235,7 +230,9 @@ export function MerchantOnboardingWizard() {
       },
       (err) => {
         setIsFetchingLocation(false);
-        toast.error("Could not fetch location. Please allow browser permissions.");
+        toast.error(
+          "Could not fetch location. Please allow browser permissions.",
+        );
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -260,17 +257,41 @@ export function MerchantOnboardingWizard() {
     .split(/\s+/)
     .filter(Boolean).length;
 
-  const handleNext = () => {
+  const checkDuplicateField = async (field, value) => {
+    if (!value || !value.trim()) {
+      setDuplicateErrors((prev) => ({ ...prev, [field]: null }));
+      return true;
+    }
+    try {
+      const res = await fetch("/api/merchants/check-duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field, value }),
+      });
+      const json = await res.json();
+      if (json.data && !json.data.available) {
+        setDuplicateErrors((prev) => ({ ...prev, [field]: json.data.message }));
+        toast.error(json.data.message);
+        return false;
+      } else {
+        setDuplicateErrors((prev) => ({ ...prev, [field]: null }));
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  };
+
+  const handleNext = async () => {
     if (currentStep === 1) {
       if (!formData.registeredName.trim())
         return toast.error("Please enter Registered Business Name");
-      if (formData.category === "others") {
-        if (notesWordCount < 20) {
-          return toast.error(
-            "Please explain your business in at least 20 words for Special Category selection.",
-          );
-        }
-      }
+      if (!formData.tradingName.trim())
+        return toast.error("Please enter Brand / Trading Name");
+      if (!formData.pincode || formData.pincode.length < 6)
+        return toast.error("Please enter valid 6-digit Pincode");
+      if (!formData.city.trim()) return toast.error("Please enter City");
+      if (!formData.state.trim()) return toast.error("Please enter State");
       if (!formData.address.trim())
         return toast.error("Please enter Business Address");
     } else if (currentStep === 2) {
@@ -282,11 +303,23 @@ export function MerchantOnboardingWizard() {
         return toast.error("Please enter valid Business Email");
       if (!formData.password || formData.password.length < 6)
         return toast.error("Password must be at least 6 characters");
+
+      const emailOk = await checkDuplicateField("email", formData.email);
+      const phoneOk = await checkDuplicateField("phone", formData.mobile);
+      if (!emailOk || !phoneOk) return;
     } else if (currentStep === 3) {
       if (!formData.docFileUrl) {
         return toast.error(
           `Please upload your ${formData.docType || "Primary Identity Document"} before proceeding to the next step.`,
         );
+      }
+      if (formData.gstin && !formData.isGstExempt) {
+        const gstOk = await checkDuplicateField("gstin", formData.gstin);
+        if (!gstOk) return;
+      }
+      if (formData.pan) {
+        const panOk = await checkDuplicateField("pan", formData.pan);
+        if (!panOk) return;
       }
     } else if (currentStep === 4) {
       if (!formData.selectedPlan) return toast.error("Please select a Plan");
@@ -321,7 +354,11 @@ export function MerchantOnboardingWizard() {
       toast.error("Please accept all Policy Agreements");
       return;
     }
-    const effectiveSignatoryName = (formData.contactName || formData.signatoryName || "").trim();
+    const effectiveSignatoryName = (
+      formData.contactName ||
+      formData.signatoryName ||
+      ""
+    ).trim();
     if (!effectiveSignatoryName) {
       toast.error("Please enter Authorized Liaison Name in Section B first");
       return;
@@ -430,7 +467,8 @@ export function MerchantOnboardingWizard() {
           Founding Merchant Program Active
         </Badge>
         <p className="text-xs font-medium text-blue-900">
-          Rates locked for 6 months • 24–48 hrs approval • ₹0 Starter plan available
+          Rates locked for 6 months • 24–48 hrs approval • ₹0 Starter plan
+          available
         </p>
       </div>
 
@@ -470,7 +508,11 @@ export function MerchantOnboardingWizard() {
                         : "bg-slate-200 text-slate-500"
                   }`}
                 >
-                  {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : m.stepNum}
+                  {isCompleted ? (
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  ) : (
+                    m.stepNum
+                  )}
                 </div>
                 <div>
                   <span className="text-[9px] font-semibold uppercase text-slate-400 block leading-tight">
@@ -502,7 +544,10 @@ export function MerchantOnboardingWizard() {
                 Enter legal registered name and store operating address
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-medium border-slate-200 text-slate-600"
+            >
               Section 1 of 6
             </Badge>
           </div>
@@ -511,7 +556,8 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Registered Business Name <span className="text-rose-500">*</span>
+                  Registered Business Name{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <Building2 className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -520,7 +566,10 @@ export function MerchantOnboardingWizard() {
                     placeholder="Marbella Tiles & Sanitary Pvt Ltd"
                     value={formData.registeredName}
                     onChange={(e) =>
-                      setFormData({ ...formData, registeredName: e.target.value })
+                      setFormData({
+                        ...formData,
+                        registeredName: e.target.value,
+                      })
                     }
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
                   />
@@ -529,7 +578,8 @@ export function MerchantOnboardingWizard() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Brand / Store Display Name <span className="text-slate-400 font-normal">(Optional)</span>
+                  Brand / Store Display Name{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <div className="relative">
                   <Store className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -594,35 +644,62 @@ export function MerchantOnboardingWizard() {
               </div>
             </div>
 
-            {/* Special Category 20+ Words Explanation Field */}
+            {/* Special Category Custom Field & Explanation */}
             {formData.category === "others" && (
-              <div className="space-y-1.5 p-3.5 bg-blue-50/60 border border-blue-200 rounded-lg">
-                <div className="flex justify-between items-center">
+              <div className="space-y-3 p-3.5 bg-blue-50/60 border border-blue-200 rounded-lg">
+                <div className="space-y-1">
                   <Label className="text-xs font-semibold text-blue-950">
-                    Explain your business &amp; products in detail <span className="text-rose-500">*</span>
+                    Custom Category Name <span className="text-rose-500">*</span>
                   </Label>
-                  <span
-                    className={`text-[11px] font-mono ${
-                      notesWordCount >= 20 ? "text-emerald-700 font-bold" : "text-amber-700 font-semibold"
-                    }`}
-                  >
-                    Word count: {notesWordCount} / 20 min
-                  </span>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Handmade Crafts, Event Management, Niche Services..."
+                    value={formData.customCategoryName || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        customCategoryName: e.target.value,
+                      })
+                    }
+                    className="bg-white border-slate-300 text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none"
+                  />
                 </div>
-                <Textarea
-                  rows={3}
-                  placeholder="Describe your special business offerings, unique products, services, target customers, and store operational setup in detail (minimum 20 words required for manual admin verification)..."
-                  value={formData.customCategoryNotes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, customCategoryNotes: e.target.value })
-                  }
-                  className="bg-white border-slate-200 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all"
-                />
-                {notesWordCount < 20 && (
-                  <p className="text-[10px] text-amber-700 font-medium">
-                    ⚠️ Please write at least {20 - notesWordCount} more word(s) explaining your business for admin verification.
-                  </p>
-                )}
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-semibold text-blue-950">
+                      Explain your business &amp; products in detail{" "}
+                      <span className="text-rose-500">*</span>
+                    </Label>
+                    <span
+                      className={`text-[11px] font-mono ${
+                        notesWordCount >= 20
+                          ? "text-emerald-700 font-bold"
+                          : "text-amber-700 font-semibold"
+                      }`}
+                    >
+                      Word count: {notesWordCount} / 20 min
+                    </span>
+                  </div>
+                  <Textarea
+                    rows={3}
+                    placeholder="Describe your special business offerings, unique products, services, target customers, and store operational setup in detail (minimum 20 words required for manual admin verification)..."
+                    value={formData.customCategoryNotes}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        customCategoryNotes: e.target.value,
+                      })
+                    }
+                    className="bg-white border-slate-200 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all"
+                  />
+                  {notesWordCount < 20 && (
+                    <p className="text-[10px] text-amber-700 font-medium">
+                      ⚠️ Please write at least {20 - notesWordCount} more word(s)
+                      explaining your business for admin verification.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -662,7 +739,8 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Operating Store Address <span className="text-rose-500">*</span>
+                  Operating Store Address{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <Textarea
                   rows={2}
@@ -677,7 +755,8 @@ export function MerchantOnboardingWizard() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Google Maps / GMB Profile Location Link <span className="text-slate-400 font-normal">(Optional)</span>
+                  Google Maps / GMB Profile Location Link{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <Textarea
                   rows={2}
@@ -734,7 +813,8 @@ export function MerchantOnboardingWizard() {
                       ...prev,
                       city: val,
                       state: geo ? geo.state : prev.state,
-                      pincode: geo && !prev.pincode ? geo.pincode : prev.pincode,
+                      pincode:
+                        geo && !prev.pincode ? geo.pincode : prev.pincode,
                     }));
                   }}
                 >
@@ -743,7 +823,11 @@ export function MerchantOnboardingWizard() {
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
                     {INDIAN_CITIES.map((c) => (
-                      <SelectItem key={`${c.city}-${c.state}`} value={c.city} className="text-xs">
+                      <SelectItem
+                        key={`${c.city}-${c.state}`}
+                        value={c.city}
+                        className="text-xs"
+                      >
                         {c.city} ({c.state})
                       </SelectItem>
                     ))}
@@ -752,7 +836,9 @@ export function MerchantOnboardingWizard() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">State</Label>
+                <Label className="text-xs font-medium text-slate-700">
+                  State
+                </Label>
                 <div className="relative">
                   <Map className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
@@ -779,7 +865,8 @@ export function MerchantOnboardingWizard() {
                   </span>
                 ) : (
                   <span className="text-[11px] text-slate-500 block font-normal">
-                    Fetch exact store latitude &amp; longitude for Google Maps navigation
+                    Fetch exact store latitude &amp; longitude for Google Maps
+                    navigation
                   </span>
                 )}
               </div>
@@ -823,16 +910,20 @@ export function MerchantOnboardingWizard() {
                 Management liaison contact and account login password
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-medium border-slate-200 text-slate-600"
+            >
               Section 2 of 6
             </Badge>
           </div>
 
-            <div className="space-y-3">
+          <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Authorized Liaison Name <span className="text-rose-500">*</span>
+                  Authorized Liaison Name{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -901,16 +992,24 @@ export function MerchantOnboardingWizard() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-slate-700">
-                    WhatsApp Number <span className="text-slate-400 font-normal">(Optional)</span>
+                    WhatsApp Number{" "}
+                    <span className="text-slate-400 font-normal">
+                      (Optional)
+                    </span>
                   </Label>
                   <button
                     type="button"
                     onClick={() => {
                       if (!formData.mobile) {
-                        toast.error("Please enter Primary Mobile Number first.");
+                        toast.error(
+                          "Please enter Primary Mobile Number first.",
+                        );
                         return;
                       }
-                      setFormData((prev) => ({ ...prev, whatsapp: prev.mobile }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        whatsapp: prev.mobile,
+                      }));
                       toast.success("Copied Primary Mobile to WhatsApp!");
                     }}
                     className="text-[10px] text-blue-600 hover:text-blue-800 font-medium hover:underline cursor-pointer flex items-center gap-1"
@@ -938,7 +1037,8 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Business Email (Login ID) <span className="text-rose-500">*</span>
+                  Business Email (Login ID){" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -979,7 +1079,9 @@ export function MerchantOnboardingWizard() {
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="space-y-1">
-                  <Label className="text-[11px] font-medium text-slate-600">Website URL</Label>
+                  <Label className="text-[11px] font-medium text-slate-600">
+                    Website URL
+                  </Label>
                   <div className="relative">
                     <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
@@ -994,7 +1096,9 @@ export function MerchantOnboardingWizard() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[11px] font-medium text-slate-600">Instagram Handle</Label>
+                  <Label className="text-[11px] font-medium text-slate-600">
+                    Instagram Handle
+                  </Label>
                   <div className="relative">
                     <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
@@ -1002,14 +1106,19 @@ export function MerchantOnboardingWizard() {
                       placeholder="@marbellatiles"
                       value={formData.instagramHandle}
                       onChange={(e) =>
-                        setFormData({ ...formData, instagramHandle: e.target.value })
+                        setFormData({
+                          ...formData,
+                          instagramHandle: e.target.value,
+                        })
                       }
                       className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[11px] font-medium text-slate-600">Facebook URL</Label>
+                  <Label className="text-[11px] font-medium text-slate-600">
+                    Facebook URL
+                  </Label>
                   <div className="relative">
                     <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
@@ -1017,7 +1126,10 @@ export function MerchantOnboardingWizard() {
                       placeholder="https://facebook.com/marbellatiles"
                       value={formData.facebookUrl}
                       onChange={(e) =>
-                        setFormData({ ...formData, facebookUrl: e.target.value })
+                        setFormData({
+                          ...formData,
+                          facebookUrl: e.target.value,
+                        })
                       }
                       className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                     />
@@ -1058,7 +1170,10 @@ export function MerchantOnboardingWizard() {
                 Upload image or document proof for Verified Merchant Badge
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-medium border-slate-200 text-slate-600"
+            >
               Section 3 of 6
             </Badge>
           </div>
@@ -1067,7 +1182,8 @@ export function MerchantOnboardingWizard() {
             {/* Primary Document Type */}
             <div className="space-y-1">
               <Label className="text-xs font-medium text-slate-700">
-                Primary Identity Document Type <span className="text-rose-500">*</span>
+                Primary Identity Document Type{" "}
+                <span className="text-rose-500">*</span>
               </Label>
               <Select
                 value={formData.docType}
@@ -1079,16 +1195,25 @@ export function MerchantOnboardingWizard() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="z-[300]">
-                  <SelectItem value="GST Registration Certificate" className="text-xs">
+                  <SelectItem
+                    value="GST Registration Certificate"
+                    className="text-xs"
+                  >
                     GST Registration Certificate (Preferred)
                   </SelectItem>
-                  <SelectItem value="Udyam / MSME Certificate" className="text-xs">
+                  <SelectItem
+                    value="Udyam / MSME Certificate"
+                    className="text-xs"
+                  >
                     Udyam / MSME Registration Certificate
                   </SelectItem>
                   <SelectItem value="Trade Licence" className="text-xs">
                     Trade Licence (Municipal Corporation)
                   </SelectItem>
-                  <SelectItem value="Shop & Establishment Act" className="text-xs">
+                  <SelectItem
+                    value="Shop & Establishment Act"
+                    className="text-xs"
+                  >
                     Shop &amp; Establishment Act Certificate
                   </SelectItem>
                   <SelectItem value="Owner PAN Card" className="text-xs">
@@ -1101,7 +1226,8 @@ export function MerchantOnboardingWizard() {
             {/* Cloudinary Document Upload */}
             <div className="space-y-1">
               <Label className="text-xs font-medium text-slate-700">
-                Upload {formData.docType || "Primary Identity Document"} <span className="text-rose-500">*</span>
+                Upload {formData.docType || "Primary Identity Document"}{" "}
+                <span className="text-rose-500">*</span>
               </Label>
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center gap-2 text-xs">
                 {formData.docFileUrl ? (
@@ -1126,7 +1252,11 @@ export function MerchantOnboardingWizard() {
                     type="file"
                     accept="image/*"
                     onChange={(e) =>
-                      handleFileUpload(e.target.files[0], "docFileUrl", setUploadingDoc)
+                      handleFileUpload(
+                        e.target.files[0],
+                        "docFileUrl",
+                        setUploadingDoc,
+                      )
                     }
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                     disabled={uploadingDoc}
@@ -1141,7 +1271,11 @@ export function MerchantOnboardingWizard() {
                     ) : (
                       <Upload className="w-3.5 h-3.5" />
                     )}
-                    <span>{formData.docFileUrl ? `Change ${formData.docType || "Document"}` : `Upload ${formData.docType || "Document"}`}</span>
+                    <span>
+                      {formData.docFileUrl
+                        ? `Change ${formData.docType || "Document"}`
+                        : `Upload ${formData.docType || "Document"}`}
+                    </span>
                   </Button>
                 </div>
               </div>
@@ -1156,7 +1290,9 @@ export function MerchantOnboardingWizard() {
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                     Shop Photograph
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">1200x800px</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    1200x800px
+                  </span>
                 </div>
                 <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2 h-32 overflow-hidden transition-all">
                   {formData.shopPhotoUrl ? (
@@ -1183,7 +1319,11 @@ export function MerchantOnboardingWizard() {
                       type="file"
                       accept="image/*"
                       onChange={(e) =>
-                        handleFileUpload(e.target.files[0], "shopPhotoUrl", setUploadingShopPhoto)
+                        handleFileUpload(
+                          e.target.files[0],
+                          "shopPhotoUrl",
+                          setUploadingShopPhoto,
+                        )
                       }
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                       disabled={uploadingShopPhoto}
@@ -1198,7 +1338,11 @@ export function MerchantOnboardingWizard() {
                       ) : (
                         <Upload className="w-3 h-3" />
                       )}
-                      <span>{formData.shopPhotoUrl ? "Change Photo" : "Upload Shop Photo"}</span>
+                      <span>
+                        {formData.shopPhotoUrl
+                          ? "Change Photo"
+                          : "Upload Shop Photo"}
+                      </span>
                     </Button>
                   </div>
                 </div>
@@ -1211,7 +1355,9 @@ export function MerchantOnboardingWizard() {
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                     Store Logo
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">400x400px (PNG)</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    400x400px (PNG)
+                  </span>
                 </div>
                 <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2 h-32 overflow-hidden transition-all">
                   {formData.logoUrl ? (
@@ -1238,7 +1384,11 @@ export function MerchantOnboardingWizard() {
                       type="file"
                       accept="image/*"
                       onChange={(e) =>
-                        handleFileUpload(e.target.files[0], "logoUrl", setUploadingLogo)
+                        handleFileUpload(
+                          e.target.files[0],
+                          "logoUrl",
+                          setUploadingLogo,
+                        )
                       }
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                       disabled={uploadingLogo}
@@ -1253,7 +1403,9 @@ export function MerchantOnboardingWizard() {
                       ) : (
                         <Upload className="w-3 h-3" />
                       )}
-                      <span>{formData.logoUrl ? "Change Logo" : "Upload Store Logo"}</span>
+                      <span>
+                        {formData.logoUrl ? "Change Logo" : "Upload Store Logo"}
+                      </span>
                     </Button>
                   </div>
                 </div>
@@ -1266,7 +1418,9 @@ export function MerchantOnboardingWizard() {
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                     Banner Image
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">1200x400px</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    1200x400px
+                  </span>
                 </div>
                 <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2 h-32 overflow-hidden transition-all">
                   {formData.bannerUrl ? (
@@ -1293,7 +1447,11 @@ export function MerchantOnboardingWizard() {
                       type="file"
                       accept="image/*"
                       onChange={(e) =>
-                        handleFileUpload(e.target.files[0], "bannerUrl", setUploadingBanner)
+                        handleFileUpload(
+                          e.target.files[0],
+                          "bannerUrl",
+                          setUploadingBanner,
+                        )
                       }
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                       disabled={uploadingBanner}
@@ -1308,7 +1466,11 @@ export function MerchantOnboardingWizard() {
                       ) : (
                         <Upload className="w-3 h-3" />
                       )}
-                      <span>{formData.bannerUrl ? "Change Banner" : "Upload Banner Image"}</span>
+                      <span>
+                        {formData.bannerUrl
+                          ? "Change Banner"
+                          : "Upload Banner Image"}
+                      </span>
                     </Button>
                   </div>
                 </div>
@@ -1344,10 +1506,14 @@ export function MerchantOnboardingWizard() {
                 Section D: Select Subscription Plan
               </h3>
               <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Choose a plan matching your scale (14-day free trial on paid tiers)
+                Choose a plan matching your scale (14-day free trial on paid
+                tiers)
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-medium border-slate-200 text-slate-600"
+            >
               Section 4 of 6
             </Badge>
           </div>
@@ -1416,7 +1582,9 @@ export function MerchantOnboardingWizard() {
           </div>
 
           <div className="space-y-1 pt-1">
-            <Label className="text-xs font-medium text-slate-700">Referral Code (Optional)</Label>
+            <Label className="text-xs font-medium text-slate-700">
+              Referral Code (Optional)
+            </Label>
             <div className="relative">
               <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <Input
@@ -1462,7 +1630,10 @@ export function MerchantOnboardingWizard() {
                 Category commission structure and store opening timings
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-medium border-slate-200 text-slate-600"
+            >
               Section 5 of 6
             </Badge>
           </div>
@@ -1474,9 +1645,14 @@ export function MerchantOnboardingWizard() {
               </Label>
               <div className="text-[11px] text-slate-600 space-y-1">
                 {COMMISSION_TABLE.map((c) => (
-                  <div key={c.category} className="flex justify-between border-b border-slate-200/60 pb-0.5">
+                  <div
+                    key={c.category}
+                    className="flex justify-between border-b border-slate-200/60 pb-0.5"
+                  >
                     <span className="font-normal">{c.category}:</span>
-                    <span className="font-mono text-blue-700 font-semibold">{c.rate}</span>
+                    <span className="font-mono text-blue-700 font-semibold">
+                      {c.rate}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1490,7 +1666,8 @@ export function MerchantOnboardingWizard() {
                 }
               />
               <span className="text-xs font-medium text-slate-900">
-                I acknowledge and accept the Vouchiqo performance commission structure for my primary category.
+                I acknowledge and accept the Vouchiqo performance commission
+                structure for my primary category.
               </span>
             </label>
 
@@ -1500,7 +1677,9 @@ export function MerchantOnboardingWizard() {
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-slate-700">Opening Time</Label>
+                  <Label className="text-xs font-medium text-slate-700">
+                    Opening Time
+                  </Label>
                   <div className="relative">
                     <Building className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
@@ -1508,14 +1687,19 @@ export function MerchantOnboardingWizard() {
                       placeholder="10:00 AM"
                       value={formData.openingTime}
                       onChange={(e) =>
-                        setFormData({ ...formData, openingTime: e.target.value })
+                        setFormData({
+                          ...formData,
+                          openingTime: e.target.value,
+                        })
                       }
                       className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-slate-700">Closing Time</Label>
+                  <Label className="text-xs font-medium text-slate-700">
+                    Closing Time
+                  </Label>
                   <div className="relative">
                     <Building className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
@@ -1523,7 +1707,10 @@ export function MerchantOnboardingWizard() {
                       placeholder="08:00 PM"
                       value={formData.closingTime}
                       onChange={(e) =>
-                        setFormData({ ...formData, closingTime: e.target.value })
+                        setFormData({
+                          ...formData,
+                          closingTime: e.target.value,
+                        })
                       }
                       className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                     />
@@ -1561,10 +1748,14 @@ export function MerchantOnboardingWizard() {
                 Section F: Declarations, Agreements &amp; Submission
               </h3>
               <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Final merchant commitments, policy agreements &amp; digital signature
+                Final merchant commitments, policy agreements &amp; digital
+                signature
               </p>
             </div>
-            <Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-medium border-slate-200 text-slate-600"
+            >
               Section 6 of 6
             </Badge>
           </div>
@@ -1574,13 +1765,34 @@ export function MerchantOnboardingWizard() {
               7 Merchant Commitments (Mandatory)
             </Label>
             {[
-              { key: "commit1", text: "All submitted business information is accurate and real." },
-              { key: "commit2", text: "I will honour every verified offer published on Vouchiqo." },
-              { key: "commit3", text: "I will submit only genuine, working offer codes and deals." },
-              { key: "commit4", text: "I will enter actual transaction values when confirming codes." },
-              { key: "commit5", text: "I understand Vouchiqo earns performance commission." },
-              { key: "commit6", text: "I will keep counter staff informed about active offers." },
-              { key: "commit7", text: "I will pause offers if stock runs out or terms change." },
+              {
+                key: "commit1",
+                text: "All submitted business information is accurate and real.",
+              },
+              {
+                key: "commit2",
+                text: "I will honour every verified offer published on Vouchiqo.",
+              },
+              {
+                key: "commit3",
+                text: "I will submit only genuine, working offer codes and deals.",
+              },
+              {
+                key: "commit4",
+                text: "I will enter actual transaction values when confirming codes.",
+              },
+              {
+                key: "commit5",
+                text: "I understand Vouchiqo earns performance commission.",
+              },
+              {
+                key: "commit6",
+                text: "I will keep counter staff informed about active offers.",
+              },
+              {
+                key: "commit7",
+                text: "I will pause offers if stock runs out or terms change.",
+              },
             ].map((c) => (
               <label
                 key={c.key}
@@ -1606,7 +1818,10 @@ export function MerchantOnboardingWizard() {
                 { key: "policy2", text: "Agree to Terms of Service" },
                 { key: "policy3", text: "Agree to Privacy Policy" },
                 { key: "policy4", text: "Agree to Verification Policy" },
-                { key: "policy5", text: "Agree to Refund & Cancellation Policy" },
+                {
+                  key: "policy5",
+                  text: "Agree to Refund & Cancellation Policy",
+                },
               ].map((p) => (
                 <label
                   key={p.key}
@@ -1627,7 +1842,8 @@ export function MerchantOnboardingWizard() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-slate-700">
-                    Authorised Signatory Full Name <span className="text-rose-500">*</span>
+                    Authorised Signatory Full Name{" "}
+                    <span className="text-rose-500">*</span>
                   </Label>
                   <span className="text-[10px] text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded border border-blue-100 flex items-center gap-1">
                     ✓ Auto-synced from Authorized Liaison Name (Section B)
@@ -1638,7 +1854,11 @@ export function MerchantOnboardingWizard() {
                   <Input
                     type="text"
                     readOnly
-                    value={formData.contactName || formData.signatoryName || "Fill Authorized Liaison Name in Section B"}
+                    value={
+                      formData.contactName ||
+                      formData.signatoryName ||
+                      "Fill Authorized Liaison Name in Section B"
+                    }
                     className="pl-8 bg-slate-100 border-slate-300 text-xs h-9 rounded-lg font-medium text-slate-800 cursor-not-allowed shadow-2xs"
                   />
                 </div>
@@ -1649,9 +1869,12 @@ export function MerchantOnboardingWizard() {
             <div className="space-y-1.5 pt-1">
               <div className="flex justify-between items-center">
                 <Label className="text-xs font-medium text-slate-700">
-                  Authorised Digital Signature Image <span className="text-rose-500">*</span>
+                  Authorised Digital Signature Image{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
-                <span className="text-[10px] text-slate-400 font-normal">Clear signature photo on paper (Max 5MB)</span>
+                <span className="text-[10px] text-slate-400 font-normal">
+                  Clear signature photo on paper (Max 5MB)
+                </span>
               </div>
               <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-2 transition-all">
                 {formData.signatureUrl ? (
@@ -1662,14 +1885,16 @@ export function MerchantOnboardingWizard() {
                       className="h-20 max-w-full object-contain border border-slate-200 rounded-lg bg-white p-1.5 shadow-2xs"
                     />
                     <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> Signature Image Uploaded Successfully
+                      <Check className="w-3.5 h-3.5" /> Signature Image Uploaded
+                      Successfully
                     </span>
                   </div>
                 ) : (
                   <div className="py-2 flex flex-col items-center space-y-1">
                     <Upload className="w-6 h-6 text-slate-400" />
                     <span className="text-xs text-slate-600 font-medium">
-                      Upload photo or scanned image of authorized signature (JPG, PNG)
+                      Upload photo or scanned image of authorized signature
+                      (JPG, PNG)
                     </span>
                   </div>
                 )}
@@ -1678,7 +1903,11 @@ export function MerchantOnboardingWizard() {
                     type="file"
                     accept="image/*"
                     onChange={(e) =>
-                      handleFileUpload(e.target.files[0], "signatureUrl", setUploadingSignature)
+                      handleFileUpload(
+                        e.target.files[0],
+                        "signatureUrl",
+                        setUploadingSignature,
+                      )
                     }
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                     disabled={uploadingSignature}
@@ -1693,7 +1922,11 @@ export function MerchantOnboardingWizard() {
                     ) : (
                       <Upload className="w-3.5 h-3.5" />
                     )}
-                    <span>{formData.signatureUrl ? "Change Signature Image" : "Upload Signature Image"}</span>
+                    <span>
+                      {formData.signatureUrl
+                        ? "Change Signature Image"
+                        : "Upload Signature Image"}
+                    </span>
                   </Button>
                 </div>
               </div>

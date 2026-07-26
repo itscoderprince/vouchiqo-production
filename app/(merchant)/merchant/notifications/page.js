@@ -3,127 +3,69 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  BarChart2,
   Bell,
   Check,
   CheckCircle2,
   Clock,
   CreditCard,
+  Loader2,
   Trophy,
   XCircle,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
-import toast from "react-hot-toast";
+import { useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import EmptyState from "@/components/shared/feedback/EmptyState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMerchantNotifications } from "@/hooks/use-merchant-notifications";
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: "notif-1",
-    title: "Listing Approved & Live",
-    message:
-      "Your coupon listing 'Flat 20% OFF Italian Marble Tiles' has been verified and is live.",
-    type: "Listing Approved",
-    category: "system",
-    icon: CheckCircle2,
-    iconColor: "text-emerald-600 bg-emerald-50 border-emerald-200",
-    time: "10 mins ago",
-    read: false,
-  },
-  {
-    id: "notif-2",
-    title: "Coupon Expiring Soon Warning",
-    message:
-      "Offer code 'DINING500' will expire in 48 hours. Consider extending or launching a revival campaign.",
-    type: "Expiring Soon",
-    category: "campaign",
-    icon: Clock,
-    iconColor: "text-amber-600 bg-amber-50 border-amber-200",
-    time: "1 hour ago",
-    read: false,
-  },
-  {
-    id: "notif-3",
-    title: "Billing & Subscription Confirmed",
-    message:
-      "Your monthly invoice INV-2026-1082 of ₹1,499.00 for Growth Partner plan has been paid via Razorpay.",
-    type: "Billing confirmed",
-    category: "billing",
-    icon: CreditCard,
-    iconColor: "text-purple-600 bg-purple-50 border-purple-200",
-    time: "3 hours ago",
-    read: false,
-  },
-  {
-    id: "notif-4",
-    title: "Listing Verification Rejected",
-    message:
-      "Listing 'Free Marble Slabs' requires update: Please specify minimum order value cap.",
-    type: "Listing Rejected",
-    category: "system",
-    icon: XCircle,
-    iconColor: "text-rose-600 bg-rose-50 border-rose-200",
-    time: "Yesterday",
-    read: true,
-  },
-  {
-    id: "notif-5",
-    title: "Weekly Performance Report Ready",
-    message:
-      "Your store generated 340 redemptions and ₹68,000 estimated revenue this week. Download PDF report.",
-    type: "Weekly Report Ready",
-    category: "campaign",
-    icon: BarChart2,
-    iconColor: "text-blue-600 bg-blue-50 border-blue-200",
-    time: "2 days ago",
-    read: true,
-  },
-  {
-    id: "notif-6",
-    title: "Flash Campaign Duration Ended",
-    message:
-      "Your Flash Sale 'Summer Blast' ended with 100% redemption rate across 50 claims.",
-    type: "Campaign ended",
-    category: "campaign",
-    icon: Zap,
-    iconColor: "text-orange-600 bg-orange-50 border-orange-200",
-    time: "3 days ago",
-    read: true,
-  },
-  {
-    id: "notif-7",
-    title: "1,000 Redemptions Milestone Reached!",
-    message:
-      "Congratulations! Your store crossed 1,000 customer redemptions on Vouchiqo.",
-    type: "Milestone reached",
-    category: "system",
-    icon: Trophy,
-    iconColor: "text-amber-500 bg-amber-50 border-amber-200",
-    time: "5 days ago",
-    read: true,
-  },
-  {
-    id: "notif-8",
-    title: "Action Required: Brief Counter Staff",
-    message:
-      "Please brief counter staff to accept Vouchiqo Smart Codes for upcoming weekend sale.",
-    type: "Action Required",
-    category: "system",
-    icon: AlertTriangle,
-    iconColor: "text-red-600 bg-red-50 border-red-200",
-    time: "1 week ago",
-    read: true,
-  },
-];
+function getNotificationIcon(type, category) {
+  if (type === "Listing Approved" || type === "coupon_approved" || type === "merchant_approved") {
+    return { icon: CheckCircle2, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+  }
+  if (type === "Listing Rejected" || type === "coupon_rejected" || type === "merchant_rejected") {
+    return { icon: XCircle, color: "text-rose-600 bg-rose-50 border-rose-200" };
+  }
+  if (type === "Expiring Soon" || type === "coupon_expiring") {
+    return { icon: Clock, color: "text-amber-600 bg-amber-50 border-amber-200" };
+  }
+  if (type === "Billing confirmed" || category === "billing") {
+    return { icon: CreditCard, color: "text-purple-600 bg-purple-50 border-purple-200" };
+  }
+  if (type === "Milestone reached" || type === "coupon_redeemed") {
+    return { icon: Trophy, color: "text-amber-500 bg-amber-50 border-amber-200" };
+  }
+  if (type === "Action Required") {
+    return { icon: AlertTriangle, color: "text-red-600 bg-red-50 border-red-200" };
+  }
+  if (category === "campaign" || type === "Campaign ended" || type === "campaign_submitted" || type === "campaign_approved") {
+    return { icon: Zap, color: "text-orange-600 bg-orange-50 border-orange-200" };
+  }
+  return { icon: Bell, color: "text-blue-600 bg-blue-50 border-blue-200" };
+}
+
+function formatRelativeTime(dateInput) {
+  if (!dateInput) return "Recently";
+  const date = new Date(dateInput);
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} mins ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+}
 
 export default function MerchantNotifications() {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [activeTab, setActiveTab] = useState("all");
 
+  // Fetch live merchant profile from DB
   const { data: merchant } = useQuery({
     queryKey: ["merchant-profile"],
     queryFn: async () => {
@@ -134,24 +76,41 @@ export default function MerchantNotifications() {
     },
   });
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    toast.success("All notifications marked as read!");
-  };
+  // Use real-time socket + DB notifications hook
+  const {
+    notifications: dbNotifications,
+    unreadCount,
+    isLoading,
+    markItemRead,
+    markAllRead,
+    isConnected,
+  } = useMerchantNotifications(merchant?.authId);
 
-  const handleMarkItemRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
-  };
+  // Normalize DB notification items
+  const notifications = useMemo(() => {
+    return dbNotifications.map((item) => {
+      const { icon, color } = getNotificationIcon(item.type, item.category);
+      return {
+        id: item._id || item.id,
+        title: item.title,
+        message: item.message,
+        type: item.type || "Notification",
+        category: item.category || "system",
+        icon,
+        iconColor: color,
+        time: formatRelativeTime(item.createdAt),
+        read: Boolean(item.isRead || item.read),
+      };
+    });
+  }, [dbNotifications]);
 
-  const filteredNotifications = notifications.filter((n) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "unread") return !n.read;
-    return n.category === activeTab;
-  });
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((n) => {
+      if (activeTab === "all") return true;
+      if (activeTab === "unread") return !n.read;
+      return n.category === activeTab;
+    });
+  }, [notifications, activeTab]);
 
   return (
     <DashboardLayout
@@ -161,7 +120,7 @@ export default function MerchantNotifications() {
         role: "merchant",
       }}
     >
-      <div className="space-y-4 text-left font-sans w-full max-w-[1100px] mx-auto">
+      <div className="space-y-4 text-left font-sans w-full max-w-[1100px] mx-auto pb-8">
         {/* Header Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white border border-slate-200/90 p-3.5 rounded-2xl shadow-2xs">
           <div className="flex items-center gap-3">
@@ -176,16 +135,21 @@ export default function MerchantNotifications() {
                     {unreadCount} Unread
                   </Badge>
                 )}
+                {isConnected && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Live Socket
+                  </span>
+                )}
               </h1>
               <p className="text-[11px] text-slate-500 font-medium">
-                Real-time alerts for approvals, campaigns, reports &amp; billing
+                Real-time WebSocket alerts for approvals, campaigns, reports &amp; billing from live database
               </p>
             </div>
           </div>
 
           <Button
             variant="outline"
-            onClick={handleMarkAllRead}
+            onClick={() => markAllRead()}
             disabled={unreadCount === 0}
             className="text-xs h-8 font-bold rounded-xl border-slate-200 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-slate-700 hover:bg-slate-50 shadow-none"
           >
@@ -231,56 +195,66 @@ export default function MerchantNotifications() {
 
           <div className="pt-3">
             <Card className="border-slate-200/90 shadow-2xs rounded-2xl bg-white overflow-hidden divide-y divide-slate-100">
-              {filteredNotifications.length > 0
-                ? filteredNotifications.map((item) => {
-                    const Icon = item.icon;
-                    return (
+              {isLoading ? (
+                <div className="p-10 flex items-center justify-center text-slate-500 text-xs font-medium gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <span>Loading live notifications from DB...</span>
+                </div>
+              ) : filteredNotifications.length > 0 ? (
+                filteredNotifications.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => markItemRead(item.id)}
+                      className={`p-3.5 sm:p-4 flex items-start gap-3 transition-all cursor-pointer hover:bg-blue-50/30 ${
+                        !item.read ? "bg-blue-50/40" : "bg-white"
+                      }`}
+                    >
                       <div
-                        key={item.id}
-                        onClick={() => handleMarkItemRead(item.id)}
-                        className={`p-3.5 sm:p-4 flex items-start gap-3 transition-all cursor-pointer hover:bg-blue-50/30 ${
-                          !item.read ? "bg-blue-50/40" : "bg-white"
-                        }`}
+                        className={`p-2 rounded-xl border shrink-0 ${item.iconColor}`}
                       >
-                        <div
-                          className={`p-2 rounded-xl border shrink-0 ${item.iconColor}`}
-                        >
-                          <Icon className="w-4 h-4" />
+                        <Icon className="w-4 h-4" />
+                      </div>
+
+                      <div className="flex-1 space-y-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                            {item.title}
+                            {!item.read && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />
+                            )}
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400">
+                            {item.time}
+                          </span>
                         </div>
 
-                        <div className="flex-1 space-y-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                              {item.title}
-                              {!item.read && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />
-                              )}
-                            </span>
-                            <span className="text-[10px] font-medium text-slate-400">
-                              {item.time}
-                            </span>
-                          </div>
+                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                          {item.message}
+                        </p>
 
-                          <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                            {item.message}
-                          </p>
-
-                          <div className="pt-0.5 flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className="text-[9px] font-bold border-slate-200 text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md"
-                            >
-                              {item.type}
-                            </Badge>
-                          </div>
+                        <div className="pt-0.5 flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] font-bold border-slate-200 text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md"
+                          >
+                            {item.type}
+                          </Badge>
                         </div>
                       </div>
-                    );
-                  })
-                : <div className="p-10 text-center text-slate-400 font-medium space-y-2">
-                    <Bell className="w-7 h-7 mx-auto text-slate-300" />
-                    <p className="text-xs">No notifications found in this category.</p>
-                  </div>}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-8">
+                  <EmptyState
+                    icon={Bell}
+                    title="No Notifications Found"
+                    description="No live notifications exist in this category right now. Real-time Socket.IO alerts and approvals will appear here automatically."
+                  />
+                </div>
+              )}
             </Card>
           </div>
         </Tabs>

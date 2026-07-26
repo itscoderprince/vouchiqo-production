@@ -63,6 +63,8 @@ export async function createCoupon(authId, data) {
   const coupon = await Coupon.create({
     merchantId: merchant._id,
     ...data,
+    isVerified: data.isVerified ?? false,
+    status: data.status || "pending",
     expiresAt: new Date(data.expiresAt),
     location: data.location || {
       city: merchant.location?.city,
@@ -284,22 +286,24 @@ export async function listCoupons(searchParams) {
   const filter = {};
 
   const status = searchParams.get("status");
-  if (status) {
+  const merchantId = searchParams.get("merchantId");
+
+  if (status && status !== "all") {
     filter.status = status;
-  } else {
+  } else if (!merchantId) {
+    // For public browse endpoints without merchantId, default to active deals
     filter.status = COUPON_STATUS.ACTIVE;
   }
 
-  // Public active deals must be verified and unexpired
-  if (filter.status === COUPON_STATUS.ACTIVE) {
+  if (merchantId) filter.merchantId = merchantId;
+
+  // Public active deals must be verified and unexpired (unless queried by merchant)
+  if (filter.status === COUPON_STATUS.ACTIVE && !merchantId) {
     filter.isVerified = true;
     if (!searchParams.get("allDates")) {
       filter.expiresAt = { $gt: new Date() };
     }
   }
-
-  const merchantId = searchParams.get("merchantId");
-  if (merchantId) filter.merchantId = merchantId;
 
   const category = searchParams.get("category");
   const city = searchParams.get("city");
@@ -428,6 +432,12 @@ export async function updateCoupon(couponId, authId, data) {
   if (!coupon) throw new NotFoundError("Coupon");
 
   Object.assign(coupon, data);
+  
+  // Reset moderation state on edit/update by merchant to prompt re-moderation
+  coupon.status = "pending";
+  coupon.isVerified = false;
+  coupon.rejectionReason = "";
+
   if (data.expiresAt) coupon.expiresAt = new Date(data.expiresAt);
   await coupon.save();
 
@@ -483,3 +493,5 @@ export async function setCouponStatus(couponId, authId, newStatus) {
   if (!coupon) throw new NotFoundError("Coupon");
   return coupon;
 }
+
+export { listCoupons as getCoupons };

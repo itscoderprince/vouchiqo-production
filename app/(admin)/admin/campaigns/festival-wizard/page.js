@@ -1,29 +1,29 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { FormSelect } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const FESTIVAL_THEMES = [
-  "🪔 Grand Diwali Celebration",
-  "🌙 Royal Eid Festive Special",
-  "🎄 Merry Christmas Shopping Carnival",
-  "🪷 Durga Puja Sharadotsav",
-  "🎉 Happy New Year Bonanza",
-  "🎨 Festival of Colours — Holi Deals",
+  { value: "diwali", label: "🪔 Grand Diwali Celebration" },
+  { value: "eid", label: "🌙 Royal Eid Festive Special" },
+  { value: "christmas", label: "🎄 Merry Christmas Shopping Carnival" },
+  { value: "durga_puja", label: "🪷 Durga Puja Sharadotsav" },
+  { value: "new_year", label: "🎉 Happy New Year Bonanza" },
+  { value: "holi", label: "🎨 Festival of Colours — Holi Deals" },
 ];
 
 const WIZARD_STEPS = [
@@ -37,26 +37,46 @@ const WIZARD_STEPS = [
 
 export default function FestivalCampaignWizardPage() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [festivalTheme, setFestivalTheme] = useState(FESTIVAL_THEMES[0]);
-  const [teaserDate, setTeaserDate] = useState("2026-07-22");
+  const [festivalTheme, setFestivalTheme] = useState("diwali");
+  const [teaserDate, setTeaserDate] = useState("2026-10-25");
   const [emailSubject, setEmailSubject] = useState(
-    "🪔 Exclusive Diwali Offer — Flat 20% OFF Italian Marble!",
+    "🪔 Exclusive Festival Offer — Flat 20% OFF!",
   );
   const [pushText, setPushText] = useState(
-    "🪔 Diwali Festival Special: 20% OFF Italian Marble at Marbella Tiles Ranchi!",
+    "🪔 Festival Special: Flat 20% OFF deals active now on Vouchiqo!",
   );
-  const [tickerPin, setTickerPin] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 6));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+  const nextStep = useCallback(
+    () => setCurrentStep((prev) => Math.min(prev + 1, 6)),
+    [],
+  );
+  const prevStep = useCallback(
+    () => setCurrentStep((prev) => Math.max(prev - 1, 1)),
+    [],
+  );
 
-  const handleConfirmFullActivation = () => {
-    setIsActivated(true);
-    toast.success(
-      "Festival Package (₹2,999) Activated! Email + Push + Ticker Priority + 3-Day Teaser + 7-Day Extension deployed!",
-    );
-  };
+  const handleConfirmFullActivation = useCallback(async () => {
+    try {
+      setIsSubmitting(true);
+      // Simulating API deployment
+      await new Promise((res) => setTimeout(res, 1000));
+      setIsActivated(true);
+      toast.success(
+        "Festival Package (₹2,999) Activated! Email + Push + Ticker Priority + 3-Day Teaser deployed!",
+      );
+    } catch (err) {
+      toast.error(err.message || "Failed to deploy festival package.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, []);
+
+  const selectedThemeLabel = useMemo(() => {
+    const found = FESTIVAL_THEMES.find((t) => t.value === festivalTheme);
+    return found ? found.label : festivalTheme;
+  }, [festivalTheme]);
 
   return (
     <DashboardLayout
@@ -83,7 +103,8 @@ export default function FestivalCampaignWizardPage() {
                 </Badge>
               </div>
               <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Email Blast + Push + Ticker Priority + Festival Theme + 3-Day Teaser + 7-Day Duration
+                Email Blast + Push + Ticker Priority + Festival Theme + 3-Day
+                Teaser + 7-Day Duration
               </p>
             </div>
           </div>
@@ -113,25 +134,19 @@ export default function FestivalCampaignWizardPage() {
         </div>
 
         {/* WIZARD CONTENT CARD */}
-        <Card className="border-slate-200/80 shadow-2xs rounded-xl bg-white p-4 space-y-4 text-left">
+        <Card className="border-slate-200/80 shadow-2xs rounded-xl bg-white p-5 space-y-4 text-left">
           {/* Step 1: Festival Theme */}
           {currentStep === 1 && (
             <div className="space-y-3">
               <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                 Step 1: Confirm Festival Theme
               </h3>
-              <Select value={festivalTheme} onValueChange={setFestivalTheme}>
-                <SelectTrigger className="w-full bg-white border-slate-200 rounded-lg text-xs h-9 font-normal text-slate-800">
-                  <SelectValue placeholder="Select festival theme" />
-                </SelectTrigger>
-                <SelectContent className="z-[300]">
-                  {FESTIVAL_THEMES.map((t) => (
-                    <SelectItem key={t} value={t} className="text-xs font-normal">
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormSelect
+                value={festivalTheme}
+                onValueChange={setFestivalTheme}
+                options={FESTIVAL_THEMES}
+                triggerClassName="w-full bg-white border-slate-200 rounded-lg text-xs h-10 font-normal"
+              />
             </div>
           )}
 
@@ -148,7 +163,7 @@ export default function FestivalCampaignWizardPage() {
                 type="date"
                 value={teaserDate}
                 onChange={(e) => setTeaserDate(e.target.value)}
-                className="w-full sm:w-60 bg-white border-slate-200 rounded-lg text-xs h-9 font-normal"
+                className="w-full sm:w-60 bg-white border-slate-200 rounded-lg text-xs h-10 font-normal"
               />
             </div>
           )}
@@ -163,7 +178,7 @@ export default function FestivalCampaignWizardPage() {
                 type="text"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
-                className="w-full bg-white border-slate-200 rounded-lg text-xs h-9 font-normal"
+                className="w-full bg-white border-slate-200 rounded-lg text-xs h-10 font-normal"
               />
             </div>
           )}
@@ -179,7 +194,7 @@ export default function FestivalCampaignWizardPage() {
                 maxLength={100}
                 value={pushText}
                 onChange={(e) => setPushText(e.target.value)}
-                className="w-full bg-white border-slate-200 rounded-lg text-xs h-9 font-normal"
+                className="w-full bg-white border-slate-200 rounded-lg text-xs h-10 font-normal"
               />
             </div>
           )}
@@ -209,15 +224,20 @@ export default function FestivalCampaignWizardPage() {
                 </div>
                 <ul className="space-y-1 list-disc pl-4 text-slate-700 font-normal">
                   <li>
-                    Email Blast + Push Notification + Ticker Priority simultaneously deployed
+                    Email Blast + Push Notification + Ticker Priority
+                    simultaneously deployed
                   </li>
                   <li>
                     Festival-themed card design activated:{" "}
-                    <span className="font-medium text-slate-900">{festivalTheme}</span>
+                    <span className="font-medium text-slate-900">
+                      {selectedThemeLabel}
+                    </span>
                   </li>
                   <li>
                     3-Day Pre-Launch Teaser starting{" "}
-                    <span className="font-medium text-slate-900">{teaserDate}</span>
+                    <span className="font-medium text-slate-900">
+                      {teaserDate}
+                    </span>
                   </li>
                   <li>
                     Campaign duration extended to minimum{" "}
@@ -226,18 +246,22 @@ export default function FestivalCampaignWizardPage() {
                 </ul>
               </div>
 
-              {!isActivated ? (
-                <Button
-                  onClick={handleConfirmFullActivation}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2.5 px-5 rounded-lg cursor-pointer w-full shadow-2xs"
-                >
-                  Confirm &amp; Deploy Festival Package (₹2,999) Now →
-                </Button>
-              ) : (
-                <div className="p-3 bg-blue-100/70 text-blue-900 font-medium text-xs rounded-lg text-center border border-blue-200">
-                  ✅ Festival Campaign Package Fully Activated &amp; Deployed!
-                </div>
-              )}
+              {!isActivated
+                ? <Button
+                    disabled={isSubmitting}
+                    onClick={handleConfirmFullActivation}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2.5 px-5 rounded-lg cursor-pointer w-full shadow-2xs"
+                  >
+                    {isSubmitting
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                      : null}
+                    <span>
+                      Confirm &amp; Deploy Festival Package (₹2,999) Now →
+                    </span>
+                  </Button>
+                : <div className="p-3 bg-blue-100/70 text-blue-900 font-medium text-xs rounded-lg text-center border border-blue-200">
+                    ✅ Festival Campaign Package Fully Activated &amp; Deployed!
+                  </div>}
             </div>
           )}
 
@@ -246,15 +270,15 @@ export default function FestivalCampaignWizardPage() {
             <Button
               variant="outline"
               onClick={prevStep}
-              disabled={currentStep === 1}
-              className="text-xs font-normal rounded-lg border-slate-200 h-8 px-3"
+              disabled={currentStep === 1 || isSubmitting}
+              className="text-xs font-normal rounded-lg border-slate-200 h-8 px-3 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Previous
             </Button>
             {currentStep < 6 && (
               <Button
                 onClick={nextStep}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded-lg h-8 px-4"
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded-lg h-8 px-4 cursor-pointer"
               >
                 Next Step <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>

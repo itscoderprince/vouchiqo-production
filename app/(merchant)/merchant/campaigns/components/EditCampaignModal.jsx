@@ -59,7 +59,6 @@ export default function EditCampaignModal({
     } catch (err) {
       showError("Error saving campaign updates.");
     }
-    font - bold;
     setLoading(false);
   };
 

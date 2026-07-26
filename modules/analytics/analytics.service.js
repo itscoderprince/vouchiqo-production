@@ -275,12 +275,14 @@ export async function getMerchantAnalytics(authId, period = "30d") {
     const redemptionMatch = eventsByPeriodRaw.find(
       (e) => e._id.dateStr === dateStr && e._id.eventType === "redemption",
     );
-
+    const redCount = redemptionMatch ? redemptionMatch.total : 0;
     trend.push({
       label,
       date: dateStr,
       clicks: clickMatch ? clickMatch.total : 0,
-      redemptions: redemptionMatch ? redemptionMatch.total : 0,
+      redemptions: redCount,
+      orders: redCount,
+      revenue: redCount * 350,
     });
   }
 
@@ -305,6 +307,8 @@ export async function getMerchantAnalytics(authId, period = "30d") {
       const demo = demoOscillating[idx % demoOscillating.length];
       t.clicks = demo.clicks;
       t.redemptions = demo.redemptions;
+      t.orders = demo.redemptions;
+      t.revenue = demo.redemptions * 350;
     });
   }
 
@@ -316,7 +320,7 @@ export async function getMerchantAnalytics(authId, period = "30d") {
       totalClaims: merchant.totalClaims ?? 0,
       totalClicks,
       totalImpressions,
-      storePageViews,
+      storePageViews: totalStoreViews,
       followerCount: merchant.followerCount,
     },
     kpi: {
@@ -324,7 +328,7 @@ export async function getMerchantAnalytics(authId, period = "30d") {
       totalClicks,
       totalRedemptions: recentRedemptions,
       redemptionRate,
-      storePageViews,
+      storePageViews: totalStoreViews,
     },
     overview: statsByStatus,
     last30Days: {

@@ -73,7 +73,9 @@ function KpiCard({
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <p className="text-[11px] font-semibold text-slate-500">{title}</p>
-            <p className="text-xl font-extrabold tracking-tight text-slate-900">{value}</p>
+            <p className="text-xl font-extrabold tracking-tight text-slate-900">
+              {value}
+            </p>
             <div className="flex items-center gap-1.5 pt-0.5">
               {trend !== null && trend !== undefined ? (
                 trend >= 0 ? (
@@ -116,32 +118,37 @@ function KpiCard({
 }
 
 export default function KpiCards({
-  totalRevenue,
+  totalRevenue = 0,
   revenueMoM,
-  totalClaims,
-  totalRedemptions,
+  totalClaims = 0,
+  totalRedemptions = 0,
   ordersMoM,
-  pageViews,
-  trendData,
-  activeCoupons,
-  planLimit,
+  pageViews = 0,
+  trendData = [],
+  activeCoupons = 0,
+  planLimit = 0,
 }) {
   const listingPct =
     planLimit > 0
       ? Math.min(100, Math.round((activeCoupons / planLimit) * 100))
       : 0;
 
+  const numRevenue = Number(totalRevenue);
+  const safeTotalRevenue = Number.isNaN(numRevenue) ? 0 : numRevenue;
+  const numRedemptions = Number(totalRedemptions);
+  const safeTotalRedemptions = Number.isNaN(numRedemptions) ? 0 : numRedemptions;
+
   return (
     <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
       {/* Card 1: Total Clicks (page views proxy) */}
       <KpiCard
         title="Total Clicks This Month"
-        value={pageViews > 0 ? pageViews.toLocaleString() : "0"}
+        value={pageViews > 0 ? pageViews.toLocaleString("en-IN") : "0"}
         subtitle="Coupon page visits"
         icon={Eye}
         iconBg="bg-[#2563eb]/10"
         iconColor="text-[#2563eb]"
-        sparkData={trendData.map((t) => t.orders * 4 + 50)}
+        sparkData={trendData.map((t) => t.views || 0)}
         sparkKey="clicks"
         sparkColor="#2563eb"
       />
@@ -149,12 +156,12 @@ export default function KpiCards({
       {/* Card 2: Coupon Redemptions */}
       <KpiCard
         title="Coupon Redemptions"
-        value={totalRedemptions.toLocaleString()}
+        value={safeTotalRedemptions.toLocaleString("en-IN")}
         trend={ordersMoM}
         icon={CheckCircle2}
         iconBg="bg-[#059669]/10"
         iconColor="text-[#059669]"
-        sparkData={trendData.map((t) => t.orders)}
+        sparkData={trendData.map((t) => t.redemptions || t.orders || 0)}
         sparkKey="redemptions"
         sparkColor="#059669"
       />
@@ -162,12 +169,12 @@ export default function KpiCards({
       {/* Card 3: Revenue Driven */}
       <KpiCard
         title="Est. Revenue Driven (₹)"
-        value={`₹${totalRevenue.toLocaleString("en-IN")}`}
+        value={`₹${safeTotalRevenue.toLocaleString("en-IN")}`}
         trend={revenueMoM}
         icon={IndianRupee}
         iconBg="bg-blue-50 border border-blue-100"
         iconColor="text-blue-600"
-        sparkData={trendData.map((t) => t.revenue)}
+        sparkData={trendData.map((t) => t.revenue || 0)}
         sparkKey="revenue"
         sparkColor="#2563eb"
       />
@@ -216,7 +223,7 @@ export default function KpiCards({
         </div>
         <div className="h-8 w-full mt-2">
           <RechartsSparkline
-            data={trendData.map((t) => t.orders * 1.2 + 10)}
+            data={trendData.map((t) => t.views || t.orders || 0)}
             dataKey="listings"
             color="#7c3aed"
           />

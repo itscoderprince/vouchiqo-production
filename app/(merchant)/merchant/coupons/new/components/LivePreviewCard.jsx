@@ -69,6 +69,31 @@ export default function LivePreviewCard({
             </span>
           </div>
 
+          {(formData.validHours || formData.endDate) && (
+            <div className="p-2 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] space-y-1">
+              {formData.endDate && (
+                <div className="flex items-center justify-between text-slate-700 font-medium">
+                  <span className="text-slate-400">Valid Until:</span>
+                  <span className="font-bold text-slate-900">
+                    {new Date(formData.endDate).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              )}
+              {formData.validHours && (
+                <div className="flex items-center justify-between text-slate-700 font-medium">
+                  <span className="text-slate-400">Store Hours:</span>
+                  <span className="font-bold text-blue-700">
+                    {formData.validHours}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold border-t border-slate-100 pt-2">
             <span className="flex items-center gap-1">
               <MapPin className="w-3 h-3 text-slate-400" />

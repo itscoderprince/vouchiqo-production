@@ -1,0 +1,80 @@
+import { z } from "zod";
+
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+  remember: z.boolean().optional(),
+});
+
+export const merchantLoginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+});
+
+export const adminLoginSchema = z.object({
+  username: z.string().min(1, "Username or email is required"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+});
+
+export const registerSchema = z
+  .object({
+    name: z.string().min(1, "Full name is required").max(100),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email address"),
+    phoneNumber: z
+      .string()
+      .min(1, "Mobile number is required")
+      .refine(
+        (val) => {
+          const clean = val.replace(/[\s-()]/g, "");
+          return /^\+?\d{10,15}$/.test(clean);
+        },
+        { message: "Please enter a valid mobile number (10–15 digits)." },
+      ),
+    password: z
+      .string()
+      .min(1, "Password is required")
+      .min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Confirm password is required"),
+    agreed: z.literal(true, {
+      errorMap: () => ({ message: "You must agree to the Terms of Service." }),
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export const merchantRegisterSchema = z.object({
+  name: z.string().min(1, "Brand name is required").max(100),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters"),
+  agreed: z.literal(true, {
+    errorMap: () => ({
+      message: "You must agree to the Merchant Terms of Service.",
+    }),
+  }),
+});

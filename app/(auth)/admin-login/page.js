@@ -1,4 +1,4 @@
-import { AdminLoginForm } from "@/features/auth/components/admin-login-form";
+import { AdminLoginForm } from "@/features/auth";
 
 export const metadata = {
   title: "Admin Portal | Vouchiqo",

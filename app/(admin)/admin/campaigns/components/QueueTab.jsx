@@ -24,7 +24,11 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function QueueTab({ campaigns = [], onUpdateStatus }) {
+export default function QueueTab({
+  campaigns = [],
+  onUpdateStatus,
+  isUpdating = false,
+}) {
   const [selectedCamp, setSelectedCamp] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionNotes, setActionNotes] = useState("");

@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -46,6 +47,9 @@ export default function FormSelect({
   triggerClassName,
   contentClassName,
 }) {
+  const errorMessage =
+    error?.message || (typeof error === "string" ? error : undefined);
+
   // Normalise options into uniform [{ value: string, label: string }] format
   const normalised = Array.isArray(options)
     ? options.map((opt) => {
@@ -70,11 +74,17 @@ export default function FormSelect({
       {label && (
         <Label
           htmlFor={name}
-          className="text-xs font-bold text-brand-text uppercase flex items-center gap-1.5"
+          className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1.5"
         >
           {Icon && <Icon className="w-3.5 h-3.5 text-brand-blue" />}
-          {label}
-          {required && <span className="text-brand-error ml-0.5">*</span>}
+          <span>{label}</span>
+          {required ? (
+            <span className="text-red-500 font-bold ml-0.5">*</span>
+          ) : (
+            <span className="text-[10px] text-slate-400 font-medium normal-case ml-1">
+              (Optional)
+            </span>
+          )}
         </Label>
       )}
 
@@ -87,13 +97,13 @@ export default function FormSelect({
         <SelectTrigger
           id={name}
           aria-required={required}
-          aria-invalid={!!error}
+          aria-invalid={!!errorMessage}
           aria-describedby={
-            error ? `${name}-error` : hint ? `${name}-hint` : undefined
+            errorMessage ? `${name}-error` : hint ? `${name}-hint` : undefined
           }
           className={cn(
-            "h-10 text-xs border-brand-border bg-brand-bg text-brand-text font-bold focus:ring-brand-blue/40 rounded-xl",
-            error && "border-brand-error focus:ring-brand-error/30",
+            "h-10 text-xs border-slate-200 bg-white text-slate-800 font-bold focus:ring-brand-blue/40 rounded-xl",
+            errorMessage && "border-red-500 focus:ring-red-500/30",
             triggerClassName,
           )}
         >
@@ -101,7 +111,7 @@ export default function FormSelect({
         </SelectTrigger>
         <SelectContent
           className={cn(
-            "bg-brand-bg border-brand-border text-brand-text z-[300]",
+            "bg-white border-slate-200 text-slate-800 z-[300]",
             contentClassName,
           )}
         >
@@ -109,7 +119,7 @@ export default function FormSelect({
             <SelectItem
               key={`${opt.value}-${idx}`}
               value={opt.value}
-              className="text-xs cursor-pointer focus:bg-brand-surface font-medium"
+              className="text-xs cursor-pointer focus:bg-slate-100 font-medium"
             >
               {opt.label}
             </SelectItem>
@@ -117,17 +127,18 @@ export default function FormSelect({
         </SelectContent>
       </Select>
 
-      {error && (
+      {errorMessage && (
         <p
           id={`${name}-error`}
           role="alert"
-          className="text-[11px] text-brand-error font-medium"
+          className="text-xs text-red-500 font-medium flex items-center gap-1 mt-0.5 animate-in fade-in-50"
         >
-          {error}
+          <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+          <span>{errorMessage}</span>
         </p>
       )}
-      {!error && hint && (
-        <p id={`${name}-hint`} className="text-[11px] text-brand-subtext">
+      {!errorMessage && hint && (
+        <p id={`${name}-hint`} className="text-[11px] text-slate-400">
           {hint}
         </p>
       )}

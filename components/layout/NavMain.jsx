@@ -133,14 +133,18 @@ export function NavMain({ groups, isMerchant = false }) {
                     : "text-slate-500";
 
                   return (
-                    <SidebarMenuItem key={item.title} data-tour={item.tourId} className="my-0.5">
+                    <SidebarMenuItem
+                      key={item.title}
+                      data-tour={item.tourId}
+                      className="my-0.5"
+                    >
                       <SidebarMenuButton
                         onClick={() => toggleSubMenu(item.title)}
                         isActive={false}
                         tooltip={isCollapsed ? item.title : undefined}
                         className={`w-full justify-between h-8.5 py-1 px-2.5 text-xs transition-all cursor-pointer ${parentBtnClass}`}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           {Icon && (
                             <Icon
                               className={`h-4 w-4 shrink-0 transition-colors ${parentIconClass}`}
@@ -150,19 +154,28 @@ export function NavMain({ groups, isMerchant = false }) {
                             {item.title}
                           </span>
                         </div>
-                        {!isCollapsed && (
-                          <ChevronDown
-                            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${chevronClass} ${
-                              isSubOpen ? "rotate-180" : ""
-                            }`}
-                          />
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {item.badge && !isCollapsed && (
+                            <span
+                              className={`flex h-4.5 min-w-4.5 items-center justify-center rounded-full text-[9px] font-extrabold px-1.5 shrink-0 shadow-2xs ${
+                                item.badgeColor || "bg-red-500 text-white"
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                          {!isCollapsed && (
+                            <ChevronDown
+                              className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${chevronClass} ${
+                                isSubOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          )}
+                        </div>
                       </SidebarMenuButton>
 
                       {!isCollapsed && isSubOpen && (
-                        <SidebarMenuSub
-                          className="mt-1 space-y-1 pl-2.5 border-l border-blue-200"
-                        >
+                        <SidebarMenuSub className="mt-1 space-y-1 pl-2.5 border-l border-blue-200">
                           {item.subItems.map((sub) => {
                             const isSubActive = (() => {
                               const [subPath, subQuery] = sub.url.split("?");
@@ -226,6 +239,11 @@ export function NavMain({ groups, isMerchant = false }) {
                                     <span className={`text-xs ${subTextClass}`}>
                                       {sub.title}
                                     </span>
+                                    {sub.badge && !isCollapsed && (
+                                      <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-[#e85d04] text-[9px] font-black text-white px-1.5 shrink-0 shadow-2xs">
+                                        {sub.badge}
+                                      </span>
+                                    )}
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -262,7 +280,11 @@ export function NavMain({ groups, isMerchant = false }) {
                 const tourId = item.tourId || URL_TOUR_MAP[item.url];
 
                 return (
-                  <SidebarMenuItem key={item.title} data-tour={tourId} className="my-0.5">
+                  <SidebarMenuItem
+                    key={item.title}
+                    data-tour={tourId}
+                    className="my-0.5 relative"
+                  >
                     <SidebarMenuButton
                       asChild
                       isActive={false}
@@ -271,7 +293,7 @@ export function NavMain({ groups, isMerchant = false }) {
                     >
                       <Link
                         href={item.url}
-                        className="flex items-center justify-between w-full"
+                        className="flex items-center justify-between w-full relative"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {Icon && (
@@ -279,16 +301,26 @@ export function NavMain({ groups, isMerchant = false }) {
                               className={`h-4 w-4 shrink-0 transition-colors ${singleIconClass}`}
                             />
                           )}
-                          <span
-                            className={`text-xs truncate ${singleTextClass}`}
-                          >
-                            {item.title}
-                          </span>
+                          {!isCollapsed && (
+                            <span
+                              className={`text-xs truncate ${singleTextClass}`}
+                            >
+                              {item.title}
+                            </span>
+                          )}
                         </div>
                         {item.badge && !isCollapsed && (
-                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium text-white px-1.5 shrink-0">
+                          <span
+                            className={`flex h-5 min-w-5 items-center justify-center rounded-full text-[10px] px-2 shrink-0 ${
+                              item.badgeColor ||
+                              "bg-red-500 text-white font-extrabold shadow-xs shadow-red-500/40 animate-pulse"
+                            }`}
+                          >
                             {item.badge}
                           </span>
+                        )}
+                        {item.badge && isCollapsed && (
+                          <span className="absolute top-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white animate-pulse" />
                         )}
                       </Link>
                     </SidebarMenuButton>

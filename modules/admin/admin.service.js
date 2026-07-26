@@ -17,42 +17,23 @@ import { buildMeta, parsePagination } from "@/utils/pagination";
  */
 export async function listUsers(searchParams) {
   const isExport = searchParams.get("export") === "true";
+  const db = mongoose.connection.db;
 
   if (isExport) {
-    // Return all customers who have emailNotifications: true (or not false)
-    const pipeline = [
-      { $match: { role: "customer", emailNotifications: { $ne: false } } },
-      { $sort: { createdAt: -1 } },
-      {
-        $lookup: {
-          from: "user",
-          localField: "authId",
-          foreignField: "_id",
-          as: "authUser",
-        },
-      },
-      {
-        $unwind: {
-          path: "$authUser",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          name: { $ifNull: ["$authUser.name", "User"] },
-          email: { $ifNull: ["$authUser.email", ""] },
-          createdAt: 1,
-        },
-      },
-    ];
-    const subscribers = await UserProfile.aggregate(pipeline);
+    const subscribers = await db
+      .collection("user")
+      .find({ role: { $ne: "admin" } })
+      .project({ name: 1, email: 1, createdAt: 1 })
+      .sort({ createdAt: -1 })
+      .toArray();
     return { subscribers };
   }
 
   const { page, limit, skip } = parsePagination(searchParams);
   const role = searchParams.get("role");
   const isActive = searchParams.get("isActive");
+  const merchantStatus = searchParams.get("merchantStatus");
+  const search = searchParams.get("search");
 
   const filter = {};
   if (role) filter.role = role.toLowerCase();
@@ -60,55 +41,83 @@ export async function listUsers(searchParams) {
     filter.isActive = isActive === "true";
   }
 
-  // We perform an aggregation pipeline to join user_profiles with the Better Auth 'user' collection
   const pipeline = [
     { $match: filter },
     { $sort: { createdAt: -1 } },
     {
-      $lookup: {
-        from: "user",
-        localField: "authId",
-        foreignField: "_id",
-        as: "authUser",
+      $addFields: {
+        authIdStr: { $toString: "$_id" },
       },
     },
     {
-      $unwind: {
-        path: "$authUser",
-        preserveNullAndEmptyArrays: true,
+      $lookup: {
+        from: "userprofiles",
+        let: { uId: "$authIdStr" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$authId", "$$uId"] } } },
+        ],
+        as: "profile",
+      },
+    },
+    {
+      $lookup: {
+        from: "merchants",
+        let: { uId: "$authIdStr" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$authId", "$$uId"] } } },
+        ],
+        as: "merchantProfile",
       },
     },
     {
       $lookup: {
         from: "claims",
-        localField: "authId",
-        foreignField: "userId",
+        let: { uId: "$authIdStr" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$userId", "$$uId"] } } },
+        ],
         as: "userClaims",
       },
     },
     {
       $project: {
         _id: 1,
-        authId: 1,
-        role: 1,
-        isActive: 1,
-        totalSavings: 1,
+        authId: "$authIdStr",
+        name: { $ifNull: ["$name", "User"] },
+        email: { $ifNull: ["$email", ""] },
+        role: { $ifNull: ["$role", "customer"] },
+        isActive: { $ifNull: ["$isActive", true] },
         createdAt: 1,
-        name: { $ifNull: ["$authUser.name", "User"] },
-        email: { $ifNull: ["$authUser.email", ""] },
-        emailNotifications: 1,
-        smsNotifications: 1,
-        expiryAlerts: 1,
+        totalSavings: { $ifNull: [{ $arrayElemAt: ["$profile.totalSavings", 0] }, 0] },
+        emailNotifications: { $ifNull: [{ $arrayElemAt: ["$profile.emailNotifications", 0] }, true] },
         couponsSaved: { $size: "$userClaims" },
+        businessName: { $arrayElemAt: ["$merchantProfile.businessName", 0] },
+        merchantStatus: { $arrayElemAt: ["$merchantProfile.status", 0] },
+        merchantPlan: { $arrayElemAt: ["$merchantProfile.plan", 0] },
       },
     },
   ];
 
-  const [users, total] = await Promise.all([
-    UserProfile.aggregate([...pipeline, { $skip: skip }, { $limit: limit }]),
-    UserProfile.countDocuments(filter),
+  const postFilters = {};
+  if (merchantStatus) postFilters.merchantStatus = merchantStatus;
+  if (search) {
+    const safe = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    postFilters.$or = [
+      { name: { $regex: safe, $options: "i" } },
+      { email: { $regex: safe, $options: "i" } },
+      { businessName: { $regex: safe, $options: "i" } },
+    ];
+  }
+  if (Object.keys(postFilters).length > 0) {
+    pipeline.push({ $match: postFilters });
+  }
+
+  const [users, countResult] = await Promise.all([
+    db.collection("user").aggregate([...pipeline, { $skip: skip }, { $limit: limit }]).toArray(),
+    db.collection("user").aggregate([...pipeline, { $count: "total" }]).toArray(),
   ]);
 
+  const total = countResult[0]?.total ?? 0;
   return { users, meta: buildMeta(total, page, limit) };
 }
 
@@ -147,11 +156,23 @@ export async function listAllCoupons(searchParams) {
   const { page, limit, skip } = parsePagination(searchParams);
   const status = searchParams.get("status");
   const isVerified = searchParams.get("isVerified");
+  const search = searchParams.get("search");
 
   const filter = {};
-  if (status) filter.status = status;
+  if (status) {
+    filter.status = status;
+  } else {
+    filter.status = { $ne: "deleted" };
+  }
   if (isVerified !== null && isVerified !== undefined) {
     filter.isVerified = isVerified === "true";
+  }
+  if (search) {
+    const safe = escapeRegex(search);
+    filter.$or = [
+      { title: { $regex: safe, $options: "i" } },
+      { code: { $regex: safe, $options: "i" } },
+    ];
   }
 
   const [coupons, total] = await Promise.all([
@@ -204,6 +225,24 @@ export async function updateCouponModerationState(couponId, update) {
     { new: true },
   );
 
+  if (!coupon) throw new NotFoundError("Coupon");
+
+  // Bust homepage caches
+  await Promise.all([
+    redis.del(REDIS_KEYS.FEATURED_DEALS),
+    redis.del(REDIS_KEYS.TRENDING_DEALS),
+  ]);
+
+  return coupon;
+}
+
+/**
+ * Permanently delete a coupon (admin action).
+ *
+ * @param {string} couponId
+ */
+export async function deleteAdminCoupon(couponId) {
+  const coupon = await Coupon.findByIdAndDelete(couponId);
   if (!coupon) throw new NotFoundError("Coupon");
 
   // Bust homepage caches

@@ -62,17 +62,22 @@ export async function requestRevival(authId, data) {
  */
 export async function listRevivals(searchParams) {
   const { page, limit, skip } = parsePagination(searchParams);
-  const status = searchParams.get("status") ?? REVIVAL_STATUS.PENDING;
+  const statusParam = searchParams.get("status");
+
+  const filter = {};
+  if (statusParam && statusParam !== "all") {
+    filter.status = statusParam;
+  }
 
   const [revivals, total] = await Promise.all([
-    Revival.find({ status })
+    Revival.find(filter)
       .populate("couponId", "title code category expiresAt")
-      .populate("merchantId", "businessName slug")
+      .populate("merchantId", "businessName slug plan")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    Revival.countDocuments({ status }),
+    Revival.countDocuments(filter),
   ]);
 
   return { revivals, meta: buildMeta(total, page, limit) };

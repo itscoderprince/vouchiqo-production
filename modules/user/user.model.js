@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ROLES } from "@/utils/constants";
+import { ROLES } from "../../utils/constants.js";
 
 /**
  * User Profile model.
