@@ -5,9 +5,11 @@ import {
   Building2,
   Check,
   ChevronRight,
+  ExternalLink,
   Eye,
   EyeOff,
   FileCheck,
+  FileText,
   Globe,
   Hash,
   Image as ImageIcon,
@@ -40,7 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
 import { authClient, signUp } from "@/lib/auth-client";
 import {
@@ -98,6 +100,55 @@ export function MerchantOnboardingWizard() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user: authUser } = useUser();
+
+  const { data: publicSettings } = useQuery({
+    queryKey: ["public-settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/settings?public=true");
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json?.data?.settings || json?.settings || null;
+    },
+    staleTime: 60000,
+  });
+
+  const policyItems = publicSettings?.policy_agreements || [
+    {
+      id: "merchant_agreement",
+      key: "policy1",
+      title: "Agree to Merchant Agreement",
+      link: "https://drive.google.com/file/d/1_sample_merchant_agreement/view?usp=sharing",
+      required: true,
+    },
+    {
+      id: "terms_of_service",
+      key: "policy2",
+      title: "Agree to Terms of Service",
+      link: "https://drive.google.com/file/d/1_sample_terms_of_service/view?usp=sharing",
+      required: true,
+    },
+    {
+      id: "privacy_policy",
+      key: "policy3",
+      title: "Agree to Privacy Policy",
+      link: "https://drive.google.com/file/d/1_sample_privacy_policy/view?usp=sharing",
+      required: true,
+    },
+    {
+      id: "verification_policy",
+      key: "policy4",
+      title: "Agree to Verification Policy",
+      link: "https://drive.google.com/file/d/1_sample_verification_policy/view?usp=sharing",
+      required: true,
+    },
+    {
+      id: "refund_cancellation",
+      key: "policy5",
+      title: "Agree to Refund & Cancellation Policy",
+      link: "https://drive.google.com/file/d/1_sample_refund_policy/view?usp=sharing",
+      required: true,
+    },
+  ];
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateErrors, setDuplicateErrors] = useState({});
@@ -363,14 +414,18 @@ export function MerchantOnboardingWizard() {
       toast.error("Please accept all 7 Merchant Commitments");
       return;
     }
-    if (
-      !formData.policy1 ||
-      !formData.policy2 ||
-      !formData.policy3 ||
-      !formData.policy4 ||
-      !formData.policy5
-    ) {
-      toast.error("Please accept all Policy Agreements");
+    const unacceptedPolicy = policyItems.find((p, idx) => {
+      if (p.required === false) return false;
+      const itemKey = p.key || `policy${idx + 1}`;
+      const isChecked =
+        !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
+      return !isChecked;
+    });
+
+    if (unacceptedPolicy) {
+      toast.error(
+        `Please accept "${unacceptedPolicy.title || unacceptedPolicy.text || "Policy Agreement"}"`,
+      );
       return;
     }
     const effectiveSignatoryName = (
@@ -1963,29 +2018,54 @@ export function MerchantOnboardingWizard() {
               <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
                 Policy Agreements
               </Label>
-              {[
-                { key: "policy1", text: "Agree to Merchant Agreement" },
-                { key: "policy2", text: "Agree to Terms of Service" },
-                { key: "policy3", text: "Agree to Privacy Policy" },
-                { key: "policy4", text: "Agree to Verification Policy" },
-                {
-                  key: "policy5",
-                  text: "Agree to Refund & Cancellation Policy",
-                },
-              ].map((p) => (
-                <label
-                  key={p.key}
-                  className="flex items-center gap-2 text-xs font-normal text-slate-700 cursor-pointer"
-                >
-                  <Checkbox
-                    checked={formData[p.key]}
-                    onCheckedChange={(val) =>
-                      setFormData({ ...formData, [p.key]: !!val })
-                    }
-                  />
-                  <span>{p.text}</span>
-                </label>
-              ))}
+              <div className="space-y-2">
+                {policyItems.map((p, idx) => {
+                  const itemKey = p.key || `policy${idx + 1}`;
+                  const isChecked =
+                    !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
+
+                  return (
+                    <div
+                      key={p.id || itemKey}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg transition-all hover:bg-white"
+                    >
+                      <label className="flex items-center gap-2.5 text-xs font-medium text-slate-800 cursor-pointer select-none">
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={(val) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              [itemKey]: !!val,
+                              policiesAccepted: {
+                                ...(prev.policiesAccepted || {}),
+                                [p.id || itemKey]: !!val,
+                              },
+                            }));
+                          }}
+                        />
+                        <span>{p.title || p.text}</span>
+                        {p.required !== false && (
+                          <span className="text-rose-500 font-bold">*</span>
+                        )}
+                      </label>
+
+                      {p.link && (
+                        <a
+                          href={p.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-300 px-2.5 py-1 rounded-md transition-all shadow-2xs cursor-pointer text-decoration-none shrink-0"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span>View PDF Document</span>
+                          <ExternalLink className="w-3 h-3 text-blue-500 shrink-0" />
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 pt-2">

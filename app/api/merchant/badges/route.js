@@ -51,7 +51,7 @@ export const GET = asyncHandler(async (request) => {
   ]);
 
   return ok({
-    status: merchant.status || "approved",
+    status: merchant.status || "pending",
     plan: merchant.plan || "starter",
     businessName: merchant.businessName,
     totalCoupons,

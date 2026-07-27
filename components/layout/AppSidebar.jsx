@@ -46,6 +46,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -72,20 +73,41 @@ export function AppSidebar({ ...props }) {
     pendingCampaigns: 0,
   });
 
-  // Real-time merchant sidebar badge counts
-  const [merchantBadges, setMerchantBadges] = useState({
-    status: "approved",
-    totalCoupons: 0,
-    activeCoupons: 0,
-    expiredCoupons: 0,
-    totalCampaigns: 0,
-    unreadNotifications: 0,
-  });
-
   const userRole = authUser?.role;
   const isAdmin = userRole === "admin" || pathname.startsWith("/admin");
   const isMerchant = !isAdmin && (userRole === "merchant" || pathname.startsWith("/merchant"));
   const role = isAdmin ? "admin" : isMerchant ? "merchant" : userRole || "customer";
+
+  // Cached live merchant sidebar badges (prevents state flicker on tab navigation)
+  const { data: merchantBadgesData } = useQuery({
+    queryKey: ["merchant-badges"],
+    queryFn: async () => {
+      if (!isMerchant) return null;
+      const res = await fetch("/api/merchant/badges");
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json?.data || null;
+    },
+    enabled: isMerchant,
+    staleTime: 15000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  const merchantBadges = {
+    status: merchantBadgesData?.status || "pending",
+    totalCoupons: merchantBadgesData?.totalCoupons || 0,
+    activeCoupons: merchantBadgesData?.activeCoupons || 0,
+    expiredCoupons: merchantBadgesData?.expiredCoupons || 0,
+    totalCampaigns: merchantBadgesData?.totalCampaigns || 0,
+    unreadNotifications: merchantBadgesData?.unreadNotifications || 0,
+  };
+
+  useEffect(() => {
+    if (merchantBadgesData?.plan) {
+      setMerchantPlan(merchantBadgesData.plan);
+    }
+  }, [merchantBadgesData?.plan]);
 
   // Activity Seen tracking state (stored in localStorage)
   const [seenState, setSeenState] = useState(() => {
@@ -97,36 +119,6 @@ export function AppSidebar({ ...props }) {
       return {};
     }
   });
-
-  // Fetch merchant profile & live sidebar badges
-  const fetchMerchantBadges = useCallback(async () => {
-    if (!isMerchant) return;
-    try {
-      const res = await fetch("/api/merchant/badges");
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json?.data) {
-        if (json.data.plan) setMerchantPlan(json.data.plan);
-        setMerchantBadges({
-          status: json.data.status || "approved",
-          totalCoupons: json.data.totalCoupons || 0,
-          activeCoupons: json.data.activeCoupons || 0,
-          expiredCoupons: json.data.expiredCoupons || 0,
-          totalCampaigns: json.data.totalCampaigns || 0,
-          unreadNotifications: json.data.unreadNotifications || 0,
-        });
-      }
-    } catch {
-      // Ignore network errors gracefully
-    }
-  }, [isMerchant]);
-
-  useEffect(() => {
-    if (!isMerchant) return;
-    fetchMerchantBadges();
-    const interval = setInterval(fetchMerchantBadges, 15000);
-    return () => clearInterval(interval);
-  }, [isMerchant, fetchMerchantBadges]);
 
   // Real-time polling for admin notification counts from merchant submissions
   const fetchAdminBadges = useCallback(async () => {
@@ -154,11 +146,15 @@ export function AppSidebar({ ...props }) {
     return () => clearInterval(interval);
   }, [isAdmin, fetchAdminBadges]);
 
+  const queryClient = useQueryClient();
+
   // Real-time instant updates for sidebar badges on all platform WebSocket events
   const handleRealtimeBadgeUpdate = useCallback(() => {
     if (isAdmin) fetchAdminBadges();
-    if (isMerchant) fetchMerchantBadges();
-  }, [isAdmin, isMerchant, fetchAdminBadges, fetchMerchantBadges]);
+    if (isMerchant) {
+      queryClient.invalidateQueries({ queryKey: ["merchant-badges"] });
+    }
+  }, [isAdmin, isMerchant, fetchAdminBadges, queryClient]);
 
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, handleRealtimeBadgeUpdate);
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, handleRealtimeBadgeUpdate);
@@ -468,6 +464,11 @@ export function AppSidebar({ ...props }) {
                     icon: Zap,
                   },
                 ],
+              },
+              {
+                title: "Terms & Policies",
+                url: "/admin/content/policies",
+                icon: ShieldCheck,
               },
               {
                 title: "Marketing Tools",

@@ -146,6 +146,41 @@ export async function getPlatformSettings() {
     ];
   }
 
+  if (!settingsMap.policy_agreements) {
+    settingsMap.policy_agreements = [
+      {
+        id: "merchant_agreement",
+        title: "Agree to Merchant Agreement",
+        link: "https://drive.google.com/file/d/1_sample_merchant_agreement/view?usp=sharing",
+        required: true,
+      },
+      {
+        id: "terms_of_service",
+        title: "Agree to Terms of Service",
+        link: "https://drive.google.com/file/d/1_sample_terms_of_service/view?usp=sharing",
+        required: true,
+      },
+      {
+        id: "privacy_policy",
+        title: "Agree to Privacy Policy",
+        link: "https://drive.google.com/file/d/1_sample_privacy_policy/view?usp=sharing",
+        required: true,
+      },
+      {
+        id: "verification_policy",
+        title: "Agree to Verification Policy",
+        link: "https://drive.google.com/file/d/1_sample_verification_policy/view?usp=sharing",
+        required: true,
+      },
+      {
+        id: "refund_cancellation",
+        title: "Agree to Refund & Cancellation Policy",
+        link: "https://drive.google.com/file/d/1_sample_refund_policy/view?usp=sharing",
+        required: true,
+      },
+    ];
+  }
+
   return settingsMap;
 }
 
