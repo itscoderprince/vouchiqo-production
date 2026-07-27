@@ -98,9 +98,8 @@ const COMMISSION_TABLE = [
 ];
 
 const FieldTip = ({ text }) => (
-  <p className="text-[10px] sm:text-[11px] text-blue-700 bg-blue-50/80 px-2.5 py-1 rounded-md border border-blue-100/70 font-medium flex items-center gap-1.5 mt-1 text-left">
-    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-    <span>{text}</span>
+  <p className="text-[9.5px] sm:text-[10px] text-blue-600 font-medium mt-0.5 leading-tight text-left">
+    {text}
   </p>
 );
 
