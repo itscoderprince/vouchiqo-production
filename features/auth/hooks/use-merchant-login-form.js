@@ -22,8 +22,29 @@ export function useMerchantLoginForm() {
   });
 
   useEffect(() => {
-    if (isLoaded && user && role === "merchant") {
-      router.replace("/merchant/dashboard");
+    if (!isLoaded) return;
+    const isMerchantFlag =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+    if (user || role === "merchant" || isMerchantFlag) {
+      fetch("/api/merchants/me")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          const status = data?.data?.merchant?.status;
+          if (status === "approved") {
+            router.replace("/merchant/dashboard");
+          } else if (data?.data?.merchant) {
+            router.replace("/merchant/application-status");
+          } else if (role === "merchant" || isMerchantFlag) {
+            router.replace("/merchant/dashboard");
+          }
+        })
+        .catch(() => {
+          if (role === "merchant" || isMerchantFlag) {
+            router.replace("/merchant/dashboard");
+          }
+        });
     }
   }, [user, role, isLoaded, router]);
 

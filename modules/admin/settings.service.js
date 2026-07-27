@@ -146,6 +146,46 @@ export async function getPlatformSettings() {
     ];
   }
 
+  if (!settingsMap.merchant_commitments) {
+    settingsMap.merchant_commitments = [
+      {
+        id: "commit1",
+        text: "All submitted business information is accurate and real.",
+        required: true,
+      },
+      {
+        id: "commit2",
+        text: "I will honour every verified offer published on Vouchiqo.",
+        required: true,
+      },
+      {
+        id: "commit3",
+        text: "I will submit only genuine, working offer codes and deals.",
+        required: true,
+      },
+      {
+        id: "commit4",
+        text: "I will enter actual transaction values when confirming codes.",
+        required: true,
+      },
+      {
+        id: "commit5",
+        text: "I understand Vouchiqo earns performance commission.",
+        required: true,
+      },
+      {
+        id: "commit6",
+        text: "I will keep counter staff informed about active offers.",
+        required: true,
+      },
+      {
+        id: "commit7",
+        text: "I will pause offers if stock runs out or terms change.",
+        required: true,
+      },
+    ];
+  }
+
   if (!settingsMap.policy_agreements) {
     settingsMap.policy_agreements = [
       {

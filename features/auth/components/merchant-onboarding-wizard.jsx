@@ -5,6 +5,7 @@ import {
   Building2,
   Check,
   ChevronRight,
+  Download,
   ExternalLink,
   Eye,
   EyeOff,
@@ -26,7 +27,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -112,6 +113,51 @@ export function MerchantOnboardingWizard() {
     staleTime: 60000,
   });
 
+  const commitmentItems = publicSettings?.merchant_commitments || [
+    {
+      id: "commit1",
+      key: "commit1",
+      text: "All submitted business information is accurate and real.",
+      required: true,
+    },
+    {
+      id: "commit2",
+      key: "commit2",
+      text: "I will honour every verified offer published on Vouchiqo.",
+      required: true,
+    },
+    {
+      id: "commit3",
+      key: "commit3",
+      text: "I will submit only genuine, working offer codes and deals.",
+      required: true,
+    },
+    {
+      id: "commit4",
+      key: "commit4",
+      text: "I will enter actual transaction values when confirming codes.",
+      required: true,
+    },
+    {
+      id: "commit5",
+      key: "commit5",
+      text: "I understand Vouchiqo earns performance commission.",
+      required: true,
+    },
+    {
+      id: "commit6",
+      key: "commit6",
+      text: "I will keep counter staff informed about active offers.",
+      required: true,
+    },
+    {
+      id: "commit7",
+      key: "commit7",
+      text: "I will pause offers if stock runs out or terms change.",
+      required: true,
+    },
+  ];
+
   const policyItems = publicSettings?.policy_agreements || [
     {
       id: "merchant_agreement",
@@ -152,6 +198,57 @@ export function MerchantOnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateErrors, setDuplicateErrors] = useState({});
+  const [checkingExistingMerchant, setCheckingExistingMerchant] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkExisting() {
+      try {
+        const isMerchantFlag =
+          typeof window !== "undefined" &&
+          sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+        const res = await fetch("/api/merchants/me");
+        if (!res.ok) {
+          if (isMerchantFlag && authUser) {
+            router.replace("/merchant/dashboard");
+            return;
+          }
+          if (isMounted) setCheckingExistingMerchant(false);
+          return;
+        }
+
+        const json = await res.json();
+        const merchant = json?.data?.merchant;
+
+        if (merchant) {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("vouchiqo_is_merchant", "true");
+          }
+          if (merchant.status === "approved") {
+            router.replace("/merchant/dashboard");
+          } else {
+            router.replace("/merchant/application-status");
+          }
+        } else {
+          if (isMerchantFlag && authUser) {
+            router.replace("/merchant/dashboard");
+            return;
+          }
+          if (isMounted) setCheckingExistingMerchant(false);
+        }
+      } catch {
+        if (isMounted) setCheckingExistingMerchant(false);
+      }
+    }
+
+    checkExisting();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authUser, router]);
 
   // File Uploading States
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -402,16 +499,18 @@ export function MerchantOnboardingWizard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !formData.commit1 ||
-      !formData.commit2 ||
-      !formData.commit3 ||
-      !formData.commit4 ||
-      !formData.commit5 ||
-      !formData.commit6 ||
-      !formData.commit7
-    ) {
-      toast.error("Please accept all 7 Merchant Commitments");
+    const unacceptedCommitment = commitmentItems.find((c, idx) => {
+      if (c.required === false) return false;
+      const itemKey = c.key || `commit${idx + 1}`;
+      const isChecked =
+        !!formData[itemKey] || !!formData.commitmentsAccepted?.[c.id];
+      return !isChecked;
+    });
+
+    if (unacceptedCommitment) {
+      toast.error(
+        `Please accept Merchant Commitment: "${unacceptedCommitment.text || "Mandatory Commitment"}"`,
+      );
       return;
     }
     const unacceptedPolicy = policyItems.find((p, idx) => {
@@ -557,6 +656,17 @@ export function MerchantOnboardingWizard() {
   };
 
   const activeMasterStep = currentStep <= 2 ? 1 : currentStep <= 4 ? 2 : 3;
+
+  if (checkingExistingMerchant) {
+    return (
+      <div className="py-24 text-center flex flex-col items-center justify-center space-y-3 bg-white rounded-2xl border border-slate-200 shadow-2xs max-w-xl mx-auto my-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <p className="text-sm font-semibold text-slate-700">
+          Checking merchant account status...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto pt-0 pb-4 px-2 sm:px-4 space-y-4 text-left font-sans text-slate-900">
@@ -1968,52 +2078,44 @@ export function MerchantOnboardingWizard() {
 
           <div className="space-y-3">
             <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-              7 Merchant Commitments (Mandatory)
+              Merchant Commitments ({commitmentItems.length})
             </Label>
-            {[
-              {
-                key: "commit1",
-                text: "All submitted business information is accurate and real.",
-              },
-              {
-                key: "commit2",
-                text: "I will honour every verified offer published on Vouchiqo.",
-              },
-              {
-                key: "commit3",
-                text: "I will submit only genuine, working offer codes and deals.",
-              },
-              {
-                key: "commit4",
-                text: "I will enter actual transaction values when confirming codes.",
-              },
-              {
-                key: "commit5",
-                text: "I understand Vouchiqo earns performance commission.",
-              },
-              {
-                key: "commit6",
-                text: "I will keep counter staff informed about active offers.",
-              },
-              {
-                key: "commit7",
-                text: "I will pause offers if stock runs out or terms change.",
-              },
-            ].map((c) => (
-              <label
-                key={c.key}
-                className="flex items-start gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs cursor-pointer"
-              >
-                <Checkbox
-                  checked={formData[c.key]}
-                  onCheckedChange={(val) =>
-                    setFormData({ ...formData, [c.key]: !!val })
-                  }
-                  className="mt-0.5"
-                />
-                <span className="font-normal text-slate-800">{c.text}</span>
-              </label>
-            ))}
+            <div className="space-y-2">
+              {commitmentItems.map((c, idx) => {
+                const itemKey = c.key || `commit${idx + 1}`;
+                const isChecked =
+                  !!formData[itemKey] ||
+                  !!formData.commitmentsAccepted?.[c.id];
+
+                return (
+                  <label
+                    key={c.id || itemKey}
+                    className="flex items-start gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs cursor-pointer select-none hover:bg-white transition-all"
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={(val) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          [itemKey]: !!val,
+                          commitmentsAccepted: {
+                            ...(prev.commitmentsAccepted || {}),
+                            [c.id || itemKey]: !!val,
+                          },
+                        }));
+                      }}
+                      className="mt-0.5"
+                    />
+                    <span className="font-normal text-slate-800">
+                      {c.text}{" "}
+                      {c.required !== false && (
+                        <span className="text-rose-500 font-bold">*</span>
+                      )}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
 
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
@@ -2024,6 +2126,20 @@ export function MerchantOnboardingWizard() {
                   const itemKey = p.key || `policy${idx + 1}`;
                   const isChecked =
                     !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
+
+                  const directDlUrl = (u) => {
+                    if (!u || !u.trim()) return "";
+                    const trimmed = u.trim();
+                    const m =
+                      trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                      trimmed.match(/id=([a-zA-Z0-9_-]+)/);
+                    if (m && m[1]) {
+                      return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+                    }
+                    return /^https?:\/\//i.test(trimmed)
+                      ? trimmed
+                      : `https://${trimmed}`;
+                  };
 
                   return (
                     <div
@@ -2052,15 +2168,16 @@ export function MerchantOnboardingWizard() {
 
                       {p.link && (
                         <a
-                          href={p.link}
+                          href={directDlUrl(p.link)}
+                          download
                           target="_blank"
                           rel="noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-300 px-2.5 py-1 rounded-md transition-all shadow-2xs cursor-pointer text-decoration-none shrink-0"
+                          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-md transition-all shadow-2xs cursor-pointer text-decoration-none shrink-0"
                         >
                           <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                          <span>View PDF Document</span>
-                          <ExternalLink className="w-3 h-3 text-blue-500 shrink-0" />
+                          <span>Download PDF</span>
+                          <Download className="w-3 h-3 text-blue-600 shrink-0" />
                         </a>
                       )}
                     </div>
