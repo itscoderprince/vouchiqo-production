@@ -790,7 +790,7 @@ export function MerchantOnboardingWizard() {
                         registeredName: e.target.value,
                       })
                     }
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
                   />
                 </div>
                 <FieldTip text="Used for official business verification, tax invoicing & verified merchant status." />
@@ -810,7 +810,7 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, tradingName: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
                   />
                 </div>
                 <FieldTip text="This customer-facing store name is displayed on your deal cards & customer vouchers." />
@@ -828,7 +828,7 @@ export function MerchantOnboardingWizard() {
                     setFormData({ ...formData, constitution: val })
                   }
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-300 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs">
+                  <SelectTrigger className="w-full bg-white border-slate-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
                     <SelectValue placeholder="Select constitution" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -852,7 +852,7 @@ export function MerchantOnboardingWizard() {
                     setFormData({ ...formData, category: val })
                   }
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-300 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs">
+                  <SelectTrigger className="w-full bg-white border-slate-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -884,7 +884,7 @@ export function MerchantOnboardingWizard() {
                         customCategoryName: e.target.value,
                       })
                     }
-                    className="bg-white border-slate-300 text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none"
+                    className="bg-white border-slate-400 text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                 </div>
 
@@ -914,7 +914,7 @@ export function MerchantOnboardingWizard() {
                         customCategoryNotes: e.target.value,
                       })
                     }
-                    className="bg-white border-slate-200 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all"
+                    className="bg-white border-slate-400 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
                   />
                   {notesWordCount < 20 && (
                     <p className="text-[10px] text-amber-700 font-medium">
@@ -931,7 +931,7 @@ export function MerchantOnboardingWizard() {
               <Label className="text-xs font-medium text-slate-700">
                 Sub-Category Tags Chips (Press Enter)
               </Label>
-              <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-300 rounded-lg min-h-[38px] items-center shadow-2xs">
+              <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-400 rounded-lg min-h-[38px] items-center focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 focus-within:shadow-none transition-all">
                 {subCategoryTags.map((tag) => (
                   <Badge
                     key={tag}
@@ -973,7 +973,7 @@ export function MerchantOnboardingWizard() {
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
                   }
-                  className="bg-white border-slate-300 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
+                  className="bg-white border-slate-400 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
                 />
                 <FieldTip text="Customers will visit this exact physical address to redeem in-store vouchers." />
               </div>
@@ -990,7 +990,7 @@ export function MerchantOnboardingWizard() {
                   onChange={(e) =>
                     setFormData({ ...formData, googleUrl: e.target.value })
                   }
-                  className="bg-white border-slate-300 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
+                  className="bg-white border-slate-400 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
                 />
                 <FieldTip text="Powers 1-tap Google Maps directions on customer deal vouchers for easy navigation." />
               </div>
@@ -1022,7 +1022,7 @@ export function MerchantOnboardingWizard() {
                         }
                       }
                     }}
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-mono font-medium focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-mono font-medium focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                 </div>
                 <FieldTip text="Groups your store under nearby pin code offer filters." />
@@ -1045,7 +1045,7 @@ export function MerchantOnboardingWizard() {
                     }));
                   }}
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-300 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs">
+                  <SelectTrigger className="w-full bg-white border-slate-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
                     <SelectValue placeholder="Select City" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -1075,7 +1075,7 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, state: e.target.value })
                     }
-                    className="pl-8 bg-slate-50 border-slate-300 text-xs h-9 rounded-lg font-medium text-slate-900 shadow-2xs"
+                    className="pl-8 bg-slate-50 border-slate-400 text-xs h-9 rounded-lg font-medium text-slate-900"
                   />
                 </div>
                 <FieldTip text="Required for state GST & statutory compliance." />
@@ -1168,7 +1168,7 @@ export function MerchantOnboardingWizard() {
                         signatoryName: val,
                       }));
                     }}
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                 </div>
                 <FieldTip text="Person responsible for managing store offers & receiving official admin updates." />
@@ -1184,7 +1184,7 @@ export function MerchantOnboardingWizard() {
                     setFormData({ ...formData, designation: val })
                   }
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-300 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs">
+                  <SelectTrigger className="w-full bg-white border-slate-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
                     <SelectValue placeholder="Select Designation" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -1215,7 +1215,7 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, mobile: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                 </div>
                 <FieldTip text="Used for account security OTPs & real-time deal redemption SMS alerts." />
@@ -1259,7 +1259,7 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, whatsapp: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                 </div>
                 <FieldTip text="Sends instant offer claim notifications & customer inquiry updates." />
@@ -1282,7 +1282,7 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                 </div>
                 <FieldTip text="Your primary account login email for accessing the Merchant Partner panel." />
@@ -1300,7 +1300,7 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    className="pl-8 pr-9 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 pr-9 bg-white border-slate-400 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                   />
                   <button
                     type="button"
@@ -1337,7 +1337,7 @@ export function MerchantOnboardingWizard() {
                       onChange={(e) =>
                         setFormData({ ...formData, websiteUrl: e.target.value })
                       }
-                      className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                      className="pl-8 bg-white border-slate-400 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                     />
                   </div>
                   <FieldTip text="Linked on your brand profile page so shoppers can explore your official website." />
@@ -1358,7 +1358,7 @@ export function MerchantOnboardingWizard() {
                           instagramHandle: e.target.value,
                         })
                       }
-                      className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                      className="pl-8 bg-white border-slate-400 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                     />
                   </div>
                   <FieldTip text="Promoted on your Vouchiqo brand page for social media reach." />
@@ -1379,7 +1379,7 @@ export function MerchantOnboardingWizard() {
                           facebookUrl: e.target.value,
                         })
                       }
-                      className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                      className="pl-8 bg-white border-slate-400 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                     />
                   </div>
                 </div>
@@ -1439,7 +1439,7 @@ export function MerchantOnboardingWizard() {
                   setFormData({ ...formData, docType: val })
                 }
               >
-                <SelectTrigger className="w-full bg-white border-slate-300 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs">
+                <SelectTrigger className="w-full bg-white border-slate-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="z-[300]">
@@ -1847,7 +1847,7 @@ export function MerchantOnboardingWizard() {
                 onChange={(e) =>
                   setFormData({ ...formData, referralCode: e.target.value })
                 }
-                className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-mono uppercase font-normal focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                className="pl-8 bg-white border-slate-400 text-xs h-9 rounded-lg font-mono uppercase font-normal focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
               />
             </div>
             <FieldTip text="Enter promotional or partner referral code if provided by Vouchiqo team." />
@@ -2027,7 +2027,7 @@ export function MerchantOnboardingWizard() {
                                   },
                                 }));
                               }}
-                              className="w-24 h-7 text-xs bg-white border-slate-300 rounded px-2 font-mono"
+                              className="w-24 h-7 text-xs bg-white border-slate-400 rounded px-2 font-mono focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                             />
                           </div>
 
@@ -2051,7 +2051,7 @@ export function MerchantOnboardingWizard() {
                                   },
                                 }));
                               }}
-                              className="w-24 h-7 text-xs bg-white border-slate-300 rounded px-2 font-mono"
+                              className="w-24 h-7 text-xs bg-white border-slate-400 rounded px-2 font-mono focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
                             />
                           </div>
                         </div>
@@ -2238,7 +2238,7 @@ export function MerchantOnboardingWizard() {
                       formData.signatoryName ||
                       "Fill Authorized Liaison Name in Section B"
                     }
-                    className="pl-8 bg-slate-100 border-slate-300 text-xs h-9 rounded-lg font-medium text-slate-800 cursor-not-allowed shadow-2xs"
+                    className="pl-8 bg-slate-100 border-slate-400 text-xs h-9 rounded-lg font-medium text-slate-800 cursor-not-allowed"
                   />
                 </div>
                 <FieldTip text="Legal signatory name appearing on the merchant partnership agreement contract." />
