@@ -484,6 +484,10 @@ export function MerchantOnboardingWizard() {
       await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
       await queryClient.invalidateQueries({ queryKey: ["merchant-badges"] });
 
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("vouchiqo_is_merchant", "true");
+      }
+
       toast.success(
         "Application submitted! Welcome to Vouchiqo for Merchants.",
       );

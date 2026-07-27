@@ -35,31 +35,36 @@ export default function DashboardLayout({ title, user, children }) {
     }
 
     // Verify merchant access with stale-session tolerance.
-    // Better Auth caches the session cookie for up to 5 minutes, so a newly
-    // registered merchant may still have role:"customer" in the client session
-    // even though the DB has already been updated to role:"merchant".
-    // We therefore check /api/merchants/me (DB) before rejecting access.
+    // Better Auth caches the session cookie, so a newly registered merchant
+    // may still have role:"customer" in client session briefly.
+    // We check sessionStorage & /api/merchants/me before any redirect.
     if (pathname.startsWith("/merchant")) {
-      if (role === "merchant" || role === "admin") return; // session is current — allow
+      const isRegisteredMerchant =
+        typeof window !== "undefined" &&
+        sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+      if (role === "merchant" || role === "admin" || isRegisteredMerchant) return;
 
       // Session says "customer" — verify against DB before redirecting
-      if (authUser?.id) {
+      if (authUser?.id || authUser?.email) {
         fetch("/api/merchants/me")
           .then((r) => {
-            if (!r.ok) {
-              // Confirmed non-merchant → send to customer dashboard
+            if (r.ok) {
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem("vouchiqo_is_merchant", "true");
+              }
+            } else if (!isRegisteredMerchant) {
               router.push("/customer/dashboard");
             }
-            // If r.ok the user IS a merchant (stale session) — stay on page
           })
           .catch(() => {
             // Network error — be permissive, don't redirect
           });
-      } else {
+      } else if (!isPending && !isRegisteredMerchant) {
         router.push("/customer/dashboard");
       }
     }
-  }, [isLoaded, isLoggedIn, role, authUser?.id, pathname, router]);
+  }, [isLoaded, isLoggedIn, role, authUser?.id, authUser?.email, pathname, router]);
 
   const [mounted, setMounted] = useState(false);
 

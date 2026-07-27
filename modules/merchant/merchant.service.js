@@ -60,21 +60,33 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
  * @param {object} data - Validated merchant data
  */
 export async function createMerchant(authId, data) {
-  const existing = await Merchant.findOne({ authId });
+  const authIdStr = String(authId);
+  const existing = await Merchant.findOne({
+    $or: [
+      { authId: authIdStr },
+      ...(data.contactEmail ? [{ contactEmail: data.contactEmail.toLowerCase().trim() }] : []),
+    ],
+  });
   if (existing) throw new ConflictError("You already have a merchant profile");
 
   await checkMerchantDuplicates(data);
 
-  const merchant = await Merchant.create({ authId, ...data });
+  const merchant = await Merchant.create({ authId: authIdStr, ...data });
 
-  // Update user's role to "merchant" in UserProfile and Better Auth user collection
-  await UserProfile.updateOne({ authId }, { role: "merchant" }).catch(() => {});
+  // Update user's role to "merchant" in UserProfile and Better Auth user & session collections
+  await UserProfile.updateOne({ authId: authIdStr }, { role: "merchant" }).catch(() => {});
   if (mongoose.connection && mongoose.connection.db) {
     const userCol = mongoose.connection.db.collection("user");
-    await userCol.updateOne({ _id: authId }, { $set: { role: "merchant" } }).catch(() => {});
+    await userCol.updateOne({ _id: authIdStr }, { $set: { role: "merchant" } }).catch(() => {});
+    await userCol.updateOne({ id: authIdStr }, { $set: { role: "merchant" } }).catch(() => {});
+    if (data.contactEmail) {
+      await userCol.updateOne({ email: data.contactEmail.toLowerCase().trim() }, { $set: { role: "merchant" } }).catch(() => {});
+    }
     if (mongoose.Types.ObjectId.isValid(authId)) {
       await userCol.updateOne({ _id: new mongoose.Types.ObjectId(authId) }, { $set: { role: "merchant" } }).catch(() => {});
     }
+    const sessionCol = mongoose.connection.db.collection("session");
+    await sessionCol.updateMany({ userId: authIdStr }, { $set: { role: "merchant" } }).catch(() => {});
   }
 
   return merchant;
@@ -99,9 +111,15 @@ export async function getMerchantById(merchantId, publicOnly = true) {
  * Get the merchant profile owned by a specific user.
  *
  * @param {string} authId
+ * @param {string} [email]
  */
 export async function getMerchantByAuthId(authId, email = null) {
-  let merchant = await Merchant.findOne({ authId }).lean();
+  const authIdStr = authId ? String(authId) : null;
+  let merchant = null;
+
+  if (authIdStr) {
+    merchant = await Merchant.findOne({ authId: authIdStr }).lean();
+  }
   if (!merchant && email) {
     merchant = await Merchant.findOne({ contactEmail: email.toLowerCase().trim() }).lean();
   }

@@ -31,6 +31,10 @@ export function useRegister() {
       // Invalidate session so dashboards read fresh data
       await queryClient.invalidateQueries({ queryKey: ["session"] });
 
+      if (variables.role === "merchant" && typeof window !== "undefined") {
+        sessionStorage.setItem("vouchiqo_is_merchant", "true");
+      }
+
       const dest =
         variables.role === "merchant" ? "/merchant/application-status" : "/";
 

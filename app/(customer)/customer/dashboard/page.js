@@ -29,16 +29,27 @@ export default function CustomerDashboard() {
   // ── Merchant Guard ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isLoaded) return;
-    if (role === "merchant") {
+    const isRegisteredMerchant =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+    if (role === "merchant" || isRegisteredMerchant) {
       router.replace("/merchant/dashboard");
       return;
     }
-    if (authUser?.id) {
+    if (authUser?.id || authUser?.email) {
       fetch("/api/merchants/me")
-        .then((r) => { if (r.ok) router.replace("/merchant/dashboard"); })
+        .then((r) => {
+          if (r.ok) {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("vouchiqo_is_merchant", "true");
+            }
+            router.replace("/merchant/dashboard");
+          }
+        })
         .catch(() => {});
     }
-  }, [isLoaded, role, authUser?.id, router]);
+  }, [isLoaded, role, authUser?.id, authUser?.email, router]);
   // ─────────────────────────────────────────────────────────────────────────
 
   // Fetch actual savings data

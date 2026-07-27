@@ -17,12 +17,29 @@ export default function DashboardRootRedirect() {
       return;
     }
 
+    const isRegisteredMerchant =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
     if (role === "admin") {
       router.replace("/admin/dashboard");
-    } else if (role === "merchant") {
+    } else if (role === "merchant" || isRegisteredMerchant) {
       router.replace("/merchant/dashboard");
     } else {
-      router.replace("/customer/dashboard");
+      fetch("/api/merchants/me")
+        .then((r) => {
+          if (r.ok) {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("vouchiqo_is_merchant", "true");
+            }
+            router.replace("/merchant/dashboard");
+          } else {
+            router.replace("/customer/dashboard");
+          }
+        })
+        .catch(() => {
+          router.replace("/customer/dashboard");
+        });
     }
   }, [user, role, isLoaded, router]);
 

@@ -47,6 +47,9 @@ export function useMerchantLoginForm() {
         await signOut();
         return;
       }
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("vouchiqo_is_merchant", "true");
+      }
       toast.success("Welcome back, Merchant Partner!");
       router.replace("/merchant/dashboard");
     },
