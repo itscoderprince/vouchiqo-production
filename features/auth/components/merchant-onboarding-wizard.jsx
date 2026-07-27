@@ -97,6 +97,13 @@ const COMMISSION_TABLE = [
   { category: "Finance & Insurance", rate: "₹150 – ₹350 / lead" },
 ];
 
+const FieldTip = ({ text }) => (
+  <p className="text-[10px] sm:text-[11px] text-blue-700 bg-blue-50/80 px-2.5 py-1 rounded-md border border-blue-100/70 font-medium flex items-center gap-1.5 mt-1 text-left">
+    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+    <span>{text}</span>
+  </p>
+);
+
 export function MerchantOnboardingWizard() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -786,6 +793,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Used for official business verification, tax invoicing & verified merchant status." />
               </div>
 
               <div className="space-y-1">
@@ -805,6 +813,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
                   />
                 </div>
+                <FieldTip text="This customer-facing store name is displayed on your deal cards & customer vouchers." />
               </div>
             </div>
 
@@ -830,6 +839,7 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldTip text="Determines legal statutory compliance requirements for your partner account." />
               </div>
 
               <div className="space-y-1">
@@ -853,6 +863,7 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldTip text="Places your store in the correct category section for targeted local Ranchi shoppers." />
               </div>
             </div>
 
@@ -945,6 +956,7 @@ export function MerchantOnboardingWizard() {
                   className="bg-transparent text-xs outline-none flex-1 min-w-[140px] font-normal text-slate-800 placeholder:text-slate-400"
                 />
               </div>
+              <FieldTip text="Helps shoppers find your specific offers using search & filter keywords." />
             </div>
 
             {/* Operating Store Address & Google Maps Link */}
@@ -963,6 +975,7 @@ export function MerchantOnboardingWizard() {
                   }
                   className="bg-white border-slate-300 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
                 />
+                <FieldTip text="Customers will visit this exact physical address to redeem in-store vouchers." />
               </div>
 
               <div className="space-y-1">
@@ -979,6 +992,7 @@ export function MerchantOnboardingWizard() {
                   }
                   className="bg-white border-slate-300 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all shadow-2xs"
                 />
+                <FieldTip text="Powers 1-tap Google Maps directions on customer deal vouchers for easy navigation." />
               </div>
             </div>
 
@@ -1011,6 +1025,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-mono font-medium focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Groups your store under nearby pin code offer filters." />
               </div>
 
               <div className="space-y-1">
@@ -1045,6 +1060,7 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldTip text="Lists your store under regional city offer hubs." />
               </div>
 
               <div className="space-y-1">
@@ -1062,6 +1078,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-slate-50 border-slate-300 text-xs h-9 rounded-lg font-medium text-slate-900 shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Required for state GST & statutory compliance." />
               </div>
             </div>
 
@@ -1154,6 +1171,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Person responsible for managing store offers & receiving official admin updates." />
               </div>
 
               <div className="space-y-1">
@@ -1177,6 +1195,7 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldTip text="Confirms authorized signatory privileges for business partnership agreements." />
               </div>
             </div>
 
@@ -1199,6 +1218,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Used for account security OTPs & real-time deal redemption SMS alerts." />
               </div>
 
               <div className="space-y-1">
@@ -1242,6 +1262,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Sends instant offer claim notifications & customer inquiry updates." />
               </div>
             </div>
 
@@ -1264,6 +1285,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Your primary account login email for accessing the Merchant Partner panel." />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
@@ -1292,6 +1314,7 @@ export function MerchantOnboardingWizard() {
                     )}
                   </button>
                 </div>
+                <FieldTip text="Secures your merchant dashboard, sales analytics & revenue reports." />
               </div>
             </div>
 
@@ -1317,6 +1340,7 @@ export function MerchantOnboardingWizard() {
                       className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                     />
                   </div>
+                  <FieldTip text="Linked on your brand profile page so shoppers can explore your official website." />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[11px] font-medium text-slate-600">
@@ -1337,6 +1361,7 @@ export function MerchantOnboardingWizard() {
                       className="pl-8 bg-white border-slate-300 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                     />
                   </div>
+                  <FieldTip text="Promoted on your Vouchiqo brand page for social media reach." />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[11px] font-medium text-slate-600">
@@ -1444,6 +1469,7 @@ export function MerchantOnboardingWizard() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              <FieldTip text="Required to grant the official Blue Verified Merchant badge on Vouchiqo." />
             </div>
 
             {/* Cloudinary Document Upload */}
@@ -1502,6 +1528,7 @@ export function MerchantOnboardingWizard() {
                   </Button>
                 </div>
               </div>
+              <FieldTip text="Encrypted & stored securely. Used strictly for statutory compliance verification by platform admins." />
             </div>
 
             {/* 3 Store Visual Images Upload Grid */}
@@ -1569,6 +1596,7 @@ export function MerchantOnboardingWizard() {
                     </Button>
                   </div>
                 </div>
+                <FieldTip text="Displayed as your main storefront picture on deal listings & search." />
               </div>
 
               {/* 2. Store Logo */}
@@ -1632,6 +1660,7 @@ export function MerchantOnboardingWizard() {
                     </Button>
                   </div>
                 </div>
+                <FieldTip text="Featured on offer cards, customer vouchers & merchant banner headers." />
               </div>
 
               {/* 3. Banner Image */}
@@ -1697,6 +1726,7 @@ export function MerchantOnboardingWizard() {
                     </Button>
                   </div>
                 </div>
+                <FieldTip text="Header background banner on your dedicated Vouchiqo brand showcase page." />
               </div>
             </div>
           </div>
@@ -1820,6 +1850,7 @@ export function MerchantOnboardingWizard() {
                 className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-mono uppercase font-normal focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
               />
             </div>
+            <FieldTip text="Enter promotional or partner referral code if provided by Vouchiqo team." />
           </div>
 
           <div className="flex justify-between pt-3 border-t border-slate-100">
@@ -2210,6 +2241,7 @@ export function MerchantOnboardingWizard() {
                     className="pl-8 bg-slate-100 border-slate-300 text-xs h-9 rounded-lg font-medium text-slate-800 cursor-not-allowed shadow-2xs"
                   />
                 </div>
+                <FieldTip text="Legal signatory name appearing on the merchant partnership agreement contract." />
               </div>
             </div>
 
@@ -2278,6 +2310,7 @@ export function MerchantOnboardingWizard() {
                   </Button>
                 </div>
               </div>
+              <FieldTip text="Stored securely as legal proof of merchant partnership agreement acceptance." />
             </div>
           </div>
 
