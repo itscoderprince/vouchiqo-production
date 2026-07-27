@@ -1,4 +1,12 @@
 import { z } from "zod";
+import nextEnv from "@next/env";
+
+if (typeof process !== "undefined" && process.cwd) {
+  try {
+    const { loadEnvConfig } = nextEnv;
+    loadEnvConfig(process.cwd());
+  } catch (e) {}
+}
 
 /**
  * Validates all required environment variables at startup.

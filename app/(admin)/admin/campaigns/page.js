@@ -9,11 +9,16 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  adminFetchCampaignQueue,
+  adminReviewCampaign,
+} from "@/lib/api-helpers";
 import AddOnsTab from "./components/AddOnsTab";
 import AnalyticsRevenueTab from "./components/AnalyticsRevenueTab";
 import CalendarTab from "./components/CalendarTab";
@@ -24,87 +29,37 @@ export default function AdminCampaignsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("queue");
 
-  // Fetch all campaigns for admin
+  // Fetch real-time campaigns for admin
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ["admin-campaigns"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/campaigns");
-      if (!res.ok) {
-        // Fallback demo data if endpoint doesn't exist yet
-        return [
-          {
-            _id: "cmp-001",
-            name: "Summer Sale Blast",
-            type: "flash",
-            objective: "Maximize Sales",
-            status: "pending_review",
-            merchantId: {
-              businessName: "Marbella Tiles & Sanitary",
-              plan: "pro",
-            },
-            code: "SAVE20",
-            startDate: "2026-07-25",
-            endDate: "2026-07-28",
-            targeting: { addOns: ["ticker_priority", "push"] },
-            stats: { clicks: 14200, redemptions: 1950 },
-          },
-          {
-            _id: "cmp-002",
-            name: "Pre-Diwali Grand Festival",
-            type: "festival",
-            objective: "Brand Awareness",
-            status: "Live — Active",
-            merchantId: {
-              businessName: "JewelCraft Ranchi",
-              plan: "enterprise",
-            },
-            code: "DIWALI50",
-            startDate: "2026-10-28",
-            endDate: "2026-11-03",
-            targeting: { addOns: ["email", "push", "ticker_priority"] },
-            stats: { clicks: 28400, redemptions: 4120 },
-          },
-          {
-            _id: "cmp-003",
-            name: "Burger House BOGO Deal",
-            type: "bundle",
-            objective: "Drive Traffic",
-            status: "Live — Active",
-            merchantId: { businessName: "Burger House", plan: "growth" },
-            code: "BOGO2026",
-            startDate: "2026-07-20",
-            endDate: "2026-07-30",
-            targeting: { addOns: [] },
-            stats: { clicks: 8200, redemptions: 1240 },
-          },
-        ];
-      }
-      const json = await res.json();
-      return json.data || [];
+      return await adminFetchCampaignQueue();
     },
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ campaignId, status, notes }) => {
-      const res = await fetch(`/api/admin/campaigns/${campaignId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, notes }),
+      return await adminReviewCampaign(campaignId, {
+        status,
+        requestNotes: notes,
+        adminNotes: notes,
       });
-      if (!res.ok) {
-        // Mock success for client-side state update
-        return { success: true };
-      }
-      return res.json();
     },
     onSuccess: () => {
+      toast.success("Campaign status updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["admin-campaigns"] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update campaign status.");
     },
   });
 
-  const handleUpdateStatus = (campaignId, status, notes) => {
-    updateStatusMutation.mutate({ campaignId, status, notes });
-  };
+  const handleUpdateStatus = useCallback(
+    (campaignId, status, notes) => {
+      updateStatusMutation.mutate({ campaignId, status, notes });
+    },
+    [updateStatusMutation],
+  );
 
   if (isLoading) {
     return (
@@ -118,7 +73,7 @@ export default function AdminCampaignsPage() {
   }
 
   const pendingCount = campaigns.filter(
-    (c) => c.status === "pending_review",
+    (c) => c.status === "pending_review" || c.status === "pending",
   ).length;
 
   return (
@@ -149,35 +104,35 @@ export default function AdminCampaignsPage() {
           <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full bg-slate-100/80 p-1.5 rounded-2xl h-auto gap-1">
             <TabsTrigger
               value="queue"
-              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs"
+              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
               <ListOrdered className="w-3.5 h-3.5 mr-1 text-orange-600" />{" "}
               Review Queue
             </TabsTrigger>
             <TabsTrigger
               value="calendar"
-              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs"
+              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
               <Calendar className="w-3.5 h-3.5 mr-1 text-blue-600" /> Calendar
               &amp; Schedule
             </TabsTrigger>
             <TabsTrigger
               value="addons"
-              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs"
+              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 mr-1 text-purple-600" /> Add-On
               Activations
             </TabsTrigger>
             <TabsTrigger
               value="live"
-              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs"
+              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Live
               Monitoring
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs"
+              className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
               <PieChart className="w-3.5 h-3.5 mr-1 text-amber-600" /> Analytics
               &amp; Revenue
@@ -189,6 +144,7 @@ export default function AdminCampaignsPage() {
               <QueueTab
                 campaigns={campaigns}
                 onUpdateStatus={handleUpdateStatus}
+                isUpdating={updateStatusMutation.isPending}
               />
             </TabsContent>
             <TabsContent value="calendar">
@@ -201,6 +157,7 @@ export default function AdminCampaignsPage() {
               <LiveMonitoringTab
                 campaigns={campaigns}
                 onUpdateStatus={handleUpdateStatus}
+                isUpdating={updateStatusMutation.isPending}
               />
             </TabsContent>
             <TabsContent value="analytics">

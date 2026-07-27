@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -39,11 +40,27 @@ export default function UserDropdown({
 
   if (!user) return null;
 
-  const effectiveRole = pathname.startsWith("/admin")
-    ? "admin"
-    : pathname.startsWith("/merchant")
-      ? "merchant"
-      : user.role || "customer";
+  const [effectiveRole, setEffectiveRole] = useState(
+    pathname.startsWith("/admin")
+      ? "admin"
+      : pathname.startsWith("/merchant")
+        ? "merchant"
+        : user.role || "customer",
+  );
+
+  useEffect(() => {
+    if (pathname.startsWith("/admin")) {
+      setEffectiveRole("admin");
+    } else if (pathname.startsWith("/merchant")) {
+      setEffectiveRole("merchant");
+    } else if (user?.role === "merchant" || user?.role === "admin") {
+      setEffectiveRole(user.role);
+    } else {
+      fetch("/api/merchants/me")
+        .then((r) => setEffectiveRole(r.ok ? "merchant" : user?.role || "customer"))
+        .catch(() => setEffectiveRole(user?.role || "customer"));
+    }
+  }, [user?.role, pathname]);
 
   const handleLogoutAction = async () => {
     if (onMobileClose) onMobileClose();

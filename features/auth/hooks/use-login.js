@@ -32,7 +32,7 @@ export function useLogin() {
         );
       }
 
-      if (callbackUrl && callbackUrl.startsWith("/")) {
+      if (callbackUrl?.startsWith("/")) {
         router.replace(callbackUrl);
       } else if (role === "admin") {
         router.replace("/admin/dashboard");

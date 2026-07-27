@@ -32,7 +32,8 @@ const ACTIONS = [
     label: "Launch Campaign",
     href: "/merchant/campaigns",
     icon: Rocket,
-    color: "bg-white border border-slate-200 hover:bg-blue-50/50 hover:border-blue-200 text-slate-800",
+    color:
+      "bg-white border border-slate-200 hover:bg-blue-50/50 hover:border-blue-200 text-slate-800",
     lockedOnStarter: true,
   },
   {
@@ -40,7 +41,8 @@ const ACTIONS = [
     label: "Revive Expired Offers",
     href: "/merchant/coupons?status=expired",
     icon: RefreshCw,
-    color: "bg-white border border-slate-200 hover:bg-blue-50/50 hover:border-blue-200 text-slate-800",
+    color:
+      "bg-white border border-slate-200 hover:bg-blue-50/50 hover:border-blue-200 text-slate-800",
     lockedOnStarter: true,
   },
 ];

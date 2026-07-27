@@ -1,13 +1,56 @@
 import mongoose from "mongoose";
-import Merchant from "@/modules/merchant/merchant.model";
-import UserProfile from "@/modules/user/user.model";
+import Merchant from "./merchant.model.js";
+import UserProfile from "../user/user.model.js";
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
-} from "@/utils/app-error";
-import { MERCHANT_STATUS } from "@/utils/constants";
-import { buildMeta, parsePagination } from "@/utils/pagination";
+} from "../../utils/app-error.js";
+import { MERCHANT_STATUS } from "../../utils/constants.js";
+import { buildMeta, parsePagination } from "../../utils/pagination.js";
+
+/**
+ * Create a merchant profile.
+ * One merchant per user — enforced by unique index on authId.
+ *
+ * @param {string} authId
+ * @param {object} data - Validated merchant data
+ */
+/**
+ * Helper to check for duplicate unique fields (email, phone, gstin, pan)
+ */
+export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
+  const { contactEmail, contactPhone, liaisonPhone, gstin, pan, isGstExempt } = data;
+
+  const baseFilter = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
+
+  if (contactEmail) {
+    const emailLower = contactEmail.toLowerCase().trim();
+    const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailLower });
+    if (dupEmail) throw new ConflictError("Email address is already registered to another merchant.");
+  }
+
+  const phoneToCheck = (contactPhone || liaisonPhone || "").trim();
+  if (phoneToCheck) {
+    const dupPhone = await Merchant.findOne({
+      ...baseFilter,
+      $or: [{ contactPhone: phoneToCheck }, { liaisonPhone: phoneToCheck }],
+    });
+    if (dupPhone) throw new ConflictError("Mobile / Contact phone number is already registered to another merchant.");
+  }
+
+  if (gstin && !isGstExempt) {
+    const gstinUpper = gstin.toUpperCase().trim();
+    const dupGst = await Merchant.findOne({ ...baseFilter, gstin: gstinUpper });
+    if (dupGst) throw new ConflictError(`GSTIN "${gstinUpper}" is already registered to another merchant.`);
+  }
+
+  if (pan) {
+    const panUpper = pan.toUpperCase().trim();
+    const dupPan = await Merchant.findOne({ ...baseFilter, pan: panUpper });
+    if (dupPan) throw new ConflictError(`PAN "${panUpper}" is already registered to another merchant.`);
+  }
+}
 
 /**
  * Create a merchant profile.
@@ -20,15 +63,18 @@ export async function createMerchant(authId, data) {
   const existing = await Merchant.findOne({ authId });
   if (existing) throw new ConflictError("You already have a merchant profile");
 
+  await checkMerchantDuplicates(data);
+
   const merchant = await Merchant.create({ authId, ...data });
 
   // Update user's role to "merchant" in UserProfile and Better Auth user collection
   await UserProfile.updateOne({ authId }, { role: "merchant" }).catch(() => {});
   if (mongoose.connection && mongoose.connection.db) {
-    await mongoose.connection.db
-      .collection("user")
-      .updateOne({ _id: authId }, { $set: { role: "merchant" } })
-      .catch(() => {});
+    const userCol = mongoose.connection.db.collection("user");
+    await userCol.updateOne({ _id: authId }, { $set: { role: "merchant" } }).catch(() => {});
+    if (mongoose.Types.ObjectId.isValid(authId)) {
+      await userCol.updateOne({ _id: new mongoose.Types.ObjectId(authId) }, { $set: { role: "merchant" } }).catch(() => {});
+    }
   }
 
   return merchant;
@@ -71,25 +117,27 @@ export async function updateMerchant(merchantId, authId, data) {
   const merchant = await Merchant.findOne({ _id: merchantId, authId });
   if (!merchant) throw new ForbiddenError("You cannot edit this merchant");
 
+  await checkMerchantDuplicates(data, merchant._id);
+
   Object.assign(merchant, data);
   merchant.status = MERCHANT_STATUS.PENDING;
   merchant.isVerified = false;
   await merchant.save();
 
-  // Sync user role back to customer upon editing details to await admin re-verification
-  const userRole = "customer";
+  // Keep user role as merchant when updating merchant profile
+  const userRole = "merchant";
+  const userCol = mongoose.connection.db?.collection("user");
+
   await Promise.all([
     UserProfile.findOneAndUpdate(
       { authId: merchant.authId },
       { $set: { role: userRole } },
       { upsert: true },
     ),
-    mongoose.connection.db
-      .collection("user")
-      .updateOne(
-        { _id: new mongoose.Types.ObjectId(merchant.authId) },
-        { $set: { role: userRole } },
-      ),
+    userCol?.updateOne({ _id: merchant.authId }, { $set: { role: userRole } }).catch(() => {}),
+    ...(mongoose.Types.ObjectId.isValid(merchant.authId)
+      ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } }).catch(() => {})]
+      : []),
   ]);
 
   return merchant;
@@ -143,21 +191,20 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
 
   if (!merchant) throw new NotFoundError("Merchant");
 
-  // Sync user role in both UserProfile and Better Auth collections
-  const userRole =
-    status === MERCHANT_STATUS.APPROVED ? "merchant" : "customer";
+  // Keep user role as "merchant" so the owner remains a merchant account
+  const userRole = "merchant";
+  const userCol = mongoose.connection.db?.collection("user");
+
   await Promise.all([
     UserProfile.findOneAndUpdate(
       { authId: merchant.authId },
       { $set: { role: userRole } },
       { upsert: true },
     ),
-    mongoose.connection.db
-      .collection("user")
-      .updateOne(
-        { _id: new mongoose.Types.ObjectId(merchant.authId) },
-        { $set: { role: userRole } },
-      ),
+    userCol?.updateOne({ _id: merchant.authId }, { $set: { role: userRole } }).catch(() => {}),
+    ...(mongoose.Types.ObjectId.isValid(merchant.authId)
+      ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } }).catch(() => {})]
+      : []),
   ]);
 
   return merchant;

@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  AlertTriangle,
-  ArrowUpRight,
-  IndianRupee,
-  Store,
-  Tag,
-  Users,
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowUpRight, Store, Tag } from "lucide-react";
 import Link from "next/link";
 import {
   Card,
@@ -16,50 +10,44 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { apiFetch } from "@/lib/fetcher";
 
 export default function RecentActivityTimeline() {
-  const activities = [
-    {
-      icon: Store,
-      color: "text-[#2563eb]",
-      bg: "bg-[#2563eb]/10",
-      title: "New merchant registered",
-      desc: "Zomato Partner submitted dashboard request",
-      time: "2 min ago",
+  const { data: analyticsData } = useQuery({
+    queryKey: ["admin-analytics"],
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/analytics");
+      return json.data;
     },
-    {
-      icon: Users,
-      color: "text-[#2563eb]",
-      bg: "bg-[#2563eb]/10",
-      title: "New customer registered",
-      desc: "James Chen created an account",
-      time: "15 min ago",
-    },
-    {
-      icon: Tag,
-      color: "text-[#3e80dd]",
-      bg: "bg-[#3e80dd]/10",
-      title: "Moderation review completed",
-      desc: "Boat coupons approved by admin root",
-      time: "1 hour ago",
-    },
-    {
-      icon: IndianRupee,
-      color: "text-[#0a2e6e]",
-      bg: "bg-[#0a2e6e]/10",
-      title: "SaaS Payment received",
-      desc: "₹1,499.00 subscription charge from Starbucks",
-      time: "2 hours ago",
-    },
-    {
-      icon: AlertTriangle,
-      color: "text-[#1d4ed8]",
-      bg: "bg-[#1d4ed8]/10",
-      title: "System check warning",
-      desc: "Starbucks checkout validation check timeout",
-      time: "3 hours ago",
-    },
-  ];
+  });
+
+  const pendingActions = analyticsData?.pendingActions || [];
+
+  const activities =
+    pendingActions.length > 0
+      ? pendingActions.map((item) => {
+          const isMerchant = item.type === "Merchant";
+          return {
+            icon: isMerchant ? Store : Tag,
+            color: isMerchant ? "text-[#2563eb]" : "text-[#3e80dd]",
+            bg: isMerchant ? "bg-[#2563eb]/10" : "bg-[#3e80dd]/10",
+            title: isMerchant
+              ? "New Merchant Application"
+              : "New Offer Submitted",
+            desc: `${item.name} (${item.type} Moderation Queue)`,
+            time: item.date || "Today",
+          };
+        })
+      : [
+          {
+            icon: Store,
+            color: "text-[#2563eb]",
+            bg: "bg-[#2563eb]/10",
+            title: "System Active",
+            desc: "All merchant applications up to date",
+            time: "Live",
+          },
+        ];
 
   return (
     <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col h-full hover:shadow-xs transition-all duration-200 p-0 gap-0 text-left">
@@ -69,11 +57,11 @@ export default function RecentActivityTimeline() {
             Recent Activity
           </CardTitle>
           <CardDescription className="text-[11px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
-            Latest events from your store
+            Live moderation events from your platform
           </CardDescription>
         </div>
         <Link
-          href="/admin/users"
+          href="/admin/approvals/merchants"
           className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-0.5"
         >
           <span>View all</span>

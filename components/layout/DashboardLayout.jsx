@@ -61,10 +61,16 @@ export default function DashboardLayout({ title, user, children }) {
     }
   }, [isLoaded, isLoggedIn, role, authUser?.id, pathname, router]);
 
-  if (!isLoaded) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-surface text-brand-text">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-brand-blue" />
+      <div className="min-h-screen flex items-center justify-center bg-white text-slate-900 font-sans">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-600" />
       </div>
     );
   }
@@ -73,7 +79,7 @@ export default function DashboardLayout({ title, user, children }) {
 
   return (
     <TooltipProvider>
-      <SidebarProvider style={{ "--sidebar-width": "240px" }}>
+      <SidebarProvider style={{ "--sidebar-width": "250px" }}>
         <div className="min-h-screen flex bg-white text-slate-900 font-sans w-full pb-14 md:pb-0">
           <AppSidebar />
           <SidebarInset className="bg-white flex-1 flex flex-col min-w-0 font-sans">
@@ -109,7 +115,9 @@ export default function DashboardLayout({ title, user, children }) {
               </div>
             )}
 
-            <main className="p-4 space-y-6 w-full grow bg-white">{children}</main>
+            <main className="p-4 space-y-6 w-full grow bg-white">
+              {children}
+            </main>
           </SidebarInset>
         </div>
 

@@ -1,43 +1,40 @@
 import { connectDB } from "@/lib/mongodb";
-import { requireRole } from "@/modules/auth/auth.middleware";
+import { dispatchEvent } from "@/lib/socket/dispatcher";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
+import { requireAuth, requireRole } from "@/modules/auth/auth.middleware";
 import {
   createCoupon,
-  getFeaturedCoupons,
-  getTrendingCoupons,
   listCoupons,
 } from "@/modules/coupon/coupon.service";
-import {
-  couponQuerySchema,
-  createCouponSchema,
-} from "@/modules/coupon/coupon.validation";
+import { createCouponSchema } from "@/modules/coupon/coupon.validation";
+import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
 
 /**
  * GET /api/coupons
- * Browse, search, and filter coupons. Public endpoint.
- *
- * Query params:
- *  - page, limit, category, search, city, discountType, sortBy, sortOrder
- *  - featured=true   → returns featured coupons (Redis cached)
- *  - trending=true   → returns trending coupons (Redis cached)
+ * Public: Browse active coupons (filtered).
+ * Merchant query (?merchant=me): Return merchant's own coupons regardless of status.
  */
 export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { searchParams } = new URL(request.url);
 
-  // Validate query params
-  couponQuerySchema.parse(Object.fromEntries(searchParams));
+  if (searchParams.get("merchant") === "me") {
+    const { user } = await requireAuth(request);
+    const merchant = await Merchant.findOne({ authId: user.id });
 
-  if (searchParams.get("featured") === "true") {
-    const coupons = await getFeaturedCoupons();
-    return ok({ coupons });
-  }
+    if (!merchant) {
+      return ok({ coupons: [] });
+    }
 
-  if (searchParams.get("trending") === "true") {
-    const coupons = await getTrendingCoupons();
-    return ok({ coupons });
+    const merchantParams = new URLSearchParams(searchParams);
+    merchantParams.set("merchantId", merchant._id.toString());
+    merchantParams.delete("status");
+
+    const result = await listCoupons(merchantParams);
+    return ok(result);
   }
 
   const result = await listCoupons(searchParams);
@@ -46,7 +43,7 @@ export const GET = asyncHandler(async (request) => {
 
 /**
  * POST /api/coupons
- * Create a coupon. Merchant only.
+ * Create a new coupon (Merchant or Admin).
  */
 export const POST = asyncHandler(async (request) => {
   await connectDB();
@@ -56,5 +53,39 @@ export const POST = asyncHandler(async (request) => {
   const data = createCouponSchema.parse(body);
 
   const coupon = await createCoupon(user.id, data);
+
+  const payload = {
+    couponId: coupon._id || coupon.id,
+    title: coupon.title,
+    code: coupon.code,
+    merchantId: coupon.merchantId,
+    status: coupon.status,
+    isVerified: coupon.isVerified,
+    createdAt: coupon.createdAt,
+  };
+
+  // 1. Broadcast event to Admins for review
+  await dispatchEvent({
+    target: "admins",
+    event: SOCKET_EVENTS.COUPON_SUBMITTED,
+    payload,
+  });
+
+  // 2. Confirmation & DB notification to merchant
+  await dispatchEvent({
+    target: "user",
+    userId: user.id,
+    event: SOCKET_EVENTS.COUPON_SUBMITTED_CONFIRMATION,
+    payload,
+    notify: {
+      userId: user.id,
+      type: "coupon_submitted",
+      category: "system",
+      title: "Coupon Submitted for Approval",
+      message: `Your offer listing '${coupon.title}' has been submitted and is currently under review by Vouchiqo moderation.`,
+      metadata: payload,
+    },
+  });
+
   return created(coupon, "Coupon created successfully");
 });

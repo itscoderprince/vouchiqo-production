@@ -32,6 +32,9 @@ export function useMerchantCoupons(merchantId) {
       );
       return json.data?.coupons || [];
     },
+    staleTime: 5_000,
+    refetchInterval: 3_000,
+    refetchOnWindowFocus: true,
   });
 }
 

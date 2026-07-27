@@ -1,4 +1,4 @@
-import { LoginForm } from "@/features/auth/components/login-form";
+import { LoginForm } from "@/features/auth";
 
 export const metadata = {
   title: "Sign In | Vouchiqo",

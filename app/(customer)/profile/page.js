@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 // Layout & Global Components
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ConfirmationModal from "@/components/shared/modals/ConfirmationModal";
+import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
@@ -271,20 +272,32 @@ function ProfileContent() {
     }
   };
 
+  const [removeClaimTarget, setRemoveClaimTarget] = useState(null);
+  const [removeClaimPending, setRemoveClaimPending] = useState(false);
+
   // Remove saved coupon claim
-  const handleRemoveClaim = async (e, claimId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const confirmRemove = window.confirm("Remove this offer from bookmarks?");
-    if (!confirmRemove) return;
+  const handleRemoveClaim = (e, claimId) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setRemoveClaimTarget(claimId);
+  };
+
+  const confirmRemoveClaim = async () => {
+    if (!removeClaimTarget) return;
     try {
-      const res = await fetch(`/api/claims/${claimId}`, { method: "DELETE" });
+      setRemoveClaimPending(true);
+      const res = await fetch(`/api/claims/${removeClaimTarget}`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Bookmark removed.");
-        setSavedClaims(savedClaims.filter((c) => c.claimId !== claimId));
+        setSavedClaims((prev) => prev.filter((c) => c.claimId !== removeClaimTarget));
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setRemoveClaimPending(false);
+      setRemoveClaimTarget(null);
     }
   };
 
@@ -482,6 +495,16 @@ function ProfileContent() {
           </div>
         </div>
       )}
+
+      {/* Confirm Remove Bookmark Modal */}
+      <ConfirmDeleteModal
+        open={!!removeClaimTarget}
+        onOpenChange={(open) => !open && setRemoveClaimTarget(null)}
+        title="Remove Saved Bookmark"
+        description="Are you sure you want to remove this offer from your saved bookmarks?"
+        onConfirm={confirmRemoveClaim}
+        isPending={removeClaimPending}
+      />
     </DashboardLayout>
   );
 }

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { COUPON_CATEGORIES, MERCHANT_STATUS } from "@/utils/constants";
+import { COUPON_CATEGORIES, MERCHANT_STATUS } from "../../utils/constants.js";
 
 /**
  * Merchant profile.
@@ -176,6 +176,11 @@ const merchantSchema = new Schema(
 
 merchantSchema.index({ status: 1, category: 1 });
 merchantSchema.index({ "location.city": 1, status: 1 });
+merchantSchema.index({ contactEmail: 1 }, { unique: true, sparse: true });
+merchantSchema.index({ contactPhone: 1 }, { unique: true, sparse: true });
+merchantSchema.index({ liaisonPhone: 1 }, { unique: true, sparse: true });
+merchantSchema.index({ gstin: 1 }, { unique: true, sparse: true });
+merchantSchema.index({ pan: 1 }, { unique: true, sparse: true });
 
 const Merchant =
   mongoose.models.Merchant ?? mongoose.model("Merchant", merchantSchema);

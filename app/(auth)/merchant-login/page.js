@@ -1,4 +1,4 @@
-import { MerchantLoginForm } from "@/features/auth/components/merchant-login-form";
+import { MerchantLoginForm } from "@/features/auth";
 
 export const metadata = {
   title: "Merchant Login | Vouchiqo",

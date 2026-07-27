@@ -36,7 +36,7 @@ export default function WelcomeModal({
 
         <div className="bg-slate-800/80 rounded-xl p-3.5 border border-slate-700/60 my-2 space-y-2 text-xs">
           <div className="flex items-center gap-2 text-emerald-400 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
             Founding Merchant Access Active
           </div>
           <p className="text-[11px] text-slate-400">

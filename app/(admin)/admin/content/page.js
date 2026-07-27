@@ -57,7 +57,7 @@ export default function PlatformContentSettings() {
 
   useEffect(() => {
     fetchSettings();
-  }, []);
+  }, [fetchSettings]);
 
   const handleSaveSetting = async (key, value) => {
     try {

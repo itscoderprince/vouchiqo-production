@@ -41,6 +41,7 @@ const CATEGORIES = [
   { id: "entertainment", label: "Gaming & Entertainment" },
   { id: "grocery", label: "Grocery & Essentials" },
   { id: "finance", label: "Finance & Insurance" },
+  { id: "others", label: "Others / Custom Category" },
 ];
 
 const DISCOUNT_TYPES = [
@@ -63,7 +64,7 @@ const LISTING_TYPES = [
 
 /**
  * CouponForm — create / edit a coupon listing.
- * Fully refactored to use the shared form component library.
+ * Fully organized with consistent 2-column grid spacing and UI/UX hierarchy.
  */
 export default function CouponForm({
   formData,
@@ -96,28 +97,30 @@ export default function CouponForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-start"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-start font-sans"
     >
-      {/* LEFT COLUMN */}
+      {/* LEFT COLUMN: Organized Form Input Cards */}
       <div className="lg:col-span-7 space-y-6">
-        {/* Listing Format Selector */}
+        {/* Listing Format Selector (Only when creating) */}
         {!isEdit && setListingType && (
-          <Card className="border-brand-border shadow-sm rounded-2xl bg-brand-bg p-5 space-y-3">
+          <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-4">
             <FormSection title="Choose Listing Format" icon={Settings} noBorder>
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {LISTING_TYPES.map((t) => (
                   <button
                     key={t.id}
                     type="button"
                     onClick={() => setListingType(t.id)}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer ${
                       listingType === t.id
-                        ? "border-blue-600 bg-blue-50/50 shadow-sm font-bold text-slate-900"
+                        ? "border-blue-600 bg-blue-50/50 shadow-2xs font-bold text-slate-900"
                         : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                     }`}
                   >
-                    <span className="block text-xs font-bold">{t.label}</span>
-                    <span className="block text-[10px] text-brand-subtext font-medium mt-0.5 leading-snug">
+                    <span className="block text-xs font-bold text-slate-900">
+                      {t.label}
+                    </span>
+                    <span className="block text-[10px] text-slate-500 font-medium mt-1 leading-snug">
                       {t.desc}
                     </span>
                   </button>
@@ -128,8 +131,12 @@ export default function CouponForm({
         )}
 
         {/* Card 1: Main Offer Details */}
-        <Card className="border-brand-border shadow-sm rounded-2xl bg-brand-bg p-6 space-y-5">
-          <FormSection title="Edit Campaign Details" icon={FileText} noBorder>
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5">
+          <FormSection
+            title={isEdit ? "Edit Offer Details" : "Offer Details"}
+            icon={FileText}
+            noBorder
+          >
             <FormInput
               name="title"
               label="Offer Title / Headline"
@@ -141,7 +148,7 @@ export default function CouponForm({
               required
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormSelect
                 name="category"
                 label="Category"
@@ -166,11 +173,24 @@ export default function CouponForm({
                     e.target.value.toUpperCase().replace(/\s/g, ""),
                   )
                 }
+                className="font-mono uppercase font-bold"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {formData.category === "others" && (
+              <FormInput
+                name="customCategory"
+                label="Custom Category Name"
+                icon={Layers}
+                placeholder="Specify custom offer category"
+                value={formData.customCategory || ""}
+                onChange={(e) => update("customCategory", e.target.value)}
+                required
+              />
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormSelect
                 name="discountType"
                 label="Discount Type"
@@ -193,7 +213,7 @@ export default function CouponForm({
 
             <FormTextarea
               name="description"
-              label="Terms / Description"
+              label="Terms &amp; Short Description"
               icon={MessageSquare}
               rows={3}
               placeholder="Enjoy great deals and savings on your order..."
@@ -206,14 +226,14 @@ export default function CouponForm({
           </FormSection>
         </Card>
 
-        {/* Card 2: Limits & Expiry */}
-        <Card className="border-brand-border shadow-sm rounded-2xl bg-brand-bg p-6 space-y-5">
+        {/* Card 2: Limits, Expiry & Status */}
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5">
           <FormSection
-            title="Limits & Expiry Details"
+            title="Validity, Limits &amp; Status"
             icon={CalendarIcon}
             noBorder
           >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <FormDatePicker
                 name="expiresAt"
                 label="Expiry Date"
@@ -235,7 +255,7 @@ export default function CouponForm({
               {isEdit && (
                 <FormSelect
                   name="status"
-                  label="Campaign Status"
+                  label="Offer Status"
                   icon={Settings}
                   options={STATUS_OPTIONS}
                   value={formData.status}
@@ -244,15 +264,16 @@ export default function CouponForm({
               )}
             </div>
 
-            {/* Featured placement toggle */}
-            <div className="border-t border-brand-border pt-4 mt-2">
+            {/* Featured placement toggle card */}
+            <div className="border-t border-slate-100 pt-4 mt-2 p-4 bg-slate-50/70 rounded-2xl border border-slate-200/80">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-brand-text block">
+                  <span className="text-xs font-bold text-slate-900 block">
                     Featured Homepage Placement
                   </span>
-                  <span className="text-[11px] text-brand-subtext font-medium">
-                    Pin this deal to the homepage hero grid for 5x visibility.
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Pin this deal to the homepage hero grid for 5x customer
+                    visibility.
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -282,12 +303,13 @@ export default function CouponForm({
         </Card>
       </div>
 
-      {/* RIGHT COLUMN: Real-Time Card Preview */}
+      {/* RIGHT COLUMN: Sticky Real-Time Live Card Preview */}
       <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-6">
-        <Card className="border-brand-border shadow-sm rounded-2xl bg-brand-bg p-5 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-brand-border">
-            <span className="flex items-center gap-1.5 text-xs font-bold text-brand-text uppercase tracking-wider">
-              <Eye className="w-4 h-4 text-blue-600" /> Real-Time Card Preview
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <Eye className="w-4 h-4 text-blue-600" /> Real-Time Live Card
+              Preview
             </span>
             <Badge
               variant="outline"
@@ -297,10 +319,10 @@ export default function CouponForm({
             </Badge>
           </div>
 
-          <div className="border border-brand-border rounded-2xl overflow-hidden bg-brand-bg shadow-sm">
-            {/* Image hero */}
+          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs">
+            {/* Image Hero */}
             <div
-              className="h-32 bg-brand-navy relative flex items-end p-4 bg-cover bg-center"
+              className="h-36 bg-slate-900 relative flex items-end p-4 bg-cover bg-center"
               style={{
                 backgroundImage: formData.image
                   ? `url(${formData.image})`
@@ -309,10 +331,10 @@ export default function CouponForm({
             >
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
               <div className="relative z-10 flex items-center justify-between w-full">
-                <Badge className="bg-brand-blue text-white font-bold text-[9px] uppercase px-2 py-0.5 border-0">
+                <Badge className="bg-blue-600 text-white font-bold text-[9px] uppercase px-2 py-0.5 border-0">
                   {selectedCategory.label}
                 </Badge>
-                <span className="text-white text-[10px] font-bold bg-black/50 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20">
+                <span className="text-white text-[10px] font-bold bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20">
                   {merchantName}
                 </span>
               </div>
@@ -320,27 +342,27 @@ export default function CouponForm({
 
             <div className="p-4 space-y-3.5">
               <div>
-                <h4 className="text-sm font-black text-brand-text leading-snug">
+                <h4 className="text-sm font-black text-slate-900 leading-snug">
                   {formData.title || "Free Drink with Meal"}
                 </h4>
-                <p className="text-[11px] text-brand-subtext font-medium mt-1 line-clamp-2">
+                <p className="text-[11px] text-slate-500 font-medium mt-1 line-clamp-2">
                   {formData.description ||
                     "Enjoy great deals and savings on Free Drink with Meal."}
                 </p>
               </div>
 
-              <div className="p-3 bg-brand-surface rounded-xl border border-brand-border text-center space-y-0.5">
-                <span className="text-[10px] font-bold text-brand-subtext uppercase tracking-wider block">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Use Promo Code
                 </span>
-                <span className="font-mono text-base font-black text-brand-text uppercase tracking-widest block">
+                <span className="font-mono text-base font-black text-slate-900 uppercase tracking-widest block">
                   {formData.code || "FREEDRINK"}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-brand-subtext border-t border-brand-border pt-3">
+              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-500 border-t border-slate-100 pt-3">
                 <div>
-                  <span className="block text-[10px] text-brand-subtext font-bold uppercase">
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">
                     Discount
                   </span>
                   <span className="text-blue-600 font-black">
@@ -348,10 +370,10 @@ export default function CouponForm({
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[10px] text-brand-subtext font-bold uppercase">
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">
                     Valid Until
                   </span>
-                  <span className="text-brand-text font-bold">
+                  <span className="text-slate-900 font-bold">
                     {formData.expiresAt
                       ? new Date(formData.expiresAt).toLocaleDateString(
                           "en-US",

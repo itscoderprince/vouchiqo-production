@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Merchant from "@/modules/merchant/merchant.model";
 import UserProfile from "@/modules/user/user.model";
 import { NotFoundError } from "@/utils/app-error";
 
@@ -10,9 +11,14 @@ import { NotFoundError } from "@/utils/app-error";
  */
 export async function getOrCreateProfile(authId, defaultRole = "customer") {
   let profile = await UserProfile.findOne({ authId });
+  const isMerchant = await Merchant.exists({ authId });
+  const targetRole = isMerchant ? "merchant" : (profile?.role || defaultRole);
 
   if (!profile) {
-    profile = await UserProfile.create({ authId, role: defaultRole });
+    profile = await UserProfile.create({ authId, role: targetRole });
+  } else if (isMerchant && profile.role !== "merchant") {
+    profile.role = "merchant";
+    await profile.save();
   }
 
   return profile;

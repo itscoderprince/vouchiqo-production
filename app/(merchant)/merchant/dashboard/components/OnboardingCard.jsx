@@ -49,7 +49,9 @@ export default function OnboardingCard({
               <div className="text-[9px] font-extrabold text-blue-600 uppercase tracking-widest">
                 Step 1
               </div>
-              <h4 className="text-xs font-bold text-slate-900">Complete Business Profile</h4>
+              <h4 className="text-xs font-bold text-slate-900">
+                Complete Business Profile
+              </h4>
               <p className="text-[10px] text-slate-600 leading-snug font-medium">
                 Add details, location coordinates (Marbella prioritized), logo,
                 and set your business hours.
@@ -69,7 +71,9 @@ export default function OnboardingCard({
               <div className="text-[9px] font-extrabold text-blue-600 uppercase tracking-widest">
                 Step 2
               </div>
-              <h4 className="text-xs font-bold text-slate-900">Verify Plan & Billing</h4>
+              <h4 className="text-xs font-bold text-slate-900">
+                Verify Plan & Billing
+              </h4>
               <p className="text-[10px] text-slate-600 leading-snug font-medium">
                 Upgrade to Pro or Enterprise for unlocked revival limits and
                 automatic coupon approvals.
@@ -89,7 +93,9 @@ export default function OnboardingCard({
               <div className="text-[9px] font-extrabold text-blue-600 uppercase tracking-widest">
                 Step 3
               </div>
-              <h4 className="text-xs font-bold text-slate-900">Post Your First Coupon</h4>
+              <h4 className="text-xs font-bold text-slate-900">
+                Post Your First Coupon
+              </h4>
               <p className="text-[10px] text-slate-600 leading-snug font-medium">
                 Submit your promo code, discount rules, was/now prices, and
                 custom target tags.

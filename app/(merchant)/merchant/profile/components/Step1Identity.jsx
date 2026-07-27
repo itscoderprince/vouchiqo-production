@@ -21,6 +21,7 @@ const CATEGORIES = [
   { value: "entertainment", label: "Gaming & Entertainment" },
   { value: "grocery", label: "Grocery & Essentials" },
   { value: "finance", label: "Finance & Insurance" },
+  { value: "others", label: "Others / Custom Category" },
 ];
 
 const CONSTITUTIONS = [
@@ -38,10 +39,28 @@ const DESIGNATIONS = [
 ];
 
 export default function Step1Identity({
-  formData,
-  setFormData,
-  handleBusinessNameChange,
+  register,
+  setValue,
+  watch,
+  errors,
+  isEditingExisting = false,
 }) {
+  const selectedConstitution = watch("constitution");
+  const selectedCategory = watch("category");
+  const selectedDesignation = watch("liaisonDesignation");
+
+  const handleBusinessNameChange = (e) => {
+    const val = e.target.value;
+    setValue("businessName", val, { shouldValidate: true });
+    if (!isEditingExisting) {
+      const generatedSlug = val
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+      setValue("slug", generatedSlug, { shouldValidate: true });
+    }
+  };
+
   return (
     <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5 text-left font-sans">
       <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
@@ -59,98 +78,105 @@ export default function Step1Identity({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormInput
-          name="businessName"
           label="Legal Entity Corporate Name"
           icon={Store}
           placeholder="e.g. Burger House Pvt Ltd"
-          value={formData.businessName}
-          onChange={handleBusinessNameChange}
           required
+          {...register("businessName")}
+          onChange={handleBusinessNameChange}
+          error={errors.businessName}
         />
 
         <FormInput
-          name="slug"
           label="Consumer Trade Brand Name"
           icon={Link2}
           placeholder="e.g. Burger House"
-          value={formData.slug}
+          {...register("slug")}
           onChange={(e) =>
-            setFormData({
-              ...formData,
-              slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
-            })
+            setValue(
+              "slug",
+              e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
+              { shouldValidate: true },
+            )
           }
+          error={errors.slug}
           hint="Sub-domain slug for your offer page"
         />
 
         <FormSelect
-          name="constitution"
           label="Business Constitution Type"
           icon={Briefcase}
           options={CONSTITUTIONS}
-          value={formData.constitution || "proprietorship"}
-          onValueChange={(val) =>
-            setFormData({ ...formData, constitution: val })
-          }
           required
+          value={selectedConstitution || "proprietorship"}
+          onValueChange={(val) =>
+            setValue("constitution", val, { shouldValidate: true })
+          }
+          error={errors.constitution}
         />
 
         <FormSelect
-          name="category"
           label="Primary Industry Vertical"
           icon={Store}
           options={CATEGORIES}
-          value={formData.category || "food"}
-          onValueChange={(val) => setFormData({ ...formData, category: val })}
           required
+          value={selectedCategory || "food"}
+          onValueChange={(val) =>
+            setValue("category", val, { shouldValidate: true })
+          }
+          error={errors.category}
         />
 
+        {selectedCategory === "others" && (
+          <div className="col-span-full">
+            <FormInput
+              label="Custom Category Name / Description"
+              icon={Store}
+              placeholder="Specify your custom business category (e.g. Handmade Crafts, Event Management)"
+              required
+              {...register("customCategoryNotes")}
+              error={errors.customCategoryNotes}
+            />
+          </div>
+        )}
+
         <FormInput
-          name="contactEmail"
           label="Official Contact Email"
           icon={Mail}
           type="email"
           placeholder="contact@business.com"
-          value={formData.contactEmail}
-          onChange={(e) =>
-            setFormData({ ...formData, contactEmail: e.target.value })
-          }
           required
+          {...register("contactEmail")}
+          error={errors.contactEmail}
         />
 
         <FormInput
-          name="contactPhone"
           label="Primary Phone Number"
           icon={Phone}
           type="tel"
           placeholder="10-digit mobile number"
-          value={formData.contactPhone}
-          onChange={(e) =>
-            setFormData({ ...formData, contactPhone: e.target.value })
-          }
           required
+          {...register("contactPhone")}
+          error={errors.contactPhone}
         />
 
         <FormInput
-          name="liaisonName"
           label="Primary Contact Representative"
           icon={User}
           placeholder="Full Name"
-          value={formData.liaisonName}
-          onChange={(e) =>
-            setFormData({ ...formData, liaisonName: e.target.value })
-          }
+          {...register("liaisonName")}
+          error={errors.liaisonName}
         />
 
         <FormSelect
-          name="liaisonDesignation"
           label="Representative Position"
           icon={Briefcase}
           options={DESIGNATIONS}
-          value={formData.liaisonDesignation || "owner"}
+          value={selectedDesignation || "owner"}
           onValueChange={(val) =>
-            setFormData({ ...formData, liaisonDesignation: val })
+            setValue("liaisonDesignation", val, { shouldValidate: true })
           }
+          error={errors.liaisonDesignation}
         />
       </div>
     </Card>

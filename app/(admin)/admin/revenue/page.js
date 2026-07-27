@@ -20,7 +20,26 @@ export default function PlatformRevenue() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchRevenueData = async () => {
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const resData = await adminFetchRevenueData();
+        if (isMounted) setData(resData);
+      } catch (err) {
+        if (isMounted) showError("Failed to fetch revenue details.");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRefresh = async () => {
     try {
       setLoading(true);
       const resData = await adminFetchRevenueData();
@@ -31,10 +50,6 @@ export default function PlatformRevenue() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchRevenueData();
-  }, []);
 
   const handleMarkAsPaid = async (payoutId) => {
     try {

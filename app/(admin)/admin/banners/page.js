@@ -17,6 +17,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable from "@/components/shared/data/DataTable";
 import StatusBadge from "@/components/shared/data/StatusBadge";
 import { FormInput, FormSelect } from "@/components/shared/form";
+import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -127,18 +128,29 @@ export default function BannerManagement() {
     }
   };
 
-  const handleDeleteBanner = async (bannerId) => {
-    if (!confirm("Are you sure you want to delete this banner?")) return;
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletePending, setDeletePending] = useState(false);
+
+  const handleDeleteBanner = async (banner) => {
+    setDeleteTarget(banner);
+  };
+
+  const confirmDeleteBanner = async () => {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/admin/banners?id=${bannerId}`, {
+      setDeletePending(true);
+      const res = await fetch(`/api/admin/banners?id=${deleteTarget._id}`, {
         method: "DELETE",
       });
       if (res.ok) {
         showSuccess("Banner deleted successfully!");
-        setBanners((prev) => prev.filter((b) => b._id !== bannerId));
+        setBanners((prev) => prev.filter((b) => b._id !== deleteTarget._id));
       }
     } catch (err) {
       showError("Failed to delete banner.");
+    } finally {
+      setDeletePending(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -150,7 +162,7 @@ export default function BannerManagement() {
       cell: (r) => (
         <div className="flex items-center gap-3">
           {r.image
-            ? // eslint-disable-next-line @next/next/no-img-element
+            ? 
               <img
                 src={r.image}
                 alt={r.title}
@@ -211,7 +223,7 @@ export default function BannerManagement() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => handleDeleteBanner(r._id)}
+            onClick={() => handleDeleteBanner(r)}
             className="text-rose-600 border-rose-200 hover:bg-rose-50 h-7 w-7 p-0 shadow-none cursor-pointer rounded-lg flex items-center justify-center shrink-0"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -223,78 +235,84 @@ export default function BannerManagement() {
 
   return (
     <DashboardLayout
-      title="Hero Banners & Ads"
-      user={{ name: "Platform Admin", role: "admin" }}
+      title="Promo Banner Management"
+      user={{ name: "Super Admin", role: "admin" }}
     >
       <div className="space-y-6 text-left font-sans w-full">
-        <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-blue-600" /> Hero Section Promotional
-          Carousel Banners
-        </h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <ImageIcon className="w-6 h-6 text-[#e85d04]" /> Hero Banner
+              Management (/admin/banners)
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Configure home page hero slot slides, subtitles &amp; direct routing
+              links.
+            </p>
+          </div>
+        </div>
 
-        {/* Create Banner Form */}
-        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 text-left">
-          <form onSubmit={handleCreateBanner} className="space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
-              Create New Promotional Banner
-            </h3>
+        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 text-left">
+          <form onSubmit={handleCreateBanner} className="space-y-5">
+            <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-[#e85d04]" />
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Create New Banner Slide
+              </h2>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
-                name="title"
-                label="Main Title Heading"
+                label="Banner Title"
                 icon={Type}
-                placeholder="e.g. MEGA SUMMER SALE"
+                placeholder="e.g. Pre-Diwali Grand Festival Sale"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 required
               />
               <FormInput
-                name="subtitle"
-                label="Subheading / Offer Text"
+                label="Sub-headline / Tagline"
                 icon={FileText}
-                placeholder="e.g. Up to 50% Off Top Brands"
+                placeholder="e.g. Extra 20% OFF on Jewellers across Ranchi"
                 value={form.subtitle}
                 onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormSelect
+                label="Display Slot Position"
+                icon={LayoutGrid}
+                options={SLOT_OPTIONS}
+                value={form.slot}
+                onValueChange={(val) => setForm({ ...form, slot: val })}
+              />
               <FormInput
-                name="buttonText"
                 label="Button CTA Text"
                 icon={MousePointerClick}
-                placeholder="Explore"
+                placeholder="e.g. Claim Now"
                 value={form.buttonText}
                 onChange={(e) =>
                   setForm({ ...form, buttonText: e.target.value })
                 }
               />
               <FormInput
-                name="image"
-                label="Banner Background Image URL"
-                icon={ImageIcon}
-                placeholder="https://..."
-                value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                required
-              />
-              <FormInput
-                name="link"
-                label="Redirect Target Link"
+                label="Destination Route Link"
                 icon={LinkIcon}
-                placeholder="https://vouchiqo.com/deals/..."
+                placeholder="e.g. /deals?category=jewelry"
                 value={form.link}
                 onChange={(e) => setForm({ ...form, link: e.target.value })}
-                required
-              />
-              <FormSelect
-                name="slot"
-                label="Target Display Placement"
-                icon={LayoutGrid}
-                options={SLOT_OPTIONS}
-                value={form.slot}
-                onValueChange={(val) => setForm({ ...form, slot: val })}
-                required
               />
             </div>
+
+            <FormInput
+              label="Banner Image URL (Unsplash or Cloudinary)"
+              icon={ImageIcon}
+              placeholder="https://images.unsplash.com/photo-1515562141207..."
+              value={form.image}
+              onChange={(e) => setForm({ ...form, image: e.target.value })}
+              required
+            />
 
             <div className="flex justify-end pt-2">
               <Button
@@ -311,7 +329,6 @@ export default function BannerManagement() {
           </form>
         </Card>
 
-        {/* Existing Banners List */}
         <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 text-left">
           <DataTable
             columns={columns}
@@ -324,6 +341,15 @@ export default function BannerManagement() {
           />
         </Card>
       </div>
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Delete Promotional Banner"
+        itemName={deleteTarget?.title}
+        onConfirm={confirmDeleteBanner}
+        isPending={deletePending}
+      />
     </DashboardLayout>
   );
 }

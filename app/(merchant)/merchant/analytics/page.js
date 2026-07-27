@@ -15,7 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -39,93 +39,32 @@ import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import FormSelect from "@/components/shared/form/FormSelect";
 import { Button } from "@/components/ui/button";
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const DEMO_TRAFFIC_SOURCES = [
-  { name: "Homepage Ticker & Banners", value: 38, color: "#2563eb" },
-  { name: "Category & Search Pages", value: 28, color: "#0f2137" },
-  { name: "Direct Referral Links", value: 22, color: "#10b981" },
-  { name: "Social & Push Alerts", value: 12, color: "#8b5cf6" },
-];
-
-const DEMO_MONTHLY_TREND = [
-  { label: "Jan", clicks: 20, redemptions: 5 },
-  { label: "Feb", clicks: 10, redemptions: 2 },
-  { label: "Mar", clicks: 25, redemptions: 8 },
-  { label: "Apr", clicks: 12, redemptions: 3 },
-  { label: "May", clicks: 35, redemptions: 15 },
-  { label: "Jun", clicks: 18, redemptions: 6 },
-  { label: "Jul", clicks: 30, redemptions: 10 },
-  { label: "Aug", clicks: 15, redemptions: 4 },
-  { label: "Sep", clicks: 40, redemptions: 18 },
-  { label: "Oct", clicks: 22, redemptions: 7 },
-  { label: "Nov", clicks: 32, redemptions: 12 },
-  { label: "Dec", clicks: 15, redemptions: 5 },
-];
-
-const DEMO_WEEKLY_TREND = [
-  { label: "Week 1", clicks: 15, redemptions: 5 },
-  { label: "Week 2", clicks: 35, redemptions: 15 },
-  { label: "Week 3", clicks: 20, redemptions: 8 },
-  { label: "Week 4", clicks: 40, redemptions: 18 },
-];
-
-const DEMO_WEEKDAY_TREND = [
-  { label: "Mon", clicks: 60, redemptions: 37 },
-  { label: "Tue", clicks: 10, redemptions: 24 },
-  { label: "Wed", clicks: 50, redemptions: 24 },
-  { label: "Thu", clicks: 15, redemptions: 12 },
-  { label: "Fri", clicks: 40, redemptions: 23 },
-  { label: "Sat", clicks: 25, redemptions: 8 },
-  { label: "Sun", clicks: 30, redemptions: 10 },
-];
-
-const DEMO_TOP_COUPONS_ALL = [
-  { name: "Flat ₹500 Off", code: "FLAT500", redemptions: 184 },
-  { name: "20% Welcome Offer", code: "WELCOME20", redemptions: 142 },
-  { name: "Summer Special 30%", code: "SUMMER30", redemptions: 98 },
-  { name: "Festive Flash Sale", code: "FESTIVE15", redemptions: 64 },
-  { name: "Mega ₹100 Discount", code: "MEGA100", redemptions: 45 },
-];
-
-const DEMO_TOP_COUPONS_MONTH = [
-  { name: "Summer Special 30%", code: "SUMMER30", redemptions: 78 },
-  { name: "Flat ₹500 Off", code: "FLAT500", redemptions: 64 },
-  { name: "20% Welcome Offer", code: "WELCOME20", redemptions: 52 },
-  { name: "Mega ₹100 Discount", code: "MEGA100", redemptions: 31 },
-  { name: "Festive Flash Sale", code: "FESTIVE15", redemptions: 24 },
-];
-
-const DEMO_TOP_COUPONS_WEEK = [
-  { name: "20% Welcome Offer", code: "WELCOME20", redemptions: 28 },
-  { name: "Flat ₹500 Off", code: "FLAT500", redemptions: 22 },
-  { name: "Summer Special 30%", code: "SUMMER30", redemptions: 18 },
-  { name: "Festive Flash Sale", code: "FESTIVE15", redemptions: 12 },
-  { name: "Mega ₹100 Discount", code: "MEGA100", redemptions: 9 },
-];
-
-const DEMO_DAY_DATA = [
-  { day: "Mon", value: 48 },
-  { day: "Tue", value: 72 },
-  { day: "Wed", value: 95 },
-  { day: "Thu", value: 120 },
-  { day: "Fri", value: 186 },
-  { day: "Sat", value: 164 },
-  { day: "Sun", value: 105 },
-];
+const TOOLTIP_STYLE = {
+  contentStyle: {
+    backgroundColor: "#0f172a",
+    borderRadius: "8px",
+    border: "none",
+    color: "#fff",
+    fontSize: "12px",
+  },
+  labelStyle: { fontSize: "10px", color: "#94a3b8" },
+  itemStyle: { fontSize: "12px", color: "#fff" },
+};
 
 export default function MerchantAnalytics() {
   const [timeRange, setTimeRange] = useState("30");
-  const [trendFilter, setTrendFilter] = useState("month");
   const [couponFilter, setCouponFilter] = useState("all");
 
+  // ── 1. TANSTACK QUERY DATA FETCHING ──
   const { data: merchant, isLoading: loadingProfile } = useQuery({
     queryKey: ["merchant-profile"],
     queryFn: async () => {
       const res = await fetch("/api/merchants/me");
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to fetch merchant profile");
       const json = await res.json();
       return json.data;
     },
+    staleTime: 30000,
   });
 
   const { data: analyticsData, isLoading: loadingAnalytics } = useQuery({
@@ -138,26 +77,18 @@ export default function MerchantAnalytics() {
       const json = await res.json();
       return json.data;
     },
+    staleTime: 30000,
   });
 
-  if (loadingProfile || loadingAnalytics) {
-    return (
-      <DashboardLayout title="Store Analytics" user={{ role: "merchant" }}>
-        <DashboardSkeleton mode="dashboard" />
-      </DashboardLayout>
-    );
-  }
-
-  // Compute whether merchant has active growth or pro plan
+  // ── 2. COMPUTED METRICS FROM DB ──
   const plan = merchant?.plan || "starter";
   const isGrowthPlus = plan !== "starter";
 
-  const overviewStats = analyticsData?.overview ?? {};
   const kpi = analyticsData?.kpi ?? {};
   const trendData = analyticsData?.trend ?? [];
-  const trafficSourcesData =
-    analyticsData?.trafficSources ?? DEMO_TRAFFIC_SOURCES;
-  const weekdayTrendData = analyticsData?.weekdayTrend ?? DEMO_WEEKDAY_TREND;
+  const trafficSourcesRaw = analyticsData?.trafficSources ?? [];
+  const weekdayTrendData = analyticsData?.weekdayTrend ?? [];
+  const topCouponsRaw = analyticsData?.topCoupons ?? [];
 
   const totalClicks = kpi.totalClicks ?? merchant?.totalClicks ?? 0;
   const totalClaims = kpi.totalClaims ?? merchant?.totalClaims ?? 0;
@@ -166,108 +97,151 @@ export default function MerchantAnalytics() {
   const totalImpressions =
     kpi.totalImpressions ?? merchant?.totalImpressions ?? 0;
   const redemptionRate = kpi.redemptionRate ?? "0.0%";
-  const storePageViews = kpi.storePageViews ?? merchant?.storePageViews ?? 0;
-  const totalRevenue = trendData.reduce((s, t) => s + (t.revenue || 0), 0);
+
+  // Calculate Revenue and Average Order Value (AOV) from DB
+  const totalRevenue = useMemo(() => {
+    return topCouponsRaw.reduce(
+      (sum, c) => sum + (c.totalRedemptions || 0) * (c.discountValue || 100),
+      0,
+    );
+  }, [topCouponsRaw]);
+
   const aov =
     totalRedemptions > 0 ? Math.round(totalRevenue / totalRedemptions) : 0;
 
-  const demoTrendSet =
-    trendFilter === "week"
-      ? DEMO_WEEKLY_TREND
-      : trendFilter === "weekday"
-        ? weekdayTrendData
-        : DEMO_MONTHLY_TREND;
+  // Traffic Sources Chart Data (100% Dynamic from DB)
+  const trafficSources = useMemo(() => {
+    if (!trafficSourcesRaw || trafficSourcesRaw.length === 0) {
+      return [{ name: "Direct & Search", value: 100, color: "#2563eb" }];
+    }
+    const totalVal = trafficSourcesRaw.reduce(
+      (sum, s) => sum + (s.value || 0),
+      0,
+    );
+    if (totalVal === 0) {
+      return [{ name: "Direct & Search", value: 100, color: "#2563eb" }];
+    }
+    return trafficSourcesRaw.map((s) => ({
+      name: s.name,
+      value: Math.round(((s.value || 0) / totalVal) * 100) || 0,
+      color: s.color || "#2563eb",
+    }));
+  }, [trafficSourcesRaw]);
 
-  const enrichedTrend =
-    trendData && trendData.length > 0 ? trendData : demoTrendSet;
+  // Weekday Performance Chart Data (100% Dynamic from DB)
+  const dayData = useMemo(() => {
+    if (!weekdayTrendData || weekdayTrendData.length === 0) {
+      return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
+        day,
+        value: 0,
+      }));
+    }
+    return weekdayTrendData.map((d) => ({
+      day: d.label,
+      value: d.redemptions || 0,
+    }));
+  }, [weekdayTrendData]);
 
-  const top5 =
-    analyticsData?.topCoupons && analyticsData.topCoupons.length > 0
-      ? analyticsData.topCoupons.map((c) => ({
-          name: c.title,
-          code: c.code || "OFFER",
-          redemptions: c.totalRedemptions || 0,
-          clicks: c.clickCount || 0,
-          impressions: c.impressionCount || 0,
-        }))
-      : DEMO_TOP_COUPONS_ALL;
+  // Peak Day calculation
+  const peakDay = useMemo(() => {
+    if (!dayData || dayData.length === 0) return "Mon";
+    const max = Math.max(...dayData.map((d) => d.value));
+    if (max === 0) return "Mon";
+    return dayData.find((d) => d.value === max)?.day || "Mon";
+  }, [dayData]);
 
-  const dayData =
-    trendData &&
-    trendData.length > 0 &&
-    trendData.some((t) => (t.orders || 0) > 0)
-      ? DAYS.map((day, i) => ({
-          day,
-          value: Math.round(
-            trendData.reduce((s, t) => s + (t.orders || 0), 0) *
-              [0.08, 0.12, 0.14, 0.18, 0.2, 0.17, 0.11][i],
-          ),
-        }))
-      : DEMO_DAY_DATA;
+  // Top 5 Coupons Array (100% Dynamic from DB)
+  const top5Coupons = useMemo(() => {
+    if (!topCouponsRaw || topCouponsRaw.length === 0) return [];
+    return topCouponsRaw.slice(0, 5).map((c) => ({
+      name: c.title,
+      code: c.code || "OFFER",
+      redemptions: c.totalRedemptions || 0,
+      clicks: c.clickCount || 0,
+      impressions: c.impressionCount || 0,
+    }));
+  }, [topCouponsRaw]);
 
-  const tableRows =
-    analyticsData?.topCoupons && analyticsData.topCoupons.length > 0
-      ? analyticsData.topCoupons.map((c) => ({
-          id: c._id || c.title,
-          title: c.title,
-          code: c.code || "—",
-          clicks: c.clickCount || c.viewCount || 0,
-          redemptions: c.totalRedemptions || 0,
-          successRate:
-            (c.clickCount || c.viewCount || 0) > 0
-              ? parseFloat(
-                  (
-                    ((c.totalRedemptions || 0) /
-                      (c.clickCount || c.viewCount || 1)) *
-                    100
-                  ).toFixed(1),
-                )
-              : 0,
-          revenue: (c.totalRedemptions || 0) * (c.discountValue || 100),
-          aov: c.discountValue || 100,
-          status: c.status || "active",
-        }))
-      : Object.entries(overviewStats).map(([id, s]) => ({
-          id,
-          title: s.title || id,
-          code: s.code || "—",
-          clicks: s.views || s.clicks || 0,
-          redemptions: s.redemptions || 0,
-          successRate:
-            (s.views || 0) > 0
-              ? parseFloat(((s.redemptions / s.views) * 100).toFixed(1))
-              : 0,
-          revenue: s.revenue || 0,
-          aov:
-            (s.redemptions || 0) > 0
-              ? Math.round((s.revenue || 0) / s.redemptions)
-              : 0,
-          status: s.isActive !== false ? "active" : "paused",
-        }));
+  // DataTable Rows (100% Dynamic from DB)
+  const tableRows = useMemo(() => {
+    if (!topCouponsRaw || topCouponsRaw.length === 0) return [];
+    return topCouponsRaw.map((c) => {
+      const clicks = c.clickCount || c.viewCount || 0;
+      const redemptions = c.totalRedemptions || 0;
+      const successRate =
+        clicks > 0 ? parseFloat(((redemptions / clicks) * 100).toFixed(1)) : 0;
+      const revenue = redemptions * (c.discountValue || 100);
 
+      return {
+        id: c._id || c.title,
+        title: c.title,
+        code: c.code || "—",
+        clicks,
+        redemptions,
+        successRate,
+        revenue,
+        status: c.status || "active",
+      };
+    });
+  }, [topCouponsRaw]);
+
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    if (!tableRows || tableRows.length === 0) {
+      alert("No analytics data available to export.");
+      return;
+    }
+    const headers = [
+      "Coupon Title",
+      "Code",
+      "Clicks",
+      "Redemptions",
+      "Success Rate (%)",
+      "Revenue (INR)",
+      "Status",
+    ];
+    const rows = tableRows.map(
+      (r) =>
+        `"${r.title.replace(/"/g, '""')}","${r.code}",${r.clicks},${r.redemptions},${r.successRate},${r.revenue},"${r.status}"`,
+    );
+    const csvContent = `\uFEFF${[headers.join(","), ...rows].join("\n")}`;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `vouchiqo_analytics_${timeRange}d_${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // DataTable Columns
   const tableColumns = [
     {
       key: "title",
-      header: "Coupon",
+      header: "Coupon Title",
       sortable: true,
       cell: (row) => (
-        <span className="font-bold text-slate-800 truncate block max-w-[160px]">
+        <span className="font-bold text-slate-800 truncate block max-w-[180px]">
           {row.title}
         </span>
       ),
     },
     {
       key: "code",
-      header: "Code",
+      header: "Offer Code",
       cell: (row) => (
-        <span className="font-mono text-xs text-slate-500 uppercase">
+        <span className="font-mono text-xs text-slate-600 uppercase font-bold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
           {row.code}
         </span>
       ),
     },
     {
       key: "clicks",
-      header: "Clicks",
+      header: "Total Clicks",
       sortable: true,
       cell: (row) => (
         <span className="text-right block font-medium">
@@ -287,11 +261,15 @@ export default function MerchantAnalytics() {
     },
     {
       key: "successRate",
-      header: "Success Rate",
+      header: "Conversion Rate",
       sortable: true,
       cell: (row) => (
         <span
-          className={`text-xs font-bold px-2 py-0.5 rounded-full block text-center ${row.successRate >= 10 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+          className={`text-xs font-bold px-2 py-0.5 rounded-full block text-center ${
+            row.successRate >= 10
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-slate-100 text-slate-600"
+          }`}
         >
           {row.successRate}%
         </span>
@@ -299,7 +277,7 @@ export default function MerchantAnalytics() {
     },
     {
       key: "revenue",
-      header: "Revenue",
+      header: "Estimated Revenue",
       sortable: true,
       cell: (row) => (
         <span className="text-right block font-black text-slate-900">
@@ -314,6 +292,16 @@ export default function MerchantAnalytics() {
     },
   ];
 
+  // ── 3. LOADING SKELETON ──
+  if (loadingProfile || loadingAnalytics) {
+    return (
+      <DashboardLayout title="Store Analytics" user={{ role: "merchant" }}>
+        <DashboardSkeleton mode="dashboard" />
+      </DashboardLayout>
+    );
+  }
+
+  // ── 4. PLAN GATING GUARD ──
   if (!isGrowthPlus) {
     return (
       <DashboardLayout
@@ -332,9 +320,9 @@ export default function MerchantAnalytics() {
               Analytics Requires Growth Plan
             </h2>
             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Upgrade to Growth Plan or above to unlock detailed real-time analytics:
-              impressions, clicks, redemption rates, coupon performance tables,
-              and audience insights.
+              Upgrade to Growth Plan or above to unlock detailed real-time
+              analytics: impressions, clicks, redemption rates, coupon
+              performance tables, and audience insights.
             </p>
           </div>
           <Link
@@ -347,18 +335,6 @@ export default function MerchantAnalytics() {
       </DashboardLayout>
     );
   }
-
-  const tooltipStyle = {
-    contentStyle: {
-      backgroundColor: "#0f172a",
-      borderRadius: "8px",
-      border: "none",
-      color: "#fff",
-      fontSize: "12px",
-    },
-    labelStyle: { fontSize: "10px", color: "#94a3b8" },
-    itemStyle: { fontSize: "12px", color: "#fff" },
-  };
 
   return (
     <DashboardLayout
@@ -382,11 +358,12 @@ export default function MerchantAnalytics() {
                 { value: "30", label: "Last 30 Days" },
                 { value: "90", label: "Last 90 Days" },
               ]}
-              triggerClassName="w-36 bg-slate-50 h-8 border-slate-200 text-xs rounded-xl"
+              triggerClassName="min-w-[155px] bg-slate-50 h-8 border-slate-200 text-xs rounded-xl font-bold"
             />
           </div>
           <Button
             variant="outline"
+            onClick={handleExportCSV}
             className="text-xs h-8 py-1.5 px-3.5 font-bold flex items-center gap-1.5 border-slate-200 rounded-xl cursor-pointer shadow-none text-slate-700 hover:bg-slate-50"
           >
             <Download className="w-3.5 h-3.5" />
@@ -394,7 +371,7 @@ export default function MerchantAnalytics() {
           </Button>
         </div>
 
-        {/* 6 Reusable KPI Cards */}
+        {/* 6 Reusable KPI Cards (Dynamic DB values) */}
         <div
           data-tour="analytics-kpi"
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5"
@@ -402,18 +379,16 @@ export default function MerchantAnalytics() {
           <KPICard
             title="Total Impressions"
             value={totalImpressions.toLocaleString()}
-            subtitle="ticker views"
+            subtitle="ticker & list views"
             icon={Eye}
             iconClassName="bg-blue-50 border-blue-200/80 text-blue-600"
-            change={18.2}
           />
           <KPICard
             title="Total Clicks"
             value={totalClicks.toLocaleString()}
-            subtitle="page visits"
+            subtitle="offer detail visits"
             icon={Share2}
             iconClassName="bg-indigo-50 border-indigo-200/80 text-indigo-600"
-            change={12.4}
           />
           <KPICard
             title="Coupon Claims"
@@ -421,76 +396,44 @@ export default function MerchantAnalytics() {
             subtitle="codes claimed"
             icon={Ticket}
             iconClassName="bg-amber-50 border-amber-200/80 text-amber-600"
-            change={8.4}
           />
           <KPICard
             title="Redemptions"
             value={totalRedemptions.toLocaleString()}
-            subtitle="fully redeemed"
+            subtitle="verified in-store"
             icon={CheckCircle2}
             iconClassName="bg-emerald-50 border-emerald-200/80 text-emerald-600"
-            change={14.1}
           />
           <KPICard
             title="Redemption Rate"
-            value={`${redemptionRate}%`}
-            subtitle="clicks → redeem"
+            value={redemptionRate}
+            subtitle="clicks → redemptions"
             icon={TrendingUp}
             iconClassName="bg-purple-50 border-purple-200/80 text-purple-600"
-            change={3.2}
           />
           <KPICard
             title="Avg. Order Value"
             value={aov > 0 ? `₹${aov}` : "—"}
-            subtitle="revenue per order"
+            subtitle="est. value / order"
             icon={ShoppingBag}
             iconClassName="bg-blue-50 border-blue-200/80 text-blue-600"
-            change={5.7}
           />
         </div>
 
-        {/* Chart Row 1 */}
+        {/* Chart Row 1: Clicks vs Redemptions & Top 5 Coupons */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Clicks vs Redemptions Trend (58% width) */}
+          {/* Clicks vs Redemptions Trend Line Chart */}
           <div className="lg:col-span-7 flex flex-col">
             <AnalyticsCard
               title="Clicks vs Redemptions Trend"
               extra={
-                <div className="flex items-center gap-1.5 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/60">
-                  <button
-                    type="button"
-                    onClick={() => setTrendFilter("month")}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                      trendFilter === "month"
-                        ? "bg-white text-[#08214d] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTrendFilter("week")}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                      trendFilter === "week"
-                        ? "bg-white text-[#08214d] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Weekly
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTrendFilter("weekday")}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                      trendFilter === "weekday"
-                        ? "bg-white text-[#08214d] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Weekday
-                  </button>
-                </div>
+                <span className="text-[11px] font-semibold text-slate-400">
+                  {timeRange === "7"
+                    ? "Daily (7D)"
+                    : timeRange === "90"
+                      ? "Daily (90D)"
+                      : "Daily (30D)"}
+                </span>
               }
             >
               <div className="flex items-center justify-between mb-3">
@@ -504,7 +447,7 @@ export default function MerchantAnalytics() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-5 h-5 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-2xs">
                       <TicketCheck className="w-3 h-3 stroke-[2.5]" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">
@@ -513,22 +456,15 @@ export default function MerchantAnalytics() {
                   </div>
                 </div>
                 <span className="text-xs font-semibold text-slate-500">
-                  Total Clicks:{" "}
-                  <strong className="text-slate-900">
-                    {totalClicks ||
-                      (trendFilter === "week"
-                        ? 830
-                        : trendFilter === "weekday"
-                          ? 1060
-                          : 5490)}
-                  </strong>
+                  Total Period Clicks:{" "}
+                  <strong className="text-slate-900">{totalClicks}</strong>
                 </span>
               </div>
 
-              <div className="h-52 w-full">
+              <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={enrichedTrend}
+                    data={trendData}
                     margin={{ top: 5, right: 10, left: -15, bottom: 0 }}
                   >
                     <CartesianGrid
@@ -548,10 +484,8 @@ export default function MerchantAnalytics() {
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      domain={[0, 40]}
-                      ticks={[0, 5, 10, 15, 20, 25, 30, 35, 40]}
                     />
-                    <Tooltip {...tooltipStyle} />
+                    <Tooltip {...TOOLTIP_STYLE} />
                     <Line
                       type="monotone"
                       dataKey="clicks"
@@ -564,9 +498,9 @@ export default function MerchantAnalytics() {
                     <Line
                       type="monotone"
                       dataKey="redemptions"
-                      stroke="#0f2137"
+                      stroke="#0f172a"
                       strokeWidth={2.5}
-                      dot={{ r: 3, fill: "#0f2137" }}
+                      dot={{ r: 3, fill: "#0f172a" }}
                       activeDot={{ r: 5 }}
                       name="Redemptions"
                     />
@@ -576,94 +510,68 @@ export default function MerchantAnalytics() {
             </AnalyticsCard>
           </div>
 
-          {/* Top 5 Coupons by Redemptions */}
+          {/* Top 5 Coupons by Redemptions Bar List */}
           <div className="lg:col-span-5 flex flex-col">
             <AnalyticsCard
               title="Top 5 Coupons"
               extra={
-                <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/60">
-                  <button
-                    type="button"
-                    onClick={() => setCouponFilter("all")}
-                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                      couponFilter === "all"
-                        ? "bg-white text-[#08214d] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    All Time
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCouponFilter("month")}
-                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                      couponFilter === "month"
-                        ? "bg-white text-[#08214d] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Month
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCouponFilter("week")}
-                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                      couponFilter === "week"
-                        ? "bg-white text-[#08214d] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Week
-                  </button>
-                </div>
+                <span className="text-[11px] font-semibold text-slate-400">
+                  By Redemptions
+                </span>
               }
             >
-              <div className="space-y-3.5 py-1">
-                {top5.map((coupon, idx) => {
-                  const maxVal = top5[0]?.redemptions || 1;
-                  const pct = Math.round((coupon.redemptions / maxVal) * 100);
-                  return (
-                    <div key={coupon.name || idx} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5 font-bold text-slate-800 min-w-0">
-                          <span className="w-4 h-4 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] shrink-0 font-extrabold">
-                            #{idx + 1}
-                          </span>
-                          <span
-                            className="truncate max-w-[130px] sm:max-w-[170px]"
-                            title={coupon.name}
-                          >
-                            {coupon.name}
-                          </span>
-                          <span className="font-mono text-[9px] bg-blue-50 text-blue-600 border border-blue-100 px-1 py-0.2 rounded font-bold shrink-0">
-                            {coupon.code}
-                          </span>
+              {top5Coupons.length === 0
+                ? <div className="py-12 text-center text-slate-400 font-medium text-xs">
+                    No active coupon redemptions recorded.
+                  </div>
+                : <div className="space-y-3.5 py-1">
+                    {top5Coupons.map((coupon, idx) => {
+                      const maxVal = top5Coupons[0]?.redemptions || 1;
+                      const pct =
+                        Math.round((coupon.redemptions / maxVal) * 100) || 0;
+                      return (
+                        <div key={coupon.name || idx} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5 font-bold text-slate-800 min-w-0">
+                              <span className="w-4 h-4 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] shrink-0 font-extrabold">
+                                #{idx + 1}
+                              </span>
+                              <span
+                                className="truncate max-w-[130px] sm:max-w-[170px]"
+                                title={coupon.name}
+                              >
+                                {coupon.name}
+                              </span>
+                              <span className="font-mono text-[9px] bg-blue-50 text-blue-600 border border-blue-100 px-1 py-0.2 rounded font-bold shrink-0 uppercase">
+                                {coupon.code}
+                              </span>
+                            </div>
+                            <span className="font-black text-slate-900 text-xs shrink-0">
+                              {coupon.redemptions}{" "}
+                              <span className="text-[9px] text-slate-400 font-medium">
+                                used
+                              </span>
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                idx === 0 ? "bg-blue-600" : "bg-blue-400"
+                              }`}
+                              style={{ width: `${Math.max(pct, 4)}%` }}
+                            />
+                          </div>
                         </div>
-                        <span className="font-black text-slate-900 text-xs shrink-0">
-                          {coupon.redemptions}{" "}
-                          <span className="text-[9px] text-slate-400 font-medium">
-                            used
-                          </span>
-                        </span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            idx === 0 ? "bg-blue-600" : "bg-blue-400"
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>}
             </AnalyticsCard>
           </div>
         </div>
 
-        {/* Chart Row 2 */}
+        {/* Chart Row 2: Traffic Sources & Best Performing Days */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Traffic Source Pie Chart */}
           <AnalyticsCard
             title="Traffic Source Breakdown"
             extra={
@@ -677,7 +585,7 @@ export default function MerchantAnalytics() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={DEMO_TRAFFIC_SOURCES}
+                      data={trafficSources}
                       cx="50%"
                       cy="50%"
                       innerRadius={46}
@@ -685,13 +593,13 @@ export default function MerchantAnalytics() {
                       paddingAngle={3}
                       dataKey="value"
                     >
-                      {DEMO_TRAFFIC_SOURCES.map((entry, i) => (
+                      {trafficSources.map((entry, i) => (
                         <Cell key={i} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
                       formatter={(v) => [`${v}%`, "Traffic Share"]}
-                      {...tooltipStyle}
+                      {...TOOLTIP_STYLE}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -706,7 +614,7 @@ export default function MerchantAnalytics() {
               </div>
 
               <div className="flex-1 w-full space-y-2.5">
-                {DEMO_TRAFFIC_SOURCES.map((src) => (
+                {trafficSources.map((src) => (
                   <div
                     key={src.name}
                     className="flex items-center justify-between text-xs font-semibold p-1.5 rounded-lg hover:bg-slate-50 transition-colors"
@@ -729,11 +637,12 @@ export default function MerchantAnalytics() {
             </div>
           </AnalyticsCard>
 
+          {/* Best Performing Days Bar Chart */}
           <AnalyticsCard
             title="Best Performing Days of Week"
             extra={
-              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-0.5 rounded-md font-bold text-[10px]">
-                🔥 Peak: Friday
+              <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded-md font-bold text-[10px]">
+                Peak Day: {peakDay}
               </span>
             }
           >
@@ -762,7 +671,7 @@ export default function MerchantAnalytics() {
                     axisLine={false}
                   />
                   <Tooltip
-                    {...tooltipStyle}
+                    {...TOOLTIP_STYLE}
                     formatter={(v) => [v, "Redemptions"]}
                   />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={26}>
@@ -770,6 +679,7 @@ export default function MerchantAnalytics() {
                       <Cell
                         key={i}
                         fill={
+                          d.value > 0 &&
                           d.value === Math.max(...dayData.map((x) => x.value))
                             ? "#2563eb"
                             : "#93c5fd"
@@ -783,7 +693,7 @@ export default function MerchantAnalytics() {
           </AnalyticsCard>
         </div>
 
-        {/* Reusable DataTable for Coupon Performance */}
+        {/* 100% Dynamic DataTable for Coupon Performance */}
         <AnalyticsCard title="Coupon Performance Table">
           <DataTable
             columns={tableColumns}
@@ -791,7 +701,7 @@ export default function MerchantAnalytics() {
             searchable={true}
             searchPlaceholder="Filter performance by coupon title, code..."
             defaultPageSize={10}
-            emptyState="No coupon performance data recorded."
+            emptyState="No coupon performance data recorded for this period."
           />
         </AnalyticsCard>
       </div>

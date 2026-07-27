@@ -1,9 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, IndianRupee, Store, Tag, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useRealtime } from "@/hooks/use-realtime";
+import { qk } from "@/lib/query-keys";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import KPICard from "@/components/shared/cards/KPICard";
 import DashboardChart from "@/components/shared/data/DashboardChart";
@@ -36,43 +39,26 @@ const DEFAULT_TREND_DATA = [
   { label: "Dec", revenue: 48000, orders: 610, profit: 22500 },
 ];
 
-const MOCK_ORDERS = [
-  {
-    id: "AUD-1000",
-    customer: "Emma's Shop",
-    type: "Merchant",
-    product: "Platform Listing Audit",
-    status: "pending",
-    amount: "₹1,499.00",
-  },
-  {
-    id: "AUD-1001",
-    customer: "Burger Joint BOGO",
-    type: "Coupon",
-    product: "Platform Listing Audit",
-    status: "under_review",
-    amount: "₹0.00",
-  },
-  {
-    id: "AUD-1002",
-    customer: "Sofia Cafe Franchise",
-    type: "Merchant",
-    product: "Platform Listing Audit",
-    status: "pending",
-    amount: "₹1,499.00",
-  },
-  {
-    id: "AUD-1003",
-    customer: "Alex Clothing Code",
-    type: "Coupon",
-    product: "Platform Listing Audit",
-    status: "under_review",
-    amount: "₹0.00",
-  },
-];
+import { LiveIndicator } from "@/components/shared/LiveIndicator";
+import { useAdminNotifications } from "@/hooks/use-admin-notifications";
 
 export default function AdminDashboard() {
+  const queryClient = useQueryClient();
   const [activeMetricTab, setActiveMetricTab] = useState("revenue");
+
+  // Real-time notifications and pending counts hook
+  const { unreadCount } = useAdminNotifications();
+
+  // Real-time socket listeners for live merchant data & applications
+  useRealtime(SOCKET_EVENTS.APPLICATION_NEW, () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
+  });
+
+  useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
+  });
 
   // Fetch admin analytics
   const { data: analyticsData } = useQuery({
@@ -162,6 +148,19 @@ export default function AdminDashboard() {
     },
   ];
 
+  const livePendingOrders = (analyticsData?.pendingActions || []).map(
+    (item) => ({
+      id: item.id.slice(-8).toUpperCase(),
+      customer: item.name,
+      type: item.type,
+      product: `${item.type} Moderation Audit`,
+      status: item.status.toLowerCase().includes("pending")
+        ? "pending"
+        : "under_review",
+      amount: item.type === "Merchant" ? "₹1,499.00" : "₹0.00",
+    }),
+  );
+
   return (
     <DashboardLayout
       title="Dashboard"
@@ -171,18 +170,27 @@ export default function AdminDashboard() {
         {/* Welcome Banner */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
           <div>
-            <h1 className="text-base font-semibold text-slate-900 tracking-tight">
-              Super Admin Dashboard
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-semibold text-slate-900 tracking-tight">
+                Super Admin Dashboard
+              </h1>
+              <LiveIndicator />
+            </div>
             <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Welcome back, Admin. Here's what's happening with your business today.
+              Welcome back, Admin. Here's what's happening with your business
+              today.
             </p>
           </div>
           <Link
             href="/admin/approvals/merchants"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-2xs"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-2xs relative"
           >
-            Review Queue
+            <span>Review Queue</span>
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </Link>
         </div>
 
@@ -263,8 +271,8 @@ export default function AdminDashboard() {
           </Card>
 
           <div className="col-span-full flex flex-col gap-4 xl:col-span-4">
-            <TrafficSourcesCard />
-            <MonthlyGoalsCard />
+            <TrafficSourcesCard analyticsData={analyticsData} />
+            <MonthlyGoalsCard analyticsData={analyticsData} />
           </div>
         </div>
 
@@ -292,9 +300,10 @@ export default function AdminDashboard() {
             <CardContent className="p-4 sm:p-5 pt-4">
               <DataTable
                 columns={orderColumns}
-                data={MOCK_ORDERS}
+                data={livePendingOrders}
                 searchable={false}
                 defaultPageSize={5}
+                emptyState="No pending moderation orders in queue."
               />
             </CardContent>
           </Card>

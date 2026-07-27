@@ -1,4 +1,4 @@
-import { PAGINATION } from "@/utils/constants";
+import { PAGINATION } from "./constants.js";
 
 /**
  * Parse and clamp page/limit from URL search params.

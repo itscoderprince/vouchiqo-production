@@ -56,12 +56,17 @@ export const UserMenu = () => {
       });
   }, [mounted, session]);
 
-  // Customer onboarding check — only run for confirmed customers
+  // Customer onboarding check — only run for CONFIRMED customers
+  // We wait until effectiveRole is fully resolved (not null) to avoid the
+  // race condition where merchants briefly see the customer onboarding modal.
   useEffect(() => {
     if (!mounted || !session?.user) return;
 
-    const userRole = effectiveRole || session?.user?.role || "customer";
-    if (userRole === "admin" || userRole === "merchant") return;
+    // effectiveRole is null while the async DB check is in flight — wait for it
+    if (effectiveRole === null) return;
+
+    // Only show onboarding to confirmed customers
+    if (effectiveRole === "admin" || effectiveRole === "merchant") return;
 
     const storageKey = `vouchiqo_onboarded_${session.user.id}`;
 

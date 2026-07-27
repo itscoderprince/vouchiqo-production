@@ -11,6 +11,7 @@ export const ROLES = {
 // Coupon
 // ─────────────────────────────────────────────
 export const COUPON_STATUS = {
+  PENDING: "pending",
   ACTIVE: "active",
   PAUSED: "paused",
   EXPIRED: "expired",
@@ -39,6 +40,7 @@ export const COUPON_CATEGORIES = [
   "entertainment",
   "grocery",
   "finance",
+  "others",
 ];
 
 // ─────────────────────────────────────────────
@@ -161,14 +163,54 @@ export const SUBSCRIPTION_MATRIX = {
 };
 
 export const ADDONS_PRICING = [
-  { id: "revival_pack", name: "Expired Offer Revival Pack", price: 499, unit: "25 revivals" },
-  { id: "campaign_boost", name: "Flash Campaign Boost", price: 799, unit: "Single campaign" },
-  { id: "featured_slot", name: "Homepage Featured Slot", price: 999, unit: "3 days" },
-  { id: "push_notification", name: "Push Notification", price: 599, unit: "Single send" },
-  { id: "festival_package", name: "Festival Campaign Package", price: 2999, unit: "All channels + teaser" },
-  { id: "analytics_report", name: "Performance Analytics Report", price: 799, unit: "Deep report PDF" },
-  { id: "email_blast", name: "Dedicated Email Blast", price: 799, unit: "Send to category subscribers" },
-  { id: "ticker_priority", name: "Homepage Ticker Priority", price: 999, unit: "3-day window" },
+  {
+    id: "revival_pack",
+    name: "Expired Offer Revival Pack",
+    price: 499,
+    unit: "25 revivals",
+  },
+  {
+    id: "campaign_boost",
+    name: "Flash Campaign Boost",
+    price: 799,
+    unit: "Single campaign",
+  },
+  {
+    id: "featured_slot",
+    name: "Homepage Featured Slot",
+    price: 999,
+    unit: "3 days",
+  },
+  {
+    id: "push_notification",
+    name: "Push Notification",
+    price: 599,
+    unit: "Single send",
+  },
+  {
+    id: "festival_package",
+    name: "Festival Campaign Package",
+    price: 2999,
+    unit: "All channels + teaser",
+  },
+  {
+    id: "analytics_report",
+    name: "Performance Analytics Report",
+    price: 799,
+    unit: "Deep report PDF",
+  },
+  {
+    id: "email_blast",
+    name: "Dedicated Email Blast",
+    price: 799,
+    unit: "Send to category subscribers",
+  },
+  {
+    id: "ticker_priority",
+    name: "Homepage Ticker Priority",
+    price: 999,
+    unit: "3-day window",
+  },
 ];
 export const REDIS_TTL = {
   SESSION: 86400, // 24 hours

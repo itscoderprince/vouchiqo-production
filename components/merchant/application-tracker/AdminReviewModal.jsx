@@ -68,16 +68,19 @@ export default function AdminReviewModal({
   };
 
   const statusOptions = [
-    { value: "under_review", label: "🔄 Step 2: Under Review by Admin (66%)" },
     {
-      value: "document_verified",
-      label: "📄 Step 2.5: Documents Verified (85%)",
+      value: "pending",
+      label: "📥 Step 1: Form Submitted (Waiting for Admin Acceptance)",
+    },
+    {
+      value: "form_accepted",
+      label: "📄 Step 2: Form Accepted (Accept Form for Review)",
     },
     {
       value: "approved",
-      label: "✅ Step 3: Application Approved & Activated (100%)",
+      label: "✅ Step 3: Form Verified (Approve & Activate Account)",
     },
-    { value: "rejected", label: "❌ Rejected / Action Required" },
+    { value: "rejected", label: "❌ Form Rejected" },
   ];
 
   return (

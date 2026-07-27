@@ -1,8 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -14,265 +12,40 @@ import {
   Store,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
-import { showError, showSuccess } from "@/lib/toast";
 
 import Step1Identity from "./components/Step1Identity";
 import Step2Location from "./components/Step2Location";
 import Step3KYC from "./components/Step3KYC";
 import Step4Bank from "./components/Step4Bank";
-
-const INITIAL_FORM = {
-  businessName: "",
-  slug: "",
-  category: "food",
-  description: "",
-  contactEmail: "",
-  address: "",
-  pincode: "",
-  city: "",
-  state: "",
-  country: "IN",
-  lat: "",
-  lng: "",
-  contactPhone: "",
-  constitution: "proprietorship",
-  liaisonName: "",
-  liaisonDesignation: "owner",
-  liaisonPhone: "",
-  gmapsLink: "",
-  docType: "GST Registration Certificate",
-  docImage: "",
-  pan: "",
-  gstin: "",
-  isGstExempt: false,
-  bankDetails: {
-    holderName: "",
-    accountType: "current",
-    accountNumber: "",
-    ifsc: "",
-  },
-  shopImage: "",
-  logo: "",
-  banner: "",
-};
+import { useMerchantProfileForm } from "./hooks/use-merchant-profile-form";
 
 export default function MerchantBusinessProfile() {
-  const queryClient = useQueryClient();
-  const [step, setStep] = useState(1);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(INITIAL_FORM);
-
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadingShop, setUploadingShop] = useState(false);
-  const [uploadingDoc, setUploadingDoc] = useState(false);
-
-  // Fetch current merchant profile
   const {
-    data: merchant,
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    errors,
+    formData,
+    step,
+    setStep,
+    handleNext,
+    handleBack,
+    isEditing,
+    setIsEditing,
+    merchant,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) throw new Error("Failed to load profile");
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  useEffect(() => {
-    if (merchant) {
-      setIsEditing(false);
-      setFormData({
-        businessName: merchant.businessName ?? "",
-        slug: merchant.slug ?? "",
-        category: merchant.category ?? "food",
-        description: merchant.description ?? "",
-        contactEmail: merchant.contactEmail ?? "",
-        address: merchant.location?.address ?? "",
-        pincode: merchant.location?.pincode ?? "",
-        city: merchant.location?.city ?? "",
-        state: merchant.location?.state ?? "",
-        country: merchant.location?.country ?? "IN",
-        lat: merchant.location?.coordinates?.lat ?? "",
-        lng: merchant.location?.coordinates?.lng ?? "",
-        contactPhone: merchant.contactPhone ?? "",
-        constitution: merchant.constitution ?? "proprietorship",
-        liaisonName: merchant.liaisonName ?? "",
-        liaisonDesignation: merchant.liaisonDesignation ?? "owner",
-        liaisonPhone: merchant.liaisonPhone ?? "",
-        gmapsLink: merchant.gmapsLink ?? "",
-        docType: merchant.docType ?? "GST Registration Certificate",
-        docImage: merchant.docImage ?? "",
-        pan: merchant.pan ?? "",
-        gstin: merchant.gstin ?? "",
-        isGstExempt: merchant.isGstExempt ?? false,
-        bankDetails: {
-          holderName: merchant.bankDetails?.holderName ?? "",
-          accountType: merchant.bankDetails?.accountType ?? "current",
-          accountNumber: merchant.bankDetails?.accountNumber ?? "",
-          ifsc: merchant.bankDetails?.ifsc ?? "",
-        },
-        shopImage: merchant.shopImage ?? "",
-        logo: merchant.logo ?? "",
-        banner: merchant.banner ?? "",
-      });
-    } else {
-      setIsEditing(true);
-    }
-  }, [merchant]);
-
-  const handleBusinessNameChange = (e) => {
-    const val = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      businessName: val,
-      slug: !merchant
-        ? val
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)+/g, "")
-        : prev.slug,
-    }));
-  };
-
-  const handleImageUpload = async (e, field) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const data = new FormData();
-    data.append("file", file);
-    data.append("folder", field);
-
-    if (field === "logo") setUploadingLogo(true);
-    if (field === "banner") setUploadingBanner(true);
-    if (field === "shopImage") setUploadingShop(true);
-    if (field === "docImage") setUploadingDoc(true);
-
-    try {
-      const res = await fetch("/api/uploads", { method: "POST", body: data });
-      if (!res.ok) throw new Error("Upload failed");
-      const json = await res.json();
-      setFormData((prev) => ({ ...prev, [field]: json.data?.url }));
-      showSuccess("Image uploaded successfully!");
-    } catch (err) {
-      showError(err.message || "Failed to upload file.");
-    } finally {
-      setUploadingLogo(false);
-      setUploadingBanner(false);
-      setUploadingShop(false);
-      setUploadingDoc(false);
-    }
-  };
-
-  const validateStep = (currStep) => {
-    if (currStep === 1) {
-      if (!formData.businessName) return "Business name is required.";
-      if (!formData.contactEmail) return "Contact email is required.";
-    }
-    if (currStep === 2) {
-      if (!formData.address) return "Complete physical address is required.";
-      if (!formData.city) return "Store city location is required.";
-    }
-    if (currStep === 3) {
-      const panTrimmed = (formData.pan || "").trim().toUpperCase();
-      if (panTrimmed && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panTrimmed)) {
-        return "Please enter a valid 10-character PAN (e.g. ABCDE1234F) or leave it empty.";
-      }
-      const gstinTrimmed = (formData.gstin || "").trim().toUpperCase();
-      if (
-        gstinTrimmed &&
-        !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-          gstinTrimmed,
-        )
-      ) {
-        return "Please enter a valid 15-character GSTIN (e.g. 22AAAAA1111A1Z1) or leave it empty.";
-      }
-    }
-    if (currStep === 4) {
-      const ifscTrimmed = (formData.bankDetails?.ifsc || "").trim().toUpperCase();
-      if (ifscTrimmed && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscTrimmed)) {
-        return "Please enter a valid 11-character IFSC code (e.g. HDFC0000123) or leave it empty.";
-      }
-    }
-    return null;
-  };
-
-  const handleNext = (e) => {
-    e?.preventDefault?.();
-    const err = validateStep(step);
-    if (err) return showError(err);
-    setStep((prev) => Math.min(prev + 1, 4));
-  };
-
-  const handleBack = (e) => {
-    e?.preventDefault?.();
-    setStep((prev) => Math.max(prev - 1, 1));
-  };
-
-  const saveMutation = useMutation({
-    mutationFn: async (payload) => {
-      const url = merchant
-        ? `/api/merchants/${merchant._id}`
-        : "/api/merchants";
-      const method = merchant ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.message ?? "Failed to save profile");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
-      showSuccess("Profile onboarding details submitted successfully!");
-      setIsEditing(false);
-    },
-    onError: (err) => {
-      showError(err.message ?? "Failed to save profile.");
-    },
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (step !== 4) return;
-    const err = validateStep(4);
-    if (err) return showError(err);
-
-    saveMutation.mutate({
-      ...formData,
-      pan: (formData.pan || "").trim().toUpperCase(),
-      gstin: (formData.gstin || "").trim().toUpperCase(),
-      location: {
-        address: formData.address,
-        pincode: formData.pincode,
-        city: formData.city,
-        state: formData.state,
-        country: formData.country,
-        coordinates: {
-          lat:
-            formData.lat !== "" && formData.lat != null
-              ? Number(formData.lat)
-              : undefined,
-          lng:
-            formData.lng !== "" && formData.lng != null
-              ? Number(formData.lng)
-              : undefined,
-        },
-      },
-    });
-  };
+    handleImageUpload,
+    uploadingLogo,
+    uploadingBanner,
+    uploadingShop,
+    uploadingDoc,
+    isPending,
+  } = useMerchantProfileForm();
 
   if (isLoading) {
     return (
@@ -343,12 +116,21 @@ export default function MerchantBusinessProfile() {
                 {status.text}
               </p>
             </div>
-            <div className="pt-4 border-t border-slate-100 flex justify-center">
+            <div className="pt-4 border-t border-slate-100 flex flex-wrap justify-center gap-3">
               <Button
-                onClick={() => setIsEditing(true)}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer shadow-none"
+                onClick={() => {
+                  window.location.href = "/merchant/application-status";
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
               >
-                Modify Profile Details
+                Track Application Status
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+                className="border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer"
+              >
+                Edit Profile Details
               </Button>
             </div>
           </div>
@@ -400,24 +182,40 @@ export default function MerchantBusinessProfile() {
                 >
                   <button
                     type="button"
-                    onClick={() => {
-                      if (s.number < step) setStep(s.number);
-                    }}
-                    className={`flex items-center gap-2 text-xs font-bold transition-all cursor-pointer ${isActive ? "text-slate-900" : isCompleted ? "text-emerald-600" : "text-slate-400"}`}
+                    onClick={() => setStep(s.number)}
+                    className={`flex items-center gap-2 cursor-pointer ${
+                      isActive
+                        ? "text-blue-600 font-extrabold"
+                        : isCompleted
+                          ? "text-slate-900 font-bold"
+                          : "text-slate-400 font-medium"
+                    }`}
                   >
-                    <span
-                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${isActive ? "bg-blue-600 text-white" : isCompleted ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                          : isCompleted
+                            ? "bg-slate-900 text-white"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                      }`}
                     >
                       {isCompleted
-                        ? <Check className="w-4 h-4 stroke-[3]" />
-                        : <Icon className="w-3.5 h-3.5" />}
-                    </span>
-                    <span>{s.label}</span>
+                        ? <CheckCircle2 className="w-4 h-4" />
+                        : s.number}
+                    </div>
+                    <div className="hidden sm:flex flex-col text-left">
+                      <span className="text-xs font-bold tracking-tight">
+                        {s.label}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Step {s.number}
+                      </span>
+                    </div>
                   </button>
+
                   {!isLast && (
-                    <div
-                      className={`h-0.5 flex-1 rounded-full ${isCompleted ? "bg-emerald-500" : "bg-slate-200"}`}
-                    />
+                    <div className="hidden sm:block flex-1 h-[2px] bg-slate-200 rounded-full mx-2" />
                   )}
                 </div>
               );
@@ -425,71 +223,84 @@ export default function MerchantBusinessProfile() {
           </div>
         </div>
 
+        {/* Multi-Step Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {step === 1 && (
             <Step1Identity
-              formData={formData}
-              setFormData={setFormData}
-              handleBusinessNameChange={handleBusinessNameChange}
+              register={register}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
+              isEditingExisting={!!merchant}
             />
           )}
+
           {step === 2 && (
             <Step2Location
-              formData={formData}
-              setFormData={setFormData}
+              register={register}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
               handleImageUpload={handleImageUpload}
               uploadingShop={uploadingShop}
               uploadingLogo={uploadingLogo}
               uploadingBanner={uploadingBanner}
             />
           )}
+
           {step === 3 && (
             <Step3KYC
-              formData={formData}
-              setFormData={setFormData}
+              register={register}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
               handleImageUpload={handleImageUpload}
               uploadingDoc={uploadingDoc}
             />
           )}
+
           {step === 4 && (
-            <Step4Bank formData={formData} setFormData={setFormData} />
+            <Step4Bank
+              register={register}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
+            />
           )}
 
-          {/* Action Controls */}
+          {/* Form Actions Footer */}
           <div className="flex justify-between items-center pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleBack}
               disabled={step === 1}
-              className="text-slate-700 border-slate-200 hover:bg-slate-50 text-xs h-10 px-5 flex items-center gap-1.5 font-bold rounded-xl cursor-pointer disabled:opacity-50"
+              className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer disabled:opacity-40"
             >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Previous Step</span>
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              <span>Back</span>
             </Button>
 
             {step < 4
               ? <Button
                   type="button"
                   onClick={handleNext}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-10 px-6 flex items-center gap-1.5 font-bold rounded-xl cursor-pointer border-0 ml-auto shadow-md shadow-blue-500/20"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
                 >
-                  <span>Continue</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <span>Next Step</span>
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               : <Button
                   type="submit"
-                  disabled={saveMutation.isPending}
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs h-10 px-8 flex items-center gap-2 font-bold rounded-xl cursor-pointer border-0 ml-auto"
+                  disabled={isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
                 >
-                  {saveMutation.isPending && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  )}
-                  <span>
-                    {saveMutation.isPending
-                      ? "Submitting..."
-                      : "Submit Registration"}
-                  </span>
+                  {isPending
+                    ? <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting Profile...</span>
+                      </>
+                    : <span>Submit Profile Details</span>}
                 </Button>}
           </div>
         </form>

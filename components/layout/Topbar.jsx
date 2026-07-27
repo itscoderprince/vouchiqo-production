@@ -7,103 +7,42 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 import UserDropdown from "./UserDropdown";
 
 export default function Topbar({ title = "Dashboard", user: propUser = null }) {
-  const { user: authUser, logout } = useUser();
+  const { user: authUser } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
 
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifs, setLoadingNotifs] = useState(true);
 
-  // Fetch real database claims and redemptions to generate actual notifications
+  // Fetch real database notifications
   const fetchRealNotifications = async () => {
     try {
       setLoadingNotifs(true);
-      const list = [];
-
-      // 1. Fetch claims
-      const claimsRes = await fetch("/api/claims?status=active");
-      let activeClaims = [];
-      if (claimsRes.ok) {
-        const payload = await claimsRes.json();
-        activeClaims = payload.data?.claims || [];
-        for (const c of activeClaims) {
-          const brandName =
-            c.couponId?.merchantId?.businessName ||
-            c.couponId?.merchantId?.name ||
-            "Premium Partner";
-          list.push({
-            id: `claim-${c._id}`,
-            message: `You claimed a ${brandName} offer: "${c.couponId?.title || "Coupon"}"`,
-            time: new Date(c.createdAt).toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-            }),
-            read: false,
-            timestamp: new Date(c.createdAt).getTime(),
-          });
-        }
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const json = await res.json();
+        const raw = json.data?.notifications || (Array.isArray(json.data) ? json.data : []);
+        const formatted = raw.map((item) => ({
+          id: item._id || item.id,
+          message: item.message || item.title,
+          time: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recently",
+          read: Boolean(item.isRead || item.read),
+          timestamp: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
+        }));
+        formatted.sort((a, b) => b.timestamp - a.timestamp);
+        setNotifications(formatted);
       }
-
-      // 2. Fetch savings redemptions
-      const savingsRes = await fetch("/api/users/savings");
-      if (savingsRes.ok) {
-        const payload = await savingsRes.json();
-        const data = payload.data || {};
-        const transactions = data.recentTransactions || [];
-        for (const tx of transactions) {
-          list.push({
-            id: `redeem-${tx.date}-${tx.code}`,
-            message: `You saved ₹${tx.amountSaved} by redeeming a ${tx.brand} coupon (Code: ${tx.code})`,
-            time: tx.date,
-            read: true,
-            timestamp: new Date(tx.date).getTime(),
-          });
-        }
-
-        // Generate milestone unlocked notifications dynamically
-        const totalSaved = data.kpis?.totalSavedAllTime || 0;
-        if (totalSaved >= 50) {
-          list.push({
-            id: "milestone-50",
-            message: "Unlocked Savings Milestone: First Saving ₹50+! 🎉",
-            time: "Recently",
-            read: false,
-            timestamp: Date.now() - 3600000,
-          });
-        }
-        if (totalSaved >= 500) {
-          list.push({
-            id: "milestone-500",
-            message: "Unlocked Savings Milestone: ₹500 Saved! 🌟",
-            time: "Recently",
-            read: false,
-            timestamp: Date.now() - 7200000,
-          });
-        }
-        if (totalSaved >= 1000) {
-          list.push({
-            id: "milestone-1000",
-            message: "Unlocked Savings Milestone: ₹1,000 Saved! 🏆",
-            time: "Recently",
-            read: false,
-            timestamp: Date.now() - 10800000,
-          });
-        }
-      }
-
-      // Sort notifications by timestamp descending (newest first)
-      list.sort((a, b) => b.timestamp - a.timestamp);
-      setNotifications(list);
     } catch (err) {
-      console.error("Error generating real notifications:", err);
+      console.error("Error fetching notifications for topbar:", err);
     } finally {
       setLoadingNotifs(false);
     }
@@ -119,6 +58,23 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
     }
   }, [mounted, authUser]);
 
+  // Real-time Socket.IO Listeners for Topbar Bell Badge Updates
+  useRealtime(SOCKET_EVENTS.NOTIFICATION_NEW, () => {
+    fetchRealNotifications();
+  });
+
+  useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, () => {
+    fetchRealNotifications();
+  });
+
+  useRealtime(SOCKET_EVENTS.CAMPAIGN_STATUS_CHANGED, () => {
+    fetchRealNotifications();
+  });
+
+  useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, () => {
+    fetchRealNotifications();
+  });
+
   const handleSearchSubmit = (e) => {
     if (e.key === "Enter" && searchVal.trim()) {
       router.push(`/brands?search=${encodeURIComponent(searchVal.trim())}`);
@@ -131,8 +87,17 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
     }
   };
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markAllRead = async () => {
+    try {
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch {
+      // Ignore
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -172,7 +137,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
 
       {/* Right section: Search input & User actions */}
       <div className="flex items-center gap-4">
-        {/* Search, less rounding (rounded-md) */}
+        {/* Search */}
         <div className="hidden sm:flex items-center bg-brand-surface border border-brand-border rounded-md px-2.5 py-1.5 w-60 h-8">
           <Search
             className="w-3.5 h-3.5 text-brand-subtext mr-2 cursor-pointer hover:text-brand-blue"
@@ -198,7 +163,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
           >
             <Bell className="w-4.5 h-4.5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-gradient rounded-full"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
             )}
           </Button>
 
@@ -211,7 +176,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
               <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left">
                 <div className="flex justify-between items-center px-3.5 pb-2 border-b border-slate-100 dark:border-zinc-850">
                   <span className="text-[10px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
-                    Notifications
+                    Notifications ({unreadCount} unread)
                   </span>
                   {unreadCount > 0 && (
                     <button

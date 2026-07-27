@@ -56,6 +56,7 @@ export default function DataTable({
   searchKeys,
   defaultPageSize = 10,
   emptyState,
+  rightActions,
   className,
 }) {
   const [search, setSearch] = useState("");
@@ -126,20 +127,32 @@ export default function DataTable({
   return (
     <div className={cn("space-y-3", className)}>
       {/* Toolbar */}
-      {searchable && (
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-subtext pointer-events-none" />
-            <Input
-              value={search}
-              onChange={handleSearch}
-              placeholder={searchPlaceholder}
-              className="pl-8 h-8 text-xs border-brand-border bg-brand-bg text-brand-text placeholder:text-brand-subtext/60"
-            />
-          </div>
-          <span className="text-xs text-brand-subtext shrink-0">
-            {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-          </span>
+      {(searchable || rightActions) && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          {searchable ? (
+            <div className="flex items-center gap-2 flex-1 max-w-sm">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-subtext pointer-events-none" />
+                <Input
+                  value={search}
+                  onChange={handleSearch}
+                  placeholder={searchPlaceholder}
+                  className="pl-8 h-8 text-xs border-brand-border bg-brand-bg text-brand-text placeholder:text-brand-subtext/60"
+                />
+              </div>
+              <span className="text-xs text-brand-subtext shrink-0">
+                {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+          ) : (
+            <div />
+          )}
+
+          {rightActions && (
+            <div className="flex items-center gap-2 shrink-0">
+              {rightActions}
+            </div>
+          )}
         </div>
       )}
 
@@ -148,50 +161,59 @@ export default function DataTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-brand-surface border-brand-border hover:bg-brand-surface">
-              {columns.map((col) => (
-                <TableHead
-                  key={col.key}
-                  style={col.width ? { width: col.width } : undefined}
-                  className={cn(
-                    "text-[10px] font-bold text-brand-subtext uppercase tracking-wider py-2.5 px-3",
-                    col.align === "center" && "text-center",
-                    col.align === "right" && "text-right",
-                  )}
-                >
-                  {col.sortable ? (
-                    <button
-                      type="button"
-                      onClick={() => toggleSort(col.key)}
-                      className={cn(
-                        "flex items-center gap-1 hover:text-brand-text transition-colors cursor-pointer",
-                        col.align === "center" && "justify-center mx-auto",
-                        col.align === "right" && "justify-end ml-auto",
-                      )}
-                    >
-                      {col.header}
-                      <ArrowUpDown
+              {columns.map((col, colIdx) => {
+                const dataKey = col.key || col.accessorKey;
+                return (
+                  <TableHead
+                    key={colIdx}
+                    style={col.width ? { width: col.width } : undefined}
+                    className={cn(
+                      "text-[10px] font-bold text-brand-subtext uppercase tracking-wider py-2.5 px-3",
+                      col.align === "center" && "text-center",
+                      col.align === "right" && "text-right",
+                    )}
+                  >
+                    {col.sortable && dataKey ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(dataKey)}
                         className={cn(
-                          "w-3 h-3",
-                          sortKey === col.key
-                            ? "text-brand-blue"
-                            : "text-brand-border",
+                          "flex items-center gap-1 hover:text-brand-text transition-colors cursor-pointer",
+                          col.align === "center" && "justify-center mx-auto",
+                          col.align === "right" && "justify-end ml-auto",
                         )}
-                      />
-                    </button>
-                  ) : (
-                    col.header
-                  )}
-                </TableHead>
-              ))}
+                      >
+                        {col.header}
+                        <ArrowUpDown
+                          className={cn(
+                            "w-3 h-3",
+                            sortKey === dataKey
+                              ? "text-brand-blue"
+                              : "text-brand-border",
+                          )}
+                        />
+                      </button>
+                    ) : (
+                      col.header
+                    )}
+                  </TableHead>
+                );
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               Array.from({ length: pageSize > 5 ? 5 : pageSize }).map(
                 (_, i) => (
-                  <TableRow key={i} className="border-brand-border">
-                    {columns.map((col) => (
-                      <TableCell key={col.key} className="py-3 px-3">
+                  <TableRow
+                    key={`loading-${i}`}
+                    className="border-brand-border"
+                  >
+                    {columns.map((col, colIdx) => (
+                      <TableCell
+                        key={`skeleton-${colIdx}`}
+                        className="py-3 px-3"
+                      >
                         <Skeleton className="h-4 w-full rounded" />
                       </TableCell>
                     ))}
@@ -210,21 +232,24 @@ export default function DataTable({
             ) : (
               paged.map((row, rowIndex) => (
                 <TableRow
-                  key={row.id ?? row._id ?? rowIndex}
+                  key={row.id ?? row._id ?? `row-${rowIndex}`}
                   className="border-brand-border hover:bg-brand-surface/60 transition-colors"
                 >
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.key}
-                      className={cn(
-                        "py-3 px-3 text-sm text-brand-text",
-                        col.align === "center" && "text-center",
-                        col.align === "right" && "text-right",
-                      )}
-                    >
-                      {col.cell ? col.cell(row) : (row[col.key] ?? "—")}
-                    </TableCell>
-                  ))}
+                  {columns.map((col, colIdx) => {
+                    const dataKey = col.key || col.accessorKey;
+                    return (
+                      <TableCell
+                        key={colIdx}
+                        className={cn(
+                          "py-3 px-3 text-sm text-brand-text",
+                          col.align === "center" && "text-center",
+                          col.align === "right" && "text-right",
+                        )}
+                      >
+                        {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))
             )}
@@ -237,11 +262,14 @@ export default function DataTable({
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <div
-              key={i}
+              key={`mobile-loading-${i}`}
               className="rounded-lg border border-brand-border p-3 space-y-2 bg-brand-bg"
             >
-              {columns.slice(0, 3).map((col) => (
-                <Skeleton key={col.key} className="h-4 w-full rounded" />
+              {columns.slice(0, 3).map((col, colIdx) => (
+                <Skeleton
+                  key={col.key || col.accessorKey || `mob-skel-${colIdx}`}
+                  className="h-4 w-full rounded"
+                />
               ))}
             </div>
           ))
@@ -252,22 +280,27 @@ export default function DataTable({
         ) : (
           paged.map((row, rowIndex) => (
             <div
-              key={row.id ?? row._id ?? rowIndex}
+              key={row.id ?? row._id ?? `mob-row-${rowIndex}`}
               className="rounded-lg border border-brand-border p-3 bg-brand-bg space-y-2"
             >
-              {columns.map((col) => (
-                <div
-                  key={col.key}
-                  className="flex items-start justify-between gap-2"
-                >
-                  <span className="text-[10px] font-bold text-brand-subtext uppercase tracking-wider shrink-0">
-                    {col.header}
-                  </span>
-                  <span className="text-xs text-brand-text text-right">
-                    {col.cell ? col.cell(row) : (row[col.key] ?? "—")}
-                  </span>
-                </div>
-              ))}
+              {columns.map((col, colIdx) => {
+                const cKey =
+                  col.key || col.accessorKey || col.id || `mob-cell-${colIdx}`;
+                const dataKey = col.key || col.accessorKey;
+                return (
+                  <div
+                    key={cKey}
+                    className="flex items-start justify-between gap-2"
+                  >
+                    <span className="text-[10px] font-bold text-brand-subtext uppercase tracking-wider shrink-0">
+                      {col.header}
+                    </span>
+                    <span className="text-xs text-brand-text text-right">
+                      {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           ))
         )}

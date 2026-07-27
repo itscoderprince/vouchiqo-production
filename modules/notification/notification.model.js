@@ -3,8 +3,7 @@ import mongoose, { Schema } from "mongoose";
 /**
  * Notification model.
  *
- * Stores in-app notifications. Email notifications are sent via BullMQ jobs.
- * This collection tracks what was notified and whether it was read.
+ * Stores in-app notifications for merchants, customers, and admins.
  *
  * Collection: notifications
  */
@@ -18,34 +17,32 @@ const notificationSchema = new Schema(
 
     type: {
       type: String,
-      enum: [
-        "coupon_expiring",
-        "coupon_claimed",
-        "coupon_redeemed",
-        "merchant_approved",
-        "merchant_rejected",
-        "revival_approved",
-        "revival_rejected",
-      ],
-      required: true,
+      default: "system",
+      index: true,
+    },
+
+    category: {
+      type: String,
+      enum: ["system", "campaign", "billing", "general"],
+      default: "system",
     },
 
     title: {
       type: String,
       required: true,
-      maxlength: 100,
+      maxlength: 150,
     },
 
     message: {
       type: String,
       required: true,
-      maxlength: 300,
+      maxlength: 500,
     },
 
     isRead: { type: Boolean, default: false, index: true },
 
-    // Extra context (e.g. couponId, merchantId) for deep-linking
-    metadata: { type: Schema.Types.Mixed },
+    // Extra context (e.g. couponId, merchantId, campaignId) for deep-linking
+    metadata: { type: Schema.Types.Mixed, default: {} },
   },
   {
     timestamps: true,

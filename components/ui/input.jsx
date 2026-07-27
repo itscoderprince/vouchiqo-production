@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, ...props }) {
+function Input({ className, type, ref, ...props }) {
   return (
     <input
+      ref={ref}
       type={type}
       data-slot="input"
       className={cn(

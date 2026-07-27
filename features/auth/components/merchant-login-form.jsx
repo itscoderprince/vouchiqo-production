@@ -1,121 +1,57 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { ArrowRight, Lock, Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { Label } from "@/components/ui/label";
-import { useUser } from "@/hooks/use-user";
-import { signIn, signOut } from "@/lib/auth-client";
+import { FormInput } from "@/components/shared/form";
+import { useMerchantLoginForm } from "../hooks/use-merchant-login-form";
+import { AuthSubmitButton } from "./AuthSubmitButton";
 import { AuthCard } from "./auth-card";
 
 export function MerchantLoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { user, role, isLoaded } = useUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isLoaded && user && role === "merchant") {
-      router.replace("/merchant/dashboard");
-    }
-  }, [user, role, isLoaded, router]);
-
-  const loginMutation = useMutation({
-    mutationFn: ({ email, password }) => signIn.email({ email, password }),
-    onSuccess: async ({ data, error }) => {
-      if (error) {
-        toast.error(error.message ?? "Invalid credentials");
-        return;
-      }
-      const role = data?.user?.role ?? "customer";
-      if (role !== "merchant") {
-        toast.error("Access denied. This login page is for merchants only.");
-        await signOut();
-        return;
-      }
-      toast.success("Welcome back, Merchant Partner!");
-      router.replace("/merchant/dashboard");
-    },
-    onError: (err) => {
-      toast.error(err?.message ?? "Something went wrong. Try again.");
-    },
-  });
-
-  const isPending = loginMutation.isPending;
+  const { register, handleSubmit, errors, isPending } = useMerchantLoginForm();
 
   return (
     <AuthCard title="Merchant Partner Log In">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          loginMutation.mutate({ email, password });
-        }}
-        className="space-y-4"
-      >
-        <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-brand-text">
-            Email Address
-          </Label>
-          <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">
-            <InputGroupAddon>
-              <Mail className="w-4 h-4 text-brand-subtext" />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="email"
-              placeholder="rahulsharma@gmail.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="text-base md:text-sm placeholder-brand-subtext h-full"
-              required
-              autoFocus
-            />
-          </InputGroup>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {/* Email Address */}
+        <FormInput
+          label="Email Address"
+          prefix={Mail}
+          type="email"
+          placeholder="rahulsharma@gmail.com"
+          autoFocus
+          {...register("email")}
+          error={errors.email}
+        />
 
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center">
-            <Label className="text-sm font-medium text-brand-text">
+        {/* Password */}
+        <div className="space-y-1">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300">
               Password
-            </Label>
+            </span>
             <Link
               href="/forgot-password"
-              className="text-xs md:text-sm text-brand-blue font-semibold hover:underline"
+              className="text-xs text-brand-blue font-semibold hover:underline"
             >
               Forgot Password?
             </Link>
           </div>
-          <InputGroup className="bg-brand-surface border border-brand-border rounded-md h-10 px-1">
-            <InputGroupAddon>
-              <Lock className="w-4 h-4 text-brand-subtext" />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="text-base md:text-sm placeholder-brand-subtext h-full"
-              required
-            />
-          </InputGroup>
+          <FormInput
+            prefix={Lock}
+            type="password"
+            placeholder="••••••••"
+            {...register("password")}
+            error={errors.password}
+          />
         </div>
 
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-semibold flex items-center justify-center gap-1 border-0 h-auto cursor-pointer shadow-none transition-all"
-        >
-          <span>{isPending ? "Logging in..." : "Log In as Merchant"}</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Button>
+        {/* Reusable Auth Submit Button */}
+        <AuthSubmitButton
+          label="Log In as Merchant"
+          loadingLabel="Logging in..."
+          isPending={isPending}
+        />
       </form>
 
       <p className="text-center text-sm font-medium text-brand-subtext mt-4">

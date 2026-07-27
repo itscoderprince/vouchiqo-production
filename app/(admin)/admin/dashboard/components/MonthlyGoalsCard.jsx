@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -7,40 +8,86 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useRealtime } from "@/hooks/use-realtime";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 
-export default function MonthlyGoalsCard() {
+export default function MonthlyGoalsCard({ analyticsData = {} }) {
+  const queryClient = useQueryClient();
+
+  // Socket.IO Real-time listeners to keep goals updated instantly
+  useRealtime(SOCKET_EVENTS.COUPON_CLAIMED, () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+  });
+
+  useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+  });
+
+  useRealtime(SOCKET_EVENTS.APPLICATION_NEW, () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+  });
+
+  useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+  });
+
+  const kpis = analyticsData?.kpis ?? {};
+
+  // Goal 1: Monthly Revenue MRR
+  const revActual = Number(kpis.monthlyRevenue) || 0;
+  const revTarget = 50000;
+  const revPct =
+    revTarget > 0 ? Math.min(100, Math.round((revActual / revTarget) * 100)) : 0;
+
+  // Goal 2: Merchant Partners
+  const merchantsActual = Number(kpis.totalMerchants) || 0;
+  const merchantsTarget = 50;
+  const merchantsPct =
+    merchantsTarget > 0
+      ? Math.min(100, Math.round((merchantsActual / merchantsTarget) * 100))
+      : 0;
+
+  // Goal 3: Active Deals & Offers
+  const couponsActual = Number(kpis.activeCoupons) || 0;
+  const couponsTarget = 100;
+  const couponsPct =
+    couponsTarget > 0
+      ? Math.min(100, Math.round((couponsActual / couponsTarget) * 100))
+      : 0;
+
   const goals = [
     {
       title: "Monthly Revenue",
-      current: "₹6,860",
-      target: "Target: ₹8,000",
-      pct: "88%",
+      current: `₹${revActual.toLocaleString("en-IN")}`,
+      target: `Target: ₹${revTarget.toLocaleString("en-IN")}`,
+      pct: revPct,
       color: "bg-[#2563eb]",
     },
     {
-      title: "New Customers",
-      current: "140",
-      target: "Target: 165",
-      pct: "85%",
+      title: "Merchant Partners",
+      current: `${merchantsActual.toLocaleString("en-IN")}`,
+      target: `Target: ${merchantsTarget.toLocaleString("en-IN")}`,
+      pct: merchantsPct,
       color: "bg-[#2563eb]",
     },
     {
-      title: "System Uptime",
-      current: "99.9%",
-      target: "Target: 100%",
-      pct: "99.9%",
+      title: "Active Deals & Offers",
+      current: `${couponsActual.toLocaleString("en-IN")}`,
+      target: `Target: ${couponsTarget.toLocaleString("en-IN")}`,
+      pct: couponsPct,
       color: "bg-[#3e80dd]",
     },
   ];
 
   return (
-    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col hover:shadow-xs transition-all duration-200 p-0 gap-0 text-left">
+    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col hover:shadow-xs transition-all duration-200 p-0 gap-0 text-left font-sans">
       <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-slate-50/50 min-h-[52px]">
-        <CardTitle className="font-heading text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
+        <CardTitle className="font-sans text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
           Monthly Goals
         </CardTitle>
         <CardDescription className="text-[11px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
-          Track progress toward targets
+          Track progress toward targets (Live DB)
         </CardDescription>
       </CardHeader>
 
@@ -48,15 +95,15 @@ export default function MonthlyGoalsCard() {
         {goals.map((g, idx) => (
           <div key={idx} className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-slate-800">{g.title}</span>
-              <span className="text-slate-500 font-mono">{g.pct}</span>
+              <span className="text-slate-800 font-bold">{g.title}</span>
+              <span className="text-blue-600 font-extrabold">{g.pct}%</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 border border-slate-200">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${g.color}`}
-                style={{ width: g.pct }}
-              />
-            </div>
+            {/* Shadcn Progress component */}
+            <Progress
+              value={g.pct}
+              className="h-2 rounded-full bg-slate-100"
+              indicatorClassName={g.color}
+            />
             <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400">
               <span>{g.current}</span>
               <span>{g.target}</span>

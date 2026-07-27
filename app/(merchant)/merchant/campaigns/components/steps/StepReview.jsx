@@ -1,34 +1,42 @@
 "use client";
 
-import { CheckCircle2, MessageSquare, Package, Users } from "lucide-react";
+import {
+  Check,
+  CheckCircle2,
+  MessageSquare,
+  Package,
+  Users,
+} from "lucide-react";
+import { useWatch } from "react-hook-form";
+import { FormSelect, FormTextarea } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export default function StepReview({
-  campaignData,
-  setCampaignData,
+  control,
+  register,
+  setValue,
+  watch,
+  errors,
+  formData,
   calculateAddOnTotal,
   onSubmit,
   isPending,
   onBack,
 }) {
+  const staffReady = useWatch({ control, name: "staffReady" }) ?? "yes";
+  const stockConfirmation =
+    useWatch({ control, name: "stockConfirmation" }) ?? "yes";
+
   return (
     <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6 text-left font-sans">
-      <div>
-        <h3 className="text-lg font-bold text-slate-900">
-          Review &amp; Submit Campaign for Review
+      <div className="border-b border-slate-100 pb-3">
+        <h3 className="text-base font-bold text-slate-900">
+          Step 4: Review &amp; Submit Campaign for Review
         </h3>
-        <p className="text-xs text-slate-500 font-medium mt-0.5 font-sans">
+        <p className="text-xs text-slate-500 font-medium mt-0.5">
           Review staff readiness, stock confirmation &amp; mandatory compliance
           agreements
         </p>
@@ -36,23 +44,21 @@ export default function StepReview({
 
       <div className="space-y-5">
         {/* Summary Box */}
-        <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2 text-xs">
+        <div className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-2.5 text-xs">
           <div className="flex justify-between">
             <span className="text-slate-500 font-semibold">Campaign Name:</span>
-            <span className="font-bold text-slate-900">
-              {campaignData.name}
-            </span>
+            <span className="font-bold text-slate-900">{formData.name}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500 font-semibold">Campaign Type:</span>
             <span className="font-bold text-slate-900 capitalize">
-              {campaignData.type}
+              {formData.type}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500 font-semibold">Promo Code:</span>
             <span className="font-mono font-bold text-blue-600">
-              {campaignData.code}
+              {formData.code || "SAVE20"}
             </span>
           </div>
           <div className="flex justify-between">
@@ -60,95 +66,79 @@ export default function StepReview({
               Target Audience:
             </span>
             <span className="font-bold text-slate-900 capitalize">
-              {campaignData.audience}
+              {formData.audience}
             </span>
           </div>
-          <div className="flex justify-between border-t border-slate-200 pt-2 font-bold text-slate-900">
+          <div className="flex justify-between border-t border-slate-200/80 pt-2 font-bold text-slate-900">
             <span>Total Channel Add-Ons:</span>
             <span className="text-blue-600">₹{calculateAddOnTotal()}</span>
           </div>
         </div>
 
-        {/* Staff Readiness & Stock Confirmation */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-              <Users className="w-3.5 h-3.5 text-blue-600" /> Staff Readiness
-              Check *
-            </Label>
-            <Select
-              value={campaignData.staffReady}
-              onValueChange={(val) =>
-                setCampaignData({ ...campaignData, staffReady: val })
-              }
-            >
-              <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
-                <SelectValue placeholder="Select staff readiness" />
-              </SelectTrigger>
-              <SelectContent className="z-[300]">
-                <SelectItem value="yes">
-                  Yes — my team has been briefed and knows the offer code
-                </SelectItem>
-                <SelectItem value="partially">
-                  Partially — I will brief them before launch
-                </SelectItem>
-                <SelectItem value="no">
-                  No — I need to brief them first
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-              <Package className="w-3.5 h-3.5 text-emerald-600" /> Stock /
-              Capacity Confirmation *
-            </Label>
-            <Select
-              value={campaignData.stockConfirmation || "yes"}
-              onValueChange={(val) =>
-                setCampaignData({ ...campaignData, stockConfirmation: val })
-              }
-            >
-              <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs h-10 px-3.5 font-bold text-slate-800">
-                <SelectValue placeholder="Select stock confirmation" />
-              </SelectTrigger>
-              <SelectContent className="z-[300]">
-                <SelectItem value="yes">
-                  Yes — sufficient stock &amp; capacity reserved
-                </SelectItem>
-                <SelectItem value="limited">
-                  Limited stock — usage cap applied
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Internal Note to Campaign Team */}
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-            <MessageSquare className="w-3.5 h-3.5 text-slate-600" /> Internal
-            Note to Campaign Verification Team (Optional)
-          </Label>
-          <Textarea
-            rows={2}
-            placeholder="e.g. Please approve before Thursday 5 PM for pre-Diwali push broadcast."
-            value={campaignData.internalNote || ""}
-            onChange={(e) =>
-              setCampaignData({ ...campaignData, internalNote: e.target.value })
+        {/* Staff Readiness & Stock Confirmation in 2-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <FormSelect
+            label="Staff Readiness Check"
+            icon={Users}
+            options={[
+              {
+                value: "yes",
+                label: "Yes — team is briefed and knows code",
+              },
+              {
+                value: "partially",
+                label: "Partially — will brief before launch",
+              },
+              { value: "no", label: "No — need to brief them first" },
+            ]}
+            required
+            value={staffReady}
+            onValueChange={(val) =>
+              setValue("staffReady", val, { shouldValidate: true })
             }
-            className="bg-white border-slate-200 text-xs rounded-xl"
+            error={errors.staffReady}
+          />
+
+          <FormSelect
+            label="Stock / Capacity Confirmation"
+            icon={Package}
+            options={[
+              {
+                value: "yes",
+                label: "Yes — sufficient stock & capacity",
+              },
+              {
+                value: "limited",
+                label: "Limited stock — usage cap applied",
+              },
+            ]}
+            required
+            value={stockConfirmation}
+            onValueChange={(val) =>
+              setValue("stockConfirmation", val, { shouldValidate: true })
+            }
+            error={errors.stockConfirmation}
           />
         </div>
 
+        {/* Internal Note to Campaign Team */}
+        <FormTextarea
+          label="Internal Note to Verification Team"
+          icon={MessageSquare}
+          rows={2}
+          placeholder="e.g. Please approve before Thursday 5 PM for pre-Diwali push broadcast."
+          {...register("internalNote")}
+          error={errors.internalNote}
+        />
+
         {/* Mandatory Checkbox Agreements */}
         <div className="space-y-3 pt-2">
-          <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-900 uppercase tracking-wide">
+          <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-900 uppercase tracking-wider">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Mandatory
             Compliance Confirmations
+            <span className="text-red-500 font-bold ml-0.5">*</span>
           </Label>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {[
               {
                 key: "agreed1",
@@ -171,27 +161,44 @@ export default function StepReview({
                 text: "I understand selected add-ons are billed separately upon scheduling confirmation.",
               },
             ].map((chk) => {
-              const isChecked = campaignData[chk.key];
+              const isChecked = watch(chk.key);
+              const hasErr = errors[chk.key];
               return (
-                <label
-                  key={chk.key}
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${
-                    isChecked
-                      ? "bg-emerald-50/60 border-emerald-300 text-emerald-950 font-semibold"
-                      : "bg-slate-50/50 border-slate-200/80 text-slate-700 hover:border-slate-300 font-medium"
-                  }`}
-                >
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={(val) =>
-                      setCampaignData({ ...campaignData, [chk.key]: !!val })
+                <div key={chk.key} className="space-y-1">
+                  <div
+                    onClick={() =>
+                      setValue(chk.key, !isChecked, { shouldValidate: true })
                     }
-                    className="mt-0.5 shrink-0"
-                  />
-                  <span className="leading-relaxed select-none">
-                    {chk.text}
-                  </span>
-                </label>
+                    className={cn(
+                      "flex items-start gap-3 p-3.5 rounded-xl border text-xs cursor-pointer transition-all select-none",
+                      isChecked
+                        ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                        : hasErr
+                          ? "bg-red-50/50 border-red-300 text-red-900 font-medium"
+                          : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 font-medium",
+                    )}
+                  >
+                    {/* Plain CSS checkbox indicator — no Radix internal setState */}
+                    <span
+                      className={cn(
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border transition-colors",
+                        isChecked
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : hasErr
+                            ? "border-red-400 bg-white"
+                            : "border-slate-300 bg-white",
+                      )}
+                    >
+                      {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                    </span>
+                    <span className="leading-relaxed">{chk.text}</span>
+                  </div>
+                  {hasErr && (
+                    <p className="text-[11px] text-red-500 font-medium pl-2">
+                      {hasErr.message}
+                    </p>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -203,14 +210,14 @@ export default function StepReview({
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-slate-700 border-slate-200 text-xs font-bold rounded-xl cursor-pointer"
+          className="text-slate-700 border-slate-200 text-xs font-bold rounded-xl h-9 px-4 cursor-pointer"
         >
-          &lt; Back
+          Back
         </Button>
         <Button
           onClick={onSubmit}
           disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl shadow-md shadow-blue-500/20 cursor-pointer"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-9 px-8 rounded-xl shadow-md shadow-blue-500/20 cursor-pointer"
         >
           {isPending ? "Submitting..." : "Submit Campaign for Review"}
         </Button>

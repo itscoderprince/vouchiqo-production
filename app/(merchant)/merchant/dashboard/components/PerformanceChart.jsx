@@ -20,59 +20,23 @@ import {
 
 const TIME_RANGES = ["7 Days", "30 Days", "90 Days"];
 
-// Demo performance data with fluctuating up-down values in multiples of 5
-const DEMO_PERFORMANCE = {
-  "7 Days": [
-    { label: "Mon", clicks: 20, redemptions: 5 },
-    { label: "Tue", clicks: 10, redemptions: 2 },
-    { label: "Wed", clicks: 35, redemptions: 12 },
-    { label: "Thu", clicks: 15, redemptions: 5 },
-    { label: "Fri", clicks: 40, redemptions: 18 },
-    { label: "Sat", clicks: 25, redemptions: 8 },
-    { label: "Sun", clicks: 30, redemptions: 10 },
-  ],
-  "30 Days": [
-    { label: "Aug", clicks: 20, redemptions: 5 },
-    { label: "Sep", clicks: 10, redemptions: 2 },
-    { label: "Oct", clicks: 25, redemptions: 8 },
-    { label: "Nov", clicks: 12, redemptions: 3 },
-    { label: "Dec", clicks: 35, redemptions: 15 },
-    { label: "Jan", clicks: 18, redemptions: 6 },
-    { label: "Feb", clicks: 30, redemptions: 10 },
-    { label: "Mar", clicks: 15, redemptions: 4 },
-    { label: "Apr", clicks: 40, redemptions: 18 },
-    { label: "May", clicks: 22, redemptions: 7 },
-    { label: "Jun", clicks: 32, redemptions: 12 },
-    { label: "Jul", clicks: 15, redemptions: 5 },
-  ],
-  "90 Days": [
-    { label: "May", clicks: 25, redemptions: 8 },
-    { label: "Jun", clicks: 15, redemptions: 4 },
-    { label: "Jul", clicks: 40, redemptions: 16 },
-  ],
-};
-
 export default function PerformanceChart({
   trendData,
   activeRange = "30 Days",
   setActiveRange,
 }) {
-  const selectedDemo =
-    DEMO_PERFORMANCE[activeRange] || DEMO_PERFORMANCE["30 Days"];
-
-  // Build enriched chart data with fluctuating up-down values
+  // Build chart data exclusively from real DB trendData — no fake/demo fallback
   const chartData =
-    trendData &&
-    trendData.length > 0 &&
-    trendData.some((t) => (t.orders || 0) > 0)
+    trendData && trendData.length > 0
       ? trendData.map((t) => ({
           label: t.label,
-          clicks: (t.orders || 0) * 4 + 10,
-          redemptions: t.orders || 0,
+          clicks: t.views || 0,
+          redemptions: t.redemptions || t.orders || 0,
         }))
-      : selectedDemo;
+      : [];
 
   const totalClicksInView = chartData.reduce((s, c) => s + (c.clicks || 0), 0);
+  const hasData = chartData.some((c) => c.clicks > 0 || c.redemptions > 0);
 
   return (
     <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-2xl shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-all duration-200 p-0 gap-0 font-sans">
@@ -110,7 +74,9 @@ export default function PerformanceChart({
               <div className="w-4 h-4 rounded-md bg-[#2563eb] text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <MousePointerClick className="w-2.5 h-2.5 stroke-[2.5]" />
               </div>
-              <span className="text-[11px] font-bold text-slate-800">Clicks</span>
+              <span className="text-[11px] font-bold text-slate-800">
+                Clicks
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-4 rounded-md bg-[#0f2137] text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -131,62 +97,76 @@ export default function PerformanceChart({
 
         {/* Full-Height Dynamic Chart Container */}
         <div className="h-56 sm:h-64 w-full flex-1 pt-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#f1f5f9"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
-                stroke="#94a3b8"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="#94a3b8"
-                fontSize={10}
-                tickLine={false}
-                axisLine={false}
-                domain={[0, 40]}
-                ticks={[0, 5, 10, 15, 20, 25, 30, 35, 40]}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#0f172a",
-                  borderRadius: "8px",
-                  border: "none",
-                  color: "#fff",
-                  fontSize: "12px",
-                }}
-                labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
-                itemStyle={{ fontSize: "12px", color: "#fff" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="clicks"
-                stroke="#2563eb"
-                strokeWidth={2.5}
-                dot={{ r: 3, fill: "#2563eb" }}
-                activeDot={{ r: 5 }}
-                name="Clicks"
-              />
-              <Line
-                type="monotone"
-                dataKey="redemptions"
-                stroke="#0f2137"
-                strokeWidth={2.5}
-                dot={{ r: 3, fill: "#0f2137" }}
-                activeDot={{ r: 5 }}
-                name="Redemptions"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {hasData ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="#94a3b8"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#0f172a",
+                    borderRadius: "8px",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: "12px",
+                  }}
+                  labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
+                  itemStyle={{ fontSize: "12px", color: "#fff" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="clicks"
+                  stroke="#2563eb"
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: "#2563eb" }}
+                  activeDot={{ r: 5 }}
+                  name="Clicks"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="redemptions"
+                  stroke="#0f2137"
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: "#0f2137" }}
+                  activeDot={{ r: 5 }}
+                  name="Redemptions"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center gap-2 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+                <MousePointerClick className="w-6 h-6 text-slate-400" />
+              </div>
+              <p className="text-[12px] font-semibold text-slate-500">
+                No activity yet
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-[220px]">
+                Clicks and redemptions will appear here once customers interact
+                with your offers.
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
