@@ -274,6 +274,40 @@ export default function MerchantKycDialog({
               </div>
             </div>
 
+            {/* WEEKLY OPERATING HOURS SCHEDULE DISPLAY */}
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 block border-b border-slate-200 pb-1">
+                Weekly Store Operating Hours Schedule
+              </span>
+              {merchant.operatingHours && typeof merchant.operatingHours === "object" && Object.keys(merchant.operatingHours).length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 pt-1">
+                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
+                    const dayData = merchant.operatingHours[day];
+                    const isOpen = dayData ? dayData.isOpen !== false : true;
+                    const openTime = dayData?.openTime || "10:00 AM";
+                    const closeTime = dayData?.closeTime || (day === "Sunday" ? "11:00 PM" : "08:00 PM");
+
+                    return (
+                      <div key={day} className={`p-2 rounded-lg border text-center ${isOpen ? "bg-white border-slate-200 shadow-2xs" : "bg-rose-50/60 border-rose-200"}`}>
+                        <span className="text-[11px] font-bold text-slate-800 block">{day.slice(0, 3)}</span>
+                        {isOpen ? (
+                          <span className="text-[10px] font-mono text-emerald-700 font-semibold block mt-0.5">
+                            {openTime} – {closeTime}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-rose-600 block mt-0.5">CLOSED</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-xs font-mono text-slate-700">
+                  Mon–Sat 10:00 AM – 08:00 PM, Sun 10:00 AM – 11:00 PM
+                </div>
+              )}
+            </div>
+
             {merchant.description && (
               <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/80 space-y-1">
                 <span className="text-[10px] uppercase font-semibold text-slate-400 block">

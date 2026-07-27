@@ -5,6 +5,8 @@ import {
   Building2,
   Check,
   ChevronRight,
+  Eye,
+  EyeOff,
   FileCheck,
   Globe,
   Hash,
@@ -117,6 +119,8 @@ export function MerchantOnboardingWizard() {
     "Special Combos",
   ]);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     // Section A: Business Identity & Location
     registeredName: "",
@@ -160,6 +164,15 @@ export function MerchantOnboardingWizard() {
     commissionAgreed: false,
     openingTime: "10:00 AM",
     closingTime: "08:00 PM",
+    operatingHours: {
+      Monday: { isOpen: true, openTime: "10:00 AM", closeTime: "08:00 PM" },
+      Tuesday: { isOpen: true, openTime: "10:00 AM", closeTime: "08:00 PM" },
+      Wednesday: { isOpen: true, openTime: "10:00 AM", closeTime: "08:00 PM" },
+      Thursday: { isOpen: true, openTime: "10:00 AM", closeTime: "08:00 PM" },
+      Friday: { isOpen: true, openTime: "10:00 AM", closeTime: "08:00 PM" },
+      Saturday: { isOpen: true, openTime: "10:00 AM", closeTime: "08:00 PM" },
+      Sunday: { isOpen: true, openTime: "10:00 AM", closeTime: "11:00 PM" },
+    },
 
     // Section F: Declarations
     commit1: false,
@@ -298,6 +311,8 @@ export function MerchantOnboardingWizard() {
       if (!formData.state.trim()) return toast.error("Please enter State");
       if (!formData.address.trim())
         return toast.error("Please enter Business Address");
+      if (!formData.googleUrl || !formData.googleUrl.trim())
+        return toast.error("Please enter Google Maps / GMB Profile Location Link");
     } else if (currentStep === 2) {
       if (!formData.contactName.trim())
         return toast.error("Please enter Contact Liaison Name");
@@ -440,6 +455,7 @@ export function MerchantOnboardingWizard() {
         signatureImage: formData.signatureUrl,
         plan: formData.selectedPlan,
         gmapsLink: cleanUrl(formData.googleUrl),
+        operatingHours: formData.operatingHours,
       };
 
       const merchantRes = await fetch("/api/merchants", {
@@ -782,7 +798,7 @@ export function MerchantOnboardingWizard() {
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
                   Google Maps / GMB Profile Location Link{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <Textarea
                   rows={2}
@@ -1086,14 +1102,25 @@ export function MerchantOnboardingWizard() {
                 <div className="relative">
                   <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Min 6 characters"
                     value={formData.password}
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
+                    className="pl-8 pr-9 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer border-0 bg-transparent p-0.5"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1664,25 +1691,37 @@ export function MerchantOnboardingWizard() {
             </Badge>
           </div>
 
-          <div className="space-y-3">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-                Performance Commission Rates (Day 1 Applicable)
-              </Label>
-              <div className="text-[11px] text-slate-600 space-y-1">
-                {COMMISSION_TABLE.map((c) => (
-                  <div
-                    key={c.category}
-                    className="flex justify-between border-b border-slate-200/60 pb-0.5"
-                  >
-                    <span className="font-normal">{c.category}:</span>
-                    <span className="font-mono text-blue-700 font-semibold">
-                      {c.rate}
+          <div className="space-y-4">
+            {/* Show ONLY the commission rate for the chosen category */}
+            {(() => {
+              const selectedCatObj = CATEGORIES.find(
+                (c) => c.id === formData.category,
+              );
+              const selectedCatLabel = selectedCatObj
+                ? selectedCatObj.label
+                : "Selected Category";
+              const matchedComm = COMMISSION_TABLE.find(
+                (c) =>
+                  c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
+                  c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
+              ) || { category: selectedCatLabel, rate: "3% – 5% blended rate" };
+
+              return (
+                <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-lg space-y-1.5 text-left">
+                  <Label className="text-xs font-semibold text-blue-950 uppercase tracking-wider block">
+                    Performance Commission Rate for Chosen Category ({selectedCatLabel})
+                  </Label>
+                  <div className="flex items-center justify-between p-2.5 bg-white rounded-md border border-blue-100 shadow-2xs">
+                    <span className="font-semibold text-xs text-slate-800">
+                      {selectedCatLabel}:
+                    </span>
+                    <span className="font-mono text-xs text-blue-700 font-extrabold px-3 py-1 rounded bg-blue-50 border border-blue-200">
+                      {matchedComm.rate}
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              );
+            })()}
 
             <label className="flex items-center gap-2.5 p-3 bg-blue-50/50 border border-blue-200 rounded-lg cursor-pointer">
               <Checkbox
@@ -1697,51 +1736,132 @@ export function MerchantOnboardingWizard() {
               </span>
             </label>
 
-            <div className="space-y-2 pt-1 border-t border-slate-100">
-              <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-                Store Operating Hours
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-slate-700">
-                    Opening Time
-                  </Label>
-                  <div className="relative">
-                    <Building className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <Input
-                      type="text"
-                      placeholder="10:00 AM"
-                      value={formData.openingTime}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          openingTime: e.target.value,
-                        })
-                      }
-                      className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-slate-700">
-                    Closing Time
-                  </Label>
-                  <div className="relative">
-                    <Building className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <Input
-                      type="text"
-                      placeholder="08:00 PM"
-                      value={formData.closingTime}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          closingTime: e.target.value,
-                        })
-                      }
-                      className="pl-8 bg-white border-slate-300 text-xs h-9 rounded-lg font-normal focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none shadow-2xs"
-                    />
-                  </div>
-                </div>
+            {/* Weekly Store Operating Hours Schedule */}
+            <div className="space-y-3 pt-2 border-t border-slate-100 text-left">
+              <div>
+                <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
+                  Weekly Store Operating Hours Schedule
+                </Label>
+                <p className="text-[11px] text-slate-500 font-normal mt-0.5">
+                  Configure store opening &amp; closing timings per day (e.g. Mon 10:00 AM – 08:00 PM, Sun 10:00 AM – 11:00 PM or Closed).
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((day) => {
+                  const dayData = formData.operatingHours?.[day] || {
+                    isOpen: true,
+                    openTime: "10:00 AM",
+                    closeTime: day === "Sunday" ? "11:00 PM" : "08:00 PM",
+                  };
+
+                  return (
+                    <div
+                      key={day}
+                      className={`p-2.5 rounded-lg border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 ${
+                        dayData.isOpen
+                          ? "bg-white border-slate-200 shadow-2xs"
+                          : "bg-slate-100/80 border-slate-200 opacity-70"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-[130px]">
+                        <Checkbox
+                          id={`day-${day}`}
+                          checked={dayData.isOpen}
+                          onCheckedChange={(checked) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              operatingHours: {
+                                ...prev.operatingHours,
+                                [day]: {
+                                  ...dayData,
+                                  isOpen: !!checked,
+                                },
+                              },
+                            }));
+                          }}
+                        />
+                        <label
+                          htmlFor={`day-${day}`}
+                          className="text-xs font-bold text-slate-800 cursor-pointer select-none"
+                        >
+                          {day}
+                        </label>
+                        <Badge
+                          className={`text-[9px] font-bold border-0 px-1.5 py-0 ${
+                            dayData.isOpen
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-rose-100 text-rose-800"
+                          }`}
+                        >
+                          {dayData.isOpen ? "OPEN" : "CLOSED"}
+                        </Badge>
+                      </div>
+
+                      {dayData.isOpen ? (
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                              From:
+                            </span>
+                            <Input
+                              type="text"
+                              placeholder="10:00 AM"
+                              value={dayData.openTime}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  operatingHours: {
+                                    ...prev.operatingHours,
+                                    [day]: { ...dayData, openTime: val },
+                                  },
+                                }));
+                              }}
+                              className="w-24 h-7 text-xs bg-white border-slate-300 rounded px-2 font-mono"
+                            />
+                          </div>
+
+                          <span className="text-slate-400 font-bold text-xs">–</span>
+
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                              To:
+                            </span>
+                            <Input
+                              type="text"
+                              placeholder="08:00 PM"
+                              value={dayData.closeTime}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  operatingHours: {
+                                    ...prev.operatingHours,
+                                    [day]: { ...dayData, closeTime: val },
+                                  },
+                                }));
+                              }}
+                              className="w-24 h-7 text-xs bg-white border-slate-300 rounded px-2 font-mono"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-semibold text-rose-600 italic">
+                          Store Closed on {day}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
