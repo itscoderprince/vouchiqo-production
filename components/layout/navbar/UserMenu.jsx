@@ -45,14 +45,31 @@ export const UserMenu = () => {
       return;
     }
 
+    const isMerchantFlag =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+    if (isMerchantFlag) {
+      setEffectiveRole("merchant");
+    }
+
     // Session says customer — do a quick DB check in case they just registered
     // as a merchant and the session cookie hasn't refreshed yet
     fetch("/api/merchants/me")
       .then((r) => {
-        setEffectiveRole(r.ok ? "merchant" : "customer");
+        if (r.ok) {
+          setEffectiveRole("merchant");
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("vouchiqo_is_merchant", "true");
+          }
+        } else if (!isMerchantFlag) {
+          setEffectiveRole("customer");
+        }
       })
       .catch(() => {
-        setEffectiveRole("customer");
+        if (!isMerchantFlag) {
+          setEffectiveRole("customer");
+        }
       });
   }, [mounted, session]);
 
@@ -170,6 +187,11 @@ export const UserMenu = () => {
             icon: LayoutDashboard,
             label: "Merchant Dashboard",
             href: "/merchant/dashboard",
+          },
+          {
+            icon: Store,
+            label: "Application Status",
+            href: "/merchant/application-status",
           },
           { icon: Ticket, label: "Manage Offers", href: "/merchant/coupons" },
           { icon: User, label: "My Profile", href: "/merchant/profile" },

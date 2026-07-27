@@ -476,10 +476,11 @@ export function MerchantOnboardingWizard() {
       const merchantPayload = {
         businessName: formData.tradingName || formData.registeredName,
         slug:
-          (formData.tradingName || formData.registeredName)
+          ((formData.tradingName || formData.registeredName)
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "") || `merchant-${Date.now()}`,
+            .replace(/^-+|-+$/g, "")
+            .slice(0, 45) || "merchant") + `-${Math.random().toString(36).substring(2, 6)}`,
         category: formData.category,
         customCategoryNotes: formData.customCategoryNotes,
         constitution: formData.constitution,

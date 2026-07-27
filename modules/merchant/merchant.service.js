@@ -71,6 +71,27 @@ export async function createMerchant(authId, data) {
 
   await checkMerchantDuplicates(data);
 
+  // Auto-resolve slug collision by appending a unique suffix if slug already exists
+  let baseSlug = (data.slug || data.businessName || "merchant")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || `merchant-${Date.now()}`;
+
+  let uniqueSlug = baseSlug;
+  let counter = 1;
+  while (await Merchant.findOne({ slug: uniqueSlug })) {
+    const randomSuffix = Math.random().toString(36).substring(2, 6);
+    uniqueSlug = `${baseSlug}-${randomSuffix}`;
+    counter++;
+    if (counter > 10) {
+      uniqueSlug = `${baseSlug}-${Date.now()}`;
+      break;
+    }
+  }
+
+  data.slug = uniqueSlug;
+
   const merchant = await Merchant.create({ authId: authIdStr, ...data });
 
   // Update user's role to "merchant" in UserProfile and Better Auth user & session collections
