@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { FormInput, FormSelect, FormTextarea } from "@/components/shared/form";
@@ -16,12 +17,6 @@ import { showError, showSuccess } from "@/lib/toast";
 
 /**
  * AdminReviewModal — Control panel to simulate admin workflow status updates.
- *
- * @param {object} props
- * @param {boolean} props.open
- * @param {function} props.onOpenChange
- * @param {string} props.applicationId
- * @param {function} [props.onStatusUpdated]
  */
 export default function AdminReviewModal({
   open,
@@ -29,6 +24,7 @@ export default function AdminReviewModal({
   applicationId = "VQ-2026-89421",
   onStatusUpdated,
 }) {
+  const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState("under_review");
   const [actionNote, setActionNote] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
@@ -55,6 +51,11 @@ export default function AdminReviewModal({
         showSuccess(
           `Application #${applicationId} status updated to: ${selectedStatus.replace("_", " ").toUpperCase()}`,
         );
+        await queryClient.invalidateQueries({
+          queryKey: ["merchant-application-status"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+        await queryClient.invalidateQueries({ queryKey: ["merchant-badges"] });
         onStatusUpdated?.(selectedStatus);
         onOpenChange(false);
       } else {

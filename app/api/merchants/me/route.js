@@ -5,6 +5,9 @@ import { getMerchantByAuthId } from "@/modules/merchant/merchant.service";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * GET /api/merchants/me
  * Returns the authenticated user's merchant profile.
@@ -12,7 +15,7 @@ import { asyncHandler } from "@/utils/async-handler";
 export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireAuth(request);
-  const merchant = await getMerchantByAuthId(user.id);
+  const merchant = await getMerchantByAuthId(user.id, user.email);
   return ok(merchant);
 });
 

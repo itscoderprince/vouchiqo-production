@@ -100,8 +100,11 @@ export async function getMerchantById(merchantId, publicOnly = true) {
  *
  * @param {string} authId
  */
-export async function getMerchantByAuthId(authId) {
-  const merchant = await Merchant.findOne({ authId }).lean();
+export async function getMerchantByAuthId(authId, email = null) {
+  let merchant = await Merchant.findOne({ authId }).lean();
+  if (!merchant && email) {
+    merchant = await Merchant.findOne({ contactEmail: email.toLowerCase().trim() }).lean();
+  }
   if (!merchant) throw new NotFoundError("Merchant profile");
   return merchant;
 }
@@ -114,14 +117,22 @@ export async function getMerchantByAuthId(authId) {
  * @param {object} data - Validated update data
  */
 export async function updateMerchant(merchantId, authId, data) {
-  const merchant = await Merchant.findOne({ _id: merchantId, authId });
+  let merchant = await Merchant.findOne({ _id: merchantId });
   if (!merchant) throw new ForbiddenError("You cannot edit this merchant");
 
   await checkMerchantDuplicates(data, merchant._id);
 
+  const keyKycFieldsChanged =
+    (data.gstin && data.gstin !== merchant.gstin) ||
+    (data.pan && data.pan !== merchant.pan) ||
+    (data.docImage && data.docImage !== merchant.docImage);
+
   Object.assign(merchant, data);
-  merchant.status = MERCHANT_STATUS.PENDING;
-  merchant.isVerified = false;
+
+  if (keyKycFieldsChanged && merchant.status === MERCHANT_STATUS.APPROVED) {
+    merchant.status = MERCHANT_STATUS.PENDING;
+    merchant.isVerified = false;
+  }
   await merchant.save();
 
   // Keep user role as merchant when updating merchant profile

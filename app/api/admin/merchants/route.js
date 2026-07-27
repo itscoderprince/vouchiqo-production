@@ -10,6 +10,9 @@ import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * GET /api/admin/merchants
  * List all merchants with any status. Admin only.

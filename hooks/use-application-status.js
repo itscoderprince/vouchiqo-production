@@ -20,9 +20,9 @@ export function useApplicationStatus() {
       const json = await apiFetch("/api/merchant/application/status");
       return json.data || null;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 15 * 1000, // 15 seconds
     gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     retry: 3,
     // Fallback to polling every 30s if socket is NOT connected
     refetchInterval: isConnected ? false : 30000,
@@ -53,9 +53,15 @@ export function useApplicationStatus() {
         };
       });
 
-      // Invalidate to ensure consistent server state
+      // Invalidate to ensure consistent server state across application, profile, and sidebar badges
       queryClient.invalidateQueries({
         queryKey: qk.merchant.applicationStatus(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: qk.merchant.profile(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["merchant-badges"],
       });
     }
   });

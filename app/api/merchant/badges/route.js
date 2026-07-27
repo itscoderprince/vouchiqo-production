@@ -8,6 +8,7 @@ import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /**
  * GET /api/merchant/badges
@@ -17,11 +18,16 @@ export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireAuth(request);
 
-  const merchant = await Merchant.findOne({ authId: user.id }).lean();
+  const merchant = await Merchant.findOne({
+    $or: [
+      { authId: user.id },
+      ...(user.email ? [{ contactEmail: user.email.toLowerCase().trim() }] : []),
+    ],
+  }).lean();
 
   if (!merchant) {
     return ok({
-      status: "pending",
+      status: "not_submitted",
       totalCoupons: 0,
       activeCoupons: 0,
       expiredCoupons: 0,

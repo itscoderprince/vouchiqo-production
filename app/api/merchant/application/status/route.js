@@ -4,7 +4,16 @@ import { requireAuth } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
 import MerchantApplication from "@/modules/merchant/merchant-application.model";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const MONGODB_URI = process.env.MONGODB_URI;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
 
 async function connectDB() {
   if (mongoose.connection.readyState >= 1) return;
@@ -163,7 +172,10 @@ export async function GET(req) {
         ],
       };
 
-      return NextResponse.json({ success: true, data: formattedApp });
+      return NextResponse.json(
+        { success: true, data: formattedApp },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
 
     // Fallback if DB empty

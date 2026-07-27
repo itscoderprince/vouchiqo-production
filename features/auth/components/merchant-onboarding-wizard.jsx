@@ -38,6 +38,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@/hooks/use-user";
 import { authClient, signUp } from "@/lib/auth-client";
 import {
   INDIAN_CITIES,
@@ -92,6 +94,8 @@ const COMMISSION_TABLE = [
 
 export function MerchantOnboardingWizard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user: authUser } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateErrors, setDuplicateErrors] = useState({});
@@ -370,28 +374,42 @@ export function MerchantOnboardingWizard() {
 
     setIsSubmitting(true);
     try {
-      // 1. Create User via Auth
-      const { data, error } = await signUp.email({
-        email: formData.email,
-        password: formData.password,
-        name: formData.tradingName || formData.registeredName,
-        data: {
-          role: "merchant",
-          phoneNumber: formData.mobile,
-        },
-      });
+      // 1. Create User via Auth if not already logged in
+      if (!authUser) {
+        const { data, error } = await signUp.email({
+          email: formData.email,
+          password: formData.password,
+          name: formData.tradingName || formData.registeredName,
+          data: {
+            role: "merchant",
+            phoneNumber: formData.mobile,
+          },
+        });
 
-      if (error) {
-        throw new Error(error.message || "Registration failed.");
+        if (
+          error &&
+          !error.message?.includes("already registered") &&
+          !error.message?.includes("already exists")
+        ) {
+          throw new Error(error.message || "Registration failed.");
+        }
       }
+
+      const cleanPhone = (p) => (p || "").replace(/\D/g, "").slice(-10);
+      const cleanUrl = (u) => {
+        if (!u || !u.trim()) return "";
+        const trimmed = u.trim();
+        return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+      };
 
       // 2. Create In-Depth Merchant DB Record for Admin Panel
       const merchantPayload = {
         businessName: formData.tradingName || formData.registeredName,
-        slug: (formData.tradingName || formData.registeredName)
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, ""),
+        slug:
+          (formData.tradingName || formData.registeredName)
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") || `merchant-${Date.now()}`,
         category: formData.category,
         customCategoryNotes: formData.customCategoryNotes,
         constitution: formData.constitution,
@@ -406,14 +424,14 @@ export function MerchantOnboardingWizard() {
             lng: formData.longitude ? Number(formData.longitude) : undefined,
           },
         },
-        contactEmail: formData.email,
-        contactPhone: formData.mobile,
-        whatsappNumber: formData.whatsapp,
-        website: formData.websiteUrl,
+        contactEmail: (formData.email || authUser?.email || "").toLowerCase().trim(),
+        contactPhone: cleanPhone(formData.mobile || authUser?.phoneNumber),
+        whatsappNumber: cleanPhone(formData.whatsapp || formData.mobile),
+        website: cleanUrl(formData.websiteUrl),
         liaisonName: effectiveSignatoryName,
         signatoryName: effectiveSignatoryName,
         liaisonDesignation: formData.designation,
-        liaisonPhone: formData.mobile,
+        liaisonPhone: cleanPhone(formData.mobile),
         docType: formData.docType,
         docImage: formData.docFileUrl,
         shopImage: formData.shopPhotoUrl,
@@ -421,7 +439,7 @@ export function MerchantOnboardingWizard() {
         banner: formData.bannerUrl,
         signatureImage: formData.signatureUrl,
         plan: formData.selectedPlan,
-        gmapsLink: formData.googleUrl,
+        gmapsLink: cleanUrl(formData.googleUrl),
       };
 
       const merchantRes = await fetch("/api/merchants", {
@@ -430,23 +448,31 @@ export function MerchantOnboardingWizard() {
         body: JSON.stringify(merchantPayload),
       });
 
-      // Force-refresh the Better Auth client session so it picks up the
-      // newly written role:"merchant" from the DB, bypassing the 5-min cookie
-      // cache. Without this the client would still show role:"customer" and
-      // the user would land on the customer profile instead of merchant pages.
+      if (!merchantRes.ok) {
+        const errJson = await merchantRes.json().catch(() => ({}));
+        throw new Error(
+          errJson.message ||
+            errJson.error ||
+            "Failed to submit merchant application.",
+        );
+      }
+
+      // Force-refresh session & invalidate query keys
       try {
         await authClient.getSession({ query: { disableCookieCache: true } });
-      } catch (_) {
-        // non-fatal — page reload on redirect will re-fetch anyway
-      }
+      } catch (_) {}
+
+      await queryClient.invalidateQueries({
+        queryKey: ["merchant-application-status"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["merchant-badges"] });
 
       toast.success(
         "Application submitted! Welcome to Vouchiqo for Merchants.",
       );
 
-      // Redirect to merchant dashboard (the "Under Review" banner shown there
-      // blocks access until admin approves — no need for a separate status page)
-      router.push("/merchant/dashboard");
+      router.push("/merchant/application-status");
     } catch (err) {
       toast.error(err.message || "Registration failed.");
     } finally {

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import MerchantApplication from "@/modules/merchant/merchant-application.model";
+import Merchant from "@/modules/merchant/merchant.model";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -125,6 +126,29 @@ export async function PUT(req, { params }) {
       }
 
       await application.save();
+    }
+
+    // Sync status update to Merchant model in DB
+    if (status) {
+      const merchantStatus = status === "document_verified" ? "pending" : status;
+      await Merchant.updateMany(
+        {
+          $or: [
+            { _id: mongoose.Types.ObjectId.isValid(id) ? id : null },
+            ...(application?.email ? [{ contactEmail: application.email.toLowerCase().trim() }] : []),
+          ],
+        },
+        {
+          $set: {
+            status: merchantStatus,
+            isVerified: merchantStatus === "approved",
+            ...(rejectionReason ? { rejectionReason } : {}),
+          },
+        }
+      ).catch(() => {});
+    }
+
+    if (application) {
       return NextResponse.json({ success: true, data: application });
     }
 

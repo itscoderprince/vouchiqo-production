@@ -7,6 +7,9 @@ import { NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * GET /api/admin/merchants/[id]
  * Fetch single merchant profile with coupons, stats, and admin details.
@@ -55,17 +58,26 @@ export const PUT = asyncHandler(async (request, { params }) => {
   }
 
   try {
-    const { emitToAdmins } = await import("@/lib/socket/server");
+    const { dispatchEvent } = await import("@/lib/socket/dispatcher");
     const { SOCKET_EVENTS } = await import("@/lib/socket/events");
-    emitToAdmins(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, {
+    const payload = {
       merchantId: merchant._id || merchant.id,
       status: merchant.status,
       businessName: merchant.businessName,
+    };
+    await dispatchEvent({
+      target: "admins",
+      event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+      payload,
     });
-    emitToAdmins(SOCKET_EVENTS.APPLICATION_NEW, {
-      merchantId: merchant._id || merchant.id,
-      status: merchant.status,
-    });
+    if (merchant.authId) {
+      await dispatchEvent({
+        target: "user",
+        userId: String(merchant.authId),
+        event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+        payload,
+      });
+    }
   } catch (err) {
     console.error("[PUT /api/admin/merchants/[id]] Socket emit error:", err);
   }
