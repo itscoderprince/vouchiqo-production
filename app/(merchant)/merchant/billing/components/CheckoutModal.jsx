@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, CreditCard, Loader2, Lock, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,8 +16,6 @@ import { Label } from "@/components/ui/label";
 export default function CheckoutModal({
   isOpen,
   onClose,
-  checkoutStep,
-  setCheckoutStep,
   selectedPlan,
   selectedAddOn,
   billingCycle,
@@ -26,165 +24,105 @@ export default function CheckoutModal({
   totalPrice,
   gstin,
   setGstin,
-  paymentMethod,
-  setPaymentMethod,
-  executePayment,
+  onPayWithRazorpay,
   isPending,
 }) {
+  const productName = selectedPlan
+    ? `${selectedPlan.name} (${billingCycle})`
+    : selectedAddOn?.name || "Partner Add-On";
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-white border border-slate-200/80 rounded-2xl p-6 text-left font-sans">
+      <DialogContent className="max-w-md bg-white border border-slate-200 rounded-3xl p-6 text-left font-sans shadow-2xl overflow-hidden">
+        {/* Modal Header */}
         <DialogHeader className="border-b border-slate-100 pb-4">
-          <DialogTitle className="font-heading text-base font-bold text-slate-900 uppercase tracking-wider flex justify-between items-center w-full">
-            <span>Razorpay Payment Gateway</span>
-            <Badge className="bg-blue-100 text-blue-800 font-mono text-[9px] font-bold">
-              Step {checkoutStep} of 3
+          <DialogTitle className="font-heading text-base font-extrabold text-slate-900 flex justify-between items-center w-full tracking-tight">
+            <span className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-blue-600" />
+              <span>Razorpay Checkout</span>
+            </span>
+            <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-bold">
+              256-Bit SSL Encrypted
             </Badge>
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 font-medium">
-            18% GST tax invoice breakdown &amp; instant sandbox activation.
+            Review order breakdown &amp; proceed directly to Razorpay Live Gateway.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Step 1: Review Plan & GSTIN */}
-        {checkoutStep === 1 && (
-          <div className="space-y-4 font-semibold text-slate-700">
-            <div className="bg-slate-50 p-4 border border-slate-200/80 rounded-2xl space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Selected Product:</span>
-                <span className="font-bold text-slate-900">
-                  {selectedPlan
-                    ? `${selectedPlan.name} (${billingCycle})`
-                    : selectedAddOn?.name}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Base Price:</span>
-                <span>₹{basePrice.toLocaleString("en-IN")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">GST (18% Tax):</span>
-                <span>₹{gst.toLocaleString("en-IN")}</span>
-              </div>
-              <div className="border-t border-slate-200 pt-2 flex justify-between font-black text-slate-900 text-sm">
-                <span>Total Payable:</span>
-                <span className="text-blue-600">
-                  ₹{totalPrice.toLocaleString("en-IN")}
-                </span>
-              </div>
+        <div className="space-y-4 pt-2">
+          {/* Summary Breakdown Box */}
+          <div className="bg-slate-50 p-4 border border-slate-200/80 rounded-2xl space-y-2.5 text-xs font-semibold">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">Selected Package:</span>
+              <span className="font-extrabold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                {productName}
+              </span>
             </div>
 
-            {/* Optional GSTIN Input for Invoice Generation */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-slate-800">
-                Business GSTIN for Tax Credit (Optional)
-              </Label>
-              <Input
-                type="text"
-                placeholder="e.g. 27AABCU9603R1ZM"
-                value={gstin}
-                onChange={(e) => setGstin(e.target.value.toUpperCase())}
-                className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase"
-              />
+            <div className="flex justify-between items-center text-slate-600">
+              <span>Base Price:</span>
+              <span className="font-bold">₹{basePrice.toLocaleString("en-IN")}</span>
             </div>
 
-            <Button
-              onClick={() => setCheckoutStep(2)}
-              className="bg-blue-600 hover:bg-blue-700 text-white w-full text-xs font-bold py-2.5 h-10 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20"
-            >
-              <span>Proceed to Razorpay Payment</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            <div className="flex justify-between items-center text-slate-600">
+              <span>GST (18% Tax):</span>
+              <span className="font-bold">₹{gst.toLocaleString("en-IN")}</span>
+            </div>
+
+            <div className="border-t border-slate-200/80 pt-2 flex justify-between items-center font-black text-sm">
+              <span className="text-slate-900">Total Amount Payable:</span>
+              <span className="text-blue-600 text-base">
+                ₹{totalPrice.toLocaleString("en-IN")}
+              </span>
+            </div>
           </div>
-        )}
 
-        {/* Step 2: Razorpay Payment Gateway Selection */}
-        {checkoutStep === 2 && (
-          <div className="space-y-4 font-semibold text-slate-700">
+          {/* Optional Business GSTIN input */}
+          <div className="space-y-1">
+            <Label className="text-xs font-bold text-slate-700">
+              Business GSTIN for Tax Credit (Optional)
+            </Label>
+            <Input
+              type="text"
+              placeholder="e.g. 27AABCU9603R1ZM"
+              value={gstin}
+              onChange={(e) => setGstin(e.target.value.toUpperCase())}
+              className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase"
+            />
+          </div>
+
+          {/* Security & Features Checklist */}
+          <div className="space-y-1.5 text-[11px] text-slate-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+            <div className="flex items-center gap-1.5 font-bold text-blue-900">
+              <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+              <span>Instant Razorpay Payment Activation</span>
+            </div>
+            <ul className="space-y-1 text-slate-600 pl-5 list-disc">
+              <li>Supports Google Pay, PhonePe, Paytm UPI &amp; Cards</li>
+              <li>Instant plan activation &amp; zero setup fee</li>
+            </ul>
+          </div>
+
+          {/* Direct Razorpay Activation Button */}
+          <Button
+            onClick={onPayWithRazorpay}
+            disabled={isPending}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-11 shadow-lg shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2 transition-all"
+          >
             {isPending ? (
-              <div className="py-8 text-center space-y-3">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-                <span className="text-xs font-bold text-slate-900 block">
-                  Processing Secure Razorpay Transaction...
-                </span>
-              </div>
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Launching Razorpay Gateway...</span>
+              </>
             ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold text-slate-800 uppercase">
-                    Select Payment Option
-                  </Label>
-                  <div className="space-y-2">
-                    {[
-                      {
-                        id: "razorpay_upi",
-                        label: "Razorpay UPI (Google Pay, PhonePe, Paytm)",
-                      },
-                      {
-                        id: "razorpay_card",
-                        label: "Credit / Debit Card (Visa, Mastercard, RuPay)",
-                      },
-                      {
-                        id: "razorpay_netbanking",
-                        label: "Netbanking (HDFC, ICICI, SBI, Axis)",
-                      },
-                    ].map((opt) => (
-                      <label
-                        key={opt.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
-                          paymentMethod === opt.id
-                            ? "bg-blue-50/60 border-blue-600 text-slate-900"
-                            : "bg-white border-slate-200 text-slate-700"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="payMethod"
-                          checked={paymentMethod === opt.id}
-                          onChange={() => setPaymentMethod(opt.id)}
-                          className="accent-blue-600"
-                        />
-                        <span>{opt.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <Button
-                  onClick={executePayment}
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full text-xs font-bold py-2.5 h-10 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
-                >
-                  Pay ₹{totalPrice.toLocaleString("en-IN")} via Razorpay
-                </Button>
-              </div>
+              <>
+                <span>Pay ₹{totalPrice.toLocaleString("en-IN")} via Razorpay</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
             )}
-          </div>
-        )}
-
-        {/* Step 3: Success Animation Screen */}
-        {checkoutStep === 3 && (
-          <div className="text-center py-6 space-y-5 font-sans">
-            <div className="mx-auto w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center border border-emerald-200">
-              <Check className="w-6 h-6 stroke-[3]" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="font-heading text-lg font-bold text-slate-900">
-                Payment Successful!
-              </h3>
-              <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed font-medium">
-                {selectedPlan
-                  ? `Your subscription has been upgraded to ${selectedPlan.name}. Premium features are unlocked immediately.`
-                  : `Your add-on purchase has been confirmed. Resources added successfully.`}
-              </p>
-            </div>
-            <Button
-              onClick={onClose}
-              className="bg-slate-900 text-white text-xs font-bold py-2.5 px-6 rounded-xl inline-flex items-center justify-center cursor-pointer shadow-xs"
-            >
-              Return to Billing &amp; Subscription
-            </Button>
-          </div>
-        )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -464,14 +464,23 @@ export default function MerchantSubscription() {
   const handleOpenUpgrade = (plan) => {
     setSelectedPlan(plan);
     setSelectedAddOn(null);
-    triggerRazorpayDirect(plan, null);
+    setIsCheckoutOpen(true);
   };
 
   const handleOpenAddOn = (addOn) => {
     setSelectedAddOn(addOn);
     setSelectedPlan(null);
-    triggerRazorpayDirect(null, addOn);
+    setIsCheckoutOpen(true);
   };
+
+  const basePrice = selectedPlan
+    ? billingCycle === "yearly"
+      ? selectedPlan.priceYearly
+      : selectedPlan.priceMonthly
+    : selectedAddOn?.price || 0;
+
+  const gst = parseFloat((basePrice * 0.18).toFixed(2));
+  const totalPrice = Math.round(basePrice + gst);
 
   return (
     <DashboardLayout
@@ -509,6 +518,21 @@ export default function MerchantSubscription() {
         <AddOnsGrid addOns={addOns} onOpenAddOn={handleOpenAddOn} />
 
         <BillingHistoryTable invoices={invoices} />
+
+        <CheckoutModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          selectedPlan={selectedPlan}
+          selectedAddOn={selectedAddOn}
+          billingCycle={billingCycle}
+          basePrice={basePrice}
+          gst={gst}
+          totalPrice={totalPrice}
+          gstin={gstin}
+          setGstin={setGstin}
+          onPayWithRazorpay={() => triggerRazorpayDirect(selectedPlan, selectedAddOn)}
+          isPending={isRazorpayLoading}
+        />
       </div>
     </DashboardLayout>
   );
