@@ -36,20 +36,23 @@ export function calculateProfileHealth(merchant) {
     { name: "Primary Category", isFilled: Boolean(merchant.category) },
     {
       name: "Store Description",
-      isFilled: Boolean(merchant.description && merchant.description.length > 10),
+      isFilled: Boolean(merchant.description && merchant.description.length > 5),
     },
     { name: "Contact Email", isFilled: Boolean(merchant.contactEmail) },
     { name: "Contact Phone", isFilled: Boolean(merchant.contactPhone) },
-    { name: "Store Address", isFilled: Boolean(merchant.location?.address) },
+    { name: "Store Address", isFilled: Boolean(merchant.location?.address || merchant.address) },
     {
       name: "City & State",
-      isFilled: Boolean(merchant.location?.city && merchant.location?.state),
+      isFilled: Boolean(
+        (merchant.location?.city || merchant.city) &&
+          (merchant.location?.state || merchant.state),
+      ),
     },
-    { name: "Pincode", isFilled: Boolean(merchant.location?.pincode) },
-    { name: "Google Maps Link", isFilled: Boolean(merchant.location?.gmapsLink) },
-    { name: "Store Logo", isFilled: Boolean(merchant.logo) },
-    { name: "Store Banner Image", isFilled: Boolean(merchant.banner) },
-    { name: "Shop Storefront Photo", isFilled: Boolean(merchant.shopImage) },
+    { name: "Pincode", isFilled: Boolean(merchant.location?.pincode || merchant.pincode) },
+    { name: "Google Maps Link", isFilled: Boolean(merchant.location?.gmapsLink || merchant.gmapsLink) },
+    { name: "Store Logo", isFilled: Boolean(merchant.logo || merchant.logoUrl) },
+    { name: "Store Banner Image", isFilled: Boolean(merchant.banner || merchant.bannerUrl) },
+    { name: "Shop Storefront Photo", isFilled: Boolean(merchant.shopImage || merchant.shopImageUrl) },
     { name: "Identity Document Type", isFilled: Boolean(merchant.docType) },
     { name: "Identity Document Image", isFilled: Boolean(merchant.docImage) },
     {
@@ -109,22 +112,16 @@ export default function CompleteProfileModal({ merchant }) {
   useEffect(() => {
     if (!merchant) return;
 
-    // IF Profile is 100% complete AND payment is not pending -> NEVER SHOW MODAL
+    // IF Profile is 100% complete AND payment is not pending -> DO NOT SHOW
     if (isProfileComplete && !isPaymentPending) {
       setOpen(false);
       return;
     }
 
-    // Otherwise, show modal if not dismissed in session
-    const isDismissedInSession =
-      sessionStorage.getItem("complete_profile_modal_dismissed") === "true";
-
-    if (!isDismissedInSession) {
-      setOpen(true);
-      // If profile is 100% complete but payment is pending, start directly on Slide 1 (which renders payment)
-      if (isProfileComplete && isPaymentPending) {
-        setCurrentSlide(1);
-      }
+    // Always pop up modal on login / dashboard load when profile health is < 100% or payment is pending
+    setOpen(true);
+    if (isProfileComplete && isPaymentPending) {
+      setCurrentSlide(1);
     }
   }, [merchant, isProfileComplete, isPaymentPending]);
 
