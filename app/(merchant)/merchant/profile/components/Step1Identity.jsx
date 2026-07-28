@@ -44,10 +44,13 @@ export default function Step1Identity({
   watch,
   errors,
   isEditingExisting = false,
+  isAdmin = false,
 }) {
   const selectedConstitution = watch("constitution");
   const selectedCategory = watch("category");
   const selectedDesignation = watch("liaisonDesignation");
+
+  const isSlugLocked = isEditingExisting && !isAdmin;
 
   const handleBusinessNameChange = (e) => {
     const val = e.target.value;
@@ -91,15 +94,22 @@ export default function Step1Identity({
           icon={Link2}
           placeholder="e.g. Burger House"
           {...register("slug")}
-          onChange={(e) =>
-            setValue(
-              "slug",
-              e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
-              { shouldValidate: true },
-            )
-          }
+          disabled={isSlugLocked}
+          onChange={(e) => {
+            if (!isSlugLocked) {
+              setValue(
+                "slug",
+                e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
+                { shouldValidate: true },
+              );
+            }
+          }}
           error={errors.slug}
-          hint="Sub-domain slug for your offer page"
+          hint={
+            isSlugLocked
+              ? "🔒 Brand slug is locked after creation. Only Super Admin can modify."
+              : "Sub-domain slug for your offer page"
+          }
         />
 
         <FormSelect

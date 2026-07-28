@@ -31,6 +31,6 @@ export const PUT = asyncHandler(async (request, { params }) => {
   const body = await request.json();
   const data = updateMerchantSchema.parse(body);
 
-  const merchant = await updateMerchant(id, user.id, data);
+  const merchant = await updateMerchant(id, user.id, data, user.role);
   return ok(merchant, "Merchant profile updated");
 });

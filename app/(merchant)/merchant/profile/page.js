@@ -43,6 +43,7 @@ export default function MerchantBusinessProfile() {
     uploadingShop,
     uploadingDoc,
     isPending,
+    isAdmin,
   } = useMerchantProfileForm();
 
   if (isLoading) {
@@ -239,6 +240,7 @@ export default function MerchantBusinessProfile() {
               watch={watch}
               errors={errors}
               isEditingExisting={!!merchant}
+              isAdmin={isAdmin}
             />
           )}
 

@@ -47,6 +47,78 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
 }
 
 /**
+ * Helper to generate a 100% unique, meaningful, SEO-friendly brand slug.
+ * Prioritizes:
+ * 1. Clean brand slug (e.g. "aditya-shoes")
+ * 2. Brand + City (e.g. "aditya-shoes-ranchi")
+ * 3. Brand + State (e.g. "aditya-shoes-bihar" or "aditya-shoes-jharkhand")
+ * 4. Brand + Location + Store Number (e.g. "aditya-shoes-ranchi-2", "aditya-shoes-ranchi-3")
+ */
+export async function generateUniqueSlug(
+  baseText,
+  city = "",
+  state = "",
+  excludeMerchantId = null,
+) {
+  let cleanBase = (baseText || "merchant")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+  if (!cleanBase) cleanBase = "merchant";
+
+  const filterBase = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
+
+  // 1. Try cleanBase directly (e.g., "aditya-shoes")
+  const existingExact = await Merchant.findOne({ ...filterBase, slug: cleanBase });
+  if (!existingExact) return cleanBase;
+
+  // 2. Try cleanBase + city suffix (e.g., "aditya-shoes-ranchi")
+  const cleanCity = (city || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (cleanCity) {
+    const citySlug = `${cleanBase}-${cleanCity}`.slice(0, 80);
+    const existingCity = await Merchant.findOne({ ...filterBase, slug: citySlug });
+    if (!existingCity) return citySlug;
+  }
+
+  // 3. Try cleanBase + state suffix (e.g., "aditya-shoes-bihar" or "aditya-shoes-jharkhand")
+  const cleanState = (state || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (cleanState && cleanState !== cleanCity) {
+    const stateSlug = `${cleanBase}-${cleanState}`.slice(0, 80);
+    const existingState = await Merchant.findOne({ ...filterBase, slug: stateSlug });
+    if (!existingState) return stateSlug;
+  }
+
+  // 4. Try cleanBase + location + store number (e.g., "aditya-shoes-ranchi-2", "aditya-shoes-ranchi-3")
+  const prefix = cleanCity
+    ? `${cleanBase}-${cleanCity}`
+    : cleanState
+      ? `${cleanBase}-${cleanState}`
+      : cleanBase;
+
+  for (let num = 2; num <= 50; num++) {
+    const numberedSlug = `${prefix}-${num}`.slice(0, 80);
+    const exists = await Merchant.findOne({ ...filterBase, slug: numberedSlug });
+    if (!exists) return numberedSlug;
+  }
+
+  // 5. Ultimate fallback with clean short code if > 50 stores exist
+  return `${prefix}-${Date.now().toString(36).slice(-4)}`;
+}
+
+/**
  * Create a merchant profile.
  * One merchant per user — enforced by unique index on authId.
  *
@@ -65,26 +137,15 @@ export async function createMerchant(authId, data) {
 
   await checkMerchantDuplicates(data);
 
-  // Auto-resolve slug collision by appending a unique suffix if slug already exists
-  let baseSlug = (data.slug || data.businessName || "merchant")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || `merchant-${Date.now()}`;
-
-  let uniqueSlug = baseSlug;
-  let counter = 1;
-  while (await Merchant.findOne({ slug: uniqueSlug })) {
-    const randomSuffix = Math.random().toString(36).substring(2, 6);
-    uniqueSlug = `${baseSlug}-${randomSuffix}`;
-    counter++;
-    if (counter > 10) {
-      uniqueSlug = `${baseSlug}-${Date.now()}`;
-      break;
-    }
-  }
-
-  data.slug = uniqueSlug;
+  // Auto-resolve slug collision by generating a guaranteed unique slug
+  const city = data.location?.city || data.city || "";
+  const state = data.location?.state || data.state || "";
+  data.slug = await generateUniqueSlug(
+    data.slug || data.businessName,
+    city,
+    state,
+    null,
+  );
 
   const merchant = await Merchant.create({ authId: authIdStr, ...data });
 
@@ -148,10 +209,21 @@ export async function getMerchantByAuthId(authId, email = null) {
  * @param {string} merchantId
  * @param {string} authId - Requesting user's auth ID
  * @param {object} data - Validated update data
+ * @param {string} [userRole="merchant"] - Role of requesting user
  */
-export async function updateMerchant(merchantId, authId, data) {
+export async function updateMerchant(merchantId, authId, data, userRole = "merchant") {
   let merchant = await Merchant.findOne({ _id: merchantId });
   if (!merchant) throw new ForbiddenError("You cannot edit this merchant");
+
+  // Lock slug for regular merchants: once created, regular merchants CANNOT modify slug.
+  // Only super admin (userRole === "admin") can edit an existing slug.
+  if (merchant.slug && userRole !== "admin") {
+    delete data.slug;
+  } else if (data.slug && data.slug !== merchant.slug) {
+    const city = data.location?.city || data.city || merchant.location?.city || "";
+    const state = data.location?.state || data.state || merchant.location?.state || "";
+    data.slug = await generateUniqueSlug(data.slug, city, state, merchant._id);
+  }
 
   await checkMerchantDuplicates(data, merchant._id);
 
@@ -168,18 +240,18 @@ export async function updateMerchant(merchantId, authId, data) {
   await merchant.save();
 
   // Keep user role as merchant when updating merchant profile
-  const userRole = "merchant";
+  const userRoleToSync = "merchant";
   const userCol = mongoose.connection.db?.collection("user");
 
   await Promise.all([
     UserProfile.findOneAndUpdate(
       { authId: merchant.authId },
-      { $set: { role: userRole } },
+      { $set: { role: userRoleToSync } },
       { upsert: true },
     ),
-    userCol?.updateOne({ _id: merchant.authId }, { $set: { role: userRole } }).catch(() => {}),
+    userCol?.updateOne({ _id: merchant.authId }, { $set: { role: userRoleToSync } }).catch(() => {}),
     ...(mongoose.Types.ObjectId.isValid(merchant.authId)
-      ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } }).catch(() => {})]
+      ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRoleToSync } }).catch(() => {})]
       : []),
   ]);
 

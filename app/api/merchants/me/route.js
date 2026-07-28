@@ -1,7 +1,10 @@
 import { connectDB } from "@/lib/mongodb";
 import { requireAuth } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
-import { getMerchantByAuthId } from "@/modules/merchant/merchant.service";
+import {
+  generateUniqueSlug,
+  getMerchantByAuthId,
+} from "@/modules/merchant/merchant.service";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 
@@ -33,11 +36,25 @@ export const PUT = asyncHandler(async (request) => {
     return ok({ message: "Merchant profile not found" }, 404);
   }
 
+  // Slug immutability & uniqueness: regular merchants cannot change existing slug. Only Super Admin can change it.
+  if (merchant.slug && user.role !== "admin") {
+    delete body.slug;
+  } else if (body.slug && body.slug !== merchant.slug) {
+    const city = body.location?.city || body.city || merchant.location?.city || "";
+    const state = body.location?.state || body.state || merchant.location?.state || "";
+    merchant.slug = await generateUniqueSlug(body.slug, city, state, merchant._id);
+  } else if (!merchant.slug) {
+    const city = body.location?.city || body.city || merchant.location?.city || "";
+    const state = body.location?.state || body.state || merchant.location?.state || "";
+    merchant.slug = await generateUniqueSlug(body.businessName || "merchant", city, state, merchant._id);
+  }
+
   // Update profile fields
   const allowedFields = [
     "businessName",
     "slug",
     "category",
+    "customCategoryNotes",
     "description",
     "contactEmail",
     "contactPhone",

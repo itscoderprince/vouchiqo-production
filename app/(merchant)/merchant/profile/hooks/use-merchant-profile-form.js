@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useUser } from "@/hooks/use-user";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { showError, showSuccess } from "@/lib/toast";
 import {
@@ -18,6 +19,8 @@ import {
 export function useMerchantProfileForm() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { role } = useUser();
+  const isAdmin = role === "admin";
   const [step, setStep] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -250,5 +253,6 @@ export function useMerchantProfileForm() {
     uploadingShop,
     uploadingDoc,
     isPending: saveMutation.isPending,
+    isAdmin,
   };
 }
