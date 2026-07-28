@@ -128,51 +128,60 @@ export default function AdminMerchantsClient({
     {
       header: "Business & Owner",
       accessorKey: "businessName",
-      cell: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0">
-            {row.logoUrl ? (
-              // biome-ignore lint/performance/noImgElement: dynamic user avatar
-              <img
-                src={row.logoUrl}
-                alt={row.businessName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              (row.businessName?.[0] || "M").toUpperCase()
-            )}
+      cell: (row) => {
+        const ownerName =
+          row.userId?.name ||
+          row.ownerName ||
+          row.contactPerson ||
+          (row.contactEmail ? row.contactEmail.split("@")[0] : "Merchant Partner");
+        const emailStr = row.userId?.email || row.contactEmail || "No Email";
+
+        return (
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0">
+              {row.logoUrl || row.logo ? (
+                // biome-ignore lint/performance/noImgElement: dynamic user avatar
+                <img
+                  src={row.logoUrl || row.logo}
+                  alt={row.businessName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                (row.businessName?.[0] || "M").toUpperCase()
+              )}
+            </div>
+            <div>
+              <Link
+                href={`/admin/merchants/${row._id}`}
+                className="font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+              >
+                {row.businessName || "Merchant Partner"}
+              </Link>
+              <p className="text-xs text-muted-foreground">
+                {ownerName} • {emailStr}
+              </p>
+            </div>
           </div>
-          <div>
-            <Link
-              href={`/admin/merchants/${row._id}`}
-              className="font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
-            >
-              {row.businessName}
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              {row.userId?.name || row.ownerName || "Merchant Owner"} •{" "}
-              {row.userId?.email || row.contactEmail}
-            </p>
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: "Category / City",
       accessorKey: "category",
-      cell: (row) => (
-        <div className="space-y-0.5">
-          <Badge
-            variant="outline"
-            className="capitalize text-xs font-medium bg-muted"
-          >
-            {row.category || "General"}
-          </Badge>
-          <p className="text-xs text-muted-foreground">
-            {row.city || "Online"}
-          </p>
-        </div>
-      ),
+      cell: (row) => {
+        const cityStr = row.location?.city || row.city || "Ranchi";
+        return (
+          <div className="space-y-0.5">
+            <Badge
+              variant="outline"
+              className="capitalize text-xs font-medium bg-muted"
+            >
+              {row.category || "General"}
+            </Badge>
+            <p className="text-xs text-muted-foreground">{cityStr}</p>
+          </div>
+        );
+      },
     },
     {
       header: "Subscription Plan",

@@ -71,12 +71,18 @@ export default function MerchantApprovalsClient() {
     {
       header: "Business Name",
       accessorKey: "businessName",
-      cell: (row) => (
-        <div>
-          <p className="font-medium text-foreground">{row.businessName}</p>
-          <p className="text-xs text-muted-foreground">{row.city || "N/A"}</p>
-        </div>
-      ),
+      cell: (row) => {
+        const locationStr =
+          row.location?.city && row.location?.state
+            ? `${row.location.city}, ${row.location.state}`
+            : row.location?.city || row.location?.address || row.city || row.slug || "Main Outlet";
+        return (
+          <div>
+            <p className="font-bold text-slate-900">{row.businessName || "Merchant Business"}</p>
+            <p className="text-xs text-slate-500 font-medium">{locationStr}</p>
+          </div>
+        );
+      },
     },
     {
       header: "Category",
@@ -95,23 +101,32 @@ export default function MerchantApprovalsClient() {
     {
       header: "Owner / Email",
       accessorKey: "userId",
-      cell: (row) => (
-        <div>
-          <p className="text-sm">
-            {row.userId?.name || row.ownerName || "N/A"}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {row.userId?.email || row.contactEmail}
-          </p>
-        </div>
-      ),
+      cell: (row) => {
+        const ownerName =
+          row.userId?.name ||
+          row.ownerName ||
+          row.contactPerson ||
+          (row.contactEmail ? row.contactEmail.split("@")[0] : null);
+        return (
+          <div>
+            {ownerName && (
+              <p className="text-xs font-bold text-slate-800 capitalize">
+                {ownerName}
+              </p>
+            )}
+            <p className="text-xs text-slate-500 font-medium">
+              {row.userId?.email || row.contactEmail || "No Email"}
+            </p>
+          </div>
+        );
+      },
     },
     {
       header: "Phone",
       accessorKey: "phone",
       cell: (row) => (
-        <span className="text-sm text-muted-foreground">
-          {row.phone || row.contactPhone || "N/A"}
+        <span className="text-xs text-slate-600 font-mono">
+          {row.phone || row.contactPhone || row.location?.phone || "No Phone"}
         </span>
       ),
     },
