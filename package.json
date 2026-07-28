@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "node --max-old-space-size=8192 server.js",
     "build": "next build",
-    "start": "node server.js",
+    "start": "node --max-old-space-size=8192 server.js",
     "lint": "biome check",
     "format": "biome format --write"
   },

@@ -9,6 +9,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  Percent,
   PlusCircle,
   Settings,
   Sliders,
@@ -32,6 +33,7 @@ export default function Sidebar({ role = "customer" }) {
         return [
           { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
           { name: "Merchant Management", href: "/admin/merchants", icon: Store },
+          { name: "Commission Rates", href: "/admin/commission-rates", icon: Percent },
           { name: "Offer Verification Queue", href: "/admin/offers", icon: CheckSquare },
           { name: "Campaign Review Queue", href: "/admin/campaigns/queue", icon: Megaphone },
           { name: "Campaign Calendar", href: "/admin/campaigns/calendar", icon: Clock },
