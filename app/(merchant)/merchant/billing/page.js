@@ -21,6 +21,7 @@ export default function MerchantSubscription() {
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [gstin, setGstin] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("razorpay_upi");
+  const [isRazorpayLoading, setIsRazorpayLoading] = useState(false);
 
   // 1. Fetch live merchant profile from DB
   const { data: merchant, isLoading: isLoadingMerchant } = useQuery({
@@ -316,8 +317,6 @@ export default function MerchantSubscription() {
       </DashboardLayout>
     );
   }
-
-  const [isRazorpayLoading, setIsRazorpayLoading] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
