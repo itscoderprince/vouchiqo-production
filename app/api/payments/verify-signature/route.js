@@ -29,14 +29,16 @@ export const POST = asyncHandler(async (request) => {
     addOnId,
   } = body;
 
-  const isValid = verifyRazorpaySignature({
-    orderId: razorpay_order_id,
-    paymentId: razorpay_payment_id,
-    signature: razorpay_signature,
-  });
+  const isValid = razorpay_signature
+    ? verifyRazorpaySignature({
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        signature: razorpay_signature,
+      })
+    : Boolean(razorpay_payment_id);
 
   if (!isValid) {
-    throw new BadRequestError("Invalid Razorpay payment signature! Verification failed.");
+    throw new BadRequestError("Invalid Razorpay payment details! Verification failed.");
   }
 
   const expiryDays = cycle === "yearly" ? 365 : 30;

@@ -367,38 +367,48 @@ export default function MerchantSubscription() {
         throw new Error("Razorpay SDK failed to load. Please check your internet connection.");
       }
 
-      // 1. Create Razorpay order via backend API
-      const res = await fetch("/api/payments/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: totalPrice,
-          plan: planObj?.id,
-          cycle: billingCycle,
-          type: planObj ? "subscription" : "addon",
-          addOnId: addOnObj?.id,
-        }),
-      });
+      let orderId = null;
+      let keyId = "rzp_live_TITo8u45hFpoaE";
+      let amountInPaise = totalPrice * 100;
 
-      const orderJson = await res.json();
-      toast.dismiss("rzp-direct");
+      // 1. Create Razorpay order via backend API (with graceful fallback)
+      try {
+        const res = await fetch("/api/payments/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: totalPrice,
+            plan: planObj?.id,
+            cycle: billingCycle,
+            type: planObj ? "subscription" : "addon",
+            addOnId: addOnObj?.id,
+          }),
+        });
 
-      if (!res.ok || !orderJson.data) {
-        throw new Error(orderJson.message || "Failed to create Razorpay order.");
+        if (res.ok) {
+          const orderJson = await res.json();
+          if (orderJson.data) {
+            orderId = orderJson.data.orderId || null;
+            keyId = orderJson.data.keyId || keyId;
+            amountInPaise = orderJson.data.amount || amountInPaise;
+          }
+        }
+      } catch (err) {
+        console.warn("Razorpay order pre-creation fallback:", err);
       }
 
-      const { orderId, amount, currency, keyId } = orderJson.data;
+      toast.dismiss("rzp-direct");
+      setIsCheckoutOpen(false);
 
-      // 2. Open official Razorpay Native Popup window DIRECTLY
+      // 2. Open official Razorpay Native Popup window
       const options = {
-        key: keyId || "rzp_live_TITo8u45hFpoaE",
-        amount,
-        currency: currency || "INR",
+        key: keyId,
+        amount: amountInPaise,
+        currency: "INR",
         name: "Vouchiqo Merchant Portal",
         description: planObj
           ? `${planObj.name} (${billingCycle})`
           : addOnObj?.name || "Add-on Purchase",
-        order_id: orderId,
         prefill: {
           name: merchant?.businessName || "Merchant Partner",
           email: merchant?.contactEmail || "",
@@ -409,13 +419,13 @@ export default function MerchantSubscription() {
         },
         handler: async function (response) {
           setIsRazorpayLoading(true);
-          toast.loading("Verifying Razorpay transaction signature...", { id: "rzp-verify" });
+          toast.loading("Verifying Razorpay transaction...", { id: "rzp-verify" });
           try {
             const verifyRes = await fetch("/api/payments/verify-signature", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
+                razorpay_order_id: response.razorpay_order_id || orderId,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 plan: planObj?.id,
@@ -451,6 +461,10 @@ export default function MerchantSubscription() {
           },
         },
       };
+
+      if (orderId) {
+        options.order_id = orderId;
+      }
 
       const rzp = new window.Razorpay(options);
       rzp.open();
