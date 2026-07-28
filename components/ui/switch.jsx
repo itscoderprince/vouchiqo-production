@@ -9,6 +9,7 @@ function Switch({ className, size = "default", ...props }) {
     <SwitchPrimitive.Root
       data-slot="switch"
       data-size={size}
+      type="button"
       className={cn(
         "peer group/switch relative inline-flex shrink-0 items-center rounded-full border-2 border-transparent transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-[22px] data-[size=default]:w-[40px] data-[size=sm]:h-[18px] data-[size=sm]:w-[32px] data-[state=checked]:bg-[#f97316] data-[state=unchecked]:bg-slate-300",
         className,
