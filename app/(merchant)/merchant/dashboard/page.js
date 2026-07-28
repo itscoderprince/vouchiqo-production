@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
+import CompleteProfileModal from "./components/CompleteProfileModal";
 import KpiCards from "./components/KpiCards";
 import OnboardingCard from "./components/OnboardingCard";
 import PerformanceChart from "./components/PerformanceChart";
@@ -381,6 +382,9 @@ export default function MerchantDashboard() {
             recentActivities={recentActivities}
           />
         </div>
+
+        {/* Complete Profile & Billing Popup Modal */}
+        <CompleteProfileModal merchant={merchantProfile} />
       </div>
     </DashboardLayout>
   );
