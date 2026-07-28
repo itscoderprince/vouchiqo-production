@@ -130,10 +130,14 @@ export default function AdminMerchantsClient({
       accessorKey: "businessName",
       cell: (row) => {
         const ownerName =
-          row.userId?.name ||
+          row.liaisonName ||
           row.ownerName ||
           row.contactPerson ||
-          (row.contactEmail ? row.contactEmail.split("@")[0] : "Merchant Partner");
+          (row.userId?.name && !row.userId.name.includes("@")
+            ? row.userId.name
+            : null) ||
+          row.businessName ||
+          "Merchant Owner";
         const emailStr = row.userId?.email || row.contactEmail || "No Email";
 
         return (

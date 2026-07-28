@@ -103,10 +103,14 @@ export default function MerchantApprovalsClient() {
       accessorKey: "userId",
       cell: (row) => {
         const ownerName =
-          row.userId?.name ||
+          row.liaisonName ||
           row.ownerName ||
           row.contactPerson ||
-          (row.contactEmail ? row.contactEmail.split("@")[0] : null);
+          (row.userId?.name && !row.userId.name.includes("@")
+            ? row.userId.name
+            : null) ||
+          row.businessName ||
+          "Merchant Owner";
         return (
           <div>
             {ownerName && (

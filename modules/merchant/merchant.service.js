@@ -261,7 +261,7 @@ export async function listMerchants(searchParams) {
   const filter = {};
   if (status) filter.status = status;
 
-  const [merchants, total] = await Promise.all([
+  const [merchantsRaw, total] = await Promise.all([
     Merchant.find(filter)
       .skip(skip)
       .limit(limit)
@@ -269,6 +269,25 @@ export async function listMerchants(searchParams) {
       .lean(),
     Merchant.countDocuments(filter),
   ]);
+
+  const userCol = mongoose.connection.db?.collection("user");
+  const merchants = await Promise.all(
+    merchantsRaw.map(async (m) => {
+      let uDoc = null;
+      if (userCol && m.authId) {
+        uDoc = await userCol.findOne({ _id: m.authId }).catch(() => null);
+        if (!uDoc && mongoose.Types.ObjectId.isValid(m.authId)) {
+          uDoc = await userCol
+            .findOne({ _id: new mongoose.Types.ObjectId(m.authId) })
+            .catch(() => null);
+        }
+      }
+      return {
+        ...m,
+        userId: uDoc ? { name: uDoc.name, email: uDoc.email } : null,
+      };
+    }),
+  );
 
   return { merchants, meta: buildMeta(total, page, limit) };
 }
