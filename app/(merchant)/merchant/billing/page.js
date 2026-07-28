@@ -310,6 +310,17 @@ export default function MerchantSubscription() {
     });
   }, [merchant, currentPlanId, billingCycle, plans]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !plans || plans.length === 0) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("autoPay") === "true" || urlParams.get("payNow") === "true") {
+      const targetPlan = plans.find((p) => p.id === "growth") || plans[1];
+      if (targetPlan) {
+        handleOpenUpgrade(targetPlan);
+      }
+    }
+  }, [plans]);
+
   if (isLoadingMerchant) {
     return (
       <DashboardLayout title="Billing & Plans" user={{ role: "merchant" }}>
@@ -332,36 +343,28 @@ export default function MerchantSubscription() {
     });
   };
 
-  const handleOpenUpgrade = (plan) => {
-    setSelectedPlan(plan);
-    setSelectedAddOn(null);
-    setCheckoutStep(1);
-    setIsCheckoutOpen(true);
-  };
+  const triggerRazorpayDirect = async (planToPay, addOnToPay) => {
+    const planObj = planToPay || selectedPlan;
+    const addOnObj = addOnToPay || selectedAddOn;
 
-  const handleOpenAddOn = (addOn) => {
-    setSelectedAddOn(addOn);
-    setSelectedPlan(null);
-    setCheckoutStep(1);
-    setIsCheckoutOpen(true);
-  };
+    if (!planObj && !addOnObj) return;
 
-  const basePrice = selectedPlan
-    ? billingCycle === "yearly"
-      ? selectedPlan.priceYearly
-      : selectedPlan.priceMonthly
-    : selectedAddOn?.price || 0;
+    const basePrice = planObj
+      ? billingCycle === "yearly"
+        ? planObj.priceYearly
+        : planObj.priceMonthly
+      : addOnObj?.price || 0;
 
-  const gst = parseFloat((basePrice * 0.18).toFixed(2));
-  const totalPrice = Math.round(basePrice + gst);
+    const gst = parseFloat((basePrice * 0.18).toFixed(2));
+    const totalPrice = Math.round(basePrice + gst);
 
-  const executePayment = async () => {
     setIsRazorpayLoading(true);
-    setCheckoutStep(2);
+    toast.loading("Initiating official Razorpay gateway...", { id: "rzp-direct" });
+
     try {
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
-        throw new Error("Razorpay SDK failed to load. Check your internet connection.");
+        throw new Error("Razorpay SDK failed to load. Please check your internet connection.");
       }
 
       // 1. Create Razorpay order via backend API
@@ -370,29 +373,31 @@ export default function MerchantSubscription() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: totalPrice,
-          plan: selectedPlan?.id,
+          plan: planObj?.id,
           cycle: billingCycle,
-          type: selectedPlan ? "subscription" : "addon",
-          addOnId: selectedAddOn?.id,
+          type: planObj ? "subscription" : "addon",
+          addOnId: addOnObj?.id,
         }),
       });
 
       const orderJson = await res.json();
+      toast.dismiss("rzp-direct");
+
       if (!res.ok || !orderJson.data) {
         throw new Error(orderJson.message || "Failed to create Razorpay order.");
       }
 
       const { orderId, amount, currency, keyId } = orderJson.data;
 
-      // 2. Open official Razorpay Checkout popup
+      // 2. Open official Razorpay Native Popup window DIRECTLY
       const options = {
         key: keyId || "rzp_live_TITo8u45hFpoaE",
         amount,
         currency: currency || "INR",
         name: "Vouchiqo Merchant Portal",
-        description: selectedPlan
-          ? `${selectedPlan.name} (${billingCycle})`
-          : selectedAddOn?.name || "Add-on Purchase",
+        description: planObj
+          ? `${planObj.name} (${billingCycle})`
+          : addOnObj?.name || "Add-on Purchase",
         order_id: orderId,
         prefill: {
           name: merchant?.businessName || "Merchant Partner",
@@ -404,7 +409,7 @@ export default function MerchantSubscription() {
         },
         handler: async function (response) {
           setIsRazorpayLoading(true);
-          toast.loading("Verifying secure Razorpay payment...", { id: "rzp-verify" });
+          toast.loading("Verifying Razorpay transaction signature...", { id: "rzp-verify" });
           try {
             const verifyRes = await fetch("/api/payments/verify-signature", {
               method: "POST",
@@ -413,10 +418,10 @@ export default function MerchantSubscription() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                plan: selectedPlan?.id,
+                plan: planObj?.id,
                 cycle: billingCycle,
-                type: selectedPlan ? "subscription" : "addon",
-                addOnId: selectedAddOn?.id,
+                type: planObj ? "subscription" : "addon",
+                addOnId: addOnObj?.id,
               }),
             });
 
@@ -429,10 +434,10 @@ export default function MerchantSubscription() {
             queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
             queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
 
-            toast.success(verifyJson.message || "Payment successful! Plan activated.", {
+            toast.success(verifyJson.message || "Payment verified! Plan activated.", {
               id: "rzp-verify",
+              duration: 5000,
             });
-            setCheckoutStep(3);
           } catch (err) {
             toast.error(err.message || "Payment verification failed.", { id: "rzp-verify" });
           } finally {
@@ -442,7 +447,7 @@ export default function MerchantSubscription() {
         modal: {
           ondismiss: function () {
             setIsRazorpayLoading(false);
-            toast.error("Razorpay payment cancelled.");
+            toast.error("Razorpay payment window closed.");
           },
         },
       };
@@ -450,9 +455,22 @@ export default function MerchantSubscription() {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
+      toast.dismiss("rzp-direct");
       toast.error(err.message || "Razorpay checkout error");
       setIsRazorpayLoading(false);
     }
+  };
+
+  const handleOpenUpgrade = (plan) => {
+    setSelectedPlan(plan);
+    setSelectedAddOn(null);
+    triggerRazorpayDirect(plan, null);
+  };
+
+  const handleOpenAddOn = (addOn) => {
+    setSelectedAddOn(addOn);
+    setSelectedPlan(null);
+    triggerRazorpayDirect(null, addOn);
   };
 
   return (
@@ -491,25 +509,6 @@ export default function MerchantSubscription() {
         <AddOnsGrid addOns={addOns} onOpenAddOn={handleOpenAddOn} />
 
         <BillingHistoryTable invoices={invoices} />
-
-        <CheckoutModal
-          isOpen={isCheckoutOpen}
-          onClose={() => setIsCheckoutOpen(false)}
-          checkoutStep={checkoutStep}
-          setCheckoutStep={setCheckoutStep}
-          selectedPlan={selectedPlan}
-          selectedAddOn={selectedAddOn}
-          billingCycle={billingCycle}
-          basePrice={basePrice}
-          gst={gst}
-          totalPrice={totalPrice}
-          gstin={gstin}
-          setGstin={setGstin}
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          executePayment={executePayment}
-          isPending={isRazorpayLoading || upgradeMutation.isPending}
-        />
       </div>
     </DashboardLayout>
   );

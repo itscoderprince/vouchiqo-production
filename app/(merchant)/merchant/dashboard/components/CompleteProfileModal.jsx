@@ -154,7 +154,7 @@ export default function CompleteProfileModal({ merchant }) {
 
   const handleGoToBilling = () => {
     handleClose();
-    router.push("/merchant/billing");
+    router.push("/merchant/billing?autoPay=true");
   };
 
   // Dynamic color mappings for health gauge ring & status badge based on profile health score
