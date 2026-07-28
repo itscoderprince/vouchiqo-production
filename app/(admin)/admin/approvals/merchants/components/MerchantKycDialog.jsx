@@ -78,7 +78,7 @@ export default function MerchantKycDialog({
         </DialogHeader>
 
         <Tabs defaultValue="business" className="w-full text-xs pt-2 space-y-4">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 bg-slate-100 p-1 rounded-xl gap-1">
+          <TabsList className="grid grid-cols-1 sm:grid-cols-3 bg-slate-100 p-1 rounded-xl gap-1">
             <TabsTrigger
               value="business"
               className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
@@ -90,12 +90,6 @@ export default function MerchantKycDialog({
               className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
             >
               <FileText className="w-3.5 h-3.5" /> Statutory KYC
-            </TabsTrigger>
-            <TabsTrigger
-              value="bank"
-              className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
-            >
-              <CreditCard className="w-3.5 h-3.5" /> Settlement Bank
             </TabsTrigger>
             <TabsTrigger
               value="visuals"
@@ -165,6 +159,22 @@ export default function MerchantKycDialog({
                       </a>
                     </div>
                   )}
+
+                  <div className="pt-2 border-t border-slate-200/80 space-y-1">
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                      Selected Plan &amp; Commission Rate
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Badge className="bg-blue-600 text-white font-bold text-[10px] uppercase border-0">
+                        Plan: {merchant.plan || "Starter Free"}
+                      </Badge>
+                      {merchant.commissionRate && (
+                        <Badge variant="outline" className="text-[10px] font-mono text-emerald-800 bg-emerald-50 border-emerald-300 font-bold">
+                          Commission: {merchant.commissionRate} ({merchant.commissionModel || "CPA"})
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -390,62 +400,7 @@ export default function MerchantKycDialog({
             </div>
           </TabsContent>
 
-          {/* ── TAB 3: SETTLEMENT BANK DETAILS ──────────────────────── */}
-          <TabsContent value="bank" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Account Holder Name
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {merchant.bankDetails?.holderName ||
-                    merchant.businessName ||
-                    "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Account Typology
-                </span>
-                <span className="font-semibold text-slate-900 uppercase">
-                  {merchant.bankDetails?.accountType || "Current"}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Account Serial Number
-                </span>
-                <span className="font-mono font-semibold text-slate-900">
-                  {merchant.bankDetails?.accountNumber ||
-                    "Not Provided (Optional)"}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Bank IFSC Code
-                </span>
-                <span className="font-mono font-semibold text-slate-900">
-                  {merchant.bankDetails?.ifsc || "Not Provided (Optional)"}
-                </span>
-              </div>
-            </div>
-
-            {merchant.bankDetails?.chequeImage && (
-              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-medium text-slate-900 block">
-                  Cancelled Cheque / Bank Proof Photograph
-                </span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={merchant.bankDetails.chequeImage}
-                  alt="Cancelled Cheque Proof"
-                  className="max-h-60 mx-auto object-contain rounded-xl border border-slate-200 bg-white"
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          {/* ── TAB 4: STORE VISUALS & PHOTOS ───────────────────────── */}
+          {/* ── TAB 3: STORE VISUALS & PHOTOS ───────────────────────── */}
           <TabsContent value="visuals" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
@@ -512,30 +467,6 @@ export default function MerchantKycDialog({
               </div>
             </div>
 
-            {/* AUTHORIZED DIGITAL SIGNATURE DISPLAY */}
-            {merchant.signatureImage && (
-              <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-200 text-center space-y-2">
-                <div className="flex items-center justify-between border-b border-blue-100 pb-2">
-                  <span className="text-xs font-semibold text-slate-900 block">
-                    Authorized Digital Signature Image
-                  </span>
-                  <a
-                    href={merchant.signatureImage}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" /> Full Size Signature
-                  </a>
-                </div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={merchant.signatureImage}
-                  alt="Digital Signature"
-                  className="max-h-32 mx-auto object-contain rounded-lg border border-slate-200 bg-white p-2 shadow-2xs"
-                />
-              </div>
-            )}
           </TabsContent>
         </Tabs>
 

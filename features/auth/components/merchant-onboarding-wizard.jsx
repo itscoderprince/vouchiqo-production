@@ -4,6 +4,7 @@ import {
   Building,
   Building2,
   Check,
+  ChevronLeft,
   ChevronRight,
   Download,
   ExternalLink,
@@ -21,11 +22,43 @@ import {
   MapPin,
   Phone,
   PhoneCall,
+  Sparkles,
   Store,
   Upload,
   User,
   X,
 } from "lucide-react";
+
+// Custom SVG Icons for Instagram & Facebook to guarantee compatibility
+const InstagramIcon = (props) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
+const FacebookIcon = (props) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -51,6 +84,10 @@ import {
   lookupByPincode,
   lookupStateByCity,
 } from "@/utils/indianGeoLookup";
+import {
+  STANDARD_TIME_OPTIONS,
+  normalizeTimeFormat,
+} from "@/utils/timeUtils";
 
 const CATEGORIES = [
   { id: "fashion", label: "Fashion & Clothing" },
@@ -87,18 +124,115 @@ const DESIGNATIONS = [
 ];
 
 const COMMISSION_TABLE = [
-  { category: "Fashion & Clothing", rate: "5%" },
-  { category: "Food & Dining", rate: "3% dine-in / 2% delivery" },
-  { category: "Electronics & Gadgets", rate: "2.5% blended" },
-  { category: "Beauty & Wellness", rate: "6% services" },
-  { category: "Travel & Hospitality", rate: "5% hotels" },
-  { category: "Home & Living / Improvement", rate: "2% – 5%" },
-  { category: "Education & Courses", rate: "₹300 / lead" },
-  { category: "Finance & Insurance", rate: "₹150 – ₹350 / lead" },
+  {
+    id: "fashion",
+    category: "Fashion & Clothing",
+    rate: "5%",
+    model: "CPA",
+    notes: "Uniform across apparel",
+  },
+  {
+    id: "food",
+    category: "Food & Dining",
+    rate: "3% dine-in / 2% delivery",
+    model: "CPA",
+    notes: "Never charge on Zomato-fulfilled orders",
+  },
+  {
+    id: "electronics",
+    category: "Electronics & Gadgets",
+    rate: "2.5% blended",
+    model: "CPA",
+    notes: "Accessories 4%, handsets 1.5%",
+  },
+  {
+    id: "beauty",
+    category: "Beauty & Wellness",
+    rate: "6% services / 4% retail",
+    model: "CPA",
+    notes: "Split by service vs product",
+  },
+  {
+    id: "travel",
+    category: "Travel & Hospitality",
+    rate: "5% hotels / 4% packages",
+    model: "CPA",
+    notes: "Hotels pay less than MakeMyTrip",
+  },
+  {
+    id: "home",
+    category: "Home & Living",
+    rate: "5%",
+    model: "CPA",
+    notes: "Furniture and décor",
+  },
+  {
+    id: "home-improvement",
+    category: "Home Improvement",
+    rate: "2% products / 3% services",
+    model: "CPA",
+    notes: "In-store attribution via code",
+  },
+  {
+    id: "fitness",
+    category: "Fitness & Healthcare",
+    rate: "6% gyms / 2% pharmacy / ₹200 CPL clinics",
+    model: "CPA + CPL",
+    notes: "Two models in one category",
+  },
+  {
+    id: "education",
+    category: "Education & Courses",
+    rate: "₹300 CPL local / 8% online",
+    model: "CPL + CPA",
+    notes: "CPL for offline institutes",
+  },
+  {
+    id: "kids-baby",
+    category: "Kids & Baby Products",
+    rate: "5%",
+    model: "CPA",
+    notes: "Clean, simple rate",
+  },
+  {
+    id: "jewellery",
+    category: "Jewellery & Accessories",
+    rate: "1.5% gold / 6% fashion / 3% blended",
+    model: "CPA",
+    notes: "Split by product type",
+  },
+  {
+    id: "automotive",
+    category: "Automobile & Auto Services",
+    rate: "4%",
+    model: "CPA",
+    notes: "White space — you set the standard",
+  },
+  {
+    id: "entertainment",
+    category: "Gaming & Entertainment",
+    rate: "4–5%",
+    model: "CPA",
+    notes: "Cafés higher, retail lower",
+  },
+  {
+    id: "grocery",
+    category: "Grocery & Essentials",
+    rate: "2% regular / 4% organic",
+    model: "CPA",
+    notes: "Start with premium segment",
+  },
+  {
+    id: "finance",
+    category: "Finance & Insurance",
+    rate: "₹150–₹350 CPL",
+    model: "CPL",
+    notes: "Pure lead model",
+  },
 ];
 
 const FieldTip = ({ text }) => (
-  <p className="text-[9.5px] sm:text-[10px] text-blue-600 font-medium mt-0.5 leading-tight text-left">
+  <p className="text-[10px] text-blue-600 font-medium mt-0.5 leading-tight text-left">
     {text}
   </p>
 );
@@ -116,7 +250,7 @@ export function MerchantOnboardingWizard() {
       const json = await res.json();
       return json?.data?.settings || json?.settings || null;
     },
-    staleTime: 60000,
+    staleTime: 5000,
   });
 
   const commitmentItems = publicSettings?.merchant_commitments || [
@@ -201,10 +335,107 @@ export function MerchantOnboardingWizard() {
       required: true,
     },
   ];
+
+  const merchantPlans = publicSettings?.merchant_plans || [
+    {
+      id: "starter",
+      name: "STARTER FREE",
+      badge: "Popular",
+      priceText: "₹0",
+      priceSuffix: "/ month free forever",
+      originalPrice: "",
+      subCaption: "Start listing. Pay only when a customer visits.",
+      features: [
+        "Up to 3 active verified listings",
+        "Smart Code redemption at your counter",
+        "Vouchiqo Verified badge on all listings",
+        "Basic dashboard — views and Smart Codes",
+        "Founding Partner badge if within first 100",
+        "No campaigns — No push sends",
+      ],
+      footerNote:
+        "Commission charged only on confirmed customer transactions — never on views or clicks.",
+      buttonText: "Select Starter",
+      theme: "blue",
+      active: true,
+    },
+    {
+      id: "growth",
+      name: "GROWTH PARTNER",
+      badge: "Founding Rate -33%",
+      priceText: "₹999",
+      originalPrice: "₹1,499",
+      priceSuffix: "/ month",
+      subCaption:
+        "More listings. Campaigns. Revival included. 14-day free trial.",
+      features: [
+        "Up to 15 active listings (5× Starter)",
+        "4 platform campaigns per year",
+        "5 Expired Offer Revivals / month",
+        "Analytics — redemptions, clicks, category rank",
+        "Founding badge + 12 month commission rate lock",
+        "14 day free trial — no charge until Day 15",
+      ],
+      footerNote:
+        "No payment collected today. Trial starts on account activation.",
+      buttonText: "Select Growth — ₹999/mo",
+      theme: "orange",
+      active: true,
+    },
+    {
+      id: "pro",
+      name: "PRO PARTNER",
+      badge: "Best Value",
+      priceText: "₹2,999",
+      originalPrice: "₹3,999",
+      priceSuffix: "/ month",
+      subCaption:
+        "Unlimited listings, campaigns, and push sends. Full power.",
+      features: [
+        "Unlimited active listings",
+        "Unlimited campaigns — no annual cap",
+        "50 Expired Offer Revivals / month",
+        "Push notifications to customer segments",
+        "Advanced analytics — revenue attribution, heatmap",
+        "Priority 24h support • 14-day free trial",
+      ],
+      footerNote:
+        "Commission rate locked for 12 months under Founding Program.",
+      buttonText: "Select Pro — ₹2,999/mo",
+      theme: "emerald",
+      active: true,
+    },
+    {
+      id: "enterprise",
+      name: "ENTERPRISE",
+      badge: "Scale",
+      priceText: "Custom pricing",
+      originalPrice: "",
+      priceSuffix: "",
+      subCaption:
+        "Dedicated manager. API access. Multi-location. Custom SLA.",
+      features: [
+        "Everything in Pro, all limits removed",
+        "Dedicated named account manager",
+        "Direct API access — POS and CRM integration",
+        "Multi-location under one dashboard",
+        "Custom SLA and guaranteed response times",
+        "10% Year 1 discount under Founding Program",
+      ],
+      footerNote:
+        "No self-serve signup. Our team contacts you within 24 hours.",
+      buttonText: "Contact us — partners@vouchiqo.com",
+      theme: "indigo",
+      active: true,
+    },
+  ];
+  const masterCpaRates = publicSettings?.master_cpa_rates || COMMISSION_TABLE;
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateErrors, setDuplicateErrors] = useState({});
   const [checkingExistingMerchant, setCheckingExistingMerchant] = useState(true);
+  const [showMasterCpaTable, setShowMasterCpaTable] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -226,9 +457,9 @@ export function MerchantOnboardingWizard() {
         }
 
         const json = await res.json();
-        const merchant = json?.data?.merchant;
+        const merchant = json?.data?.merchant || json?.data;
 
-        if (merchant) {
+        if (merchant && (merchant._id || merchant.status || merchant.businessName)) {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("vouchiqo_is_merchant", "true");
           }
@@ -274,6 +505,17 @@ export function MerchantOnboardingWizard() {
   ]);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const clearFieldError = (fieldName) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
+      });
+    }
+  };
 
   const [formData, setFormData] = useState({
     // Section A: Business Identity & Location
@@ -423,10 +665,7 @@ export function MerchantOnboardingWizard() {
     setSubCategoryTags(subCategoryTags.filter((t) => t !== tagToRemove));
   };
 
-  const notesWordCount = (formData.customCategoryNotes || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length;
+  const customCategoryCharCount = (formData.customCategoryNotes || "").trim().length;
 
   const checkDuplicateField = async (field, value) => {
     if (!value || !value.trim()) {
@@ -453,103 +692,156 @@ export function MerchantOnboardingWizard() {
     }
   };
 
+  const handleAutoSuggestPassword = () => {
+    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const lower = "abcdefghijkmnpqrstuvwxyz";
+    const numbers = "23456789";
+    const symbols = "@#$%!&*=";
+    const allChars = upper + lower + numbers + symbols;
+
+    // Ensure at least one character from each set
+    const pwdArr = [
+      upper.charAt(Math.floor(Math.random() * upper.length)),
+      lower.charAt(Math.floor(Math.random() * lower.length)),
+      numbers.charAt(Math.floor(Math.random() * numbers.length)),
+      symbols.charAt(Math.floor(Math.random() * symbols.length)),
+    ];
+
+    for (let i = 0; i < 8; i++) {
+      pwdArr.push(allChars.charAt(Math.floor(Math.random() * allChars.length)));
+    }
+
+    // Shuffle array for randomness
+    const suggested = pwdArr.sort(() => Math.random() - 0.5).join("");
+    setFormData((prev) => ({ ...prev, password: suggested }));
+    setShowPassword(true);
+    toast.success(`Generated 12-char complex password!`);
+  };
+
   const handleNext = async () => {
+    const newErrors = {};
+
     if (currentStep === 1) {
-      if (!formData.registeredName.trim())
-        return toast.error("Please enter Registered Business Name");
-      if (!formData.tradingName.trim())
-        return toast.error("Please enter Brand / Trading Name");
-      if (!formData.pincode || formData.pincode.length < 6)
-        return toast.error("Please enter valid 6-digit Pincode");
-      if (!formData.city.trim()) return toast.error("Please enter City");
-      if (!formData.state.trim()) return toast.error("Please enter State");
-      if (!formData.address.trim())
-        return toast.error("Please enter Business Address");
-      if (!formData.googleUrl || !formData.googleUrl.trim())
-        return toast.error("Please enter Google Maps / GMB Profile Location Link");
+      if (!formData.registeredName.trim()) {
+        newErrors.registeredName = "Registered Business Name is required";
+      }
+      if (!formData.category) {
+        newErrors.category = "Primary Category is required";
+      }
+      if (formData.category === "others") {
+        if (!formData.customCategoryName?.trim()) {
+          newErrors.customCategoryName = "Custom Category Name is required";
+        }
+        if (customCategoryCharCount < 80) {
+          newErrors.customCategoryNotes = `At least ${80 - customCategoryCharCount} more character(s) required (minimum 80 chars).`;
+        }
+      }
+      if (!formData.address.trim()) {
+        newErrors.address = "Operating Store Address is required";
+      }
+      if (!formData.pincode || formData.pincode.length < 6) {
+        newErrors.pincode = "Valid 6-digit PIN Code is required";
+      }
+      if (!formData.city.trim()) {
+        newErrors.city = "City / District is required";
+      }
+      if (!formData.state.trim()) {
+        newErrors.state = "State is required";
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setFieldErrors(newErrors);
+        toast.error("Please complete the required fields highlighted in red.");
+        return;
+      }
+      setFieldErrors({});
     } else if (currentStep === 2) {
-      if (!formData.contactName.trim())
-        return toast.error("Please enter Contact Liaison Name");
-      if (!formData.mobile.trim() || formData.mobile.length < 10)
-        return toast.error("Please enter 10-digit Mobile Number");
-      if (!formData.email.trim() || !formData.email.includes("@"))
-        return toast.error("Please enter valid Business Email");
-      if (!formData.password || formData.password.length < 6)
-        return toast.error("Password must be at least 6 characters");
+      if (!formData.contactName.trim()) {
+        newErrors.contactName = "Authorised Liaison Name is required";
+      }
+      if (!formData.designation) {
+        newErrors.designation = "Designation is required";
+      }
+      if (!formData.mobile.trim() || formData.mobile.length < 10) {
+        newErrors.mobile = "Valid 10-digit Mobile Number is required";
+      }
+      if (!formData.email.trim() || !formData.email.includes("@")) {
+        newErrors.email = "Valid Business Email is required";
+      }
+      if (!formData.password || formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setFieldErrors(newErrors);
+        toast.error("Please complete the required fields highlighted in red.");
+        return;
+      }
+      setFieldErrors({});
 
       const emailOk = await checkDuplicateField("email", formData.email);
       const phoneOk = await checkDuplicateField("phone", formData.mobile);
       if (!emailOk || !phoneOk) return;
     } else if (currentStep === 3) {
-      if (!formData.docFileUrl) {
-        return toast.error(
-          `Please upload your ${formData.docType || "Primary Identity Document"} before proceeding to the next step.`,
-        );
-      }
-      if (formData.gstin && !formData.isGstExempt) {
-        const gstOk = await checkDuplicateField("gstin", formData.gstin);
-        if (!gstOk) return;
-      }
-      if (formData.pan) {
-        const panOk = await checkDuplicateField("pan", formData.pan);
-        if (!panOk) return;
-      }
+      // Section C: Not mandatory at all
+      setFieldErrors({});
     } else if (currentStep === 4) {
-      if (!formData.selectedPlan) return toast.error("Please select a Plan");
+      if (!formData.selectedPlan) {
+        newErrors.selectedPlan = "Please select a Merchant Plan";
+        setFieldErrors(newErrors);
+        toast.error("Please select a Merchant Plan");
+        return;
+      }
+      setFieldErrors({});
     } else if (currentStep === 5) {
-      if (!formData.commissionAgreed)
-        return toast.error("Please confirm acceptance of category commission");
+      // Section E: Not mandatory at all
+      setFieldErrors({});
     }
     setCurrentStep((prev) => Math.min(6, prev + 1));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const unacceptedCommitment = commitmentItems.find((c, idx) => {
-      if (c.required === false) return false;
+    const newErrors = {};
+
+    commitmentItems.forEach((c, idx) => {
+      if (c.required === false) return;
       const itemKey = c.key || `commit${idx + 1}`;
       const isChecked =
         !!formData[itemKey] || !!formData.commitmentsAccepted?.[c.id];
-      return !isChecked;
+      if (!isChecked) {
+        newErrors[itemKey] = true;
+      }
     });
 
-    if (unacceptedCommitment) {
-      toast.error(
-        `Please accept Merchant Commitment: "${unacceptedCommitment.text || "Mandatory Commitment"}"`,
-      );
-      return;
-    }
-    const unacceptedPolicy = policyItems.find((p, idx) => {
-      if (p.required === false) return false;
+    policyItems.forEach((p, idx) => {
+      if (p.required === false) return;
       const itemKey = p.key || `policy${idx + 1}`;
       const isChecked =
         !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
-      return !isChecked;
+      if (!isChecked) {
+        newErrors[itemKey] = true;
+      }
     });
 
-    if (unacceptedPolicy) {
-      toast.error(
-        `Please accept "${unacceptedPolicy.title || unacceptedPolicy.text || "Policy Agreement"}"`,
-      );
-      return;
-    }
     const effectiveSignatoryName = (
       formData.contactName ||
       formData.signatoryName ||
       ""
     ).trim();
     if (!effectiveSignatoryName) {
-      toast.error("Please enter Authorized Liaison Name in Section B first");
+      newErrors.contactName = "Please enter Authorized Liaison Name in Section B";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      toast.error("Please accept all mandatory agreements highlighted with red outlines.");
       return;
     }
-    if (!formData.signatureUrl) {
-      toast.error("Please upload Authorised Digital Signature Image");
-      return;
-    }
+    setFieldErrors({});
 
     setIsSubmitting(true);
     try {
-      // 1. Create User via Auth if not already logged in
       if (!authUser) {
         const { data, error } = await signUp.email({
           email: formData.email,
@@ -577,7 +869,6 @@ export function MerchantOnboardingWizard() {
         return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
       };
 
-      // 2. Create In-Depth Merchant DB Record for Admin Panel
       const merchantPayload = {
         businessName: formData.tradingName || formData.registeredName,
         slug:
@@ -613,8 +904,26 @@ export function MerchantOnboardingWizard() {
         shopImage: formData.shopPhotoUrl,
         logo: formData.logoUrl,
         banner: formData.bannerUrl,
-        signatureImage: formData.signatureUrl,
         plan: formData.selectedPlan,
+        commissionRate: (() => {
+          const matchedComm = masterCpaRates.find(
+            (c) =>
+              (c.id && c.id === formData.category) ||
+              c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
+              c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
+          );
+          return matchedComm ? matchedComm.rate : "3% – 5%";
+        })(),
+        commissionModel: (() => {
+          const matchedComm = masterCpaRates.find(
+            (c) =>
+              (c.id && c.id === formData.category) ||
+              c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
+              c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
+          );
+          return matchedComm ? matchedComm.model : "CPA";
+        })(),
+        commissionAgreed: formData.commissionAgreed,
         gmapsLink: cleanUrl(formData.googleUrl),
         operatingHours: formData.operatingHours,
       };
@@ -634,7 +943,6 @@ export function MerchantOnboardingWizard() {
         );
       }
 
-      // Force-refresh session & invalidate query keys
       try {
         await authClient.getSession({ query: { disableCookieCache: true } });
       } catch (_) {}
@@ -665,7 +973,7 @@ export function MerchantOnboardingWizard() {
 
   if (checkingExistingMerchant) {
     return (
-      <div className="py-24 text-center flex flex-col items-center justify-center space-y-3 bg-white rounded-2xl border border-slate-200 shadow-2xs max-w-xl mx-auto my-12">
+      <div className="py-24 text-center flex flex-col items-center justify-center space-y-3 bg-white rounded-2xl border border-slate-200/90 shadow-sm max-w-xl mx-auto my-12">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         <p className="text-sm font-semibold text-slate-700">
           Checking merchant account status...
@@ -674,57 +982,135 @@ export function MerchantOnboardingWizard() {
     );
   }
 
+  const shadowInputClass =
+    "pl-8 bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] hover:shadow-[0_3px_10px_rgba(37,99,235,0.14)] hover:border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25 focus:shadow-[0_2px_12px_rgba(37,99,235,0.22)] focus:outline-none transition-all duration-150 text-xs h-9 rounded-lg font-normal text-slate-900 placeholder:text-slate-400";
+  const shadowSelectClass =
+    "w-full bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] hover:shadow-[0_3px_10px_rgba(37,99,235,0.14)] hover:border-blue-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25 focus:shadow-[0_2px_12px_rgba(37,99,235,0.22)] focus:outline-none transition-all duration-150";
+
+  const getLabelClass = (fieldName, defaultClass = "text-xs font-medium text-slate-700") => {
+    if (fieldErrors[fieldName]) {
+      return "text-xs font-bold text-slate-900 transition-all";
+    }
+    return defaultClass;
+  };
+
+  const getInputClass = (fieldName, defaultClass = shadowInputClass) => {
+    if (fieldErrors[fieldName]) {
+      return "pl-8 bg-rose-50/30 border-2 border-rose-500 text-slate-900 shadow-[0_2px_8px_rgba(244,63,94,0.12)] focus:border-rose-600 focus:ring-2 focus:ring-rose-500/25 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:outline-none transition-all";
+    }
+    return defaultClass;
+  };
+
+  const getSelectClass = (fieldName, defaultClass = shadowSelectClass) => {
+    if (fieldErrors[fieldName]) {
+      return "w-full bg-rose-50/30 border-2 border-rose-500 text-slate-900 shadow-[0_2px_8px_rgba(244,63,94,0.12)] focus:border-rose-600 focus:ring-2 focus:ring-rose-500/25 text-xs h-9 px-3 font-normal focus:outline-none transition-all";
+    }
+    return defaultClass;
+  };
+
+  const getTextareaClass = (fieldName, defaultClass = "bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] text-xs rounded-lg font-normal placeholder:text-slate-400 hover:border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25 transition-all") => {
+    if (fieldErrors[fieldName]) {
+      return "bg-rose-50/30 border-2 border-rose-500 text-slate-900 shadow-[0_2px_8px_rgba(244,63,94,0.12)] text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-rose-600 focus:ring-2 focus:ring-rose-500/25 transition-all";
+    }
+    return defaultClass;
+  };
+
   return (
-    <div className="w-full max-w-5xl mx-auto pt-0 pb-4 px-2 sm:px-4 space-y-4 text-left font-sans text-slate-900">
-      {/* Top Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center space-y-1">
-        <Badge
-          variant="outline"
-          className="bg-blue-600 text-white border-0 text-[10px] font-semibold px-2.5 py-0.5 rounded"
-        >
-          Founding Merchant Program Active
-        </Badge>
-        <p className="text-xs font-medium text-blue-900">
-          Rates locked for 6 months • 24–48 hrs approval • ₹0 Starter plan
-          available
-        </p>
-      </div>
+    <div className="w-full max-w-full space-y-3 text-left font-sans text-slate-900 pb-0">
+      {/* Header Banner & Stepper Bar */}
+      <div className="bg-white border border-slate-200/90 shadow-sm rounded-xl p-3 sm:p-4 space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                Merchant Onboarding Application
+              </h1>
+              <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-2xs">
+                Founding Partner
+              </Badge>
+            </div>
+            <p className="text-xs text-slate-500 font-normal mt-0.5">
+              Fill in your store details to list offers and reach Ranchi shoppers • Rates locked for 6 months • ₹0 Starter plan available
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start md:self-auto bg-slate-50 p-1.5 rounded-lg border border-slate-200/80">
+            <span className="text-[11px] font-bold text-blue-700 bg-white px-2.5 py-1 rounded-md shadow-2xs border border-blue-100">
+              Section {currentStep} of 6
+            </span>
+            <span className="text-[11px] font-semibold text-slate-600 px-1">
+              {Math.round((currentStep / 6) * 100)}% Complete
+            </span>
+          </div>
+        </div>
 
-      {/* Title */}
-      <div className="text-center space-y-1">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-          Merchant Onboarding Application
-        </h1>
-        <p className="text-xs text-slate-500 font-normal">
-          Fill in your store details to list offers and reach Ranchi shoppers
-        </p>
-      </div>
-
-      {/* 3-Step Header Bar */}
-      <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {/* Stepper Horizontal Navigation Bar - Vibrant Colorful Tabs */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {MASTER_STEPS.map((m) => {
             const isActive = activeMasterStep === m.stepNum;
             const isCompleted = activeMasterStep > m.stepNum;
+
+            const colorThemes = {
+              1: {
+                active: "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-md shadow-blue-500/25 border-0 ring-2 ring-blue-500/30",
+                completed: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
+                upcoming: "bg-blue-50/80 border-blue-200/80 text-blue-950 hover:bg-blue-100/70 hover:border-blue-300",
+                numberActive: "bg-white text-blue-700 font-extrabold shadow-2xs",
+                numberCompleted: "bg-white text-emerald-700 font-extrabold shadow-2xs",
+                numberUpcoming: "bg-blue-100/90 text-blue-700 font-bold border border-blue-200/80",
+                labelActive: "text-blue-100 font-semibold",
+                labelCompleted: "text-emerald-100 font-semibold",
+                labelUpcoming: "text-blue-700/80 font-semibold",
+              },
+              2: {
+                active: "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 text-white shadow-md shadow-purple-500/25 border-0 ring-2 ring-purple-500/30",
+                completed: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
+                upcoming: "bg-purple-50/80 border-purple-200/80 text-purple-950 hover:bg-purple-100/70 hover:border-purple-300",
+                numberActive: "bg-white text-purple-700 font-extrabold shadow-2xs",
+                numberCompleted: "bg-white text-emerald-700 font-extrabold shadow-2xs",
+                numberUpcoming: "bg-purple-100/90 text-purple-700 font-bold border border-purple-200/80",
+                labelActive: "text-purple-100 font-semibold",
+                labelCompleted: "text-emerald-100 font-semibold",
+                labelUpcoming: "text-purple-700/80 font-semibold",
+              },
+              3: {
+                active: "bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 text-white shadow-md shadow-orange-500/25 border-0 ring-2 ring-orange-500/30",
+                completed: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
+                upcoming: "bg-amber-50/80 border-amber-200/80 text-amber-950 hover:bg-amber-100/70 hover:border-amber-300",
+                numberActive: "bg-white text-orange-700 font-extrabold shadow-2xs",
+                numberCompleted: "bg-white text-emerald-700 font-extrabold shadow-2xs",
+                numberUpcoming: "bg-amber-100/90 text-amber-800 font-bold border border-amber-200/80",
+                labelActive: "text-amber-100 font-semibold",
+                labelCompleted: "text-emerald-100 font-semibold",
+                labelUpcoming: "text-amber-700/80 font-semibold",
+              },
+            };
+
+            const theme = colorThemes[m.stepNum] || colorThemes[1];
+            const containerStyle = isActive
+              ? theme.active
+              : isCompleted
+                ? theme.completed
+                : theme.upcoming;
+
+            const numberStyle = isActive
+              ? theme.numberActive
+              : isCompleted
+                ? theme.numberCompleted
+                : theme.numberUpcoming;
+
+            const labelStyle = isActive
+              ? theme.labelActive
+              : isCompleted
+                ? theme.labelCompleted
+                : theme.labelUpcoming;
+
             return (
               <div
                 key={m.stepNum}
-                className={`flex items-center gap-2.5 p-2 rounded-lg border transition-all ${
-                  isActive
-                    ? "border-blue-600 bg-blue-50/60 shadow-2xs"
-                    : isCompleted
-                      ? "border-emerald-200 bg-emerald-50/50"
-                      : "border-slate-100 bg-slate-50/40"
-                }`}
+                className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all duration-200 ${containerStyle}`}
               >
                 <div
-                  className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
-                    isActive
-                      ? "bg-blue-600 text-white"
-                      : isCompleted
-                        ? "bg-emerald-600 text-white"
-                        : "bg-slate-200 text-slate-500"
-                  }`}
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${numberStyle}`}
                 >
                   {isCompleted ? (
                     <Check className="w-4 h-4 stroke-[3]" />
@@ -732,13 +1118,15 @@ export function MerchantOnboardingWizard() {
                     m.stepNum
                   )}
                 </div>
-                <div>
-                  <span className="text-[9px] font-semibold uppercase text-slate-400 block leading-tight">
+                <div className="min-w-0 flex-1">
+                  <span
+                    className={`text-[9.5px] uppercase tracking-wider block leading-none truncate ${labelStyle}`}
+                  >
                     Step {m.stepNum}: {m.label}
                   </span>
                   <span
-                    className={`text-xs font-semibold block leading-tight ${
-                      isActive ? "text-blue-700" : "text-slate-800"
+                    className={`text-xs font-bold block leading-tight truncate mt-0.5 ${
+                      isActive || isCompleted ? "text-white" : "text-slate-800"
                     }`}
                   >
                     {m.title}
@@ -748,17 +1136,17 @@ export function MerchantOnboardingWizard() {
             );
           })}
         </div>
-      </Card>
+      </div>
 
       {/* SECTION 1: BUSINESS IDENTITY & LOCATION */}
       {currentStep === 1 && (
-        <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-4 sm:p-5 space-y-4">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-center">
+        <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
+          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Section A: Business Identity &amp; Location
               </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
+              <p className="text-xs text-slate-500 font-normal">
                 Enter legal registered name and store operating address
               </p>
             </div>
@@ -771,34 +1159,38 @@ export function MerchantOnboardingWizard() {
           </div>
 
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* 4-Column Inputs Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
-                  Registered Business Name{" "}
-                  <span className="text-rose-500">*</span>
+                <Label className={getLabelClass("registeredName")}>
+                  Registered Business Name <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Building2 className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.registeredName ? "text-rose-500" : "text-slate-400"}`} />
                   <Input
                     type="text"
                     placeholder="Marbella Tiles & Sanitary Pvt Ltd"
                     value={formData.registeredName}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setFormData({
                         ...formData,
                         registeredName: e.target.value,
-                      })
-                    }
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
+                      });
+                      clearFieldError("registeredName");
+                    }}
+                    className={getInputClass("registeredName")}
                   />
                 </div>
-                <FieldTip text="Used for official business verification, tax invoicing & verified merchant status." />
+                {fieldErrors.registeredName ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.registeredName}</p>
+                ) : (
+                  <FieldTip text="Used for official business verification & tax invoicing." />
+                )}
               </div>
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Brand / Store Display Name{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
+                  Brand / Store Display Name <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <div className="relative">
                   <Store className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -809,14 +1201,12 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, tradingName: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
+                    className={shadowInputClass}
                   />
                 </div>
-                <FieldTip text="This customer-facing store name is displayed on your deal cards & customer vouchers." />
+                <FieldTip text="Customer-facing store name on deal cards & vouchers." />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
                   Business Constitution <span className="text-rose-500">*</span>
@@ -827,7 +1217,7 @@ export function MerchantOnboardingWizard() {
                     setFormData({ ...formData, constitution: val })
                   }
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-500 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
+                  <SelectTrigger className={shadowSelectClass}>
                     <SelectValue placeholder="Select constitution" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -838,20 +1228,21 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldTip text="Determines legal statutory compliance requirements for your partner account." />
+                <FieldTip text="Determines statutory compliance requirements." />
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
+                <Label className={getLabelClass("category")}>
                   Primary Category <span className="text-rose-500">*</span>
                 </Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, category: val })
-                  }
+                  onValueChange={(val) => {
+                    setFormData({ ...formData, category: val });
+                    clearFieldError("category");
+                  }}
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-500 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
+                  <SelectTrigger className={getSelectClass("category")}>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -862,65 +1253,75 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldTip text="Places your store in the correct category section for targeted local Ranchi shoppers." />
+                {fieldErrors.category ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.category}</p>
+                ) : (
+                  <FieldTip text="Places your store in the correct offer section." />
+                )}
               </div>
             </div>
 
-            {/* Special Category Custom Field & Explanation */}
+            {/* Special Category Custom Field */}
             {formData.category === "others" && (
-              <div className="space-y-3 p-3.5 bg-blue-50/60 border border-blue-200 rounded-lg">
+              <div className="space-y-3 p-3 bg-blue-50/60 border border-blue-200 rounded-lg">
                 <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-blue-950">
+                  <Label className={getLabelClass("customCategoryName", "text-xs font-semibold text-blue-950")}>
                     Custom Category Name <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     type="text"
-                    placeholder="e.g. Handmade Crafts, Event Management, Niche Services..."
+                    placeholder="e.g. Handmade Crafts, Event Management..."
                     value={formData.customCategoryName || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setFormData({
                         ...formData,
                         customCategoryName: e.target.value,
-                      })
-                    }
-                    className="bg-white border-slate-500 text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                      });
+                      clearFieldError("customCategoryName");
+                    }}
+                    className={getInputClass("customCategoryName", "bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25")}
                   />
+                  {fieldErrors.customCategoryName && (
+                    <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.customCategoryName}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <Label className="text-xs font-semibold text-blue-950">
-                      Explain your business &amp; products in detail{" "}
-                      <span className="text-rose-500">*</span>
+                    <Label className={getLabelClass("customCategoryNotes", "text-xs font-semibold text-blue-950")}>
+                      Explain your business in detail <span className="text-rose-500">*</span>
                     </Label>
                     <span
                       className={`text-[11px] font-mono ${
-                        notesWordCount >= 20
+                        customCategoryCharCount >= 80
                           ? "text-emerald-700 font-bold"
                           : "text-amber-700 font-semibold"
                       }`}
                     >
-                      Word count: {notesWordCount} / 20 min
+                      Characters: {customCategoryCharCount} / 80 min
                     </span>
                   </div>
                   <Textarea
-                    rows={3}
-                    placeholder="Describe your special business offerings, unique products, services, target customers, and store operational setup in detail (minimum 20 words required for manual admin verification)..."
+                    rows={2}
+                    placeholder="Describe your offerings, unique products, services and store operational setup in detail (minimum 80 characters required)..."
                     value={formData.customCategoryNotes}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setFormData({
                         ...formData,
                         customCategoryNotes: e.target.value,
-                      })
-                    }
-                    className="bg-white border-slate-500 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
+                      });
+                      clearFieldError("customCategoryNotes");
+                    }}
+                    className={getTextareaClass("customCategoryNotes")}
                   />
-                  {notesWordCount < 20 && (
+                  {fieldErrors.customCategoryNotes ? (
+                    <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.customCategoryNotes}</p>
+                  ) : customCategoryCharCount < 80 ? (
                     <p className="text-[10px] text-amber-700 font-medium">
-                      ⚠️ Please write at least {20 - notesWordCount} more word(s)
-                      explaining your business for admin verification.
+                      ⚠️ Please write at least {80 - customCategoryCharCount} more character(s)
+                      explaining your business.
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
             )}
@@ -930,11 +1331,11 @@ export function MerchantOnboardingWizard() {
               <Label className="text-xs font-medium text-slate-700">
                 Sub-Category Tags Chips (Press Enter)
               </Label>
-              <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-500 rounded-lg min-h-[38px] items-center focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 focus-within:shadow-none transition-all">
+              <div className="flex flex-wrap gap-1.5 p-2 bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] rounded-lg min-h-[38px] items-center focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/25 focus-within:shadow-[0_2px_12px_rgba(37,99,235,0.22)] transition-all">
                 {subCategoryTags.map((tag) => (
                   <Badge
                     key={tag}
-                    className="bg-white text-slate-800 border-slate-300 text-xs font-medium py-0.5 px-2 flex items-center gap-1 shadow-2xs"
+                    className="bg-slate-100 text-slate-800 border-slate-200 text-xs font-medium py-0.5 px-2 flex items-center gap-1 shadow-2xs"
                   >
                     {tag}
                     <button
@@ -958,50 +1359,59 @@ export function MerchantOnboardingWizard() {
               <FieldTip text="Helps shoppers find your specific offers using search & filter keywords." />
             </div>
 
-            {/* Operating Store Address & Google Maps Link */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Operating Address & GMB Link */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
-                  Operating Store Address{" "}
-                  <span className="text-rose-500">*</span>
+                <Label className={getLabelClass("address")}>
+                  Operating Store Address <span className="text-rose-500">*</span>
                 </Label>
                 <Textarea
                   rows={2}
                   placeholder="Shop No. 14, Lalpur Chowk, Main Road, Ranchi, Jharkhand – 834001"
                   value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  className="bg-white border-slate-500 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
+                  onChange={(e) => {
+                    setFormData({ ...formData, address: e.target.value });
+                    clearFieldError("address");
+                  }}
+                  className={getTextareaClass("address")}
                 />
-                <FieldTip text="Customers will visit this exact physical address to redeem in-store vouchers." />
+                {fieldErrors.address ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.address}</p>
+                ) : (
+                  <FieldTip text="Customers will visit this exact address to redeem in-store vouchers." />
+                )}
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
-                  Google Maps / GMB Profile Location Link{" "}
-                  <span className="text-rose-500">*</span>
+                <Label className={getLabelClass("googleUrl")}>
+                  Google Maps / GMB Profile Location Link <span className="text-rose-500">*</span>
                 </Label>
                 <Textarea
                   rows={2}
                   placeholder="https://maps.google.com/?q=... or GMB Profile Link"
                   value={formData.googleUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, googleUrl: e.target.value })
-                  }
-                  className="bg-white border-slate-500 text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none transition-all"
+                  onChange={(e) => {
+                    setFormData({ ...formData, googleUrl: e.target.value });
+                    clearFieldError("googleUrl");
+                  }}
+                  className={getTextareaClass("googleUrl")}
                 />
-                <FieldTip text="Powers 1-tap Google Maps directions on customer deal vouchers for easy navigation." />
+                {fieldErrors.googleUrl ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.googleUrl}</p>
+                ) : (
+                  <FieldTip text="Powers 1-tap Google Maps directions on deal vouchers." />
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Geo & Pin Code Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
+                <Label className={getLabelClass("pincode")}>
                   PIN Code <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Hash className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.pincode ? "text-rose-500" : "text-slate-400"}`} />
                   <Input
                     type="text"
                     maxLength={6}
@@ -1010,6 +1420,7 @@ export function MerchantOnboardingWizard() {
                     onChange={async (e) => {
                       const pin = e.target.value;
                       setFormData((prev) => ({ ...prev, pincode: pin }));
+                      clearFieldError("pincode");
                       if (pin.length === 6) {
                         const geo = await lookupByPincode(pin);
                         if (geo) {
@@ -1021,14 +1432,18 @@ export function MerchantOnboardingWizard() {
                         }
                       }
                     }}
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-mono font-medium focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                    className={getInputClass("pincode")}
                   />
                 </div>
-                <FieldTip text="Groups your store under nearby pin code offer filters." />
+                {fieldErrors.pincode ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.pincode}</p>
+                ) : (
+                  <FieldTip text="Groups your store under pin code offer filters." />
+                )}
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
+                <Label className={getLabelClass("city")}>
                   City / District <span className="text-rose-500">*</span>
                 </Label>
                 <Select
@@ -1042,9 +1457,10 @@ export function MerchantOnboardingWizard() {
                       pincode:
                         geo && !prev.pincode ? geo.pincode : prev.pincode,
                     }));
+                    clearFieldError("city");
                   }}
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-500 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
+                  <SelectTrigger className={getSelectClass("city")}>
                     <SelectValue placeholder="Select City" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -1059,82 +1475,75 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldTip text="Lists your store under regional city offer hubs." />
+                {fieldErrors.city ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.city}</p>
+                ) : (
+                  <FieldTip text="Lists your store under regional city offer hubs." />
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Label className={getLabelClass("state")}>
+                  State <span className="text-rose-500">*</span>
+                </Label>
+                <div className="relative">
+                  <Map className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.state ? "text-rose-500" : "text-slate-400"}`} />
+                  <Input
+                    type="text"
+                    value={formData.state}
+                    onChange={(e) => {
+                      setFormData({ ...formData, state: e.target.value });
+                      clearFieldError("state");
+                    }}
+                    className={getInputClass("state")}
+                  />
+                </div>
+                {fieldErrors.state ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.state}</p>
+                ) : (
+                  <FieldTip text="Required for state GST & statutory compliance." />
+                )}
               </div>
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  State
+                  Store GPS Location <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
-                <div className="relative">
-                  <Map className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <Input
-                    type="text"
-                    value={formData.state}
-                    onChange={(e) =>
-                      setFormData({ ...formData, state: e.target.value })
-                    }
-                    className="pl-8 bg-slate-50 border-slate-500 text-xs h-9 rounded-lg font-medium text-slate-900"
-                  />
-                </div>
-                <FieldTip text="Required for state GST & statutory compliance." />
-              </div>
-            </div>
-
-            {/* GPS Geolocation Fetching */}
-            <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-              <div>
-                <span className="font-semibold text-blue-900 block">
-                  Store GPS Coordinates
-                </span>
+                <Button
+                  type="button"
+                  onClick={handleFetchLocation}
+                  disabled={isFetchingLocation}
+                  className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-2 border-blue-300/80 font-semibold text-xs h-9 rounded-lg cursor-pointer shadow-2xs flex items-center justify-center gap-1.5 transition-all"
+                >
+                  {isFetchingLocation ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  )}
+                  <span>
+                    {formData.latitude ? "GPS Captured ✓" : "Fetch GPS Coordinates"}
+                  </span>
+                </Button>
                 {formData.latitude && formData.longitude ? (
-                  <span className="text-[11px] font-mono text-emerald-700 font-medium block">
-                    ✓ Captured: {formData.latitude}° N, {formData.longitude}° E
-                  </span>
+                  <FieldTip text={`Captured: ${formData.latitude}° N, ${formData.longitude}° E`} />
                 ) : (
-                  <span className="text-[11px] text-slate-500 block font-normal">
-                    Fetch exact store latitude &amp; longitude for Google Maps
-                    navigation
-                  </span>
+                  <FieldTip text="Auto-detect exact lat & lng for maps navigation." />
                 )}
               </div>
-              <Button
-                type="button"
-                onClick={handleFetchLocation}
-                disabled={isFetchingLocation}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-8 px-3 rounded-md border-0 shrink-0 cursor-pointer shadow-2xs"
-              >
-                {isFetchingLocation ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <MapPin className="w-3.5 h-3.5" />
-                )}
-                <span>Fetch GPS Coordinates</span>
-              </Button>
             </div>
-          </div>
-
-          <div className="flex justify-end pt-3 border-t border-slate-100">
-            <Button
-              onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center gap-1"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
           </div>
         </Card>
       )}
 
       {/* SECTION 2: CONTACT & ACCOUNT SETUP */}
       {currentStep === 2 && (
-        <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-4 sm:p-5 space-y-4">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-center">
+        <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
+          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Section B: Contact Details &amp; Account Setup
               </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
+              <p className="text-xs text-slate-500 font-normal">
                 Management liaison contact and account login password
               </p>
             </div>
@@ -1147,14 +1556,14 @@ export function MerchantOnboardingWizard() {
           </div>
 
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* 4-Column Inputs Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
-                  Authorized Liaison Name{" "}
-                  <span className="text-rose-500">*</span>
+                <Label className={getLabelClass("contactName")}>
+                  Authorized Liaison Name <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <User className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.contactName ? "text-rose-500" : "text-slate-400"}`} />
                   <Input
                     type="text"
                     placeholder="Rajan Kumar Singh"
@@ -1166,24 +1575,30 @@ export function MerchantOnboardingWizard() {
                         contactName: val,
                         signatoryName: val,
                       }));
+                      clearFieldError("contactName");
                     }}
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                    className={getInputClass("contactName")}
                   />
                 </div>
-                <FieldTip text="Person responsible for managing store offers & receiving official admin updates." />
+                {fieldErrors.contactName ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.contactName}</p>
+                ) : (
+                  <FieldTip text="Person managing store offers & official updates." />
+                )}
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
+                <Label className={getLabelClass("designation")}>
                   Designation <span className="text-rose-500">*</span>
                 </Label>
                 <Select
                   value={formData.designation}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, designation: val })
-                  }
+                  onValueChange={(val) => {
+                    setFormData({ ...formData, designation: val });
+                    clearFieldError("designation");
+                  }}
                 >
-                  <SelectTrigger className="w-full bg-white border-slate-500 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
+                  <SelectTrigger className={getSelectClass("designation")}>
                     <SelectValue placeholder="Select Designation" />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
@@ -1194,58 +1609,59 @@ export function MerchantOnboardingWizard() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldTip text="Confirms authorized signatory privileges for business partnership agreements." />
+                {fieldErrors.designation ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.designation}</p>
+                ) : (
+                  <FieldTip text="Signatory privileges for partnership agreements." />
+                )}
               </div>
-            </div>
 
-            {/* Mobile & WhatsApp Numbers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
+                <Label className={getLabelClass("mobile")}>
                   Primary Mobile Number <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Phone className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.mobile ? "text-rose-500" : "text-slate-400"}`} />
                   <Input
                     type="tel"
                     maxLength={10}
                     placeholder="9876543210"
                     value={formData.mobile}
-                    onChange={(e) =>
-                      setFormData({ ...formData, mobile: e.target.value })
-                    }
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                    onChange={(e) => {
+                      setFormData({ ...formData, mobile: e.target.value });
+                      clearFieldError("mobile");
+                    }}
+                    className={getInputClass("mobile")}
                   />
                 </div>
-                <FieldTip text="Used for account security OTPs & real-time deal redemption SMS alerts." />
+                {fieldErrors.mobile ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.mobile}</p>
+                ) : (
+                  <FieldTip text="Used for account security OTPs & deal alerts." />
+                )}
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-slate-700">
-                    WhatsApp Number{" "}
-                    <span className="text-slate-400 font-normal">
-                      (Optional)
-                    </span>
+                    WhatsApp Number <span className="text-slate-400 font-normal">(Optional)</span>
                   </Label>
                   <button
                     type="button"
                     onClick={() => {
                       if (!formData.mobile) {
-                        toast.error(
-                          "Please enter Primary Mobile Number first.",
-                        );
+                        toast.error("Please enter Primary Mobile Number first.");
                         return;
                       }
                       setFormData((prev) => ({
                         ...prev,
                         whatsapp: prev.mobile,
                       }));
-                      toast.success("Copied Primary Mobile to WhatsApp!");
+                      toast.success("Copied Mobile to WhatsApp!");
                     }}
-                    className="text-[10px] text-blue-600 hover:text-blue-800 font-medium hover:underline cursor-pointer flex items-center gap-1"
+                    className="text-[9.5px] text-blue-600 hover:text-blue-800 font-medium hover:underline cursor-pointer"
                   >
-                    ✓ Same as Primary Mobile
+                    Same as Mobile
                   </button>
                 </div>
                 <div className="relative">
@@ -1258,53 +1674,67 @@ export function MerchantOnboardingWizard() {
                     onChange={(e) =>
                       setFormData({ ...formData, whatsapp: e.target.value })
                     }
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                    className={shadowInputClass}
                   />
                 </div>
-                <FieldTip text="Sends instant offer claim notifications & customer inquiry updates." />
+                <FieldTip text="Sends instant offer claim notifications." />
               </div>
             </div>
 
-            {/* Email & Password */}
+            {/* Email & Password (2 Columns) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
-                  Business Email (Login ID){" "}
-                  <span className="text-rose-500">*</span>
+                <Label className={getLabelClass("email")}>
+                  Business Email (Login ID) <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Mail className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.email ? "text-rose-500" : "text-slate-400"}`} />
                   <Input
                     type="email"
                     placeholder="info@marbella.in"
                     value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                      clearFieldError("email");
+                    }}
+                    className={getInputClass("email")}
                   />
                 </div>
-                <FieldTip text="Your primary account login email for accessing the Merchant Partner panel." />
+                {fieldErrors.email ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.email}</p>
+                ) : (
+                  <FieldTip text="Your primary account login email for accessing Merchant panel." />
+                )}
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-slate-700">
-                  Create Password <span className="text-rose-500">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className={getLabelClass("password")}>
+                    Create Password <span className="text-rose-500">*</span>
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={handleAutoSuggestPassword}
+                    className="text-[10px] text-blue-700 hover:text-blue-900 font-semibold bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded cursor-pointer transition-all flex items-center gap-1"
+                  >
+                    <span>⚡ Auto-Suggest Password</span>
+                  </button>
+                </div>
                 <div className="relative">
-                  <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Lock className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.password ? "text-rose-500" : "text-slate-400"}`} />
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Min 6 characters"
                     value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="pl-8 pr-9 bg-white border-slate-500 text-xs h-9 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                    onChange={(e) => {
+                      setFormData({ ...formData, password: e.target.value });
+                      clearFieldError("password");
+                    }}
+                    className={getInputClass("password") + " pr-9"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer border-0 bg-transparent p-0.5"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     {showPassword ? (
                       <EyeOff className="w-3.5 h-3.5" />
@@ -1313,16 +1743,20 @@ export function MerchantOnboardingWizard() {
                     )}
                   </button>
                 </div>
-                <FieldTip text="Secures your merchant dashboard, sales analytics & revenue reports." />
+                {fieldErrors.password ? (
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.password}</p>
+                ) : (
+                  <FieldTip text="Security password for signing into merchant dashboard." />
+                )}
               </div>
             </div>
 
-            {/* Social Web Links */}
+            {/* Social Web Links (3 Columns) */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <Label className="text-xs font-semibold text-slate-800 uppercase tracking-wider block">
                 Web Presence &amp; Social Links (Optional)
               </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-[11px] font-medium text-slate-600">
                     Website URL
@@ -1336,17 +1770,16 @@ export function MerchantOnboardingWizard() {
                       onChange={(e) =>
                         setFormData({ ...formData, websiteUrl: e.target.value })
                       }
-                      className="pl-8 bg-white border-slate-500 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                      className={shadowInputClass}
                     />
                   </div>
-                  <FieldTip text="Linked on your brand profile page so shoppers can explore your official website." />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[11px] font-medium text-slate-600">
                     Instagram Handle
                   </Label>
                   <div className="relative">
-                    <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <InstagramIcon className="w-3.5 h-3.5 text-pink-600 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
                       type="text"
                       placeholder="@marbellatiles"
@@ -1357,17 +1790,16 @@ export function MerchantOnboardingWizard() {
                           instagramHandle: e.target.value,
                         })
                       }
-                      className="pl-8 bg-white border-slate-500 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                      className={shadowInputClass}
                     />
                   </div>
-                  <FieldTip text="Promoted on your Vouchiqo brand page for social media reach." />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[11px] font-medium text-slate-600">
                     Facebook URL
                   </Label>
                   <div className="relative">
-                    <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <FacebookIcon className="w-3.5 h-3.5 text-blue-600 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
                       type="url"
                       placeholder="https://facebook.com/marbellatiles"
@@ -1378,186 +1810,152 @@ export function MerchantOnboardingWizard() {
                           facebookUrl: e.target.value,
                         })
                       }
-                      className="pl-8 bg-white border-slate-500 text-xs h-8.5 rounded-lg font-normal placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                      className={shadowInputClass}
                     />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="flex justify-between pt-3 border-t border-slate-100">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(1)}
-              className="text-slate-700 text-xs font-medium rounded-lg h-9 px-4 cursor-pointer"
-            >
-              &lt; Back
-            </Button>
-            <Button
-              onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center gap-1"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
         </Card>
       )}
 
-      {/* SECTION 3: BUSINESS VERIFICATION DOCUMENTS (Cloudinary Uploads) */}
+      {/* SECTION 3: BUSINESS VERIFICATION DOCUMENTS */}
       {currentStep === 3 && (
-        <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-4 sm:p-5 space-y-4">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-center">
+        <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
+          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
-                Section C: Business Verification Documents
+                Section C: Business Verification Documents (Optional)
               </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Upload image or document proof for Verified Merchant Badge
+              <p className="text-xs text-slate-500 font-normal">
+                Upload identity proof now or later from your Merchant Dashboard
               </p>
             </div>
             <Badge
               variant="outline"
-              className="text-[10px] font-medium border-slate-200 text-slate-600"
+              className="text-[10px] font-medium border-amber-200 bg-amber-50 text-amber-800"
             >
-              Section 3 of 6
+              Optional Section
             </Badge>
           </div>
 
           <div className="space-y-3">
-            {/* Primary Document Type */}
-            <div className="space-y-1">
-              <Label className="text-xs font-medium text-slate-700">
-                Primary Identity Document Type{" "}
-                <span className="text-rose-500">*</span>
-              </Label>
-              <Select
-                value={formData.docType}
-                onValueChange={(val) =>
-                  setFormData({ ...formData, docType: val })
-                }
-              >
-                <SelectTrigger className="w-full bg-white border-slate-500 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="z-[300]">
-                  <SelectItem
-                    value="GST Registration Certificate"
-                    className="text-xs"
-                  >
-                    GST Registration Certificate (Preferred)
-                  </SelectItem>
-                  <SelectItem
-                    value="Udyam / MSME Certificate"
-                    className="text-xs"
-                  >
-                    Udyam / MSME Registration Certificate
-                  </SelectItem>
-                  <SelectItem value="Trade Licence" className="text-xs">
-                    Trade Licence (Municipal Corporation)
-                  </SelectItem>
-                  <SelectItem
-                    value="Shop & Establishment Act"
-                    className="text-xs"
-                  >
-                    Shop &amp; Establishment Act Certificate
-                  </SelectItem>
-                  <SelectItem value="Owner PAN Card" className="text-xs">
-                    Owner PAN Card
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FieldTip text="Required to grant the official Blue Verified Merchant badge on Vouchiqo." />
-            </div>
-
-            {/* Cloudinary Document Upload */}
-            <div className="space-y-1">
-              <Label className="text-xs font-medium text-slate-700">
-                Upload {formData.docType || "Primary Identity Document"}{" "}
-                <span className="text-rose-500">*</span>
-              </Label>
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center gap-2 text-xs">
-                {formData.docFileUrl ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <a
-                      href={formData.docFileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-blue-600 underline font-medium truncate block max-w-[320px]"
-                    >
-                      View Uploaded Document
-                    </a>
-                  </div>
-                ) : (
-                  <span className="text-slate-500 font-normal">
-                    Select document image (JPG, PNG, WebP) up to 5 MB
-                  </span>
-                )}
-                <div className="relative w-full max-w-xs">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      handleFileUpload(
-                        e.target.files[0],
-                        "docFileUrl",
-                        setUploadingDoc,
-                      )
-                    }
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                    disabled={uploadingDoc}
-                  />
-                  <Button
-                    type="button"
-                    disabled={uploadingDoc}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-4 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-2 mx-auto"
-                  >
-                    {uploadingDoc ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="w-3.5 h-3.5" />
-                    )}
-                    <span>
-                      {formData.docFileUrl
-                        ? `Change ${formData.docType || "Document"}`
-                        : `Upload ${formData.docType || "Document"}`}
-                    </span>
-                  </Button>
-                </div>
+            {/* Primary Document Type & Upload Box (2 Columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-slate-700">
+                  Primary Identity Document Type <span className="text-slate-400 font-normal">(Optional)</span>
+                </Label>
+                <Select
+                  value={formData.docType}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, docType: val })
+                  }
+                >
+                  <SelectTrigger className={shadowSelectClass}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[300]">
+                    <SelectItem value="GST Registration Certificate" className="text-xs">
+                      GST Registration Certificate (Preferred)
+                    </SelectItem>
+                    <SelectItem value="Udyam / MSME Certificate" className="text-xs">
+                      Udyam / MSME Registration Certificate
+                    </SelectItem>
+                    <SelectItem value="Trade Licence" className="text-xs">
+                      Trade Licence (Municipal Corporation)
+                    </SelectItem>
+                    <SelectItem value="Shop & Establishment Act" className="text-xs">
+                      Shop &amp; Establishment Act Certificate
+                    </SelectItem>
+                    <SelectItem value="Owner PAN Card" className="text-xs">
+                      Owner PAN Card
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldTip text="Used for official Blue Verified Merchant badge." />
               </div>
-              <FieldTip text="Encrypted & stored securely. Used strictly for statutory compliance verification by platform admins." />
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-slate-700">
+                  Upload {formData.docType || "Identity Document"} <span className="text-slate-400 font-normal">(Optional)</span>
+                </Label>
+                <div className="h-9 px-3 bg-white border-2 border-dashed border-blue-300/80 hover:border-blue-400 rounded-lg flex items-center justify-between gap-2 shadow-[0_2px_6px_rgba(37,99,235,0.08)] transition-all">
+                  {formData.docFileUrl ? (
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <a
+                        href={formData.docFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-blue-600 underline font-medium truncate"
+                      >
+                        Document Uploaded ✓
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-500 font-normal truncate">
+                      Select document file (JPG, PNG, PDF up to 5 MB)
+                    </span>
+                  )}
+                  <div className="relative shrink-0">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleFileUpload(
+                          e.target.files[0],
+                          "docFileUrl",
+                          setUploadingDoc,
+                        )
+                      }
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      disabled={uploadingDoc}
+                    />
+                    <Button
+                      type="button"
+                      disabled={uploadingDoc}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-6 px-2.5 rounded border-0 cursor-pointer shadow-2xs flex items-center gap-1"
+                    >
+                      {uploadingDoc ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Upload className="w-3 h-3" />
+                      )}
+                      <span>{formData.docFileUrl ? "Change" : "Upload"}</span>
+                    </Button>
+                  </div>
+                </div>
+                <FieldTip text="Supports PDF, PNG, JPG up to 5 MB." />
+              </div>
             </div>
 
             {/* 3 Store Visual Images Upload Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
               {/* 1. Shop Photograph */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
+                  <span className="text-xs font-semibold text-slate-800 uppercase tracking-wide flex items-center gap-1">
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
-                    Shop Photograph
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    1200x800px
+                    Shop Photo
                   </span>
                 </div>
-                <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2 h-32 overflow-hidden transition-all">
+                <div className="border border-dashed border-slate-300 bg-slate-50/70 hover:bg-blue-50/30 hover:border-blue-400 rounded-xl p-2.5 flex flex-col items-center justify-center text-center space-y-1.5 h-28 overflow-hidden shadow-2xs transition-all">
                   {formData.shopPhotoUrl ? (
                     <div className="space-y-1 w-full flex flex-col items-center">
                       <img
                         src={formData.shopPhotoUrl}
-                        alt="Shop Photograph"
-                        className="max-h-16 max-w-full object-contain rounded-md border border-slate-200 bg-white p-0.5"
+                        alt="Shop Photo"
+                        className="max-h-12 max-w-full object-contain rounded border border-slate-200 bg-white p-0.5"
                       />
                       <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Shop Photo Uploaded
+                        <Check className="w-3 h-3" /> Photo Uploaded
                       </span>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center space-y-1">
-                      <Upload className="w-5 h-5 text-slate-400" />
+                    <div className="flex flex-col items-center space-y-0.5">
+                      <Upload className="w-4 h-4 text-slate-400" />
                       <span className="text-xs text-slate-500 font-medium">
                         Upload Shop Photo
                       </span>
@@ -1580,50 +1978,44 @@ export function MerchantOnboardingWizard() {
                     <Button
                       type="button"
                       disabled={uploadingShopPhoto}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[11px] h-7.5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[11px] h-7 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1"
                     >
                       {uploadingShopPhoto ? (
-                        <Loader2 className="w-3 h-3 animate-spin mx-auto" />
+                        <Loader2 className="w-3 h-3 animate-spin" />
                       ) : (
                         <Upload className="w-3 h-3" />
                       )}
                       <span>
-                        {formData.shopPhotoUrl
-                          ? "Change Photo"
-                          : "Upload Shop Photo"}
+                        {formData.shopPhotoUrl ? "Change Photo (1200×800)" : "Upload Photo (1200×800)"}
                       </span>
                     </Button>
                   </div>
                 </div>
-                <FieldTip text="Displayed as your main storefront picture on deal listings & search." />
               </div>
 
               {/* 2. Store Logo */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
+                  <span className="text-xs font-semibold text-slate-800 uppercase tracking-wide flex items-center gap-1">
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                     Store Logo
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    400x400px (PNG)
-                  </span>
                 </div>
-                <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2 h-32 overflow-hidden transition-all">
+                <div className="border border-dashed border-slate-300 bg-slate-50/70 hover:bg-blue-50/30 hover:border-blue-400 rounded-xl p-2.5 flex flex-col items-center justify-center text-center space-y-1.5 h-28 overflow-hidden shadow-2xs transition-all">
                   {formData.logoUrl ? (
                     <div className="space-y-1 w-full flex flex-col items-center">
                       <img
                         src={formData.logoUrl}
                         alt="Store Logo"
-                        className="max-h-16 max-w-full object-contain rounded-md border border-slate-200 bg-white p-0.5"
+                        className="max-h-12 max-w-full object-contain rounded border border-slate-200 bg-white p-0.5"
                       />
                       <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
                         <Check className="w-3 h-3" /> Logo Uploaded
                       </span>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center space-y-1">
-                      <Upload className="w-5 h-5 text-slate-400" />
+                    <div className="flex flex-col items-center space-y-0.5">
+                      <Upload className="w-4 h-4 text-slate-400" />
                       <span className="text-xs text-slate-500 font-medium">
                         Upload Store Logo
                       </span>
@@ -1646,48 +2038,44 @@ export function MerchantOnboardingWizard() {
                     <Button
                       type="button"
                       disabled={uploadingLogo}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[11px] h-7.5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[11px] h-7 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1"
                     >
                       {uploadingLogo ? (
-                        <Loader2 className="w-3 h-3 animate-spin mx-auto" />
+                        <Loader2 className="w-3 h-3 animate-spin" />
                       ) : (
                         <Upload className="w-3 h-3" />
                       )}
                       <span>
-                        {formData.logoUrl ? "Change Logo" : "Upload Store Logo"}
+                        {formData.logoUrl ? "Change Logo (400×400)" : "Upload Logo (400×400)"}
                       </span>
                     </Button>
                   </div>
                 </div>
-                <FieldTip text="Featured on offer cards, customer vouchers & merchant banner headers." />
               </div>
 
               {/* 3. Banner Image */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
+                  <span className="text-xs font-semibold text-slate-800 uppercase tracking-wide flex items-center gap-1">
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                     Banner Image
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    1200x400px
-                  </span>
                 </div>
-                <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2 h-32 overflow-hidden transition-all">
+                <div className="border border-dashed border-slate-300 bg-slate-50/70 hover:bg-blue-50/30 hover:border-blue-400 rounded-xl p-2.5 flex flex-col items-center justify-center text-center space-y-1.5 h-28 overflow-hidden shadow-2xs transition-all">
                   {formData.bannerUrl ? (
                     <div className="space-y-1 w-full flex flex-col items-center">
                       <img
                         src={formData.bannerUrl}
                         alt="Banner Image"
-                        className="max-h-16 max-w-full object-contain rounded-md border border-slate-200 bg-white p-0.5"
+                        className="max-h-12 max-w-full object-contain rounded border border-slate-200 bg-white p-0.5"
                       />
                       <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
                         <Check className="w-3 h-3" /> Banner Uploaded
                       </span>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center space-y-1">
-                      <Upload className="w-5 h-5 text-slate-400" />
+                    <div className="flex flex-col items-center space-y-0.5">
+                      <Upload className="w-4 h-4 text-slate-400" />
                       <span className="text-xs text-slate-500 font-medium">
                         Upload Banner Image
                       </span>
@@ -1710,130 +2098,180 @@ export function MerchantOnboardingWizard() {
                     <Button
                       type="button"
                       disabled={uploadingBanner}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[11px] h-7.5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[11px] h-7 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1"
                     >
                       {uploadingBanner ? (
-                        <Loader2 className="w-3 h-3 animate-spin mx-auto" />
+                        <Loader2 className="w-3 h-3 animate-spin" />
                       ) : (
                         <Upload className="w-3 h-3" />
                       )}
                       <span>
-                        {formData.bannerUrl
-                          ? "Change Banner"
-                          : "Upload Banner Image"}
+                        {formData.bannerUrl ? "Change Banner (1200×400)" : "Upload Banner (1200×400)"}
                       </span>
                     </Button>
                   </div>
                 </div>
-                <FieldTip text="Header background banner on your dedicated Vouchiqo brand showcase page." />
               </div>
             </div>
-          </div>
-
-          <div className="flex justify-between pt-3 border-t border-slate-100">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(2)}
-              className="text-slate-700 text-xs font-medium rounded-lg h-9 px-4 cursor-pointer"
-            >
-              &lt; Back
-            </Button>
-            <Button
-              onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center gap-1"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
           </div>
         </Card>
       )}
 
       {/* SECTION 4: PLAN SELECTION */}
       {currentStep === 4 && (
-        <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-4 sm:p-5 space-y-4">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-center">
+        <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
+          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Section D: Select Subscription Plan
               </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Choose a plan matching your scale (14-day free trial on paid
-                tiers)
+              <p className="text-xs text-emerald-700 font-medium">
+                Select your plan below — No payment is initiated today during registration (14-day instant free trial on paid plans)
               </p>
             </div>
             <Badge
               variant="outline"
-              className="text-[10px] font-medium border-slate-200 text-slate-600"
+              className="text-[10px] font-semibold border-emerald-300 bg-emerald-50 text-emerald-800"
             >
-              Section 4 of 6
+              No Payment Required Today
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[
-              {
-                id: "starter",
-                name: "STARTER FREE",
-                price: "₹0 / Free",
-                desc: "Up to 3 active listings, performance commission applies from Day 1",
-                badge: "Popular",
-              },
-              {
-                id: "growth",
-                name: "GROWTH PARTNER",
-                price: "₹999/mo",
-                desc: "Up to 15 active listings, 4 campaigns/yr, 14-day free trial",
-                badge: "Founding Rate (-33%)",
-              },
-              {
-                id: "pro",
-                name: "PRO PARTNER",
-                price: "₹2,999/mo",
-                desc: "Unlimited listings, 50 revivals/mo, push sends included",
-                badge: "Best Value",
-              },
-              {
-                id: "enterprise",
-                name: "ENTERPRISE",
-                price: "Custom Pricing",
-                desc: "Unlimited listings + dedicated account manager &amp; API access",
-                badge: "Scale",
-              },
-            ].map((plan) => {
-              const isSelected = formData.selectedPlan === plan.id;
-              return (
-                <div
-                  key={plan.id}
-                  onClick={() =>
-                    setFormData({ ...formData, selectedPlan: plan.id })
-                  }
-                  className={`p-3.5 rounded-lg border text-left cursor-pointer transition-all ${
-                    isSelected
-                      ? "border-blue-600 bg-blue-50/50 shadow-2xs"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-semibold text-slate-900">
-                      {plan.name}
-                    </span>
-                    <Badge className="text-[9px] bg-slate-100 text-slate-700 font-medium border-0">
-                      {plan.badge}
-                    </Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {merchantPlans
+              .filter((p) => p.active !== false)
+              .map((plan) => {
+                const isSelected = formData.selectedPlan === plan.id;
+
+                let bgTheme = "bg-sky-50/60 border-sky-200/90 hover:border-sky-300";
+                let badgeTheme = "bg-sky-100 text-sky-800 border-sky-200";
+                let btnTheme = "bg-white text-blue-600 border-2 border-blue-300 hover:bg-blue-50";
+
+                if (plan.theme === "orange" || plan.id === "growth") {
+                  bgTheme = "bg-amber-50/60 border-amber-200/90 hover:border-amber-300";
+                  badgeTheme = "bg-amber-100 text-amber-800 border-amber-200";
+                  btnTheme = "bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-xs";
+                } else if (plan.theme === "emerald" || plan.id === "pro") {
+                  bgTheme = "bg-emerald-50/60 border-emerald-200/90 hover:border-emerald-300";
+                  badgeTheme = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                  btnTheme = "bg-slate-900 hover:bg-slate-800 text-white border-0 shadow-xs";
+                } else if (plan.theme === "indigo" || plan.id === "enterprise") {
+                  bgTheme = "bg-indigo-50/60 border-indigo-200/90 hover:border-indigo-300";
+                  badgeTheme = "bg-indigo-100 text-indigo-800 border-indigo-200";
+                  btnTheme = "bg-white text-indigo-700 border-2 border-indigo-300 hover:bg-indigo-50";
+                }
+
+                return (
+                  <div
+                    key={plan.id}
+                    onClick={() =>
+                      setFormData({ ...formData, selectedPlan: plan.id })
+                    }
+                    className={`p-4 sm:p-5 rounded-2xl text-left cursor-pointer transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? "border-2 border-blue-600 shadow-xl ring-4 ring-blue-500/20 bg-white scale-[1.01]"
+                        : `border ${bgTheme} shadow-2xs`
+                    }`}
+                  >
+                    <div className="space-y-3">
+                      {/* Plan Header */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+                              {plan.name}
+                            </h4>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className="text-2xl font-extrabold text-slate-900">
+                              {plan.priceText}
+                            </span>
+                            {plan.originalPrice && (
+                              <span className="text-xs line-through text-slate-400 font-medium">
+                                {plan.originalPrice}
+                              </span>
+                            )}
+                            {plan.priceSuffix && (
+                              <span className="text-xs font-normal text-slate-500">
+                                {plan.priceSuffix}
+                              </span>
+                            )}
+                          </div>
+                          {plan.subCaption && (
+                            <p className="text-[11px] font-medium text-slate-600 mt-0.5">
+                              {plan.subCaption}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {isSelected ? (
+                            <Badge className="bg-blue-600 text-white font-bold text-[9.5px] px-2.5 py-0.5 shadow-sm border-0 flex items-center gap-1">
+                              <Check className="w-3 h-3 stroke-[3]" /> SELECTED
+                            </Badge>
+                          ) : plan.badge ? (
+                            <Badge
+                              variant="outline"
+                              className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full border ${badgeTheme}`}
+                            >
+                              {plan.badge}
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Feature Bullet List */}
+                      {plan.features && plan.features.length > 0 && (
+                        <ul className="space-y-1.5 pt-2 border-t border-slate-200/60">
+                          {plan.features.map((feat, fIdx) => (
+                            <li
+                              key={fIdx}
+                              className="text-[11.5px] text-slate-700 font-normal flex items-start gap-1.5 leading-snug"
+                            >
+                              <span className="text-slate-400 font-bold leading-none mt-0.5">•</span>
+                              <span>{feat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 pt-3">
+                      {plan.footerNote && (
+                        <p className="text-[10px] text-slate-500 font-normal italic">
+                          {plan.footerNote}
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({ ...formData, selectedPlan: plan.id });
+                        }}
+                        className={`w-full h-9 rounded-xl font-bold text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
+                          isSelected
+                            ? "bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-md shadow-blue-500/25"
+                            : btnTheme
+                        }`}
+                      >
+                        {isSelected ? (
+                          <>
+                            <Check className="w-4 h-4 stroke-[3]" />
+                            <span>Selected {plan.name}</span>
+                          </>
+                        ) : (
+                          <span>{plan.buttonText || "Select Plan"}</span>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <span className="text-sm font-bold text-blue-600 block">
-                    {plan.price}
-                  </span>
-                  <p className="text-[11px] text-slate-500 font-normal mt-1">
-                    {plan.desc}
-                  </p>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
-          <div className="space-y-1 pt-1">
+          <div className="space-y-1 max-w-sm pt-1">
             <Label className="text-xs font-medium text-slate-700">
               Referral Code (Optional)
             </Label>
@@ -1846,53 +2284,34 @@ export function MerchantOnboardingWizard() {
                 onChange={(e) =>
                   setFormData({ ...formData, referralCode: e.target.value })
                 }
-                className="pl-8 bg-white border-slate-500 text-xs h-9 rounded-lg font-mono uppercase font-normal focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
+                className="pl-8 bg-white border border-slate-200/90 shadow-2xs text-xs h-9 rounded-lg font-mono uppercase font-normal focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
-            <FieldTip text="Enter promotional or partner referral code if provided by Vouchiqo team." />
-          </div>
-
-          <div className="flex justify-between pt-3 border-t border-slate-100">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(3)}
-              className="text-slate-700 text-xs font-medium rounded-lg h-9 px-4 cursor-pointer"
-            >
-              &lt; Back
-            </Button>
-            <Button
-              onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center gap-1"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
           </div>
         </Card>
       )}
 
       {/* SECTION 5: COMMISSION & HOURS */}
       {currentStep === 5 && (
-        <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-4 sm:p-5 space-y-4">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-center">
+        <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
+          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
-                Section E: Category Commission &amp; Store Hours
+                Section E: Category Commission &amp; Store Hours (Optional)
               </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Category commission structure and store opening timings
+              <p className="text-xs text-slate-500 font-normal">
+                Category commission structure and store opening timings (Default 10 AM - 9 PM applied)
               </p>
             </div>
             <Badge
               variant="outline"
-              className="text-[10px] font-medium border-slate-200 text-slate-600"
+              className="text-[10px] font-medium border-amber-200 bg-amber-50 text-amber-800"
             >
-              Section 5 of 6
+              Optional Section
             </Badge>
           </div>
 
-          <div className="space-y-4">
-            {/* Show ONLY the commission rate for the chosen category */}
+          <div className="space-y-3">
             {(() => {
               const selectedCatObj = CATEGORIES.find(
                 (c) => c.id === formData.category,
@@ -1900,30 +2319,113 @@ export function MerchantOnboardingWizard() {
               const selectedCatLabel = selectedCatObj
                 ? selectedCatObj.label
                 : "Selected Category";
-              const matchedComm = COMMISSION_TABLE.find(
+              const matchedComm = masterCpaRates.find(
                 (c) =>
+                  (c.id && c.id === formData.category) ||
                   c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
                   c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
-              ) || { category: selectedCatLabel, rate: "3% – 5% blended rate" };
+              ) || {
+                category: selectedCatLabel,
+                rate: "3% – 5% blended rate",
+                model: "CPA",
+                notes: "Category performance rate",
+              };
 
               return (
-                <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-lg space-y-1.5 text-left">
-                  <Label className="text-xs font-semibold text-blue-950 uppercase tracking-wider block">
-                    Performance Commission Rate for Chosen Category ({selectedCatLabel})
-                  </Label>
-                  <div className="flex items-center justify-between p-2.5 bg-white rounded-md border border-blue-100 shadow-2xs">
-                    <span className="font-semibold text-xs text-slate-800">
-                      {selectedCatLabel}:
-                    </span>
-                    <span className="font-mono text-xs text-blue-700 font-extrabold px-3 py-1 rounded bg-blue-50 border border-blue-200">
-                      {matchedComm.rate}
-                    </span>
+                <div className="p-3.5 bg-blue-50/70 border border-blue-200/90 rounded-xl space-y-2 text-left">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[11px] font-extrabold text-blue-950 uppercase tracking-wider block">
+                      PERFORMANCE COMMISSION RATE ({selectedCatLabel.toUpperCase()})
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowMasterCpaTable(!showMasterCpaTable)}
+                      className="text-[11px] font-bold text-blue-700 hover:text-blue-800 underline cursor-pointer"
+                    >
+                      {showMasterCpaTable ? "Hide Master CPA Table" : "View Full Master CPA Table (15 Categories)"}
+                    </button>
                   </div>
+
+                  <div className="p-3 bg-white rounded-lg border border-blue-100 shadow-2xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-slate-800">
+                        {selectedCatLabel}:
+                      </span>
+                      <span className="font-mono text-xs text-blue-700 font-extrabold px-3 py-1 rounded-md bg-blue-50 border border-blue-200">
+                        {matchedComm.rate}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-slate-100 pt-1.5 mt-1.5">
+                      <span className="font-medium">
+                        Model: <strong className="text-slate-900">{matchedComm.model || "CPA"}</strong>
+                      </span>
+                      {matchedComm.notes && (
+                        <span className="italic text-slate-500 font-normal">
+                          Notes: {matchedComm.notes}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expandable Master CPA Rate Table matching exact user design screenshot */}
+                  {showMasterCpaTable && (
+                    <div className="pt-2 space-y-2">
+                      <div className="border-b border-blue-200 pb-1 flex justify-between items-center">
+                        <h4 className="text-xs font-extrabold text-slate-900 uppercase">
+                          The Master CPA Rate Table
+                        </h4>
+                        <span className="text-[10px] text-slate-500 italic">
+                          Single reference document for all merchant conversations
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto border border-slate-200 rounded-lg bg-white">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-slate-100 text-slate-800 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                            <tr>
+                              <th className="px-2.5 py-1.5 text-center w-8">#</th>
+                              <th className="px-2.5 py-1.5 font-bold">Category</th>
+                              <th className="px-2.5 py-1.5 font-bold">Base CPA / CPL</th>
+                              <th className="px-2.5 py-1.5 font-bold">Model</th>
+                              <th className="px-2.5 py-1.5 font-bold">Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {masterCpaRates.map((row, idx) => (
+                              <tr
+                                key={row.id || idx}
+                                className={
+                                  row.category.toLowerCase().includes(formData.category.toLowerCase()) ||
+                                  (row.id && row.id === formData.category)
+                                    ? "bg-blue-50/90 font-bold text-blue-900"
+                                    : "hover:bg-slate-50/60 text-slate-700"
+                                }
+                              >
+                                <td className="px-2.5 py-1.5 text-center font-mono text-[10px]">
+                                  {idx + 1}
+                                </td>
+                                <td className="px-2.5 py-1.5 font-medium">{row.category}</td>
+                                <td className="px-2.5 py-1.5 font-mono text-blue-700 font-semibold">
+                                  {row.rate}
+                                </td>
+                                <td className="px-2.5 py-1.5 font-semibold text-slate-800">
+                                  {row.model}
+                                </td>
+                                <td className="px-2.5 py-1.5 text-[11px] text-slate-600 italic">
+                                  {row.notes}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}
 
-            <label className="flex items-center gap-2.5 p-3 bg-blue-50/50 border border-blue-200 rounded-lg cursor-pointer">
+            <label className="flex items-center gap-2.5 p-2.5 bg-blue-50/50 border border-blue-200/80 rounded-lg cursor-pointer">
               <Checkbox
                 checked={formData.commissionAgreed}
                 onCheckedChange={(val) =>
@@ -1931,23 +2433,59 @@ export function MerchantOnboardingWizard() {
                 }
               />
               <span className="text-xs font-medium text-slate-900">
-                I acknowledge and accept the Vouchiqo performance commission
-                structure for my primary category.
+                I acknowledge and accept the Vouchiqo performance commission structure for my primary category.
               </span>
             </label>
 
             {/* Weekly Store Operating Hours Schedule */}
-            <div className="space-y-3 pt-2 border-t border-slate-100 text-left">
-              <div>
-                <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-                  Weekly Store Operating Hours Schedule
-                </Label>
-                <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                  Configure store opening &amp; closing timings per day (e.g. Mon 10:00 AM – 08:00 PM, Sun 10:00 AM – 11:00 PM or Closed).
-                </p>
+            <div className="space-y-2 pt-2 border-t border-slate-100 text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
+                    Weekly Store Operating Hours Schedule
+                  </Label>
+                  <p className="text-[11px] text-slate-500 font-normal mt-0.5">
+                    Select store opening &amp; closing timings per day (Default 10:00 AM – 08:00 PM).
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const monData = formData.operatingHours?.Monday || {
+                      isOpen: true,
+                      openTime: "10:00 AM",
+                      closeTime: "08:00 PM",
+                    };
+                    const updatedHours = {};
+                    [
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                      "Sunday",
+                    ].forEach((d) => {
+                      updatedHours[d] = {
+                        isOpen: true,
+                        openTime: monData.openTime,
+                        closeTime: monData.closeTime,
+                      };
+                    });
+                    setFormData((prev) => ({
+                      ...prev,
+                      operatingHours: updatedHours,
+                    }));
+                    toast.success("Applied Monday operating hours to all 7 days!");
+                  }}
+                  className="text-[10.5px] font-bold text-blue-700 border-blue-200 hover:bg-blue-50 h-7 px-2.5 rounded-lg cursor-pointer self-start sm:self-auto"
+                >
+                  ⚡ Apply Monday Hours to All Days
+                </Button>
               </div>
 
-              <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 bg-slate-50/70 p-2.5 rounded-xl border border-slate-200/80">
                 {[
                   "Monday",
                   "Tuesday",
@@ -1963,38 +2501,43 @@ export function MerchantOnboardingWizard() {
                     closeTime: day === "Sunday" ? "11:00 PM" : "08:00 PM",
                   };
 
+                  const currentOpen = normalizeTimeFormat(dayData.openTime, "10:00 AM");
+                  const currentClose = normalizeTimeFormat(dayData.closeTime, "08:00 PM");
+
                   return (
                     <div
                       key={day}
-                      className={`p-2.5 rounded-lg border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 ${
+                      className={`p-2 rounded-lg border transition-all flex flex-col justify-between gap-1.5 ${
                         dayData.isOpen
-                          ? "bg-white border-slate-200 shadow-2xs"
+                          ? "bg-white border-slate-200/90 shadow-2xs"
                           : "bg-slate-100/80 border-slate-200 opacity-70"
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-[130px]">
-                        <Checkbox
-                          id={`day-${day}`}
-                          checked={dayData.isOpen}
-                          onCheckedChange={(checked) => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              operatingHours: {
-                                ...prev.operatingHours,
-                                [day]: {
-                                  ...dayData,
-                                  isOpen: !!checked,
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`day-${day}`}
+                            checked={dayData.isOpen}
+                            onCheckedChange={(checked) => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                operatingHours: {
+                                  ...prev.operatingHours,
+                                  [day]: {
+                                    ...dayData,
+                                    isOpen: !!checked,
+                                  },
                                 },
-                              },
-                            }));
-                          }}
-                        />
-                        <label
-                          htmlFor={`day-${day}`}
-                          className="text-xs font-bold text-slate-800 cursor-pointer select-none"
-                        >
-                          {day}
-                        </label>
+                              }));
+                            }}
+                          />
+                          <label
+                            htmlFor={`day-${day}`}
+                            className="text-xs font-bold text-slate-800 cursor-pointer select-none"
+                          >
+                            {day}
+                          </label>
+                        </div>
                         <Badge
                           className={`text-[9px] font-bold border-0 px-1.5 py-0 ${
                             dayData.isOpen
@@ -2007,56 +2550,52 @@ export function MerchantOnboardingWizard() {
                       </div>
 
                       {dayData.isOpen ? (
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                          <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-semibold text-slate-400 uppercase">
-                              From:
-                            </span>
-                            <Input
-                              type="text"
-                              placeholder="10:00 AM"
-                              value={dayData.openTime}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  operatingHours: {
-                                    ...prev.operatingHours,
-                                    [day]: { ...dayData, openTime: val },
-                                  },
-                                }));
-                              }}
-                              className="w-24 h-7 text-xs bg-white border-slate-500 rounded px-2 font-mono focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
-                            />
-                          </div>
-
+                        <div className="flex items-center gap-1.5 pt-0.5">
+                          <select
+                            value={currentOpen}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setFormData((prev) => ({
+                                ...prev,
+                                operatingHours: {
+                                  ...prev.operatingHours,
+                                  [day]: { ...dayData, openTime: val },
+                                },
+                              }));
+                            }}
+                            className="w-full h-7 text-[11px] bg-white border border-slate-200/90 shadow-2xs rounded px-1.5 font-mono text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                          >
+                            {STANDARD_TIME_OPTIONS.map((tOpt) => (
+                              <option key={`open-${tOpt}`} value={tOpt}>
+                                {tOpt}
+                              </option>
+                            ))}
+                          </select>
                           <span className="text-slate-400 font-bold text-xs">–</span>
-
-                          <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-semibold text-slate-400 uppercase">
-                              To:
-                            </span>
-                            <Input
-                              type="text"
-                              placeholder="08:00 PM"
-                              value={dayData.closeTime}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  operatingHours: {
-                                    ...prev.operatingHours,
-                                    [day]: { ...dayData, closeTime: val },
-                                  },
-                                }));
-                              }}
-                              className="w-24 h-7 text-xs bg-white border-slate-500 rounded px-2 font-mono focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none focus:shadow-none"
-                            />
-                          </div>
+                          <select
+                            value={currentClose}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setFormData((prev) => ({
+                                ...prev,
+                                operatingHours: {
+                                  ...prev.operatingHours,
+                                  [day]: { ...dayData, closeTime: val },
+                                },
+                              }));
+                            }}
+                            className="w-full h-7 text-[11px] bg-white border border-slate-200/90 shadow-2xs rounded px-1.5 font-mono text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                          >
+                            {STANDARD_TIME_OPTIONS.map((tOpt) => (
+                              <option key={`close-${tOpt}`} value={tOpt}>
+                                {tOpt}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       ) : (
-                        <span className="text-xs font-semibold text-rose-600 italic">
-                          Store Closed on {day}
+                        <span className="text-[11px] font-medium text-rose-600 italic">
+                          Closed
                         </span>
                       )}
                     </div>
@@ -2065,37 +2604,19 @@ export function MerchantOnboardingWizard() {
               </div>
             </div>
           </div>
-
-          <div className="flex justify-between pt-3 border-t border-slate-100">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(4)}
-              className="text-slate-700 text-xs font-medium rounded-lg h-9 px-4 cursor-pointer"
-            >
-              &lt; Back
-            </Button>
-            <Button
-              onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-5 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center gap-1"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
         </Card>
       )}
 
       {/* SECTION 6: DECLARATIONS & SUBMIT */}
       {currentStep === 6 && (
-        <Card className="border border-slate-200 shadow-2xs rounded-lg bg-white p-4 sm:p-5 space-y-4">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-center">
+        <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
+          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Section F: Declarations, Agreements &amp; Submission
               </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Final merchant commitments, policy agreements &amp; digital
-                signature
+              <p className="text-xs text-slate-500 font-normal">
+                Final merchant commitments, policy agreements &amp; digital signature
               </p>
             </div>
             <Badge
@@ -2110,17 +2631,22 @@ export function MerchantOnboardingWizard() {
             <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
               Merchant Commitments ({commitmentItems.length})
             </Label>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {commitmentItems.map((c, idx) => {
                 const itemKey = c.key || `commit${idx + 1}`;
                 const isChecked =
                   !!formData[itemKey] ||
                   !!formData.commitmentsAccepted?.[c.id];
+                const hasError = fieldErrors[itemKey];
 
                 return (
                   <label
                     key={c.id || itemKey}
-                    className="flex items-start gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs cursor-pointer select-none hover:bg-white transition-all"
+                    className={`flex items-start gap-2.5 p-2 rounded-lg text-xs cursor-pointer select-none transition-all shadow-2xs ${
+                      hasError
+                        ? "bg-rose-50/40 border-2 border-rose-500 ring-2 ring-rose-500/20 shadow-[0_2px_8px_rgba(244,63,94,0.12)]"
+                        : "bg-slate-50 border border-slate-200/80 hover:bg-white"
+                    }`}
                   >
                     <Checkbox
                       checked={isChecked}
@@ -2133,8 +2659,9 @@ export function MerchantOnboardingWizard() {
                             [c.id || itemKey]: !!val,
                           },
                         }));
+                        clearFieldError(itemKey);
                       }}
-                      className="mt-0.5"
+                      className={hasError ? "border-rose-500 mt-0.5" : "mt-0.5"}
                     />
                     <span className="font-normal text-slate-800">
                       {c.text}{" "}
@@ -2151,11 +2678,12 @@ export function MerchantOnboardingWizard() {
               <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
                 Policy Agreements
               </Label>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {policyItems.map((p, idx) => {
                   const itemKey = p.key || `policy${idx + 1}`;
                   const isChecked =
                     !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
+                  const hasError = fieldErrors[itemKey];
 
                   const directDlUrl = (u) => {
                     if (!u || !u.trim()) return "";
@@ -2174,9 +2702,13 @@ export function MerchantOnboardingWizard() {
                   return (
                     <div
                       key={p.id || itemKey}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg transition-all hover:bg-white"
+                      className={`flex items-center justify-between gap-2 p-2 rounded-lg transition-all shadow-2xs ${
+                        hasError
+                          ? "bg-rose-50/40 border-2 border-rose-500 ring-2 ring-rose-500/20 shadow-[0_2px_8px_rgba(244,63,94,0.12)]"
+                          : "bg-slate-50 border border-slate-200/80 hover:bg-white"
+                      }`}
                     >
-                      <label className="flex items-center gap-2.5 text-xs font-medium text-slate-800 cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-xs font-medium text-slate-800 cursor-pointer select-none min-w-0">
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={(val) => {
@@ -2188,9 +2720,11 @@ export function MerchantOnboardingWizard() {
                                 [p.id || itemKey]: !!val,
                               },
                             }));
+                            clearFieldError(itemKey);
                           }}
+                          className={hasError ? "border-rose-500" : ""}
                         />
-                        <span>{p.title || p.text}</span>
+                        <span className="truncate">{p.title || p.text}</span>
                         {p.required !== false && (
                           <span className="text-rose-500 font-bold">*</span>
                         )}
@@ -2203,11 +2737,11 @@ export function MerchantOnboardingWizard() {
                           target="_blank"
                           rel="noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-md transition-all shadow-2xs cursor-pointer text-decoration-none shrink-0"
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded transition-all shadow-2xs shrink-0"
                         >
-                          <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                          <span>Download PDF</span>
-                          <Download className="w-3 h-3 text-blue-600 shrink-0" />
+                          <FileText className="w-3 h-3 text-rose-500 shrink-0" />
+                          <span>PDF</span>
+                          <Download className="w-2.5 h-2.5 text-blue-600 shrink-0" />
                         </a>
                       )}
                     </div>
@@ -2216,17 +2750,12 @@ export function MerchantOnboardingWizard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 pt-2">
+            {/* Signatory Full Name */}
+            <div className="pt-2">
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-slate-700">
-                    Authorised Signatory Full Name{" "}
-                    <span className="text-rose-500">*</span>
-                  </Label>
-                  <span className="text-[10px] text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded border border-blue-100 flex items-center gap-1">
-                    ✓ Auto-synced from Authorized Liaison Name (Section B)
-                  </span>
-                </div>
+                <Label className="text-xs font-medium text-slate-700">
+                  Authorised Signatory Full Name <span className="text-rose-500">*</span>
+                </Label>
                 <div className="relative">
                   <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
@@ -2237,94 +2766,52 @@ export function MerchantOnboardingWizard() {
                       formData.signatoryName ||
                       "Fill Authorized Liaison Name in Section B"
                     }
-                    className="pl-8 bg-slate-100 border-slate-500 text-xs h-9 rounded-lg font-medium text-slate-800 cursor-not-allowed"
+                    className="pl-8 bg-slate-100 border border-slate-200/90 shadow-2xs text-xs h-9 rounded-lg font-medium text-slate-800 cursor-not-allowed"
                   />
                 </div>
-                <FieldTip text="Legal signatory name appearing on the merchant partnership agreement contract." />
+                <FieldTip text="Auto-synced from Authorized Liaison Name (Section B)." />
               </div>
-            </div>
-
-            {/* Cloudinary Signature Image Upload */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex justify-between items-center">
-                <Label className="text-xs font-medium text-slate-700">
-                  Authorised Digital Signature Image{" "}
-                  <span className="text-rose-500">*</span>
-                </Label>
-                <span className="text-[10px] text-slate-400 font-normal">
-                  Clear signature photo on paper (Max 5MB)
-                </span>
-              </div>
-              <div className="border border-dashed border-slate-200 bg-slate-50 hover:bg-blue-50/40 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-2 transition-all">
-                {formData.signatureUrl ? (
-                  <div className="space-y-1.5 w-full flex flex-col items-center">
-                    <img
-                      src={formData.signatureUrl}
-                      alt="Uploaded Signature"
-                      className="h-20 max-w-full object-contain border border-slate-200 rounded-lg bg-white p-1.5 shadow-2xs"
-                    />
-                    <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> Signature Image Uploaded
-                      Successfully
-                    </span>
-                  </div>
-                ) : (
-                  <div className="py-2 flex flex-col items-center space-y-1">
-                    <Upload className="w-6 h-6 text-slate-400" />
-                    <span className="text-xs text-slate-600 font-medium">
-                      Upload photo or scanned image of authorized signature
-                      (JPG, PNG)
-                    </span>
-                  </div>
-                )}
-                <div className="relative w-full max-w-xs">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      handleFileUpload(
-                        e.target.files[0],
-                        "signatureUrl",
-                        setUploadingSignature,
-                      )
-                    }
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                    disabled={uploadingSignature}
-                  />
-                  <Button
-                    type="button"
-                    disabled={uploadingSignature}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 rounded-lg border-0 cursor-pointer shadow-2xs flex items-center justify-center gap-1.5"
-                  >
-                    {uploadingSignature ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="w-3.5 h-3.5" />
-                    )}
-                    <span>
-                      {formData.signatureUrl
-                        ? "Change Signature Image"
-                        : "Upload Signature Image"}
-                    </span>
-                  </Button>
-                </div>
-              </div>
-              <FieldTip text="Stored securely as legal proof of merchant partnership agreement acceptance." />
             </div>
           </div>
+        </Card>
+      )}
 
-          <div className="flex justify-between pt-3 border-t border-slate-100">
+      {/* Sticky Bottom Navigation Bar */}
+      <div className="sticky bottom-0 z-30 bg-white border-t border-slate-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] rounded-t-xl p-3 flex items-center justify-between transition-all">
+        <div>
+          {currentStep > 1 ? (
             <Button
               variant="outline"
-              onClick={() => setCurrentStep(5)}
-              className="text-slate-700 text-xs font-medium rounded-lg h-9 px-4 cursor-pointer"
+              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
+              className="text-slate-700 hover:bg-slate-100 text-xs font-semibold rounded-lg h-9 px-4 cursor-pointer border border-slate-200/90 shadow-2xs flex items-center gap-1"
             >
-              &lt; Back
+              <ChevronLeft className="w-4 h-4" />
+              <span>Back</span>
             </Button>
+          ) : (
+            <span className="text-xs font-medium text-slate-500 pl-1">
+              Step 1 of 6 • Business Details
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-medium text-slate-500 hidden sm:inline-block">
+            Section {currentStep} of 6
+          </span>
+          {currentStep < 6 ? (
+            <Button
+              onClick={handleNext}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs h-9.5 px-6 rounded-lg border-0 cursor-pointer shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 transition-all duration-200 flex items-center gap-1.5"
+            >
+              <span>Next Section</span>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          ) : (
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 px-6 rounded-lg shadow-2xs border-0 cursor-pointer flex items-center gap-1.5"
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs h-9.5 px-6 rounded-lg border-0 cursor-pointer shadow-md shadow-emerald-500/25 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -2332,9 +2819,9 @@ export function MerchantOnboardingWizard() {
                 "Submit Application"
               )}
             </Button>
-          </div>
-        </Card>
-      )}
+          )}
+        </div>
+      </div>
     </div>
   );
 }

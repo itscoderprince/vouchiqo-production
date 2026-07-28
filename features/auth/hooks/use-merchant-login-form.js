@@ -31,10 +31,11 @@ export function useMerchantLoginForm() {
       fetch("/api/merchants/me")
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
-          const status = data?.data?.merchant?.status;
+          const merchant = data?.data?.merchant || data?.data;
+          const status = merchant?.status;
           if (status === "approved") {
             router.replace("/merchant/dashboard");
-          } else if (data?.data?.merchant) {
+          } else if (merchant && (merchant._id || merchant.status || merchant.businessName)) {
             router.replace("/merchant/application-status");
           } else if (role === "merchant" || isMerchantFlag) {
             router.replace("/merchant/dashboard");

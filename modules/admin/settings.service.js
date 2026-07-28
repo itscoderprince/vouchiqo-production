@@ -221,6 +221,212 @@ export async function getPlatformSettings() {
     ];
   }
 
+  if (!settingsMap.merchant_plans) {
+    settingsMap.merchant_plans = [
+      {
+        id: "starter",
+        name: "STARTER FREE",
+        badge: "Popular",
+        priceText: "₹0",
+        priceSuffix: "/ month free forever",
+        originalPrice: "",
+        subCaption: "Start listing. Pay only when a customer visits.",
+        features: [
+          "Up to 3 active verified listings",
+          "Smart Code redemption at your counter",
+          "Vouchiqo Verified badge on all listings",
+          "Basic dashboard — views and Smart Codes",
+          "Founding Partner badge if within first 100",
+          "No campaigns — No push sends",
+        ],
+        footerNote:
+          "Commission charged only on confirmed customer transactions — never on views or clicks.",
+        buttonText: "Select Starter",
+        theme: "blue",
+        active: true,
+      },
+      {
+        id: "growth",
+        name: "GROWTH PARTNER",
+        badge: "Founding Rate -33%",
+        priceText: "₹999",
+        originalPrice: "₹1,499",
+        priceSuffix: "/ month",
+        subCaption:
+          "More listings. Campaigns. Revival included. 14-day free trial.",
+        features: [
+          "Up to 15 active listings (5× Starter)",
+          "4 platform campaigns per year",
+          "5 Expired Offer Revivals / month",
+          "Analytics — redemptions, clicks, category rank",
+          "Founding badge + 12 month commission rate lock",
+          "14 day free trial — no charge until Day 15",
+        ],
+        footerNote:
+          "No payment collected today. Trial starts on account activation.",
+        buttonText: "Select Growth — ₹999/mo",
+        theme: "orange",
+        active: true,
+      },
+      {
+        id: "pro",
+        name: "PRO PARTNER",
+        badge: "Best Value",
+        priceText: "₹2,999",
+        originalPrice: "₹3,999",
+        priceSuffix: "/ month",
+        subCaption:
+          "Unlimited listings, campaigns, and push sends. Full power.",
+        features: [
+          "Unlimited active listings",
+          "Unlimited campaigns — no annual cap",
+          "50 Expired Offer Revivals / month",
+          "Push notifications to customer segments",
+          "Advanced analytics — revenue attribution, heatmap",
+          "Priority 24h support • 14-day free trial",
+        ],
+        footerNote:
+          "Commission rate locked for 12 months under Founding Program.",
+        buttonText: "Select Pro — ₹2,999/mo",
+        theme: "emerald",
+        active: true,
+      },
+      {
+        id: "enterprise",
+        name: "ENTERPRISE",
+        badge: "Scale",
+        priceText: "Custom pricing",
+        originalPrice: "",
+        priceSuffix: "",
+        subCaption:
+          "Dedicated manager. API access. Multi-location. Custom SLA.",
+        features: [
+          "Everything in Pro, all limits removed",
+          "Dedicated named account manager",
+          "Direct API access — POS and CRM integration",
+          "Multi-location under one dashboard",
+          "Custom SLA and guaranteed response times",
+          "10% Year 1 discount under Founding Program",
+        ],
+        footerNote:
+          "No self-serve signup. Our team contacts you within 24 hours.",
+        buttonText: "Contact us — partners@vouchiqo.com",
+        theme: "indigo",
+        active: true,
+      },
+    ];
+  }
+
+  if (!settingsMap.master_cpa_rates) {
+    settingsMap.master_cpa_rates = [
+      {
+        id: "fashion",
+        category: "Fashion & Clothing",
+        rate: "5%",
+        model: "CPA",
+        notes: "Uniform across apparel",
+      },
+      {
+        id: "food",
+        category: "Food & Dining",
+        rate: "3% dine-in / 2% delivery",
+        model: "CPA",
+        notes: "Never charge on Zomato-fulfilled orders",
+      },
+      {
+        id: "electronics",
+        category: "Electronics & Gadgets",
+        rate: "2.5% blended",
+        model: "CPA",
+        notes: "Accessories 4%, handsets 1.5%",
+      },
+      {
+        id: "beauty",
+        category: "Beauty & Wellness",
+        rate: "6% services / 4% retail",
+        model: "CPA",
+        notes: "Split by service vs product",
+      },
+      {
+        id: "travel",
+        category: "Travel & Hospitality",
+        rate: "5% hotels / 4% packages",
+        model: "CPA",
+        notes: "Hotels pay less than MakeMyTrip",
+      },
+      {
+        id: "home",
+        category: "Home & Living",
+        rate: "5%",
+        model: "CPA",
+        notes: "Furniture and décor",
+      },
+      {
+        id: "home-improvement",
+        category: "Home Improvement",
+        rate: "2% products / 3% services",
+        model: "CPA",
+        notes: "In-store attribution via code",
+      },
+      {
+        id: "fitness",
+        category: "Fitness & Healthcare",
+        rate: "6% gyms / 2% pharmacy / ₹200 CPL clinics",
+        model: "CPA + CPL",
+        notes: "Two models in one category",
+      },
+      {
+        id: "education",
+        category: "Education & Courses",
+        rate: "₹300 CPL local / 8% online",
+        model: "CPL + CPA",
+        notes: "CPL for offline institutes",
+      },
+      {
+        id: "kids-baby",
+        category: "Kids & Baby Products",
+        rate: "5%",
+        model: "CPA",
+        notes: "Clean, simple rate",
+      },
+      {
+        id: "jewellery",
+        category: "Jewellery",
+        rate: "1.5% gold / 6% fashion / 3% blended",
+        model: "CPA",
+        notes: "Split by product type",
+      },
+      {
+        id: "automotive",
+        category: "Automobile & Auto Services",
+        rate: "4%",
+        model: "CPA",
+        notes: "White space — you set the standard",
+      },
+      {
+        id: "entertainment",
+        category: "Gaming & Entertainment",
+        rate: "4–5%",
+        model: "CPA",
+        notes: "Cafés higher, retail lower",
+      },
+      {
+        id: "grocery",
+        category: "Grocery & Essentials",
+        rate: "2% regular / 4% organic",
+        model: "CPA",
+        notes: "Start with premium segment",
+      },
+      {
+        id: "finance",
+        category: "Finance & Insurance",
+        rate: "₹150–₹350 CPL",
+        model: "CPL",
+        notes: "Pure lead model",
+      },
+    ];
+  }
+
   return settingsMap;
 }
 

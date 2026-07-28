@@ -78,13 +78,7 @@ export default function FormSelect({
         >
           {Icon && <Icon className="w-3.5 h-3.5 text-brand-blue" />}
           <span>{label}</span>
-          {required ? (
-            <span className="text-red-500 font-bold ml-0.5">*</span>
-          ) : (
-            <span className="text-[10px] text-slate-400 font-medium normal-case ml-1">
-              (Optional)
-            </span>
-          )}
+          {required && <span className="text-red-500 font-bold ml-0.5">*</span>}
         </Label>
       )}
 

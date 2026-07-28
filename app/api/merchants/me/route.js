@@ -21,7 +21,7 @@ export const GET = asyncHandler(async (request) => {
 
 /**
  * PUT /api/merchants/me
- * Updates bankDetails and merchant profile details.
+ * Updates merchant profile details.
  */
 export const PUT = asyncHandler(async (request) => {
   await connectDB();
@@ -33,13 +33,38 @@ export const PUT = asyncHandler(async (request) => {
     return ok({ message: "Merchant profile not found" }, 404);
   }
 
-  if (body.bankDetails) {
-    merchant.bankDetails = {
-      holderName: body.bankDetails.holderName || body.bankDetails.accountHolder || merchant.bankDetails?.holderName,
-      bankName: body.bankDetails.bankName || merchant.bankDetails?.bankName,
-      accountNumber: body.bankDetails.accountNumber || merchant.bankDetails?.accountNumber,
-      ifsc: body.bankDetails.ifsc || body.bankDetails.ifscCode || merchant.bankDetails?.ifsc,
-      accountType: body.bankDetails.accountType || merchant.bankDetails?.accountType || "current",
+  // Update profile fields
+  const allowedFields = [
+    "businessName",
+    "description",
+    "contactEmail",
+    "contactPhone",
+    "whatsappNumber",
+    "website",
+    "liaisonName",
+    "liaisonDesignation",
+    "liaisonPhone",
+    "gmapsLink",
+    "docType",
+    "docImage",
+    "pan",
+    "gstin",
+    "shopImage",
+    "logo",
+    "banner",
+    "operatingHours",
+  ];
+
+  allowedFields.forEach((field) => {
+    if (body[field] !== undefined) {
+      merchant[field] = body[field];
+    }
+  });
+
+  if (body.location) {
+    merchant.location = {
+      ...merchant.location,
+      ...body.location,
     };
   }
 

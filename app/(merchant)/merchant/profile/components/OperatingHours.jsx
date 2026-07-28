@@ -1,8 +1,11 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  STANDARD_TIME_OPTIONS,
+  normalizeTimeFormat,
+} from "@/utils/timeUtils";
 
 export default function OperatingHours({ formData, handleHoursChange }) {
   return (
@@ -15,6 +18,9 @@ export default function OperatingHours({ formData, handleHoursChange }) {
       <div className="space-y-3">
         {Object.keys(formData.operatingHours).map((day) => {
           const hr = formData.operatingHours[day];
+          const currentOpen = normalizeTimeFormat(hr.open || hr.openTime, "10:00 AM");
+          const currentClose = normalizeTimeFormat(hr.close || hr.closeTime, "08:00 PM");
+
           return (
             <div
               key={day}
@@ -45,29 +51,37 @@ export default function OperatingHours({ formData, handleHoursChange }) {
                     <Label className="text-[10px] font-bold text-brand-subtext uppercase">
                       Open Time
                     </Label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. 09:00 AM"
-                      value={hr.open || ""}
+                    <select
+                      value={currentOpen}
                       onChange={(e) =>
                         handleHoursChange(day, "open", e.target.value)
                       }
-                      className="bg-brand-surface border border-brand-border rounded-lg text-xs h-8 shadow-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 focus-visible:border-brand-blue"
-                    />
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg text-xs h-8 px-2 font-mono focus:outline-none focus:border-brand-blue cursor-pointer"
+                    >
+                      {STANDARD_TIME_OPTIONS.map((tOpt) => (
+                        <option key={`profile-open-${tOpt}`} value={tOpt}>
+                          {tOpt}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] font-bold text-brand-subtext uppercase">
                       Close Time
                     </Label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. 09:00 PM"
-                      value={hr.close || ""}
+                    <select
+                      value={currentClose}
                       onChange={(e) =>
                         handleHoursChange(day, "close", e.target.value)
                       }
-                      className="bg-brand-surface border border-brand-border rounded-lg text-xs h-8 shadow-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 focus-visible:border-brand-blue"
-                    />
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg text-xs h-8 px-2 font-mono focus:outline-none focus:border-brand-blue cursor-pointer"
+                    >
+                      {STANDARD_TIME_OPTIONS.map((tOpt) => (
+                        <option key={`profile-close-${tOpt}`} value={tOpt}>
+                          {tOpt}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </>
               ) : (

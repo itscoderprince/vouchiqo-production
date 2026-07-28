@@ -104,14 +104,6 @@ export async function GET(req) {
           status: merchant.shopImage ? "verified" : "under_review",
           verifiedAt: merchant.updatedAt,
         },
-        {
-          name: "Settlement Bank Particulars",
-          type: "Payout Verification",
-          status: merchant.bankDetails?.accountNumber
-            ? "verified"
-            : "under_review",
-          verifiedAt: merchant.updatedAt,
-        },
       ];
 
       const formattedApp = {
@@ -127,7 +119,6 @@ export async function GET(req) {
         city: merchant.location?.city || "Ranchi",
         state: merchant.location?.state || "Jharkhand",
         gstin: merchant.gstin || "Exempt / Micro-Merchant",
-        panNumber: merchant.pan || "Optional",
         status: merchant.status || "under_review",
         progressPercentage,
         adminIsReviewing: !isApproved && !isRejected,

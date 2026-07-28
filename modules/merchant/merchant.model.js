@@ -80,11 +80,15 @@ const merchantSchema = new Schema(
     // Subscription & Plan gating
     plan: {
       type: String,
-      enum: ["starter", "growth", "pro", "enterprise"],
       default: "starter",
       index: true,
     },
     planExpiry: { type: Date, default: null },
+
+    // Commission Structure
+    commissionRate: { type: String, trim: true },
+    commissionModel: { type: String, trim: true },
+    commissionAgreed: { type: Boolean, default: false },
 
     // Brand Page details
     shortDescription: {
@@ -149,24 +153,9 @@ const merchantSchema = new Schema(
     gmapsLink: { type: String, trim: true },
     docType: { type: String, trim: true },
     docImage: { type: String }, // Cloudinary URL for primary identity document
-    pan: { type: String, uppercase: true, trim: true },
     gstin: { type: String, uppercase: true, trim: true },
     isGstExempt: { type: Boolean, default: false },
-    bankDetails: {
-      holderName: { type: String, trim: true },
-      accountType: {
-        type: String,
-        enum: ["current", "savings"],
-        default: "current",
-      },
-      accountNumber: { type: String, trim: true },
-      ifsc: { type: String, uppercase: true, trim: true },
-      bankName: { type: String, trim: true },
-      branchName: { type: String, trim: true },
-      chequeImage: { type: String }, // Cloudinary URL
-    },
-    shopImage: { type: String }, // Cloudinary URL
-    signatureImage: { type: String }, // Cloudinary URL for digital signature
+    shopImage: { type: String }, // Cloudinary URL for storefront photo
   },
   {
     timestamps: true,
@@ -180,7 +169,6 @@ merchantSchema.index({ contactEmail: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ contactPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ liaisonPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ gstin: 1 }, { unique: true, sparse: true });
-merchantSchema.index({ pan: 1 }, { unique: true, sparse: true });
 
 const Merchant =
   mongoose.models.Merchant ?? mongoose.model("Merchant", merchantSchema);

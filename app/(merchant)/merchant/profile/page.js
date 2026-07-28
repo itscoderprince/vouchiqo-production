@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  CreditCard,
   Loader2,
   MapPin,
   Shield,
@@ -19,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import Step1Identity from "./components/Step1Identity";
 import Step2Location from "./components/Step2Location";
 import Step3KYC from "./components/Step3KYC";
-import Step4Bank from "./components/Step4Bank";
 import { useMerchantProfileForm } from "./hooks/use-merchant-profile-form";
 
 export default function MerchantBusinessProfile() {
@@ -143,7 +141,6 @@ export default function MerchantBusinessProfile() {
     { number: 1, label: "Identity", icon: Store },
     { number: 2, label: "Location", icon: MapPin },
     { number: 3, label: "KYC Details", icon: Shield },
-    { number: 4, label: "Bank Account", icon: CreditCard },
   ];
 
   return (
@@ -173,7 +170,7 @@ export default function MerchantBusinessProfile() {
             {steps.map((s, idx) => {
               const isActive = step === s.number;
               const isCompleted = step > s.number;
-              const isLast = idx === 3;
+              const isLast = idx === 2;
               const Icon = s.icon;
               return (
                 <div
@@ -224,7 +221,17 @@ export default function MerchantBusinessProfile() {
         </div>
 
         {/* Multi-Step Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (step === 3) {
+              handleSubmit(e);
+            } else {
+              handleNext();
+            }
+          }}
+          className="space-y-6"
+        >
           {step === 1 && (
             <Step1Identity
               register={register}
@@ -259,15 +266,6 @@ export default function MerchantBusinessProfile() {
             />
           )}
 
-          {step === 4 && (
-            <Step4Bank
-              register={register}
-              setValue={setValue}
-              watch={watch}
-              errors={errors}
-            />
-          )}
-
           {/* Form Actions Footer */}
           <div className="flex justify-between items-center pt-2">
             <Button
@@ -281,7 +279,7 @@ export default function MerchantBusinessProfile() {
               <span>Back</span>
             </Button>
 
-            {step < 4
+            {step < 3
               ? <Button
                   type="button"
                   onClick={handleNext}

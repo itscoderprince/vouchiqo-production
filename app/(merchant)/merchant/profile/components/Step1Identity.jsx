@@ -72,7 +72,7 @@ export default function Step1Identity({
           variant="outline"
           className="text-[10px] font-bold bg-blue-50 text-blue-700 border-blue-200"
         >
-          Required Step 1 of 4
+          Step 1 of 3
         </Badge>
       </div>
 
@@ -81,7 +81,6 @@ export default function Step1Identity({
           label="Legal Entity Corporate Name"
           icon={Store}
           placeholder="e.g. Burger House Pvt Ltd"
-          required
           {...register("businessName")}
           onChange={handleBusinessNameChange}
           error={errors.businessName}
@@ -107,7 +106,6 @@ export default function Step1Identity({
           label="Business Constitution Type"
           icon={Briefcase}
           options={CONSTITUTIONS}
-          required
           value={selectedConstitution || "proprietorship"}
           onValueChange={(val) =>
             setValue("constitution", val, { shouldValidate: true })
@@ -119,7 +117,6 @@ export default function Step1Identity({
           label="Primary Industry Vertical"
           icon={Store}
           options={CATEGORIES}
-          required
           value={selectedCategory || "food"}
           onValueChange={(val) =>
             setValue("category", val, { shouldValidate: true })
@@ -133,7 +130,6 @@ export default function Step1Identity({
               label="Custom Category Name / Description"
               icon={Store}
               placeholder="Specify your custom business category (e.g. Handmade Crafts, Event Management)"
-              required
               {...register("customCategoryNotes")}
               error={errors.customCategoryNotes}
             />
@@ -145,7 +141,6 @@ export default function Step1Identity({
           icon={Mail}
           type="email"
           placeholder="contact@business.com"
-          required
           {...register("contactEmail")}
           error={errors.contactEmail}
         />
@@ -155,7 +150,6 @@ export default function Step1Identity({
           icon={Phone}
           type="tel"
           placeholder="10-digit mobile number"
-          required
           {...register("contactPhone")}
           error={errors.contactPhone}
         />

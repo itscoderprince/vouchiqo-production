@@ -136,7 +136,7 @@ export default function Step2Location({
           variant="outline"
           className="text-[10px] font-bold bg-rose-50 text-rose-700 border-rose-200"
         >
-          Step 2 of 4
+          Step 2 of 3
         </Badge>
       </div>
 
@@ -148,25 +148,33 @@ export default function Step2Location({
             field: "shopImage",
             state: shopImage,
             loading: uploadingShop,
+            ratio: "Ratio 4:3 (e.g. 800x600px)",
           },
           {
             label: "Store Logo",
             field: "logo",
             state: logo,
             loading: uploadingLogo,
+            ratio: "Ratio 1:1 Square (e.g. 500x500px)",
           },
           {
             label: "Banner Image",
             field: "banner",
             state: banner,
             loading: uploadingBanner,
+            ratio: "Ratio 16:9 Landscape (e.g. 1200x675px)",
           },
         ].map((item, idx) => (
-          <div key={idx} className="space-y-2">
-            <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
-              <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
-              {item.label}
-            </span>
+          <div key={idx} className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
+                <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
+                {item.label}
+              </span>
+              <span className="text-[9px] font-semibold text-slate-400">
+                {item.ratio}
+              </span>
+            </div>
             <div className="relative group flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50 hover:bg-slate-100/80 cursor-pointer h-28 overflow-hidden">
               {item.state ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -180,6 +188,9 @@ export default function Step2Location({
                   <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors mb-1" />
                   <span className="text-[10px] text-slate-500 font-semibold">
                     {item.loading ? "Uploading..." : `Upload ${item.label}`}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-normal">
+                    {item.ratio}
                   </span>
                 </>
               )}
@@ -202,7 +213,6 @@ export default function Step2Location({
             icon={MapPin}
             rows={2}
             placeholder="Shop No, Building Name, Street, Landmark"
-            required
             {...register("address")}
             error={errors.address}
           />
@@ -213,7 +223,6 @@ export default function Step2Location({
           icon={MapPin}
           placeholder="e.g. 834001"
           maxLength={6}
-          required
           {...register("pincode")}
           onChange={handlePincodeChange}
           error={errors.pincode}
@@ -224,7 +233,6 @@ export default function Step2Location({
           label="Store City Location"
           icon={MapPin}
           options={cityOptions}
-          required
           value={selectedCity || "Ranchi"}
           onValueChange={handleCityChange}
           error={errors.city}
@@ -234,7 +242,6 @@ export default function Step2Location({
           label="State / Region"
           icon={MapPin}
           placeholder="State Name"
-          required
           {...register("state")}
           error={errors.state}
         />

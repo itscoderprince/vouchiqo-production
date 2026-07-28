@@ -47,8 +47,11 @@ export const createMerchantSchema = z.object({
   operatingHours: z.record(z.any()).optional(),
   logo: z.string().optional(),
   banner: z.string().optional(),
-  signatureImage: z.string().optional(),
   autoApproveRevival: z.boolean().optional(),
+  plan: z.string().optional(),
+  commissionRate: z.string().optional(),
+  commissionModel: z.string().optional(),
+  commissionAgreed: z.boolean().optional(),
 
   // KYC compliance onboarding fields
   constitution: z
@@ -65,20 +68,8 @@ export const createMerchantSchema = z.object({
   gmapsLink: z.string().optional(),
   docType: z.string().optional(),
   docImage: z.string().optional(),
-  pan: z.string().optional(),
   gstin: z.string().optional(),
   isGstExempt: z.boolean().optional(),
-  bankDetails: z
-    .object({
-      holderName: z.string().optional(),
-      accountType: z.enum(["current", "savings"]).or(z.string()).optional(),
-      accountNumber: z.string().optional(),
-      ifsc: z.string().optional(),
-      bankName: z.string().optional(),
-      branchName: z.string().optional(),
-      chequeImage: z.string().optional(),
-    })
-    .optional(),
   shopImage: z.string().optional(),
 });
 

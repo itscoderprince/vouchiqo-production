@@ -59,7 +59,7 @@ export default function Step3KYC({
           variant="outline"
           className="text-[10px] font-bold bg-purple-50 text-purple-700 border-purple-200"
         >
-          Step 3 of 4
+          Step 3 of 3
         </Badge>
       </div>
 
@@ -68,7 +68,6 @@ export default function Step3KYC({
           label="Primary Identity Document Type"
           icon={FileCheck}
           options={DOC_TYPES}
-          required
           value={docType}
           onValueChange={(val) =>
             setValue("docType", val, { shouldValidate: true })
@@ -128,20 +127,7 @@ export default function Step3KYC({
           </div>
         </div>
 
-        <FormInput
-          label="Permanent Account Number (PAN)"
-          icon={FileText}
-          maxLength={10}
-          placeholder="10-digit alphanumeric (e.g. ABCDE1234F)"
-          {...register("pan")}
-          onChange={(e) =>
-            setValue("pan", e.target.value.toUpperCase(), {
-              shouldValidate: true,
-            })
-          }
-          error={errors.pan}
-          className="font-mono uppercase font-bold"
-        />
+        {/* GSTIN & Exemption Row */}
 
         <div className="space-y-3">
           <FormInput

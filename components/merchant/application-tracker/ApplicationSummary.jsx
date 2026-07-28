@@ -33,12 +33,9 @@ export default function ApplicationSummary({
     city = "Ranchi",
     state = "Jharkhand",
     gstin = "20AAAAA0000A1Z5",
-    panNumber = "ABCDE1234F",
     submittedAt,
     documents = [
       { name: "GST Certificate (Form REG-06)", status: "Verified" },
-      { name: "Permanent Account Number (PAN)", status: "Verified" },
-      { name: "Bank Cancelled Cheque / Passbook", status: "Verified" },
       { name: "Municipal Trade License", status: "Under Audit" },
     ],
   } = application;
@@ -165,21 +162,12 @@ export default function ApplicationSummary({
               Tax &amp; Identity Credentials
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200">
+              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 sm:col-span-2">
                 <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block mb-0.5">
                   GSTIN Number
                 </span>
                 <span className="font-mono font-bold text-sm text-slate-900 tracking-wider">
                   {gstin || "20AAAAA0000A1Z5"}
-                </span>
-              </div>
-
-              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200">
-                <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block mb-0.5">
-                  PAN Number
-                </span>
-                <span className="font-mono font-bold text-sm text-slate-900 tracking-wider">
-                  {panNumber || "ABCDE1234F"}
                 </span>
               </div>
             </div>

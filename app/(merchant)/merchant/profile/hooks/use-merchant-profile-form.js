@@ -52,10 +52,6 @@ export function useMerchantProfileForm() {
       pan: "",
       gstin: "",
       isGstExempt: false,
-      bankHolderName: "",
-      bankAccountType: "current",
-      bankAccountNumber: "",
-      bankIfsc: "",
       shopImage: "",
       logo: "",
       banner: "",
@@ -85,36 +81,32 @@ export function useMerchantProfileForm() {
       const forceEdit = searchParams.get("edit") === "true";
       setIsEditing(forceEdit);
       form.reset({
-        businessName: merchant.businessName ?? "",
+        businessName: merchant.businessName ?? merchant.registeredName ?? "",
         slug: merchant.slug ?? "",
         category: merchant.category ?? "food",
+        customCategoryNotes: merchant.customCategoryNotes ?? "",
         description: merchant.description ?? "",
-        contactEmail: merchant.contactEmail ?? "",
-        address: merchant.location?.address ?? "",
-        pincode: merchant.location?.pincode ?? "",
-        city: merchant.location?.city ?? "",
-        state: merchant.location?.state ?? "",
+        contactEmail: merchant.contactEmail ?? merchant.email ?? "",
+        address: merchant.location?.address ?? merchant.address ?? "",
+        pincode: merchant.location?.pincode ?? merchant.pincode ?? "",
+        city: merchant.location?.city ?? merchant.city ?? "",
+        state: merchant.location?.state ?? merchant.state ?? "",
         country: merchant.location?.country ?? "IN",
         lat: merchant.location?.coordinates?.lat ?? "",
         lng: merchant.location?.coordinates?.lng ?? "",
-        contactPhone: merchant.contactPhone ?? "",
+        contactPhone: merchant.contactPhone ?? merchant.liaisonPhone ?? merchant.mobile ?? "",
         constitution: merchant.constitution ?? "proprietorship",
-        liaisonName: merchant.liaisonName ?? "",
-        liaisonDesignation: merchant.liaisonDesignation ?? "owner",
-        liaisonPhone: merchant.liaisonPhone ?? "",
-        gmapsLink: merchant.gmapsLink ?? "",
+        liaisonName: merchant.liaisonName ?? merchant.contactName ?? merchant.signatoryName ?? "",
+        liaisonDesignation: merchant.liaisonDesignation ?? merchant.designation ?? "owner",
+        liaisonPhone: merchant.liaisonPhone ?? merchant.contactPhone ?? merchant.mobile ?? "",
+        gmapsLink: merchant.gmapsLink ?? merchant.googleUrl ?? "",
         docType: merchant.docType ?? "GST Registration Certificate",
-        docImage: merchant.docImage ?? "",
-        pan: merchant.pan ?? "",
+        docImage: merchant.docImage ?? merchant.docFileUrl ?? "",
         gstin: merchant.gstin ?? "",
         isGstExempt: merchant.isGstExempt ?? false,
-        bankHolderName: merchant.bankDetails?.holderName ?? "",
-        bankAccountType: merchant.bankDetails?.accountType ?? "current",
-        bankAccountNumber: merchant.bankDetails?.accountNumber ?? "",
-        bankIfsc: merchant.bankDetails?.ifsc ?? "",
-        shopImage: merchant.shopImage ?? "",
-        logo: merchant.logo ?? "",
-        banner: merchant.banner ?? "",
+        shopImage: merchant.shopImage ?? merchant.shopPhotoUrl ?? "",
+        logo: merchant.logo ?? merchant.logoUrl ?? "",
+        banner: merchant.banner ?? merchant.bannerUrl ?? "",
       });
     } else {
       setIsEditing(true);
@@ -124,7 +116,7 @@ export function useMerchantProfileForm() {
   const handleNext = async () => {
     const fieldsToValidate = STEP_FIELDS[step] || [];
     const isValid = await form.trigger(fieldsToValidate);
-    if (isValid && step < 4) {
+    if (isValid && step < 3) {
       setStep((prev) => prev + 1);
     }
   };
@@ -199,9 +191,13 @@ export function useMerchantProfileForm() {
       queryClient.invalidateQueries({
         queryKey: ["merchant-application-status"],
       });
-      showSuccess("Profile & KYC details submitted successfully!");
+      showSuccess("Profile & KYC details saved successfully!");
       setIsEditing(false);
-      router.push("/merchant/application-status");
+      if (merchant?.status === "approved") {
+        router.push("/merchant/dashboard");
+      } else {
+        router.push("/merchant/application-status");
+      }
     },
     onError: (err) => {
       showError(err.message ?? "Failed to save profile.");
@@ -211,14 +207,7 @@ export function useMerchantProfileForm() {
   const onSubmit = (formData) => {
     saveMutation.mutate({
       ...formData,
-      pan: (formData.pan || "").trim().toUpperCase(),
       gstin: (formData.gstin || "").trim().toUpperCase(),
-      bankDetails: {
-        holderName: formData.bankHolderName,
-        accountType: formData.bankAccountType,
-        accountNumber: formData.bankAccountNumber,
-        ifsc: (formData.bankIfsc || "").trim().toUpperCase(),
-      },
       location: {
         address: formData.address,
         pincode: formData.pincode,
