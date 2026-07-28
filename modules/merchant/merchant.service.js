@@ -20,7 +20,7 @@ import { buildMeta, parsePagination } from "../../utils/pagination.js";
  * Helper to check for duplicate unique fields (email, phone, gstin, pan)
  */
 export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
-  const { contactEmail, contactPhone, liaisonPhone, gstin, isGstExempt } = data;
+  const { contactEmail, contactPhone, liaisonPhone } = data;
 
   const baseFilter = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
 
@@ -37,12 +37,6 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
       $or: [{ contactPhone: phoneToCheck }, { liaisonPhone: phoneToCheck }],
     });
     if (dupPhone) throw new ConflictError("Mobile / Contact phone number is already registered to another merchant.");
-  }
-
-  if (gstin && !isGstExempt) {
-    const gstinUpper = gstin.toUpperCase().trim();
-    const dupGst = await Merchant.findOne({ ...baseFilter, gstin: gstinUpper });
-    if (dupGst) throw new ConflictError(`GSTIN "${gstinUpper}" is already registered to another merchant.`);
   }
 }
 
@@ -228,8 +222,7 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
   await checkMerchantDuplicates(data, merchant._id);
 
   const keyKycFieldsChanged =
-    (data.gstin && data.gstin !== merchant.gstin) ||
-    (data.docImage && data.docImage !== merchant.docImage);
+    data.docImage && data.docImage !== merchant.docImage;
 
   Object.assign(merchant, data);
 

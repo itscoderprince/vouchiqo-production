@@ -209,7 +209,6 @@ export function useMerchantProfileForm() {
   const onSubmit = (formData) => {
     saveMutation.mutate({
       ...formData,
-      gstin: (formData.gstin || "").trim().toUpperCase(),
       location: {
         address: formData.address,
         pincode: formData.pincode,

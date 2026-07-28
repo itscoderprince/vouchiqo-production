@@ -259,7 +259,6 @@ export default function MerchantBusinessProfile() {
 
           {step === 3 && (
             <Step3KYC
-              register={register}
               setValue={setValue}
               watch={watch}
               errors={errors}

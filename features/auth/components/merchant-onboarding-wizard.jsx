@@ -2436,7 +2436,7 @@ export function MerchantOnboardingWizard() {
             <label
               className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer select-none ${
                 fieldErrors.commissionAgreed
-                  ? "bg-red-50/80 border-red-500 text-red-700 ring-2 ring-red-500/20"
+                  ? "bg-red-50/50 border-red-400"
                   : "bg-blue-50/50 border-blue-200/80 text-slate-900"
               }`}
             >
@@ -2455,21 +2455,15 @@ export function MerchantOnboardingWizard() {
                   fieldErrors.commissionAgreed ? "border-red-500" : ""
                 }
               />
-              <span
-                className={`text-xs font-semibold ${
-                  fieldErrors.commissionAgreed
-                    ? "text-red-700 font-bold"
-                    : "text-slate-900"
-                }`}
-              >
+              <span className="text-xs font-normal text-slate-800">
                 I acknowledge and accept the Vouchiqo performance commission
                 structure for my primary category.{" "}
                 <span className="text-red-600 font-bold">*</span>
               </span>
             </label>
             {fieldErrors.commissionAgreed && (
-              <p className="text-xs text-red-600 font-semibold flex items-center gap-1.5 mt-1">
-                <span>⚠️ {fieldErrors.commissionAgreed}</span>
+              <p className="text-xs text-red-600 font-normal mt-1">
+                Please acknowledge and accept the performance commission structure to proceed
               </p>
             )}
 
@@ -2517,7 +2511,7 @@ export function MerchantOnboardingWizard() {
                   }}
                   className="text-[10.5px] font-bold text-blue-700 border-blue-200 hover:bg-blue-50 h-7 px-2.5 rounded-lg cursor-pointer self-start sm:self-auto"
                 >
-                  ⚡ Apply Monday Hours to All Days
+                  Apply Monday Hours to All Days
                 </Button>
               </div>
 

@@ -28,11 +28,9 @@ const DOC_TYPES = [
     value: "Shop & Establishment Act",
     label: "Shop & Establishment Act Registration",
   },
-  { value: "Owner PAN Card", label: "PAN Card of Business Owner" },
 ];
 
 export default function Step3KYC({
-  register,
   setValue,
   watch,
   errors,
@@ -41,7 +39,6 @@ export default function Step3KYC({
 }) {
   const docType = watch("docType") || "GST Registration Certificate";
   const docImage = watch("docImage");
-  const isGstExempt = watch("isGstExempt");
 
   const selectedDocLabel =
     DOC_TYPES.find((d) => d.value === docType)?.label ||
@@ -125,42 +122,6 @@ export default function Step3KYC({
               className="absolute inset-0 opacity-0 cursor-pointer"
             />
           </div>
-        </div>
-
-        {/* GSTIN & Exemption Row */}
-
-        <div className="space-y-3">
-          <FormInput
-            label="GST Identification Number (GSTIN)"
-            icon={FileText}
-            maxLength={15}
-            placeholder="15-digit alphanumeric (e.g. 22AAAAA1111A1Z1)"
-            {...register("gstin")}
-            onChange={(e) =>
-              setValue("gstin", e.target.value.toUpperCase(), {
-                shouldValidate: true,
-              })
-            }
-            disabled={isGstExempt}
-            error={errors.gstin}
-            className="font-mono uppercase font-bold"
-          />
-
-          <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer select-none">
-            <Checkbox
-              id="gst-exempt"
-              checked={isGstExempt}
-              onCheckedChange={(checked) => {
-                setValue("isGstExempt", !!checked, { shouldValidate: true });
-                if (checked) setValue("gstin", "", { shouldValidate: true });
-              }}
-            />
-            <span className="text-xs text-slate-700 font-semibold leading-relaxed">
-              I certify that my commercial enterprise is currently unregistered
-              under the Indian GST regime as an exempt micro-merchant (turnover
-              under ₹40 Lakhs).
-            </span>
-          </label>
         </div>
       </div>
     </Card>
