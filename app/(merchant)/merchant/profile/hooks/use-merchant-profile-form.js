@@ -49,7 +49,6 @@ export function useMerchantProfileForm() {
       gmapsLink: "",
       docType: "GST Registration Certificate",
       docImage: "",
-      pan: "",
       gstin: "",
       isGstExempt: false,
       shopImage: "",

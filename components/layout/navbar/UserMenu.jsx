@@ -128,11 +128,13 @@ export const UserMenu = () => {
     e.preventDefault();
     setOpen(false);
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("vouchiqo_is_merchant");
+      }
       await signOut({
         fetchOptions: {
           onSuccess: () => {
-            toast.success("Signed out successfully!");
-            router.push("/");
+            router.replace("/");
             router.refresh();
           },
         },

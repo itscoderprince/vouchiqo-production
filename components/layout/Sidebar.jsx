@@ -134,8 +134,15 @@ export default function Sidebar({ role = "customer" }) {
       <div className="p-4 border-t border-white/10">
         <Button
           onClick={async () => {
-            await signOut();
-            router.replace("/login");
+            try {
+              if (typeof window !== "undefined") {
+                sessionStorage.removeItem("vouchiqo_is_merchant");
+              }
+              await signOut();
+            } catch (e) {
+              console.error("Sign out error:", e);
+            }
+            router.replace("/");
           }}
           variant="ghost"
           className="flex items-center justify-start gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-400 hover:bg-white/5 hover:text-white transition-all cursor-pointer h-auto border-0 bg-transparent shadow-none"

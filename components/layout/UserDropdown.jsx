@@ -64,12 +64,7 @@ export default function UserDropdown({
 
   const handleLogoutAction = async () => {
     if (onMobileClose) onMobileClose();
-    try {
-      await logout();
-    } catch (e) {
-      console.error("Sign out failed", e);
-    }
-    router.push("/");
+    await logout();
   };
 
   if (isMobile) {

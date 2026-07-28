@@ -73,7 +73,26 @@ export function useMerchantLoginForm() {
         sessionStorage.setItem("vouchiqo_is_merchant", "true");
       }
       toast.success("Welcome back, Merchant Partner!");
-      router.replace("/merchant/dashboard");
+
+      // Redirect based on merchant profile status
+      try {
+        const meRes = await fetch("/api/merchants/me");
+        if (meRes.ok) {
+          const meJson = await meRes.json();
+          const merchantProfile = meJson?.data;
+          if (merchantProfile?.status === "approved") {
+            router.replace("/merchant/dashboard");
+          } else if (merchantProfile && (merchantProfile._id || merchantProfile.businessName)) {
+            router.replace("/merchant/application-status");
+          } else {
+            router.replace("/merchant/dashboard");
+          }
+        } else {
+          router.replace("/merchant/dashboard");
+        }
+      } catch {
+        router.replace("/merchant/dashboard");
+      }
     },
     onError: (err) => {
       toast.error(err?.message ?? "Something went wrong. Try again.");

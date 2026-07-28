@@ -28,8 +28,16 @@ export function useUser() {
   const role = user?.role ?? "customer";
 
   async function logout() {
-    await signOut();
-    router.push("/login");
+    try {
+      // Clear any merchant session flags so redirect guards don't fire after logout
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("vouchiqo_is_merchant");
+      }
+      await signOut();
+    } catch (e) {
+      console.error("Sign out error:", e);
+    }
+    router.push("/");
   }
 
   return {
