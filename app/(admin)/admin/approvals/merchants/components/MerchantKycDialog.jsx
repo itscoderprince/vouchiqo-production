@@ -332,7 +332,7 @@ export default function MerchantKycDialog({
 
           {/* ── TAB 2: STATUTORY KYC ─────────────────────────────────── */}
           <TabsContent value="legal" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
               <div>
                 <span className="text-[10px] uppercase font-semibold text-slate-400 block">
                   Primary Document Type
@@ -343,20 +343,12 @@ export default function MerchantKycDialog({
               </div>
               <div>
                 <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Permanent Account Number (PAN)
-                </span>
-                <span className="font-mono font-semibold text-slate-900">
-                  {merchant.pan || "Not Provided (Optional)"}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
                   GSTIN Registration
                 </span>
                 <span className="font-mono font-semibold text-slate-900">
                   {merchant.isGstExempt
                     ? "Exempt Micro-Merchant"
-                    : merchant.gstin || "Not Provided (Optional)"}
+                    : merchant.gstin || "Exempt / N/A"}
                 </span>
               </div>
             </div>

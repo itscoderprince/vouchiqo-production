@@ -144,25 +144,28 @@ export default function Step2Location({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           {
-            label: "Shop Photograph",
+            label: "SHOP PHOTO",
             field: "shopImage",
             state: shopImage,
             loading: uploadingShop,
-            ratio: "Ratio 4:3 (e.g. 800x600px)",
+            ratio: "Ratio 1200×800",
+            btnText: "Upload Photo (1200×800)",
           },
           {
-            label: "Store Logo",
+            label: "STORE LOGO",
             field: "logo",
             state: logo,
             loading: uploadingLogo,
-            ratio: "Ratio 1:1 Square (e.g. 500x500px)",
+            ratio: "Ratio 1:1 Square (400×400)",
+            btnText: "Upload Logo (400×400)",
           },
           {
-            label: "Banner Image",
+            label: "BANNER IMAGE",
             field: "banner",
             state: banner,
             loading: uploadingBanner,
-            ratio: "Ratio 16:9 Landscape (e.g. 1200x675px)",
+            ratio: "Ratio 1200×400",
+            btnText: "Upload Banner (1200×400)",
           },
         ].map((item, idx) => (
           <div key={idx} className="space-y-1.5">
@@ -175,25 +178,38 @@ export default function Step2Location({
                 {item.ratio}
               </span>
             </div>
-            <div className="relative group flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50 hover:bg-slate-100/80 cursor-pointer h-28 overflow-hidden">
+            <div className="relative group flex flex-col items-center justify-between border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50/60 hover:bg-slate-100/80 transition-all cursor-pointer min-h-[140px] overflow-hidden text-center">
               {item.state ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.state}
-                  alt={item.label}
-                  className="max-w-full max-h-full object-contain rounded-md"
-                />
+                <div className="w-full flex flex-col items-center justify-center space-y-1.5 py-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.state}
+                    alt={item.label}
+                    className="max-h-24 max-w-full object-contain rounded-lg border border-slate-200 shadow-2xs"
+                  />
+                  <span className="text-[10px] text-blue-600 font-bold underline">
+                    Click to replace image
+                  </span>
+                </div>
               ) : (
-                <>
-                  <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors mb-1" />
-                  <span className="text-[10px] text-slate-500 font-semibold">
+                <div className="my-auto py-2 space-y-1">
+                  <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-600 transition-colors mx-auto mb-1" />
+                  <span className="text-xs text-slate-700 font-bold block">
                     {item.loading ? "Uploading..." : `Upload ${item.label}`}
                   </span>
-                  <span className="text-[9px] text-slate-400 font-normal">
+                  <span className="text-[10px] text-slate-400 font-medium block">
                     {item.ratio}
                   </span>
-                </>
+                </div>
               )}
+
+              <div className="w-full mt-2 pt-1 border-t border-slate-200/60">
+                <span className="w-full py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg flex items-center justify-center gap-1 shadow-2xs transition-colors">
+                  <Upload className="w-3 h-3" />
+                  {item.loading ? "Uploading..." : item.btnText}
+                </span>
+              </div>
+
               <input
                 type="file"
                 accept="image/*"

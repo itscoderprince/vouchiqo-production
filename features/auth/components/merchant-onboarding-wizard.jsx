@@ -794,7 +794,15 @@ export function MerchantOnboardingWizard() {
       }
       setFieldErrors({});
     } else if (currentStep === 5) {
-      // Section E: Not mandatory at all
+      if (!formData.commissionAgreed) {
+        newErrors.commissionAgreed =
+          "Please acknowledge and accept the performance commission structure to proceed";
+        setFieldErrors(newErrors);
+        toast.error(
+          "Please acknowledge and accept the performance commission structure.",
+        );
+        return;
+      }
       setFieldErrors({});
     }
     setCurrentStep((prev) => Math.min(6, prev + 1));
@@ -2425,17 +2433,45 @@ export function MerchantOnboardingWizard() {
               );
             })()}
 
-            <label className="flex items-center gap-2.5 p-2.5 bg-blue-50/50 border border-blue-200/80 rounded-lg cursor-pointer">
+            <label
+              className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                fieldErrors.commissionAgreed
+                  ? "bg-red-50/80 border-red-500 text-red-700 ring-2 ring-red-500/20"
+                  : "bg-blue-50/50 border-blue-200/80 text-slate-900"
+              }`}
+            >
               <Checkbox
                 checked={formData.commissionAgreed}
-                onCheckedChange={(val) =>
-                  setFormData({ ...formData, commissionAgreed: !!val })
+                onCheckedChange={(val) => {
+                  setFormData({ ...formData, commissionAgreed: !!val });
+                  if (val && fieldErrors.commissionAgreed) {
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      commissionAgreed: null,
+                    }));
+                  }
+                }}
+                className={
+                  fieldErrors.commissionAgreed ? "border-red-500" : ""
                 }
               />
-              <span className="text-xs font-medium text-slate-900">
-                I acknowledge and accept the Vouchiqo performance commission structure for my primary category.
+              <span
+                className={`text-xs font-semibold ${
+                  fieldErrors.commissionAgreed
+                    ? "text-red-700 font-bold"
+                    : "text-slate-900"
+                }`}
+              >
+                I acknowledge and accept the Vouchiqo performance commission
+                structure for my primary category.{" "}
+                <span className="text-red-600 font-bold">*</span>
               </span>
             </label>
+            {fieldErrors.commissionAgreed && (
+              <p className="text-xs text-red-600 font-semibold flex items-center gap-1.5 mt-1">
+                <span>⚠️ {fieldErrors.commissionAgreed}</span>
+              </p>
+            )}
 
             {/* Weekly Store Operating Hours Schedule */}
             <div className="space-y-2 pt-2 border-t border-slate-100 text-left">
