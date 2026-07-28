@@ -359,56 +359,49 @@ export default function MerchantSubscription() {
     const totalPrice = Math.round(basePrice + gst);
 
     setIsRazorpayLoading(true);
-    toast.loading("Initiating official Razorpay gateway...", { id: "rzp-direct" });
+    toast.loading("Creating secure Razorpay order...", { id: "rzp-direct" });
 
     try {
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
-        throw new Error("Razorpay SDK failed to load. Please check your internet connection.");
+        throw new Error("Razorpay SDK script failed to load. Please check your internet connection.");
       }
 
-      let orderId = null;
-      let keyId = "rzp_live_TITo8u45hFpoaE";
-      let amountInPaise = totalPrice * 100;
+      // 1. Create Razorpay order via backend API
+      const res = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: totalPrice,
+          plan: planObj?.id,
+          cycle: billingCycle,
+          type: planObj ? "subscription" : "addon",
+          addOnId: addOnObj?.id,
+        }),
+      });
 
-      // 1. Create Razorpay order via backend API (with graceful fallback)
-      try {
-        const res = await fetch("/api/payments/create-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: totalPrice,
-            plan: planObj?.id,
-            cycle: billingCycle,
-            type: planObj ? "subscription" : "addon",
-            addOnId: addOnObj?.id,
-          }),
-        });
-
-        if (res.ok) {
-          const orderJson = await res.json();
-          if (orderJson.data) {
-            orderId = orderJson.data.orderId || null;
-            keyId = orderJson.data.keyId || keyId;
-            amountInPaise = orderJson.data.amount || amountInPaise;
-          }
-        }
-      } catch (err) {
-        console.warn("Razorpay order pre-creation fallback:", err);
-      }
-
+      const orderJson = await res.json();
       toast.dismiss("rzp-direct");
+
+      if (!res.ok || !orderJson.data?.orderId) {
+        throw new Error(orderJson.message || "Failed to create Razorpay Order ID.");
+      }
+
+      const { orderId, amount, currency, keyId } = orderJson.data;
+
+      // Close modal before launching native Razorpay popup
       setIsCheckoutOpen(false);
 
       // 2. Open official Razorpay Native Popup window
       const options = {
-        key: keyId,
-        amount: amountInPaise,
-        currency: "INR",
+        key: keyId || "rzp_live_TITo8u45hFpoaE",
+        amount: amount || totalPrice * 100,
+        currency: currency || "INR",
         name: "Vouchiqo Merchant Portal",
         description: planObj
           ? `${planObj.name} (${billingCycle})`
           : addOnObj?.name || "Add-on Purchase",
+        order_id: orderId,
         prefill: {
           name: merchant?.businessName || "Merchant Partner",
           email: merchant?.contactEmail || "",
@@ -444,7 +437,7 @@ export default function MerchantSubscription() {
             queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
             queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
 
-            toast.success(verifyJson.message || "Payment verified! Plan activated.", {
+            toast.success(verifyJson.message || "Payment verified! Plan activated successfully.", {
               id: "rzp-verify",
               duration: 5000,
             });
@@ -457,14 +450,10 @@ export default function MerchantSubscription() {
         modal: {
           ondismiss: function () {
             setIsRazorpayLoading(false);
-            toast.error("Razorpay payment window closed.");
+            toast.error("Razorpay payment cancelled.");
           },
         },
       };
-
-      if (orderId) {
-        options.order_id = orderId;
-      }
 
       const rzp = new window.Razorpay(options);
       rzp.open();
