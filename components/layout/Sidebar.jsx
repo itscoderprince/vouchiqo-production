@@ -34,6 +34,7 @@ export default function Sidebar({ role = "customer" }) {
           { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
           { name: "Merchant Management", href: "/admin/merchants", icon: Store },
           { name: "Commission Rates", href: "/admin/commission-rates", icon: Percent },
+          { name: "Merchant Plans & Pricing", href: "/admin/plans", icon: CreditCard },
           { name: "Offer Verification Queue", href: "/admin/offers", icon: CheckSquare },
           { name: "Campaign Review Queue", href: "/admin/campaigns/queue", icon: Megaphone },
           { name: "Campaign Calendar", href: "/admin/campaigns/calendar", icon: Clock },

@@ -85,8 +85,52 @@ export default function MerchantSubscription() {
     },
   });
 
-  const plans = useMemo(
-    () => [
+  // 4. Fetch live settings from DB for merchant plans
+  const { data: settingsData } = useQuery({
+    queryKey: ["public-settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/settings");
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json.data;
+    },
+  });
+
+  const plans = useMemo(() => {
+    if (
+      settingsData?.merchant_plans &&
+      Array.isArray(settingsData.merchant_plans) &&
+      settingsData.merchant_plans.length > 0
+    ) {
+      return settingsData.merchant_plans
+        .filter((p) => p.active !== false)
+        .map((p) => {
+          const numPrice =
+            typeof p.priceMonthly === "number"
+              ? p.priceMonthly
+              : Number(p.priceText?.replace(/[^0-9]/g, "")) || 0;
+          const numYearly =
+            typeof p.priceYearly === "number"
+              ? p.priceYearly
+              : numPrice * 10;
+          return {
+            id: p.id,
+            name: p.name,
+            priceMonthly: numPrice,
+            priceYearly: numYearly,
+            popular:
+              p.badge?.toLowerCase().includes("popular") ||
+              p.theme === "amber",
+            bestValue:
+              p.badge?.toLowerCase().includes("best") ||
+              p.theme === "indigo",
+            desc: p.subCaption || p.desc || "",
+            features: p.features || [],
+          };
+        });
+    }
+
+    return [
       {
         id: "starter",
         name: "Starter Free",
@@ -153,9 +197,8 @@ export default function MerchantSubscription() {
           "Full Read/Write API Integration",
         ],
       },
-    ],
-    [],
-  );
+    ];
+  }, [settingsData]);
 
   const addOns = [
     {

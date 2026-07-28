@@ -537,6 +537,11 @@ export function AppSidebar({ ...props }) {
                 url: "/admin/commission-rates",
                 icon: Percent,
               },
+              {
+                title: "Merchant Plans & Pricing",
+                url: "/admin/plans",
+                icon: CreditCard,
+              },
             ],
           },
         ];
