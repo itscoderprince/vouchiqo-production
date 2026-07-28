@@ -317,6 +317,22 @@ export default function MerchantSubscription() {
     );
   }
 
+  const [isRazorpayLoading, setIsRazorpayLoading] = useState(false);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (typeof window !== "undefined" && window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleOpenUpgrade = (plan) => {
     setSelectedPlan(plan);
     setSelectedAddOn(null);
@@ -331,28 +347,6 @@ export default function MerchantSubscription() {
     setIsCheckoutOpen(true);
   };
 
-  const executePayment = () => {
-    setCheckoutStep(2);
-    setTimeout(() => {
-      if (selectedPlan) {
-        upgradeMutation.mutate({
-          type: "subscription",
-          plan: selectedPlan.id,
-          cycle: billingCycle,
-          gstin,
-          paymentMethod,
-        });
-      } else if (selectedAddOn) {
-        upgradeMutation.mutate({
-          type: "addon",
-          addOnId: selectedAddOn.id,
-          gstin,
-          paymentMethod,
-        });
-      }
-    }, 1500);
-  };
-
   const basePrice = selectedPlan
     ? billingCycle === "yearly"
       ? selectedPlan.priceYearly
@@ -360,7 +354,107 @@ export default function MerchantSubscription() {
     : selectedAddOn?.price || 0;
 
   const gst = parseFloat((basePrice * 0.18).toFixed(2));
-  const totalPrice = basePrice + gst;
+  const totalPrice = Math.round(basePrice + gst);
+
+  const executePayment = async () => {
+    setIsRazorpayLoading(true);
+    setCheckoutStep(2);
+    try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error("Razorpay SDK failed to load. Check your internet connection.");
+      }
+
+      // 1. Create Razorpay order via backend API
+      const res = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: totalPrice,
+          plan: selectedPlan?.id,
+          cycle: billingCycle,
+          type: selectedPlan ? "subscription" : "addon",
+          addOnId: selectedAddOn?.id,
+        }),
+      });
+
+      const orderJson = await res.json();
+      if (!res.ok || !orderJson.data) {
+        throw new Error(orderJson.message || "Failed to create Razorpay order.");
+      }
+
+      const { orderId, amount, currency, keyId } = orderJson.data;
+
+      // 2. Open official Razorpay Checkout popup
+      const options = {
+        key: keyId || "rzp_live_TITo8u45hFpoaE",
+        amount,
+        currency: currency || "INR",
+        name: "Vouchiqo Merchant Portal",
+        description: selectedPlan
+          ? `${selectedPlan.name} (${billingCycle})`
+          : selectedAddOn?.name || "Add-on Purchase",
+        order_id: orderId,
+        prefill: {
+          name: merchant?.businessName || "Merchant Partner",
+          email: merchant?.contactEmail || "",
+          contact: merchant?.contactPhone || "",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+        handler: async function (response) {
+          setIsRazorpayLoading(true);
+          toast.loading("Verifying secure Razorpay payment...", { id: "rzp-verify" });
+          try {
+            const verifyRes = await fetch("/api/payments/verify-signature", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: selectedPlan?.id,
+                cycle: billingCycle,
+                type: selectedPlan ? "subscription" : "addon",
+                addOnId: selectedAddOn?.id,
+              }),
+            });
+
+            const verifyJson = await verifyRes.json();
+            if (!verifyRes.ok) {
+              throw new Error(verifyJson.message || "Payment verification failed.");
+            }
+
+            queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+            queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
+            queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
+
+            toast.success(verifyJson.message || "Payment successful! Plan activated.", {
+              id: "rzp-verify",
+            });
+            setCheckoutStep(3);
+          } catch (err) {
+            toast.error(err.message || "Payment verification failed.", { id: "rzp-verify" });
+          } finally {
+            setIsRazorpayLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setIsRazorpayLoading(false);
+            toast.error("Razorpay payment cancelled.");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.error(err.message || "Razorpay checkout error");
+      setIsRazorpayLoading(false);
+    }
+  };
 
   return (
     <DashboardLayout
@@ -415,7 +509,7 @@ export default function MerchantSubscription() {
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           executePayment={executePayment}
-          isPending={upgradeMutation.isPending}
+          isPending={isRazorpayLoading || upgradeMutation.isPending}
         />
       </div>
     </DashboardLayout>
