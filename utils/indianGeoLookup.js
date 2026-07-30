@@ -99,7 +99,7 @@ export const INDIAN_CITIES = [
 export function lookupStateByCity(cityName) {
   if (!cityName) return null;
   const match = INDIAN_CITIES.find(
-    (c) => c.city.toLowerCase() === cityName.trim().toLowerCase()
+    (c) => c.city.toLowerCase() === cityName.trim().toLowerCase(),
   );
   return match || null;
 }

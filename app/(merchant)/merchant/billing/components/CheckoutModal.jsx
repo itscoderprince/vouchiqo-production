@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, CreditCard, Loader2, Lock, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  CreditCard,
+  Loader2,
+  Lock,
+  ShieldCheck,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +32,7 @@ export default function CheckoutModal({
   gstin,
   setGstin,
   onPayWithRazorpay,
+  onSimulatePayment,
   isPending,
 }) {
   const productName = selectedPlan
@@ -46,7 +54,8 @@ export default function CheckoutModal({
             </Badge>
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 font-medium">
-            Review order breakdown &amp; proceed directly to Razorpay Live Gateway.
+            Review order breakdown &amp; proceed directly to Razorpay Live
+            Gateway.
           </DialogDescription>
         </DialogHeader>
 
@@ -62,7 +71,9 @@ export default function CheckoutModal({
 
             <div className="flex justify-between items-center text-slate-600">
               <span>Base Price:</span>
-              <span className="font-bold">₹{basePrice.toLocaleString("en-IN")}</span>
+              <span className="font-bold">
+                ₹{basePrice.toLocaleString("en-IN")}
+              </span>
             </div>
 
             <div className="flex justify-between items-center text-slate-600">
@@ -87,7 +98,7 @@ export default function CheckoutModal({
               type="text"
               placeholder="e.g. 27AABCU9603R1ZM"
               value={gstin}
-              onChange={(e) => setGstin(e.target.value.toUpperCase())}
+              onChange={(e) => setGstin?.(e.target.value.toUpperCase())}
               className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase"
             />
           </div>
@@ -117,11 +128,27 @@ export default function CheckoutModal({
               </>
             ) : (
               <>
-                <span>Pay ₹{totalPrice.toLocaleString("en-IN")} via Razorpay</span>
+                <span>
+                  Pay ₹{totalPrice.toLocaleString("en-IN")} via Razorpay Gateway
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </Button>
+
+          {/* Dev Test Payment Option */}
+          {onSimulatePayment && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onSimulatePayment}
+              disabled={isPending}
+              className="w-full border-dashed border-amber-300 bg-amber-50/50 hover:bg-amber-100/70 text-amber-800 font-bold text-xs rounded-xl h-10 cursor-pointer flex items-center justify-center gap-2 transition-all"
+            >
+              <CheckCircle2 className="w-4 h-4 text-amber-600" />
+              <span>Simulate Instant Test Payment (Dev Bypass)</span>
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

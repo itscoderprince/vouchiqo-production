@@ -97,7 +97,14 @@ export const ROUTES = {
       BASE: "/api/merchants",
       DETAIL: (id) => `/api/merchants/${id}`,
       ME: "/api/merchants/me",
-      UPGRADE: "/api/merchants/me/upgrade",
+    },
+    PAYMENTS: {
+      BASE: "/api/payments",
+      CREATE_ORDER: "/api/payments/create-order",
+      VERIFY: "/api/payments/verify",
+      VERIFY_SIGNATURE: "/api/payments/verify-signature",
+      REFUND: (id) => `/api/payments/${id}/refund`,
+      WEBHOOK: "/api/webhooks/razorpay",
     },
     COUPONS: {
       BASE: "/api/coupons",

@@ -37,6 +37,8 @@ export function error(message, status = HTTP.INTERNAL_ERROR, code = null) {
   return NextResponse.json({ success: false, message, code }, { status });
 }
 
+export const errorResponse = error;
+
 /**
  * Central error handler — converts any thrown error into the right HTTP response.
  * Call this in catch blocks inside route handlers.

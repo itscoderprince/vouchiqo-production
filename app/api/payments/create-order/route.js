@@ -1,57 +1,96 @@
-import { auth } from "@/lib/auth";
-import { createRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
+import { connectDB } from "@/lib/mongodb";
+import { razorpayKeyId } from "@/lib/razorpay";
+import { requireRole } from "@/modules/auth/auth.middleware";
+import Merchant from "@/modules/merchant/merchant.model";
+import { handleIdempotency } from "@/modules/payment/idempotency.middleware";
+import { enforcePaymentRateLimit } from "@/modules/payment/payment-auth.middleware";
+import { PaymentService } from "@/modules/payment/payment.service";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
+import { ROLES } from "@/utils/constants";
+import { toPaise } from "@/utils/payment-utils";
 
 export const dynamic = "force-dynamic";
 
 /**
  * POST /api/payments/create-order
- * Creates an official Razorpay Order for live checkout
+ * Headers: Idempotency-Key: <key>
+ * Creates an official Razorpay Order & Payment record with idempotency
  */
 export const POST = asyncHandler(async (request) => {
-  let user = null;
-  try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    user = session?.user || null;
-  } catch (err) {
-    console.warn("Auth check in create-order:", err);
+  await connectDB();
+  await enforcePaymentRateLimit(request, "POST:/api/payments/create-order");
+
+  const session = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
+  const user = session.user;
+
+  const merchant = await Merchant.findOne({ authId: user.id });
+  const merchantId = merchant?._id || user.id;
+
+  const { idempotencyKey, existingResult } = await handleIdempotency(request, {
+    ...user,
+    merchantId,
+  });
+
+  if (existingResult) {
+    return ok(
+      existingResult.data,
+      "Idempotent response: payment previously initiated",
+    );
   }
 
   const body = await request.json();
-  const { amount, plan, cycle = "monthly", type = "subscription", addOnId } = body;
+  const {
+    amount,
+    plan,
+    cycle = "monthly",
+    type = "ADDON",
+    addOnId,
+    description,
+    gstin,
+  } = body;
 
   if (!amount || Number(amount) <= 0) {
     throw new Error("Invalid payment amount specified");
   }
 
-  const userId = user?.id || `merchant_${Date.now()}`;
-  const userEmail = user?.email || "merchant@vouchiqo.com";
-  const receipt = `rcpt_${userId.toString().slice(-6)}_${Date.now()}`.slice(0, 40);
+  // Amount sent from client is in Rupees (e.g. 1499, 3999, 9999, 11799)
+  // Always convert Rupees to Paise for Razorpay SDK (₹1 = 100 Paise)
+  const amountInPaise = toPaise(amount);
 
-  const notes = {
-    userId: userId.toString(),
-    userEmail,
-    plan: plan || "growth",
-    cycle,
-    type,
-    addOnId: addOnId || "",
-  };
+  const cleanGstin = gstin?.trim()?.toUpperCase() || merchant?.gstin || "";
 
-  const order = await createRazorpayOrder({
-    amount: Number(amount),
+  if (cleanGstin && merchant && merchant.gstin !== cleanGstin) {
+    merchant.gstin = cleanGstin;
+    await merchant.save();
+  }
+
+  const result = await PaymentService.createOrder({
+    merchantId,
+    amount: amountInPaise,
     currency: "INR",
-    receipt,
-    notes,
+    type: type.toUpperCase(),
+    description: description || `Payment for ${plan || type}`,
+    metadata: {
+      userEmail: user.email,
+      plan: plan || "growth",
+      cycle,
+      type,
+      addOnId: addOnId || "",
+      gstin: cleanGstin,
+    },
+    idempotencyKey,
   });
 
   return ok(
     {
-      orderId: order.id,
-      amount: order.amount, // in paise
-      currency: order.currency,
+      orderId: result.order.id,
+      amount: result.order.amount,
+      currency: result.order.currency,
       keyId: razorpayKeyId,
-      receipt: order.receipt,
+      paymentId: result.payment.paymentId,
+      idempotencyKey,
+      isDuplicate: result.isDuplicate,
     },
     "Razorpay order created successfully",
   );

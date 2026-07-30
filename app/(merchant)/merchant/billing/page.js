@@ -111,20 +111,16 @@ export default function MerchantSubscription() {
               ? p.priceMonthly
               : Number(p.priceText?.replace(/[^0-9]/g, "")) || 0;
           const numYearly =
-            typeof p.priceYearly === "number"
-              ? p.priceYearly
-              : numPrice * 10;
+            typeof p.priceYearly === "number" ? p.priceYearly : numPrice * 10;
           return {
             id: p.id,
             name: p.name,
             priceMonthly: numPrice,
             priceYearly: numYearly,
             popular:
-              p.badge?.toLowerCase().includes("popular") ||
-              p.theme === "amber",
+              p.badge?.toLowerCase().includes("popular") || p.theme === "amber",
             bestValue:
-              p.badge?.toLowerCase().includes("best") ||
-              p.theme === "indigo",
+              p.badge?.toLowerCase().includes("best") || p.theme === "indigo",
             desc: p.subCaption || p.desc || "",
             features: p.features || [],
           };
@@ -267,53 +263,69 @@ export default function MerchantSubscription() {
   const planCampaignsLimit =
     currentPlanId === "starter" ? 0 : currentPlanId === "growth" ? 1 : 4;
 
-  // Dynamically generated invoice history based on merchant DB registration date and active plan
+  // 5. Fetch live payment history from /api/payments
+  const { data: paymentHistoryData, refetch: refetchPaymentHistory } = useQuery(
+    {
+      queryKey: ["merchant-payment-history"],
+      queryFn: async () => {
+        const res = await fetch("/api/payments");
+        if (!res.ok) return null;
+        const json = await res.json();
+        return json.data;
+      },
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+    },
+  );
+
+  // Live real-time invoice history fetched directly from MongoDB via /api/payments
   const invoices = useMemo(() => {
-    const merchantCreatedAt = merchant?.createdAt
-      ? new Date(merchant.createdAt)
-      : new Date();
-    const now = new Date();
-    const diffMonths = Math.max(
-      1,
-      (now.getFullYear() - merchantCreatedAt.getFullYear()) * 12 +
-        (now.getMonth() - merchantCreatedAt.getMonth()) +
-        1,
-    );
+    if (
+      !paymentHistoryData?.payments ||
+      paymentHistoryData.payments.length === 0
+    ) {
+      return [];
+    }
 
-    const planObj = plans.find((p) => p.id === currentPlanId) || plans[0];
-    const basePlanPrice =
-      billingCycle === "yearly" ? planObj.priceYearly : planObj.priceMonthly;
-
-    return Array.from({ length: Math.min(diffMonths, 12) }).map((_, idx) => {
-      const d = new Date(now);
-      d.setMonth(d.getMonth() - idx);
+    return paymentHistoryData.payments.map((p, idx) => {
+      const d = new Date(p.createdAt || p.paidAt || Date.now());
       const monthStr = d.toLocaleDateString("en-IN", {
         month: "short",
         year: "numeric",
       });
-      const invId = `INV-${d.getFullYear()}-${(1000 + idx).toString().slice(-4)}`;
-      const baseAmount = currentPlanId === "starter" ? 0 : basePlanPrice;
-      const gstAmount = Math.round(baseAmount * 0.18);
-      const totalAmount = baseAmount + gstAmount;
+      const invId = p.gatewayOrderId
+        ? `INV-${p.gatewayOrderId.slice(-8).toUpperCase()}`
+        : `INV-${1000 + idx}`;
+      const totalRupees = Math.round(p.amount / 100);
+      const baseRupees = Math.round(totalRupees / 1.18);
+      const gstRupees = totalRupees - baseRupees;
+
+      const invoiceGstin = p.metadata?.gstin || merchant?.gstin;
+      const gstInvoiceCode = invoiceGstin
+        ? `GSTIN-${invoiceGstin}-${invId}`
+        : "N/A (B2C Receipt)";
 
       return {
         id: invId,
         date: d.toISOString().split("T")[0],
         period: monthStr,
-        plan: planObj.name,
-        amount: `₹${totalAmount.toLocaleString("en-IN")}.00`,
-        status: "Paid",
-        gstInvoice: merchant?.gstin
-          ? `GSTIN-${merchant.gstin}-${invId}`
-          : `GSTIN-27AABCU9603R1ZM-${invId}`,
+        plan: p.description || p.type || "Growth Partner Plan",
+        basePrice: `₹${baseRupees.toLocaleString("en-IN")}.00`,
+        gstBreakdown: `₹${gstRupees.toLocaleString("en-IN")}.00 (18% GST)`,
+        amount: `₹${totalRupees.toLocaleString("en-IN")}.00`,
+        status: p.status === "CAPTURED" ? "Paid" : p.status,
+        gstInvoice: gstInvoiceCode,
       };
     });
-  }, [merchant, currentPlanId, billingCycle, plans]);
+  }, [merchant, paymentHistoryData]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !plans || plans.length === 0) return;
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("autoPay") === "true" || urlParams.get("payNow") === "true") {
+    if (
+      urlParams.get("autoPay") === "true" ||
+      urlParams.get("payNow") === "true"
+    ) {
       const targetPlan = plans.find((p) => p.id === "growth") || plans[1];
       if (targetPlan) {
         handleOpenUpgrade(targetPlan);
@@ -364,7 +376,9 @@ export default function MerchantSubscription() {
     try {
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
-        throw new Error("Razorpay SDK script failed to load. Please check your internet connection.");
+        throw new Error(
+          "Razorpay SDK script failed to load. Please check your internet connection.",
+        );
       }
 
       // 1. Create Razorpay order via backend API
@@ -377,6 +391,7 @@ export default function MerchantSubscription() {
           cycle: billingCycle,
           type: planObj ? "subscription" : "addon",
           addOnId: addOnObj?.id,
+          gstin: gstin?.trim()?.toUpperCase() || "",
         }),
       });
 
@@ -384,7 +399,9 @@ export default function MerchantSubscription() {
       toast.dismiss("rzp-direct");
 
       if (!res.ok || !orderJson.data?.orderId) {
-        throw new Error(orderJson.message || "Failed to create Razorpay Order ID.");
+        throw new Error(
+          orderJson.message || "Failed to create Razorpay Order ID.",
+        );
       }
 
       const { orderId, amount, currency, keyId } = orderJson.data;
@@ -412,7 +429,9 @@ export default function MerchantSubscription() {
         },
         handler: async function (response) {
           setIsRazorpayLoading(true);
-          toast.loading("Verifying Razorpay transaction...", { id: "rzp-verify" });
+          toast.loading("Verifying Razorpay transaction...", {
+            id: "rzp-verify",
+          });
           try {
             const verifyRes = await fetch("/api/payments/verify-signature", {
               method: "POST",
@@ -430,19 +449,35 @@ export default function MerchantSubscription() {
 
             const verifyJson = await verifyRes.json();
             if (!verifyRes.ok) {
-              throw new Error(verifyJson.message || "Payment verification failed.");
+              throw new Error(
+                verifyJson.message || "Payment verification failed.",
+              );
             }
 
             queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
-            queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
-            queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
-
-            toast.success(verifyJson.message || "Payment verified! Plan activated successfully.", {
-              id: "rzp-verify",
-              duration: 5000,
+            queryClient.invalidateQueries({
+              queryKey: ["merchant-coupons-count"],
             });
+            queryClient.invalidateQueries({
+              queryKey: ["merchant-campaigns-count"],
+            });
+            await queryClient.invalidateQueries({
+              queryKey: ["merchant-payment-history"],
+            });
+            await refetchPaymentHistory();
+
+            toast.success(
+              verifyJson.message ||
+                "Payment verified! Plan activated successfully.",
+              {
+                id: "rzp-verify",
+                duration: 5000,
+              },
+            );
           } catch (err) {
-            toast.error(err.message || "Payment verification failed.", { id: "rzp-verify" });
+            toast.error(err.message || "Payment verification failed.", {
+              id: "rzp-verify",
+            });
           } finally {
             setIsRazorpayLoading(false);
           }
@@ -460,6 +495,75 @@ export default function MerchantSubscription() {
     } catch (err) {
       toast.dismiss("rzp-direct");
       toast.error(err.message || "Razorpay checkout error");
+      setIsRazorpayLoading(false);
+    }
+  };
+
+  const handleSimulateDevPayment = async () => {
+    const planObj = selectedPlan;
+    const addOnObj = selectedAddOn;
+
+    setIsRazorpayLoading(true);
+    toast.loading("Processing instant dev test payment...", { id: "dev-pay" });
+
+    try {
+      const createRes = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: totalPrice,
+          plan: planObj?.id,
+          cycle: billingCycle,
+          type: planObj ? "subscription" : "addon",
+          addOnId: addOnObj?.id,
+          gstin: gstin?.trim()?.toUpperCase() || "",
+        }),
+      });
+
+      const orderJson = await createRes.json();
+      if (!createRes.ok || !orderJson.data?.orderId) {
+        throw new Error(orderJson.message || "Failed to create order");
+      }
+
+      const orderId = orderJson.data.orderId;
+      const paymentId = `pay_simulated_${Date.now()}`;
+
+      const verifyRes = await fetch("/api/payments/verify-signature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          razorpay_order_id: orderId,
+          razorpay_payment_id: paymentId,
+          razorpay_signature: "",
+          plan: planObj?.id,
+          cycle: billingCycle,
+          type: planObj ? "subscription" : "addon",
+          addOnId: addOnObj?.id,
+        }),
+      });
+
+      const verifyJson = await verifyRes.json();
+      if (!verifyRes.ok) {
+        throw new Error(
+          verifyJson.message || "Failed to verify simulated payment.",
+        );
+      }
+
+      toast.dismiss("dev-pay");
+      toast.success(
+        verifyJson.message || "Payment verified! Plan activated successfully.",
+        { duration: 5000 },
+      );
+      setIsCheckoutOpen(false);
+
+      queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
+      queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
+      queryClient.invalidateQueries({ queryKey: ["merchant-payment-history"] });
+    } catch (err) {
+      toast.dismiss("dev-pay");
+      toast.error(err.message || "Dev payment failed.");
+    } finally {
       setIsRazorpayLoading(false);
     }
   };
@@ -533,7 +637,10 @@ export default function MerchantSubscription() {
           totalPrice={totalPrice}
           gstin={gstin}
           setGstin={setGstin}
-          onPayWithRazorpay={() => triggerRazorpayDirect(selectedPlan, selectedAddOn)}
+          onPayWithRazorpay={() =>
+            triggerRazorpayDirect(selectedPlan, selectedAddOn)
+          }
+          onSimulatePayment={handleSimulateDevPayment}
           isPending={isRazorpayLoading}
         />
       </div>

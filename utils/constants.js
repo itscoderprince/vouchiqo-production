@@ -220,6 +220,9 @@ export const REDIS_TTL = {
   TRENDING: 120, // 2 minutes
   REDEEM_LOCK: 10, // 10 seconds
   BANNERS: 300, // 5 minutes
+  PAYMENT_LOCK: 30, // 30 seconds distributed lock for payment processing
+  PAYMENT_INTENT: 1800, // 30 minutes intent cache
+  PAYMENT_STATE: 86400, // 24 hours state cache
 };
 
 export const REDIS_KEYS = {
@@ -229,6 +232,9 @@ export const REDIS_KEYS = {
   rateLimit: (ip, route) => `rl:${ip}:${route}`,
   redeemLock: (couponId, userId) => `redeem:lock:${couponId}:${userId}`,
   otp: (userId) => `otp:${userId}`,
+  paymentLock: (orderId) => `payment:lock:${orderId}`,
+  paymentIntent: (idempotencyKey) => `payment:intent:${idempotencyKey}`,
+  paymentState: (orderId) => `payment:state:${orderId}`,
 };
 
 // ─────────────────────────────────────────────
