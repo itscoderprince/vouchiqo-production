@@ -627,26 +627,34 @@ export default function MerchantKycDialog({
                   </div>
 
                   {planExpiryDate && (
-                    <div className="bg-blue-50/70 border border-blue-200/60 rounded-lg p-2.5 space-y-1 text-xs text-blue-900 font-normal">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5">
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" /> Plan Expiry Date: <strong className="font-semibold text-slate-800">
-                            {planExpiryDate.toLocaleString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
-                          </strong>
+                    <div className="bg-blue-50/70 border border-blue-200/60 rounded-lg p-2.5 space-y-2 text-xs text-blue-900 font-normal">
+                      {/* Row 1: Exact Plan Expiry Date & Time */}
+                      <div className="flex items-center gap-1.5 border-b border-blue-100/80 pb-1.5 flex-wrap">
+                        <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span className="text-slate-600 font-normal">Plan Expiry Date:</span>
+                        <span className="font-semibold text-slate-800">
+                          {planExpiryDate.toLocaleString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
                         </span>
-                        {countdownStr && (
-                          <span className="font-medium text-blue-700 bg-blue-100/80 px-2.5 py-0.5 rounded-md text-[11px] flex items-center gap-1 w-fit shrink-0">
-                            <Clock className="w-3 h-3 text-blue-600 animate-pulse" /> {countdownStr}
-                          </span>
-                        )}
                       </div>
+
+                      {/* Row 2: Live Countdown Timer */}
+                      {countdownStr && (
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <span className="flex items-center gap-1 text-[11px] text-slate-500 font-normal">
+                            <Clock className="w-3 h-3 text-blue-600 animate-pulse shrink-0" /> Time Remaining:
+                          </span>
+                          <span className="font-semibold text-blue-700 bg-blue-100/80 px-2.5 py-0.5 rounded-md text-xs font-mono whitespace-nowrap">
+                            {countdownStr}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
