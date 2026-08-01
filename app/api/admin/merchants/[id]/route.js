@@ -47,7 +47,16 @@ export const PUT = asyncHandler(async (request, { params }) => {
   const { id } = await params;
   const body = await request.json();
 
-  if (body.action === "pause") {
+  if (body.customExpiryDate) {
+    const customDateObj = new Date(body.customExpiryDate);
+    if (!isNaN(customDateObj.getTime())) {
+      body.planExpiry = customDateObj;
+      body.paymentStatus = "completed";
+      body.subscriptionStatus = "active";
+    }
+    delete body.customExpiryDate;
+    delete body.action;
+  } else if (body.action === "pause") {
     body.subscriptionStatus = "paused";
     body.paymentStatus = "pending";
     delete body.action;

@@ -19,10 +19,15 @@ export default function CurrentPlanCard({
   planCampaignsLimit,
   onOpenUpgrade,
 }) {
+  const isPaused = merchant?.subscriptionStatus === "paused";
+  const isCancelled = merchant?.subscriptionStatus === "cancelled";
+
   const isPaymentCompleted =
-    merchant?.paymentStatus === "completed" ||
-    merchant?.subscriptionStatus === "active" ||
-    (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now());
+    !isPaused &&
+    !isCancelled &&
+    (merchant?.paymentStatus === "completed" ||
+      merchant?.subscriptionStatus === "active" ||
+      (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now()));
   const currentPlanObj =
     plans.find((p) => p.id === currentPlanId) ||
     plans.find((p) => p.id === "growth") ||
@@ -33,7 +38,10 @@ export default function CurrentPlanCard({
   const [countdownStr, setCountdownStr] = useState("");
 
   useEffect(() => {
-    if (!expiryDate) return;
+    if (!expiryDate || isPaused || isCancelled) {
+      setCountdownStr("");
+      return;
+    }
     const updateCountdown = () => {
       const diff = expiryDate.getTime() - Date.now();
       if (diff <= 0) {
@@ -50,7 +58,7 @@ export default function CurrentPlanCard({
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [planExpiry]);
+  }, [planExpiry, isPaused, isCancelled]);
 
   return (
     <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4 shadow-2xs space-y-3 text-left font-sans">
@@ -64,22 +72,36 @@ export default function CurrentPlanCard({
               <h3 className="font-sans text-sm font-semibold text-slate-800 capitalize">
                 Current Plan: {currentPlanObj?.name}
               </h3>
-              <Badge
-                variant="outline"
-                className={
-                  isPaymentCompleted
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/80 font-medium text-[10px] py-0 px-2 rounded-md flex items-center gap-1 shadow-none"
-                    : "bg-amber-50 text-amber-800 border-amber-200/80 font-medium text-[10px] py-0 px-2 rounded-md shadow-none"
-                }
-              >
-                {isPaymentCompleted ? (
-                  <>
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Active Subscription
-                  </>
-                ) : (
-                  "Payment Pending"
-                )}
-              </Badge>
+              {isPaused ? (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 text-amber-800 border-amber-300 font-medium text-[10px] py-0 px-2 rounded-md shadow-none"
+                >
+                  ⏸ Subscription Paused by Admin
+                </Badge>
+              ) : isCancelled ? (
+                <Badge
+                  variant="outline"
+                  className="bg-rose-50 text-rose-800 border-rose-300 font-medium text-[10px] py-0 px-2 rounded-md shadow-none"
+                >
+                  ⏹ Subscription Cancelled
+                </Badge>
+              ) : isPaymentCompleted ? (
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-50 text-emerald-700 border-emerald-200/80 font-medium text-[10px] py-0 px-2 rounded-md flex items-center gap-1 shadow-none"
+                >
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Active Subscription
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 text-amber-800 border-amber-200/80 font-medium text-[10px] py-0 px-2 rounded-md shadow-none"
+                >
+                  Payment Pending
+                </Badge>
+              )}
+
               {isPaymentCompleted && countdownStr && (
                 <span className="bg-slate-50 text-slate-600 text-[10px] font-normal px-2 py-0.5 rounded-md border border-slate-200/60 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-slate-400" /> {countdownStr}
@@ -88,11 +110,18 @@ export default function CurrentPlanCard({
             </div>
             <p className="text-xs text-slate-500 font-normal">
               Billing Cycle: <span className="font-medium text-slate-700">{billingCycle}</span> •
-              Next Renewal:{" "}
+              Next Renewal / Expiry:{" "}
               <span className="font-medium text-slate-700">
                 {planExpiry
-                  ? new Date(planExpiry).toLocaleDateString("en-IN")
-                  : "Aug 21, 2026"}
+                  ? new Date(planExpiry).toLocaleString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : "Aug 31, 2026 at 11:59 PM"}
               </span>
             </p>
           </div>
