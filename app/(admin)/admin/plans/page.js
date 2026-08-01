@@ -309,62 +309,6 @@ export default function MerchantPlansEditorPage() {
           </div>
         </div>
 
-        {/* Live Preview Bar */}
-        {activePlan?.name && (
-          <Card className="border-indigo-200/80 bg-indigo-50/40 p-5 rounded-2xl space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-indigo-600" />
-                Live Merchant Card Preview: {activePlan.name}
-              </span>
-              <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300 text-[10px] font-bold">
-                {activePlan.badge || "Standard Tier"}
-              </Badge>
-            </div>
-
-            <div className="bg-white border border-indigo-200 rounded-2xl p-5 max-w-sm shadow-xs text-left space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-base font-bold text-slate-900">{activePlan.name}</h4>
-                  <p className="text-xs text-slate-500 font-normal mt-0.5">{activePlan.subCaption}</p>
-                </div>
-                {activePlan.badge && (
-                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full shrink-0">
-                    {activePlan.badge}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-extrabold text-slate-900">{activePlan.priceText || `₹${activePlan.priceMonthly}`}</span>
-                {activePlan.originalPrice && (
-                  <span className="text-xs text-slate-400 line-through font-semibold">{activePlan.originalPrice}</span>
-                )}
-                <span className="text-xs text-slate-500 font-medium">{activePlan.priceSuffix || "/ month"}</span>
-              </div>
-
-              <ul className="space-y-1.5 text-xs text-slate-700 font-medium pt-2 border-t border-slate-100">
-                {(activePlan.features || []).map((feat, fIdx) => (
-                  <li key={fIdx} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {activePlan.footerNote && (
-                <p className="text-[11px] text-slate-500 font-normal italic pt-2 border-t border-slate-100">
-                  {activePlan.footerNote}
-                </p>
-              )}
-
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl h-9">
-                {activePlan.buttonText || "Select Plan"}
-              </Button>
-            </div>
-          </Card>
-        )}
-
         {/* Plans Navigation Tabs & Editor */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Tabs */}

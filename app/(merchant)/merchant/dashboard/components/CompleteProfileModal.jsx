@@ -105,41 +105,25 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
   // Controlled vs uncontrolled open state
   const open = isOpen !== undefined ? isOpen : internalOpen;
 
-  // Show 2 slides ONLY if payment is pending. If payment is completed, Slide 2 is hidden.
-  const totalSlides = isPaymentPending && !isProfileComplete ? 2 : 1;
-
   useEffect(() => {
     if (!merchant) return;
 
-    // IF Profile is 100% complete AND payment is not pending -> DO NOT SHOW
-    if (isProfileComplete && !isPaymentPending) {
+    if (isProfileComplete) {
       if (isOpen === undefined) setInternalOpen(false);
       return;
     }
 
     if (isOpen === undefined) setInternalOpen(true);
-    if (isProfileComplete && isPaymentPending) {
-      setCurrentSlide(1);
-    }
-  }, [merchant, isProfileComplete, isPaymentPending, isOpen]);
-
-  // Auto-slide effect between slides if 2 slides exist
-  useEffect(() => {
-    if (!open || totalSlides <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [open, totalSlides]);
+  }, [merchant, isProfileComplete, isOpen]);
 
   const pathname = usePathname();
 
-  // Do not render modal on /merchant/profile page OR if profile is 100% complete AND no payment pending
+  // Do not render modal on /merchant/profile page OR if profile is 100% complete
   if (
     !open ||
     !merchant ||
     (pathname && pathname.startsWith("/merchant/profile")) ||
-    (isProfileComplete && !isPaymentPending)
+    isProfileComplete
   ) {
     return null;
   }

@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowRight, Lock, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import CompleteProfileModal from "@/app/(merchant)/merchant/dashboard/components/CompleteProfileModal";
+import PaymentPendingModal from "@/app/(merchant)/merchant/dashboard/components/PaymentPendingModal";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import Topbar from "@/components/layout/Topbar";
@@ -27,11 +28,14 @@ function MerchantLockModalRenderer() {
   }
 
   return (
-    <CompleteProfileModal
-      merchant={merchant}
-      isOpen={isModalOpen}
-      onClose={closeModal}
-    />
+    <>
+      <CompleteProfileModal
+        merchant={merchant}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
+      <PaymentPendingModal merchant={merchant} />
+    </>
   );
 }
 

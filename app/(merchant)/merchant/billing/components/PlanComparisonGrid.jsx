@@ -13,6 +13,7 @@ export default function PlanComparisonGrid({
   billingCycle,
   setBillingCycle,
   onOpenUpgrade,
+  isPaymentCompleted = false,
 }) {
   return (
     <div className="space-y-4 pt-1 text-left font-sans">
@@ -53,22 +54,30 @@ export default function PlanComparisonGrid({
       {/* Plan cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {plans.map((plan) => {
-          const displayPrice =
+          const displayPriceNum =
             billingCycle === "yearly" ? plan.priceYearly : plan.priceMonthly;
+          const displayPriceStr =
+            typeof displayPriceNum === "number" && displayPriceNum > 0
+              ? `₹${displayPriceNum.toLocaleString("en-IN")}`
+              : plan.priceText || (displayPriceNum === 0 ? "₹0" : "—");
+
           return (
             <PlanSelector
               key={plan.id}
               plan={{
                 ...plan,
-                price: `₹${displayPrice?.toLocaleString("en-IN")}`,
-                billingNote: `/ ${billingCycle === "yearly" ? "year" : "month"}`,
-                badge: plan.popular
-                  ? "Most Popular"
-                  : plan.bestValue
-                    ? "Best Value"
-                    : undefined,
+                price: displayPriceStr,
+                billingNote: plan.priceSuffix || `/ ${billingCycle === "yearly" ? "year" : "month"}`,
+                badge:
+                  plan.badge ||
+                  (plan.popular
+                    ? "Most Popular"
+                    : plan.bestValue
+                      ? "Best Value"
+                      : undefined),
               }}
               isCurrent={currentPlanId === plan.id}
+              isPaymentCompleted={isPaymentCompleted}
               isRecommended={plan.popular}
               onSelect={onOpenUpgrade}
             />

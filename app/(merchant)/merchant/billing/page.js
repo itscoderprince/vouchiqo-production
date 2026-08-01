@@ -87,23 +87,19 @@ export default function MerchantSubscription() {
   });
 
   // 4. Fetch live settings from DB for merchant plans
-  const { data: settingsData } = useQuery({
-    queryKey: ["public-settings"],
+  const { data: plansData } = useQuery({
+    queryKey: ["public-plans"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/settings");
+      const res = await fetch("/api/plans");
       if (!res.ok) return null;
       const json = await res.json();
-      return json.data;
+      return json?.data?.plans || json?.plans || null;
     },
   });
 
   const plans = useMemo(() => {
-    if (
-      settingsData?.merchant_plans &&
-      Array.isArray(settingsData.merchant_plans) &&
-      settingsData.merchant_plans.length > 0
-    ) {
-      return settingsData.merchant_plans
+    if (Array.isArray(plansData) && plansData.length > 0) {
+      return plansData
         .filter((p) => p.active !== false)
         .map((p) => {
           const numPrice =
@@ -115,8 +111,15 @@ export default function MerchantSubscription() {
           return {
             id: p.id,
             name: p.name,
+            badge: p.badge || "",
             priceMonthly: numPrice,
             priceYearly: numYearly,
+            priceText: p.priceText || (numPrice === 0 ? "₹0" : `₹${numPrice.toLocaleString("en-IN")}`),
+            originalPrice: p.originalPrice || "",
+            priceSuffix: p.priceSuffix || "/ month",
+            buttonText: p.buttonText || "Select Plan",
+            footerNote: p.footerNote || "",
+            theme: p.theme || "blue",
             popular:
               p.badge?.toLowerCase().includes("popular") || p.theme === "amber",
             bestValue:
@@ -195,7 +198,7 @@ export default function MerchantSubscription() {
         ],
       },
     ];
-  }, [settingsData]);
+  }, [plansData]);
 
   const addOns = [
     {
@@ -620,6 +623,7 @@ export default function MerchantSubscription() {
           billingCycle={billingCycle}
           setBillingCycle={setBillingCycle}
           onOpenUpgrade={handleOpenUpgrade}
+          isPaymentCompleted={merchant?.paymentStatus === "completed"}
         />
 
         <AddOnsGrid addOns={addOns} onOpenAddOn={handleOpenAddOn} />

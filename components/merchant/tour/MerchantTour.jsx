@@ -20,30 +20,40 @@ export default function MerchantTour() {
 
   // Highlight the active anchor element; remove from previous
   useEffect(() => {
-    if (prevAnchorRef.current) {
-      prevAnchorRef.current.removeAttribute("data-tour-active");
-      prevAnchorRef.current = null;
-    }
-    if (!isActive || !currentStep?.anchor) return;
+    let timerId = null;
+    let retryCount = 0;
 
-    const el = document.querySelector(currentStep.anchor);
-    if (el) {
-      el.setAttribute(
-        "data-tour-active",
-        currentStep.mode === "content" ? "content" : "sidebar",
-      );
-      // Scroll into view for content steps
-      if (currentStep.mode === "content") {
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-          inline: "nearest",
-        });
+    const applyHighlight = () => {
+      if (prevAnchorRef.current) {
+        prevAnchorRef.current.removeAttribute("data-tour-active");
+        prevAnchorRef.current = null;
       }
-      prevAnchorRef.current = el;
-    }
+      if (!isActive || !currentStep?.anchor) return;
+
+      const el = document.querySelector(currentStep.anchor);
+      if (el) {
+        el.setAttribute(
+          "data-tour-active",
+          currentStep.mode === "content" ? "content" : "sidebar",
+        );
+        try {
+          el.scrollIntoView({
+            behavior: "smooth",
+            block: currentStep.mode === "content" ? "center" : "nearest",
+            inline: "nearest",
+          });
+        } catch {}
+        prevAnchorRef.current = el;
+      } else if (retryCount < 5) {
+        retryCount++;
+        timerId = setTimeout(applyHighlight, 100);
+      }
+    };
+
+    applyHighlight();
 
     return () => {
+      if (timerId) clearTimeout(timerId);
       if (prevAnchorRef.current) {
         prevAnchorRef.current.removeAttribute("data-tour-active");
         prevAnchorRef.current = null;

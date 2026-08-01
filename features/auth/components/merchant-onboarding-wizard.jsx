@@ -336,7 +336,31 @@ export function MerchantOnboardingWizard() {
     },
   ];
 
-  const merchantPlans = publicSettings?.merchant_plans || [
+  const [plansFromDb, setPlansFromDb] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDynamicPlans() {
+      try {
+        const res = await fetch("/api/plans");
+        if (res.ok) {
+          const json = await res.json();
+          const dbPlans = json?.data?.plans || json?.plans;
+          if (Array.isArray(dbPlans) && dbPlans.length > 0 && isMounted) {
+            setPlansFromDb(dbPlans.filter((p) => p.active !== false));
+          }
+        }
+      } catch (err) {
+        console.error("[MerchantWizard] Error fetching dynamic plans:", err);
+      }
+    }
+    loadDynamicPlans();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const merchantPlans = plansFromDb || publicSettings?.merchant_plans || [
     {
       id: "starter",
       name: "STARTER FREE",
@@ -2199,7 +2223,12 @@ export function MerchantOnboardingWizard() {
                           </div>
                           <div className="flex items-baseline gap-1.5 mt-1">
                             <span className="text-2xl font-extrabold text-slate-900">
-                              {plan.priceText}
+                              {plan.priceText ||
+                                (typeof plan.priceMonthly === "number"
+                                  ? plan.priceMonthly === 0
+                                    ? "₹0"
+                                    : `₹${plan.priceMonthly.toLocaleString("en-IN")}`
+                                  : "Custom pricing")}
                             </span>
                             {plan.originalPrice && (
                               <span className="text-xs line-through text-slate-400 font-medium">

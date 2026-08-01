@@ -18,8 +18,33 @@ export default function CurrentPlanCard({
   planCampaignsLimit,
   onOpenUpgrade,
 }) {
+  const isPaymentCompleted = merchant?.paymentStatus === "completed";
+  const currentPlanObj =
+    plans.find((p) => p.id === currentPlanId) ||
+    plans.find((p) => p.id === "growth") ||
+    plans[0];
+
   return (
     <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-2xs space-y-4 text-left font-sans">
+      {/* Payment Pending Alert Banner */}
+      {!isPaymentCompleted && (
+        <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 font-medium">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+            <span>
+              <strong>Registration Subscription Payment Pending:</strong> You selected the <strong>{currentPlanObj?.name}</strong> plan during onboarding. Complete your payment now to unlock full features.
+            </span>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => onOpenUpgrade(currentPlanObj)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs h-8 px-4 rounded-xl shrink-0 cursor-pointer shadow-md shadow-emerald-600/20 border-0 transition-all"
+          >
+            Pay Subscription Now →
+          </Button>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3.5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
@@ -28,10 +53,16 @@ export default function CurrentPlanCard({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-heading text-base font-extrabold text-slate-900 capitalize">
-                Current Plan: {plans.find((p) => p.id === currentPlanId)?.name}
+                Current Plan: {currentPlanObj?.name}
               </h3>
-              <Badge className="bg-emerald-100 text-emerald-800 rounded-full border-0 font-bold text-[9px] py-0.5 px-2 uppercase">
-                Active Subscription
+              <Badge
+                className={
+                  isPaymentCompleted
+                    ? "bg-emerald-100 text-emerald-800 rounded-full border-0 font-bold text-[9px] py-0.5 px-2 uppercase"
+                    : "bg-amber-100 text-amber-900 rounded-full border-0 font-black text-[9px] py-0.5 px-2 uppercase animate-pulse"
+                }
+              >
+                {isPaymentCompleted ? "Active Subscription" : "Payment Pending"}
               </Badge>
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-0.5">
@@ -47,15 +78,25 @@ export default function CurrentPlanCard({
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button
-            variant="outline"
-            onClick={() =>
-              toast.success("Opening billing management portal...")
-            }
-            className="text-xs h-8 font-bold rounded-xl border-slate-200 cursor-pointer shadow-none text-slate-700 hover:bg-slate-50"
-          >
-            Manage Billing
-          </Button>
+          {!isPaymentCompleted ? (
+            <Button
+              onClick={() => onOpenUpgrade(currentPlanObj)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 font-extrabold rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 border-0 flex items-center gap-1.5"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Pay Subscription
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() =>
+                toast.success("Opening billing management portal...")
+              }
+              className="text-xs h-8 font-bold rounded-xl border-slate-200 cursor-pointer shadow-none text-slate-700 hover:bg-slate-50"
+            >
+              Manage Billing
+            </Button>
+          )}
           <Button
             onClick={() =>
               onOpenUpgrade(plans.find((p) => p.id === "pro") || plans[2])

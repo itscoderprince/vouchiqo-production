@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 export default function PlanSelector({
   plan = {},
   isCurrent = false,
+  isPaymentCompleted = false,
   isRecommended = false,
   onSelect,
   loading = false,
@@ -40,37 +41,49 @@ export default function PlanSelector({
     badge,
   } = plan;
 
+  const isPendingPayment = isCurrent && !isPaymentCompleted;
   const highlight = isRecommended || isCurrent;
 
   return (
     <div
       className={cn(
         "relative flex flex-col rounded-xl border-2 p-5 transition-all duration-200 bg-brand-bg",
-        highlight
-          ? "border-brand-navy shadow-lg shadow-brand-navy/10 scale-[1.02]"
-          : "border-brand-border hover:border-brand-navy/40 hover:shadow-md",
+        isPendingPayment
+          ? "border-amber-400 shadow-lg shadow-amber-500/10 scale-[1.02]"
+          : highlight
+            ? "border-brand-navy shadow-lg shadow-brand-navy/10 scale-[1.02]"
+            : "border-brand-border hover:border-brand-navy/40 hover:shadow-md",
         className,
       )}
     >
       {/* Top badge */}
       {(badge || isCurrent) && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
           <Badge
             className={cn(
-              "text-[10px] font-bold px-3 py-0.5 rounded-full border-0 shadow-sm",
+              "text-[10px] font-bold px-3.5 py-1 rounded-full border-0 shadow-md ring-2 ring-white flex items-center gap-1 shrink-0",
               isCurrent
-                ? "bg-emerald-500 text-white"
-                : "bg-brand-navy text-white",
+                ? isPaymentCompleted
+                  ? "bg-emerald-600 text-white"
+                  : "bg-amber-400 text-amber-950 font-black"
+                : "bg-blue-600 text-white",
             )}
           >
             {isCurrent ? (
-              <>
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Current Plan
-              </>
+              isPaymentCompleted ? (
+                <>
+                  <CheckCircle2 className="w-3 h-3 mr-0.5" />
+                  Active Plan
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3 h-3 mr-0.5 fill-current" />
+                  Payment Pending
+                </>
+              )
             ) : (
               <>
-                <Star className="w-3 h-3 mr-1 fill-current" />
+                <Star className="w-3 h-3 mr-0.5 fill-current" />
                 {badge}
               </>
             )}
@@ -114,33 +127,53 @@ export default function PlanSelector({
       </ul>
 
       {/* CTA */}
-      <Button
-        type="button"
-        disabled={isCurrent || loading}
-        onClick={() => onSelect?.(plan)}
-        className={cn(
-          "w-full h-9 text-sm font-bold shadow-none cursor-pointer",
-          isCurrent
-            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 cursor-default"
-            : highlight
-              ? "bg-brand-navy hover:bg-brand-navy/90 text-white"
-              : "bg-brand-surface border border-brand-border text-brand-text hover:bg-brand-navy hover:text-white",
-        )}
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-            Processing…
-          </>
-        ) : isCurrent ? (
-          "Current Plan"
-        ) : (
-          <>
-            <Zap className="w-3.5 h-3.5 mr-1.5" />
-            Select Plan
-          </>
-        )}
-      </Button>
+      {(() => {
+        const cleanName = name
+          ? name
+              .toLowerCase()
+              .split(" ")
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" ")
+          : "Plan";
+
+        return (
+          <Button
+            type="button"
+            disabled={loading}
+            onClick={() => onSelect?.(plan)}
+            className={cn(
+              "w-full h-10 text-xs sm:text-sm font-sans font-semibold cursor-pointer transition-all",
+              isCurrent
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 font-bold"
+                : "bg-slate-900 text-white hover:bg-slate-800 shadow-none font-semibold",
+            )}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                Processing…
+              </>
+            ) : isCurrent ? (
+              isPaymentCompleted ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                  Current Plan (Renew)
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3.5 h-3.5 mr-1.5" />
+                  Pay for {cleanName}
+                </>
+              )
+            ) : (
+              <>
+                <Zap className="w-3.5 h-3.5 mr-1.5" />
+                Select Plan
+              </>
+            )}
+          </Button>
+        );
+      })()}
     </div>
   );
 }

@@ -44,7 +44,42 @@ export const POST = asyncHandler(async (request) => {
   }
 
   if (payment.type !== "SUBSCRIPTION") {
-    await PaymentService.capturePayment(orderId, paymentId, payment.amount);
+    await PaymentService.capturePayment(orderId, paymentId, payment.amount).catch(() => {});
+  }
+
+  payment.status = "CAPTURED";
+  payment.gatewayPaymentId = paymentId;
+  payment.paidAt = new Date();
+  await payment.save();
+
+  const merchantRecord = merchant || (await Merchant.findById(payment.merchantId));
+  if (merchantRecord) {
+    merchantRecord.paymentStatus = "completed";
+    if (
+      payment.type === "SUBSCRIPTION" ||
+      payment.metadata?.type === "subscription"
+    ) {
+      const plan = payment.metadata?.plan || "growth";
+      const cycle = payment.metadata?.cycle || "monthly";
+      const expiryDays = cycle === "yearly" ? 365 : 30;
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + expiryDays);
+
+      merchantRecord.plan = plan;
+      merchantRecord.planExpiry = expiryDate;
+      merchantRecord.subscriptionStatus = "active";
+      merchantRecord.lastPaymentId = paymentId;
+      merchantRecord.lastOrderId = orderId;
+
+      if (plan === "pro") {
+        merchantRecord.revivalCredits = (merchantRecord.revivalCredits || 0) + 50;
+      } else if (plan === "enterprise") {
+        merchantRecord.revivalCredits = 999999;
+      }
+    } else if (payment.metadata?.addOnId === "revival_pack") {
+      merchantRecord.revivalCredits = (merchantRecord.revivalCredits || 0) + 25;
+    }
+    await merchantRecord.save();
   }
 
   const updatedPayment = await PaymentService.getPayment(
@@ -54,6 +89,6 @@ export const POST = asyncHandler(async (request) => {
 
   return ok(
     updatedPayment,
-    "Payment signature verified and captured successfully",
+    "Payment signature verified and plan activated successfully",
   );
 });

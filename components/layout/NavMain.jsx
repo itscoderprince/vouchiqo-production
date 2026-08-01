@@ -293,10 +293,15 @@ export function NavMain({ groups, isMerchant = false }) {
                   : "text-slate-800 font-semibold";
 
                 const URL_TOUR_MAP = {
+                  "/merchant/dashboard": "tour-dashboard-overview",
+                  "/merchant/coupons": "tour-my-listings",
+                  "/merchant/coupons/new": "tour-post-new",
                   "/merchant/analytics": "tour-analytics",
-                  "/merchant/billing": "tour-billing",
                   "/merchant/campaigns": "tour-campaigns",
                   "/merchant/notifications": "tour-notifications",
+                  "/merchant/billing": "tour-billing",
+                  "/merchant/profile": "tour-business-profile",
+                  "/merchant/application-status": "tour-app-tracking",
                   "/merchant/settings": "tour-settings",
                   "/faq": "sidebar-help",
                 };
