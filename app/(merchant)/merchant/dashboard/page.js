@@ -1,14 +1,16 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Clock, Info, ShoppingCart, Zap } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock, Info, Lock, ShoppingCart, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
-import CompleteProfileModal from "./components/CompleteProfileModal";
 import KpiCards from "./components/KpiCards";
 import OnboardingCard from "./components/OnboardingCard";
 import PerformanceChart from "./components/PerformanceChart";
@@ -23,6 +25,7 @@ export default function MerchantDashboard() {
   const queryClient = useQueryClient();
   const [activeRange, setActiveRange] = useState("30 Days");
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const { isProfileIncomplete, health, openModal } = useMerchantLock();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -165,88 +168,19 @@ export default function MerchantDashboard() {
     });
   }
 
-  // Recent redemptions table rows
-  const recentRedemptions =
-    redemptionsData?.redemptions?.length > 0
-      ? redemptionsData.redemptions.map((r) => {
-          const name = r.userId?.name || "Customer User";
-          const email = r.userId?.email || "customer@vouchiqo.com";
-          const initials = name
-            .split(" ")
-            .map((w) => w[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
-          return {
-            initials,
-            bg: "bg-[#3e80dd]",
-            name,
-            email,
-            id: r._id.toString().slice(-8).toUpperCase(),
-            product: r.couponId?.title || "Special Deal Offer",
-            status: "Completed",
-            amount: `₹${r.savingsAmount || 0}`,
-          };
-        })
-      : [];
-
-  const recentClaims =
-    claimsData?.claims?.length > 0
-      ? claimsData.claims.map((c) => {
-          const name = c.userName || "Customer User";
-          const email = c.userEmail || "customer@vouchiqo.com";
-          const initials = name
-            .split(" ")
-            .map((w) => w[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
-          return {
-            initials,
-            bg: "bg-indigo-600",
-            name,
-            email,
-            id: c._id.toString().slice(-8).toUpperCase(),
-            product: c.coupon?.title || "Special Deal Offer",
-            status: "Claimed",
-            amount: c.coupon?.code || "VOUCHIQO",
-          };
-        })
-      : [];
-
-  const recentActivities =
-    redemptionsData?.redemptions?.length > 0
-      ? redemptionsData.redemptions.map((r) => {
-          const name = r.userId?.name || "Customer User";
-          const date = new Date(r.createdAt);
-          const timeLabel = date.toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-          return {
-            icon: ShoppingCart,
-            color: "text-[#2563eb]",
-            bg: "bg-[#2563eb]/10",
-            title: "Coupon Redeemed",
-            desc: `${name} redeemed "${r.couponId?.title || "Coupon"}" (Saved ₹${r.savingsAmount || 0})`,
-            time: timeLabel,
-          };
-        })
-      : [];
+  const recentRedemptions = redemptionsData?.redemptions ?? [];
+  const recentClaims = claimsData?.claims ?? [];
+  const recentActivities = analyticsData?.recentActivities ?? [];
 
   // Top performing coupons from overview stats
   const topCoupons = Object.entries(overviewStats)
     .map(([id, stats]) => ({
       id,
-      title: stats.title || id,
-      code: stats.code || "—",
-      discount: stats.discount || "—",
-      category: stats.category || "General",
-      clicks: stats.views || 0,
+      title: stats.title || "Offer Listing",
+      views: stats.views || 0,
+      claims: stats.claims || 0,
       redemptions: stats.redemptions || 0,
-      successRate:
+      conversion:
         stats.views > 0
           ? Math.round((stats.redemptions / stats.views) * 100)
           : 0,
@@ -260,7 +194,48 @@ export default function MerchantDashboard() {
       title="Dashboard"
       user={{ name: merchant?.businessName || "Merchant", role: "merchant" }}
     >
-      <div className="space-y-4 text-left font-sans">
+      <div className="relative space-y-4 text-left font-sans min-h-[75vh]">
+        {/* Full Dashboard Blur Overlay when Profile is Incomplete */}
+        {isProfileIncomplete && (
+          <div
+            onClick={openModal}
+            className="absolute inset-0 z-30 bg-slate-900/50 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-hidden"
+          >
+            <div className="max-w-md w-full bg-slate-900/90 text-white rounded-3xl p-8 border border-slate-700/80 shadow-2xl space-y-5 backdrop-blur-xl">
+              <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700/90 flex items-center justify-center mx-auto text-slate-300 shadow-inner">
+                <Lock className="w-8 h-8 text-slate-300" />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2">
+                  <h3 className="text-lg font-black text-white tracking-tight">
+                    Dashboard Locked
+                  </h3>
+                  <Badge className="bg-red-500/20 text-red-300 border-red-500/30 text-[10px] font-bold">
+                    {health?.percentage || 0}% Complete
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                  Your store profile is currently incomplete. Complete all 15 required details to unlock your listings, analytics, and partner controls.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push("/merchant/profile?edit=true");
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl h-11 shadow-lg shadow-blue-600/30 cursor-pointer flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                >
+                  <span>Complete Profile Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Application Under Review Overlay Banner */}
         {merchant?.status === "pending" && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-3 shadow-2xs">
@@ -382,9 +357,6 @@ export default function MerchantDashboard() {
             recentActivities={recentActivities}
           />
         </div>
-
-        {/* Complete Profile & Billing Popup Modal */}
-        <CompleteProfileModal merchant={merchantProfile} />
       </div>
     </DashboardLayout>
   );

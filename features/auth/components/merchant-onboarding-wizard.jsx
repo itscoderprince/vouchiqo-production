@@ -909,9 +909,13 @@ export function MerchantOnboardingWizard() {
         liaisonPhone: cleanPhone(formData.mobile),
         docType: formData.docType,
         docImage: formData.docFileUrl,
+        docFileUrl: formData.docFileUrl,
         shopImage: formData.shopPhotoUrl,
+        shopPhotoUrl: formData.shopPhotoUrl,
         logo: formData.logoUrl,
+        logoUrl: formData.logoUrl,
         banner: formData.bannerUrl,
+        bannerUrl: formData.bannerUrl,
         plan: formData.selectedPlan,
         commissionRate: (() => {
           const matchedComm = masterCpaRates.find(

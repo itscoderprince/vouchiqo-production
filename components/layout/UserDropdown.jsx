@@ -18,6 +18,8 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -37,6 +39,7 @@ export default function UserDropdown({
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useUser();
+  const { isProfileIncomplete, openModal } = useMerchantLock();
 
   if (!user) return null;
 
@@ -65,6 +68,21 @@ export default function UserDropdown({
   const handleLogoutAction = async () => {
     if (onMobileClose) onMobileClose();
     await logout();
+  };
+
+  const handleMerchantNavClick = (e, url) => {
+    if (effectiveRole === "merchant" && isProfileIncomplete) {
+      if (!url || !url.startsWith("/merchant/profile")) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onMobileClose) onMobileClose();
+        openModal();
+        toast.error(
+          "Profile Incomplete! Please complete your store profile to unlock this feature.",
+          { id: "topbar-profile-lock-toast" },
+        );
+      }
+    }
   };
 
   if (isMobile) {
@@ -129,12 +147,15 @@ export default function UserDropdown({
             </>
           )}
 
-          {/* Merchant links */}
+          {/* Merchant view */}
           {effectiveRole === "merchant" && (
             <>
               <Link
                 href="/merchant/dashboard"
-                onClick={onMobileClose}
+                onClick={(e) => {
+                  handleMerchantNavClick(e, "/merchant/dashboard");
+                  if (!isProfileIncomplete && onMobileClose) onMobileClose();
+                }}
                 className="flex items-center gap-2 text-sm font-medium hover:text-slate-300 transition-colors"
               >
                 <LayoutDashboard className="w-4 h-4 text-slate-400" />
@@ -142,7 +163,10 @@ export default function UserDropdown({
               </Link>
               <Link
                 href="/merchant/profile"
-                onClick={onMobileClose}
+                onClick={(e) => {
+                  handleMerchantNavClick(e, "/merchant/profile");
+                  if (onMobileClose) onMobileClose();
+                }}
                 className="flex items-center gap-2 text-sm font-medium hover:text-slate-300 transition-colors"
               >
                 <User className="w-4 h-4 text-slate-400" />
@@ -150,15 +174,21 @@ export default function UserDropdown({
               </Link>
               <Link
                 href="/merchant/coupons/new"
-                onClick={onMobileClose}
+                onClick={(e) => {
+                  handleMerchantNavClick(e, "/merchant/coupons/new");
+                  if (!isProfileIncomplete && onMobileClose) onMobileClose();
+                }}
                 className="flex items-center gap-2 text-sm font-medium hover:text-slate-300 transition-colors"
               >
                 <Tag className="w-4 h-4 text-slate-400" />
-                <span>Create Coupon</span>
+                <span>Create Offer</span>
               </Link>
               <Link
                 href="/merchant/analytics"
-                onClick={onMobileClose}
+                onClick={(e) => {
+                  handleMerchantNavClick(e, "/merchant/analytics");
+                  if (!isProfileIncomplete && onMobileClose) onMobileClose();
+                }}
                 className="flex items-center gap-2 text-sm font-medium hover:text-slate-300 transition-colors"
               >
                 <TrendingUp className="w-4 h-4 text-slate-400" />
@@ -272,7 +302,7 @@ export default function UserDropdown({
                 className="flex items-center gap-2 cursor-pointer w-full text-xs font-bold text-brand-text hover:text-brand-navy hover:bg-slate-50 rounded-lg px-2.5 py-2"
               >
                 <Bookmark className="h-4 w-4 text-brand-blue" />
-                <span>Saved Coupons</span>
+                <span>Saved Offers</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -311,6 +341,7 @@ export default function UserDropdown({
             <DropdownMenuItem asChild>
               <Link
                 href="/merchant/dashboard"
+                onClick={(e) => handleMerchantNavClick(e, "/merchant/dashboard")}
                 className="flex items-center gap-2 cursor-pointer w-full text-xs font-bold text-brand-text hover:text-brand-navy hover:bg-slate-50 rounded-lg px-2.5 py-2"
               >
                 <LayoutDashboard className="h-4 w-4 text-brand-blue" />
@@ -320,6 +351,7 @@ export default function UserDropdown({
             <DropdownMenuItem asChild>
               <Link
                 href="/merchant/profile"
+                onClick={(e) => handleMerchantNavClick(e, "/merchant/profile")}
                 className="flex items-center gap-2 cursor-pointer w-full text-xs font-bold text-brand-text hover:text-brand-navy hover:bg-slate-50 rounded-lg px-2.5 py-2"
               >
                 <User className="h-4 w-4 text-brand-blue" />
@@ -329,15 +361,17 @@ export default function UserDropdown({
             <DropdownMenuItem asChild>
               <Link
                 href="/merchant/coupons/new"
+                onClick={(e) => handleMerchantNavClick(e, "/merchant/coupons/new")}
                 className="flex items-center gap-2 cursor-pointer w-full text-xs font-bold text-brand-text hover:text-brand-navy hover:bg-slate-50 rounded-lg px-2.5 py-2"
               >
                 <Tag className="h-4 w-4 text-brand-blue" />
-                <span>Create Coupon</span>
+                <span>Create Offer</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
                 href="/merchant/analytics"
+                onClick={(e) => handleMerchantNavClick(e, "/merchant/analytics")}
                 className="flex items-center gap-2 cursor-pointer w-full text-xs font-bold text-brand-text hover:text-brand-navy hover:bg-slate-50 rounded-lg px-2.5 py-2"
               >
                 <TrendingUp className="h-4 w-4 text-brand-blue" />
@@ -346,6 +380,7 @@ export default function UserDropdown({
             </DropdownMenuItem>
           </>
         )}
+
 
         {/* Admin view */}
         {user.role === "admin" && (

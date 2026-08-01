@@ -14,7 +14,7 @@ import { qk } from "@/lib/query-keys";
  *
  * @returns {object} useQuery result — `data` is the merchant object (or null)
  */
-export function useMerchantProfile() {
+export function useMerchantProfile(options = {}) {
   return useQuery({
     queryKey: qk.merchant.profile(),
     staleTime: STALE.profile,
@@ -22,5 +22,7 @@ export function useMerchantProfile() {
       const json = await apiFetch("/api/merchants/me");
       return json.data;
     },
+    ...options,
   });
 }
+

@@ -49,6 +49,19 @@ export const PUT = asyncHandler(async (request) => {
     merchant.slug = await generateUniqueSlug(body.businessName || "merchant", city, state, merchant._id);
   }
 
+  // Normalize document & image aliases from wizard / onboarding forms
+  const docImg = body.docImage || body.docFileUrl || body.docUrl || body.identityDocumentUrl;
+  if (docImg !== undefined) merchant.docImage = docImg;
+
+  const shopImg = body.shopImage || body.shopPhotoUrl || body.shopFrontUrl || body.storePhotoUrl;
+  if (shopImg !== undefined) merchant.shopImage = shopImg;
+
+  const logoImg = body.logo || body.logoUrl || body.shopLogo;
+  if (logoImg !== undefined) merchant.logo = logoImg;
+
+  const bannerImg = body.banner || body.bannerUrl || body.shopBanner;
+  if (bannerImg !== undefined) merchant.banner = bannerImg;
+
   // Update profile fields
   const allowedFields = [
     "businessName",

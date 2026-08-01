@@ -225,11 +225,6 @@ export default function MerchantBusinessProfile() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (step === 3) {
-              handleSubmit(e);
-            } else {
-              handleNext();
-            }
           }}
           className="space-y-6"
         >
@@ -280,27 +275,38 @@ export default function MerchantBusinessProfile() {
               <span>Back</span>
             </Button>
 
-            {step < 3
-              ? <Button
-                  type="button"
-                  onClick={handleNext}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
-                >
-                  <span>Next Step</span>
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              : <Button
-                  type="submit"
-                  disabled={isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
-                >
-                  {isPending
-                    ? <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Submitting Profile...</span>
-                      </>
-                    : <span>Submit Profile Details</span>}
-                </Button>}
+            {step < 3 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+              >
+                <span>Next Step</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }}
+                disabled={isPending}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Submitting Profile...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Submit Profile Details</span>
+                    <CheckCircle2 className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </form>
       </div>

@@ -14,7 +14,7 @@ import {
   Store,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export function calculateProfileHealth(merchant) {
     return {
       percentage: 0,
       completedCount: 0,
-      totalCount: 16,
+      totalCount: 15,
       missingFields: ["All details missing"],
       color: "red",
     };
@@ -34,10 +34,6 @@ export function calculateProfileHealth(merchant) {
     { name: "Business Name", isFilled: Boolean(merchant.businessName) },
     { name: "Brand Slug", isFilled: Boolean(merchant.slug) },
     { name: "Primary Category", isFilled: Boolean(merchant.category) },
-    {
-      name: "Store Description",
-      isFilled: Boolean(merchant.description && merchant.description.length > 5),
-    },
     { name: "Contact Email", isFilled: Boolean(merchant.contactEmail) },
     { name: "Contact Phone", isFilled: Boolean(merchant.contactPhone) },
     { name: "Store Address", isFilled: Boolean(merchant.location?.address || merchant.address) },
@@ -84,9 +80,9 @@ export function calculateProfileHealth(merchant) {
   };
 }
 
-export default function CompleteProfileModal({ merchant }) {
+export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const health = useMemo(() => calculateProfileHealth(merchant), [merchant]);
@@ -106,6 +102,9 @@ export default function CompleteProfileModal({ merchant }) {
   const isPaymentPending = isPaidPlan && !isPaymentCompleted;
   const isProfileComplete = health.percentage >= 100;
 
+  // Controlled vs uncontrolled open state
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+
   // Show 2 slides ONLY if payment is pending. If payment is completed, Slide 2 is hidden.
   const totalSlides = isPaymentPending && !isProfileComplete ? 2 : 1;
 
@@ -114,16 +113,15 @@ export default function CompleteProfileModal({ merchant }) {
 
     // IF Profile is 100% complete AND payment is not pending -> DO NOT SHOW
     if (isProfileComplete && !isPaymentPending) {
-      setOpen(false);
+      if (isOpen === undefined) setInternalOpen(false);
       return;
     }
 
-    // Always pop up modal on login / dashboard load when profile health is < 100% or payment is pending
-    setOpen(true);
+    if (isOpen === undefined) setInternalOpen(true);
     if (isProfileComplete && isPaymentPending) {
       setCurrentSlide(1);
     }
-  }, [merchant, isProfileComplete, isPaymentPending]);
+  }, [merchant, isProfileComplete, isPaymentPending, isOpen]);
 
   // Auto-slide effect between slides if 2 slides exist
   useEffect(() => {
@@ -134,24 +132,50 @@ export default function CompleteProfileModal({ merchant }) {
     return () => clearInterval(interval);
   }, [open, totalSlides]);
 
-  // Do not render modal if profile is 100% complete AND no payment pending
-  if (!open || !merchant || (isProfileComplete && !isPaymentPending)) {
+  const pathname = usePathname();
+
+  // Do not render modal on /merchant/profile page OR if profile is 100% complete AND no payment pending
+  if (
+    !open ||
+    !merchant ||
+    (pathname && pathname.startsWith("/merchant/profile")) ||
+    (isProfileComplete && !isPaymentPending)
+  ) {
     return null;
   }
 
   const handleClose = () => {
-    sessionStorage.setItem("complete_profile_modal_dismissed", "true");
-    setOpen(false);
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalOpen(false);
+    }
   };
 
-  const handleGoToProfile = () => {
+  const handleGoToProfile = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     handleClose();
-    router.push("/merchant/profile?edit=true");
+    if (typeof window !== "undefined") {
+      if (window.location.pathname === "/merchant/profile") {
+        window.location.href = "/merchant/profile?edit=true";
+      } else {
+        router.push("/merchant/profile?edit=true");
+      }
+    }
   };
 
-  const handleGoToBilling = () => {
+  const handleGoToBilling = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     handleClose();
-    router.push("/merchant/billing?autoPay=true");
+    if (typeof window !== "undefined") {
+      router.push("/merchant/billing?autoPay=true");
+    }
   };
 
   // Dynamic color mappings for health gauge ring & status badge based on profile health score
@@ -180,20 +204,13 @@ export default function CompleteProfileModal({ merchant }) {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                <span>Complete Your Partner Profile</span>
+                <span>Complete Your Profile to List Offers</span>
               </h3>
               <p className="text-[11px] text-slate-400 font-normal">
-                {merchant.businessName || "Merchant Partner"} • Ranchi Store
+                {merchant.businessName || "Merchant Partner"} • Fill details to unlock deals, offers &amp; campaigns
               </p>
             </div>
           </div>
-
-          <button
-            onClick={handleClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
 
         {/* Carousel Slider Controls Header */}
@@ -298,10 +315,10 @@ export default function CompleteProfileModal({ merchant }) {
 
                   <p className="text-xs text-slate-700 font-semibold leading-snug">
                     {health.percentage < 50
-                      ? "Your store profile is incomplete. Complete all fields to boost search rank & customer trust."
-                      : health.percentage < 85
-                        ? "Great job! A few key store details remain. Add logo & banner for 100% health."
-                        : "Your store profile is almost 100% verified. Keep details updated!"}
+                      ? "Complete your store profile details to list your offers and unlock full dashboard controls."
+                      : health.percentage < 100
+                        ? "Almost ready! Complete your remaining profile fields to publish your offers & boost customer trust."
+                        : "Your store profile is 100% verified and fully active!"}
                   </p>
                 </div>
               </div>
@@ -316,7 +333,8 @@ export default function CompleteProfileModal({ merchant }) {
                     {health.missingFields.map((fieldName, fIdx) => (
                       <span
                         key={fIdx}
-                        className="text-[11px] font-medium bg-blue-50/90 text-blue-700 border border-blue-200/90 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors"
+                        onClick={handleGoToProfile}
+                        className="text-[11px] font-medium bg-blue-50/90 text-blue-700 border border-blue-200/90 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors cursor-pointer"
                       >
                         <span>+</span>
                         <span>{fieldName}</span>
@@ -327,21 +345,14 @@ export default function CompleteProfileModal({ merchant }) {
               )}
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-slate-100">
                 <Button
+                  type="button"
                   onClick={handleGoToProfile}
-                  className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <span>Complete Profile Now</span>
                   <ArrowRight className="w-4 h-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleClose}
-                  className="w-full sm:w-auto text-xs font-bold text-slate-700 border-slate-300 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 rounded-xl h-10 px-4 cursor-pointer transition-colors"
-                >
-                  Remind Me Later
                 </Button>
               </div>
             </div>
@@ -385,21 +396,13 @@ export default function CompleteProfileModal({ merchant }) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-slate-100">
                 <Button
                   onClick={handleGoToBilling}
-                  className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <CreditCard className="w-4 h-4" />
                   <span>Complete Payment Now</span>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleClose}
-                  className="w-full sm:w-auto text-xs font-bold text-slate-700 border-slate-300 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 rounded-xl h-10 px-4 cursor-pointer transition-colors"
-                >
-                  Remind Me Later
                 </Button>
               </div>
             </div>
@@ -409,3 +412,4 @@ export default function CompleteProfileModal({ merchant }) {
     </div>
   );
 }
+

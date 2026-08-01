@@ -354,109 +354,176 @@ export default function MerchantKycDialog({
             </div>
 
             {/* PRIMARY IDENTITY DOCUMENT IMAGE PREVIEW */}
-            <div className="p-4 bg-blue-50/30 rounded-xl border border-blue-200 text-center space-y-3">
-              <div className="flex items-center justify-between border-b border-blue-100 pb-2">
-                <span className="text-xs font-medium text-slate-900 block">
-                  Primary Identity Document Image (
-                  {merchant.docType || "GST Certificate"})
-                </span>
-                {merchant.docImage && (
-                  <a
-                    href={merchant.docImage}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" /> Full Size Image
-                  </a>
-                )}
-              </div>
+            {(() => {
+              const docImgUrl =
+                merchant.docImage ||
+                merchant.docFileUrl ||
+                merchant.docUrl ||
+                merchant.identityDocumentUrl ||
+                merchant.docFile;
+              return (
+                <div className="p-4 bg-blue-50/30 rounded-xl border border-blue-200 text-center space-y-3">
+                  <div className="flex items-center justify-between border-b border-blue-100 pb-2">
+                    <span className="text-xs font-medium text-slate-900 block">
+                      Primary Identity Document Image (
+                      {merchant.docType || "GST Certificate"})
+                    </span>
+                    {docImgUrl && (
+                      <a
+                        href={docImgUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Full Size Image
+                      </a>
+                    )}
+                  </div>
 
-              {merchant.docImage ? (
-                <div className="space-y-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={merchant.docImage}
-                    alt={merchant.docType || "Primary Identity Document"}
-                    className="max-h-80 mx-auto object-contain rounded-xl border border-slate-200 shadow-xs bg-white p-1"
-                  />
+                  {docImgUrl ? (
+                    <div className="space-y-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={docImgUrl}
+                        alt={merchant.docType || "Primary Identity Document"}
+                        className="max-h-80 mx-auto object-contain rounded-xl border border-slate-200 shadow-xs bg-white p-1"
+                      />
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center space-y-1">
+                      <FileText className="w-8 h-8 text-slate-300 mx-auto" />
+                      <span className="text-xs text-slate-400 font-normal block">
+                        No primary identity document image uploaded by merchant
+                      </span>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="py-8 text-center space-y-1">
-                  <FileText className="w-8 h-8 text-slate-300 mx-auto" />
-                  <span className="text-xs text-slate-400 font-normal block">
-                    No primary identity document image uploaded by merchant
-                  </span>
-                </div>
-              )}
-            </div>
+              );
+            })()}
           </TabsContent>
 
           {/* ── TAB 3: STORE VISUALS & PHOTOS ───────────────────────── */}
           <TabsContent value="visuals" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-semibold text-slate-900 block">
-                  Shop Front Photograph
-                </span>
-                {merchant.shopImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={merchant.shopImage}
-                    alt="Shop Front"
-                    className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
-                  />
-                ) : (
-                  <div className="py-8 text-center space-y-1">
-                    <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                    <span className="text-xs text-slate-400 font-normal block">
-                      No shop front photo uploaded
-                    </span>
+              {(() => {
+                const shopImgUrl =
+                  merchant.shopImage ||
+                  merchant.shopPhotoUrl ||
+                  merchant.shopFrontUrl ||
+                  merchant.storePhotoUrl;
+                return (
+                  <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-900 block">
+                        Shop Front Photograph
+                      </span>
+                      {shopImgUrl && (
+                        <a
+                          href={shopImgUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
+                        >
+                          <ExternalLink className="w-3 h-3" /> View
+                        </a>
+                      )}
+                    </div>
+                    {shopImgUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={shopImgUrl}
+                        alt="Shop Front"
+                        className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
+                      />
+                    ) : (
+                      <div className="py-8 text-center space-y-1">
+                        <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
+                        <span className="text-xs text-slate-400 font-normal block">
+                          No shop front photo uploaded
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
 
-              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-semibold text-slate-900 block">
-                  Store Brand Logo
-                </span>
-                {merchant.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={merchant.logo}
-                    alt="Store Logo"
-                    className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
-                  />
-                ) : (
-                  <div className="py-8 text-center space-y-1">
-                    <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                    <span className="text-xs text-slate-400 font-normal block">
-                      No store logo uploaded
-                    </span>
+              {(() => {
+                const logoImgUrl =
+                  merchant.logo || merchant.logoUrl || merchant.shopLogo;
+                return (
+                  <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-900 block">
+                        Store Brand Logo
+                      </span>
+                      {logoImgUrl && (
+                        <a
+                          href={logoImgUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
+                        >
+                          <ExternalLink className="w-3 h-3" /> View
+                        </a>
+                      )}
+                    </div>
+                    {logoImgUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={logoImgUrl}
+                        alt="Store Logo"
+                        className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
+                      />
+                    ) : (
+                      <div className="py-8 text-center space-y-1">
+                        <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
+                        <span className="text-xs text-slate-400 font-normal block">
+                          No store logo uploaded
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
 
-              <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                <span className="text-xs font-semibold text-slate-900 block">
-                  Store Banner Image
-                </span>
-                {merchant.banner ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={merchant.banner}
-                    alt="Store Banner"
-                    className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
-                  />
-                ) : (
-                  <div className="py-8 text-center space-y-1">
-                    <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                    <span className="text-xs text-slate-400 font-normal block">
-                      No banner image uploaded
-                    </span>
+              {(() => {
+                const bannerImgUrl =
+                  merchant.banner || merchant.bannerUrl || merchant.shopBanner;
+                return (
+                  <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-900 block">
+                        Store Banner Image
+                      </span>
+                      {bannerImgUrl && (
+                        <a
+                          href={bannerImgUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
+                        >
+                          <ExternalLink className="w-3 h-3" /> View
+                        </a>
+                      )}
+                    </div>
+                    {bannerImgUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={bannerImgUrl}
+                        alt="Store Banner"
+                        className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
+                      />
+                    ) : (
+                      <div className="py-8 text-center space-y-1">
+                        <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
+                        <span className="text-xs text-slate-400 font-normal block">
+                          No banner image uploaded
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
 
           </TabsContent>

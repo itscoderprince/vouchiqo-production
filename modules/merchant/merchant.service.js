@@ -141,6 +141,20 @@ export async function createMerchant(authId, data) {
     null,
   );
 
+  // Normalize document & image aliases from wizard / onboarding forms
+  if (!data.docImage && (data.docFileUrl || data.docUrl || data.identityDocumentUrl)) {
+    data.docImage = data.docFileUrl || data.docUrl || data.identityDocumentUrl;
+  }
+  if (!data.shopImage && (data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl)) {
+    data.shopImage = data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl;
+  }
+  if (!data.logo && (data.logoUrl || data.shopLogo)) {
+    data.logo = data.logoUrl || data.shopLogo;
+  }
+  if (!data.banner && (data.bannerUrl || data.shopBanner)) {
+    data.banner = data.bannerUrl || data.shopBanner;
+  }
+
   const merchant = await Merchant.create({ authId: authIdStr, ...data });
 
   // Update user's role to "merchant" in UserProfile and Better Auth user & session collections
@@ -220,6 +234,20 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
   }
 
   await checkMerchantDuplicates(data, merchant._id);
+
+  // Normalize document & image aliases from wizard / onboarding forms
+  if (!data.docImage && (data.docFileUrl || data.docUrl || data.identityDocumentUrl)) {
+    data.docImage = data.docFileUrl || data.docUrl || data.identityDocumentUrl;
+  }
+  if (!data.shopImage && (data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl)) {
+    data.shopImage = data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl;
+  }
+  if (!data.logo && (data.logoUrl || data.shopLogo)) {
+    data.logo = data.logoUrl || data.shopLogo;
+  }
+  if (!data.banner && (data.bannerUrl || data.shopBanner)) {
+    data.banner = data.bannerUrl || data.shopBanner;
+  }
 
   const keyKycFieldsChanged =
     data.docImage && data.docImage !== merchant.docImage;

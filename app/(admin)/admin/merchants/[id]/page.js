@@ -561,6 +561,171 @@ export default function MerchantDetailPage({ params }) {
                   </span>
                 </div>
               </div>
+
+              {/* Uploaded KYC & Statutory Documents */}
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-purple-600" />
+                  Statutory KYC &amp; Visual Document Assets
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Primary Document */}
+                  {(() => {
+                    const docImgUrl =
+                      merchant?.docImage ||
+                      merchant?.docFileUrl ||
+                      merchant?.docUrl ||
+                      merchant?.identityDocumentUrl ||
+                      merchant?.docFile;
+                    return (
+                      <div className="p-4 bg-purple-50/40 rounded-xl border border-purple-200/80 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 block">
+                            Identity Document ({merchant?.docType || "GST Certificate"})
+                          </span>
+                          {docImgUrl && (
+                            <a
+                              href={docImgUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-bold text-purple-700 hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" /> Full Size
+                            </a>
+                          )}
+                        </div>
+                        {docImgUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={docImgUrl}
+                            alt={merchant?.docType || "Primary Identity Document"}
+                            className="max-h-48 mx-auto object-contain rounded-xl border border-purple-200 bg-white p-1 shadow-2xs"
+                          />
+                        ) : (
+                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                            No primary document image uploaded
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Shop Front Photo */}
+                  {(() => {
+                    const shopImgUrl =
+                      merchant?.shopImage ||
+                      merchant?.shopPhotoUrl ||
+                      merchant?.shopFrontUrl ||
+                      merchant?.storePhotoUrl;
+                    return (
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 block">
+                            Shop Front Photograph
+                          </span>
+                          {shopImgUrl && (
+                            <a
+                              href={shopImgUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" /> Full Size
+                            </a>
+                          )}
+                        </div>
+                        {shopImgUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={shopImgUrl}
+                            alt="Shop Front"
+                            className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
+                          />
+                        ) : (
+                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                            No shop front photo uploaded
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Store Logo */}
+                  {(() => {
+                    const logoImgUrl =
+                      merchant?.logo || merchant?.logoUrl || merchant?.shopLogo;
+                    return (
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 block">
+                            Store Brand Logo
+                          </span>
+                          {logoImgUrl && (
+                            <a
+                              href={logoImgUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" /> Full Size
+                            </a>
+                          )}
+                        </div>
+                        {logoImgUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={logoImgUrl}
+                            alt="Store Logo"
+                            className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
+                          />
+                        ) : (
+                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                            No store logo uploaded
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Store Banner */}
+                  {(() => {
+                    const bannerImgUrl =
+                      merchant?.banner || merchant?.bannerUrl || merchant?.shopBanner;
+                    return (
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 block">
+                            Store Banner Image
+                          </span>
+                          {bannerImgUrl && (
+                            <a
+                              href={bannerImgUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" /> Full Size
+                            </a>
+                          )}
+                        </div>
+                        {bannerImgUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={bannerImgUrl}
+                            alt="Store Banner"
+                            className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
+                          />
+                        ) : (
+                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                            No store banner uploaded
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
             </Card>
           </TabsContent>
 

@@ -4,6 +4,8 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -22,6 +24,7 @@ export function NavMain({ groups, isMerchant = false }) {
   const searchParams = useSearchParams();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { isProfileIncomplete, openModal } = useMerchantLock();
 
   const [openSubMenus, setOpenSubMenus] = useState({});
 
@@ -30,6 +33,20 @@ export function NavMain({ groups, isMerchant = false }) {
       ...prev,
       [title]: !prev[title],
     }));
+  };
+
+  const handleNavClick = (e, url) => {
+    if (isMerchant && isProfileIncomplete) {
+      if (!url || !url.startsWith("/merchant/profile")) {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal();
+        toast.error(
+          "Profile Incomplete! Please complete your store profile to unlock this feature.",
+          { id: "profile-lock-toast" },
+        );
+      }
+    }
   };
 
   return (
@@ -95,6 +112,7 @@ export function NavMain({ groups, isMerchant = false }) {
                     >
                       <Link
                         href={item.url}
+                        onClick={(e) => handleNavClick(e, item.url)}
                         className={`flex w-full items-center gap-2.5 px-2.5 py-1.5 text-xs transition-all ${ctaClass} ${
                           isCollapsed ? "justify-center px-2" : "justify-start"
                         }`}
@@ -139,7 +157,12 @@ export function NavMain({ groups, isMerchant = false }) {
                       className="my-0.5"
                     >
                       <SidebarMenuButton
-                        onClick={() => toggleSubMenu(item.title)}
+                        onClick={(e) => {
+                          if (isMerchant && isProfileIncomplete) {
+                            handleNavClick(e, item.url);
+                          }
+                          toggleSubMenu(item.title);
+                        }}
                         isActive={false}
                         tooltip={isCollapsed ? item.title : undefined}
                         className={`w-full justify-between h-8.5 py-1 px-2.5 text-xs transition-all cursor-pointer ${parentBtnClass}`}
@@ -229,6 +252,7 @@ export function NavMain({ groups, isMerchant = false }) {
                                 >
                                   <Link
                                     href={sub.url}
+                                    onClick={(e) => handleNavClick(e, sub.url)}
                                     className="flex items-center gap-2 w-full min-w-0"
                                   >
                                     {SubIcon && (
@@ -293,6 +317,7 @@ export function NavMain({ groups, isMerchant = false }) {
                     >
                       <Link
                         href={item.url}
+                        onClick={(e) => handleNavClick(e, item.url)}
                         className="flex items-center justify-between w-full relative"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -334,3 +359,4 @@ export function NavMain({ groups, isMerchant = false }) {
     </div>
   );
 }
+
