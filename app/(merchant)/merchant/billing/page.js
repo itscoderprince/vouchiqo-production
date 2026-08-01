@@ -406,6 +406,18 @@ export default function MerchantSubscription() {
     });
   }, [merchant, paymentHistoryData]);
 
+  const handleOpenUpgrade = (plan) => {
+    setSelectedPlan(plan);
+    setSelectedAddOn(null);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleOpenAddOn = (addOn) => {
+    setSelectedAddOn(addOn);
+    setSelectedPlan(null);
+    setIsCheckoutOpen(true);
+  };
+
   useEffect(() => {
     if (typeof window === "undefined" || !plans || plans.length === 0) return;
     const urlParams = new URLSearchParams(window.location.search);
@@ -653,18 +665,6 @@ export default function MerchantSubscription() {
     } finally {
       setIsRazorpayLoading(false);
     }
-  };
-
-  const handleOpenUpgrade = (plan) => {
-    setSelectedPlan(plan);
-    setSelectedAddOn(null);
-    setIsCheckoutOpen(true);
-  };
-
-  const handleOpenAddOn = (addOn) => {
-    setSelectedAddOn(addOn);
-    setSelectedPlan(null);
-    setIsCheckoutOpen(true);
   };
 
   const basePrice = selectedPlan
