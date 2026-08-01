@@ -22,6 +22,14 @@ export default function MerchantSubscription() {
   const [gstin, setGstin] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("razorpay_upi");
   const [isRazorpayLoading, setIsRazorpayLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 1. Fetch live merchant profile from DB
   const { data: merchant, isLoading: isLoadingMerchant } = useQuery({
@@ -592,6 +600,8 @@ export default function MerchantSubscription() {
   const gst = parseFloat((basePrice * 0.18).toFixed(2));
   const totalPrice = Math.round(basePrice + gst);
 
+  const showSkeleton = isInitialLoading || isLoadingMerchant;
+
   return (
     <DashboardLayout
       title="Subscription & Billing"
@@ -600,54 +610,58 @@ export default function MerchantSubscription() {
         role: "merchant",
       }}
     >
-      <div className="space-y-4 text-left font-sans w-full pb-8">
-        <div data-tour="billing-plan">
-          <CurrentPlanCard
-            merchant={merchant}
-            currentPlanId={currentPlanId}
+      {showSkeleton ? (
+        <DashboardSkeleton mode="billing" />
+      ) : (
+        <div className="space-y-4 text-left font-sans w-full pb-8">
+          <div data-tour="billing-plan">
+            <CurrentPlanCard
+              merchant={merchant}
+              currentPlanId={currentPlanId}
+              plans={plans}
+              billingCycle={billingCycle}
+              planExpiry={planExpiry}
+              revivalCredits={revivalCredits}
+              activeListingsCount={activeListingsCount}
+              planListingsLimit={planListingsLimit}
+              campaignsUsedCount={campaignsUsedCount}
+              planCampaignsLimit={planCampaignsLimit}
+              onOpenUpgrade={handleOpenUpgrade}
+            />
+          </div>
+
+          <PlanComparisonGrid
             plans={plans}
+            currentPlanId={currentPlanId}
             billingCycle={billingCycle}
-            planExpiry={planExpiry}
-            revivalCredits={revivalCredits}
-            activeListingsCount={activeListingsCount}
-            planListingsLimit={planListingsLimit}
-            campaignsUsedCount={campaignsUsedCount}
-            planCampaignsLimit={planCampaignsLimit}
+            setBillingCycle={setBillingCycle}
             onOpenUpgrade={handleOpenUpgrade}
+            isPaymentCompleted={merchant?.paymentStatus === "completed"}
+          />
+
+          <AddOnsGrid addOns={addOns} onOpenAddOn={handleOpenAddOn} />
+
+          <BillingHistoryTable invoices={invoices} />
+
+          <CheckoutModal
+            isOpen={isCheckoutOpen}
+            onClose={() => setIsCheckoutOpen(false)}
+            selectedPlan={selectedPlan}
+            selectedAddOn={selectedAddOn}
+            billingCycle={billingCycle}
+            basePrice={basePrice}
+            gst={gst}
+            totalPrice={totalPrice}
+            gstin={gstin}
+            setGstin={setGstin}
+            onPayWithRazorpay={() =>
+              triggerRazorpayDirect(selectedPlan, selectedAddOn)
+            }
+            onSimulatePayment={handleSimulateDevPayment}
+            isPending={isRazorpayLoading}
           />
         </div>
-
-        <PlanComparisonGrid
-          plans={plans}
-          currentPlanId={currentPlanId}
-          billingCycle={billingCycle}
-          setBillingCycle={setBillingCycle}
-          onOpenUpgrade={handleOpenUpgrade}
-          isPaymentCompleted={merchant?.paymentStatus === "completed"}
-        />
-
-        <AddOnsGrid addOns={addOns} onOpenAddOn={handleOpenAddOn} />
-
-        <BillingHistoryTable invoices={invoices} />
-
-        <CheckoutModal
-          isOpen={isCheckoutOpen}
-          onClose={() => setIsCheckoutOpen(false)}
-          selectedPlan={selectedPlan}
-          selectedAddOn={selectedAddOn}
-          billingCycle={billingCycle}
-          basePrice={basePrice}
-          gst={gst}
-          totalPrice={totalPrice}
-          gstin={gstin}
-          setGstin={setGstin}
-          onPayWithRazorpay={() =>
-            triggerRazorpayDirect(selectedPlan, selectedAddOn)
-          }
-          onSimulatePayment={handleSimulateDevPayment}
-          isPending={isRazorpayLoading}
-        />
-      </div>
+      )}
     </DashboardLayout>
   );
 }

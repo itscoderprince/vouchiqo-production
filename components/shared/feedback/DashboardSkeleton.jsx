@@ -109,5 +109,78 @@ export default function DashboardSkeleton({ mode = "dashboard" }) {
     );
   }
 
+  if (mode === "billing") {
+    return (
+      <div className="space-y-6 animate-pulse select-none font-sans text-left w-full pb-8">
+        {/* Top Banner Skeleton */}
+        <div className="h-12 bg-slate-100 rounded-2xl w-full border border-slate-200/80"></div>
+
+        {/* Current Plan Card Skeleton */}
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b border-slate-100">
+            <div className="space-y-2">
+              <div className="h-6 bg-slate-200 rounded-lg w-64"></div>
+              <div className="h-3.5 bg-slate-100 rounded-md w-44"></div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 bg-slate-200 rounded-xl w-32"></div>
+              <div className="h-10 bg-slate-100 rounded-xl w-28"></div>
+            </div>
+          </div>
+
+          {/* 3 Metric Box Skeletons */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="h-3.5 bg-slate-200 rounded w-28"></div>
+                  <div className="h-4 bg-slate-300 rounded w-10"></div>
+                </div>
+                <div className="h-3 bg-slate-100 rounded w-36"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Plan Comparison Grid Skeletons */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="h-5 bg-slate-200 rounded-md w-60"></div>
+            <div className="h-8 bg-slate-100 rounded-full w-40"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="h-4 bg-slate-100 rounded-full w-20"></div>
+                  <div className="h-6 bg-slate-200 rounded-md w-3/4"></div>
+                  <div className="h-8 bg-slate-300 rounded-md w-1/2"></div>
+
+                  <div className="space-y-2.5 pt-3">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <div key={j} className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-slate-200 shrink-0"></div>
+                        <div className="h-3 bg-slate-100 rounded w-5/6"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-10 bg-slate-200 rounded-xl w-full mt-4"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
