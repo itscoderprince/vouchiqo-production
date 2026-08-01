@@ -178,8 +178,8 @@ export default function DashboardLayout({ title, user, children }) {
             <SidebarInset className="bg-white flex-1 flex flex-col min-w-0 font-sans">
               <Topbar title={title} user={user} />
 
-              {/* Plan Expiry / Notice Alert Banner for Merchants */}
-              {isMerchant && showBanner && (
+              {/* Plan Expiry / Notice Alert Banner for Merchants (Hidden when already on billing page) */}
+              {isMerchant && !pathname?.startsWith("/merchant/billing") && showBanner && (
                 <div className="bg-blue-50/80 border-b border-blue-200/60 px-4 py-2.5 flex items-center justify-between text-xs font-normal text-blue-900 font-sans">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-blue-600 flex-shrink-0 animate-pulse" />

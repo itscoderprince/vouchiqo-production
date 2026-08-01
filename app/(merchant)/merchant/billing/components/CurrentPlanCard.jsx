@@ -54,25 +54,6 @@ export default function CurrentPlanCard({
 
   return (
     <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-2xs space-y-4 text-left font-sans">
-      {/* Payment Pending Alert Banner */}
-      {!isPaymentCompleted && (
-        <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 font-medium">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-            <span>
-              <strong>Registration Subscription Payment Pending:</strong> You selected the <strong>{currentPlanObj?.name}</strong> plan during onboarding. Complete your payment now to unlock full features.
-            </span>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => onOpenUpgrade(currentPlanObj)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs h-8 px-4 rounded-xl shrink-0 cursor-pointer shadow-md shadow-emerald-600/20 border-0 transition-all"
-          >
-            Pay Subscription Now →
-          </Button>
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3.5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
@@ -87,7 +68,7 @@ export default function CurrentPlanCard({
                 className={
                   isPaymentCompleted
                     ? "bg-emerald-600 text-white rounded-full border-0 font-bold text-[9px] py-0.5 px-2.5 uppercase shadow-xs flex items-center gap-1"
-                    : "bg-amber-100 text-amber-900 rounded-full border-0 font-black text-[9px] py-0.5 px-2 uppercase animate-pulse"
+                    : "bg-amber-100 text-amber-900 rounded-full border-0 font-black text-[9px] py-0.5 px-2 uppercase"
                 }
               >
                 {isPaymentCompleted ? (
@@ -100,7 +81,7 @@ export default function CurrentPlanCard({
               </Badge>
               {isPaymentCompleted && countdownStr && (
                 <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-blue-600 animate-pulse" /> {countdownStr}
+                  <Clock className="w-3 h-3 text-blue-600" /> {countdownStr}
                 </span>
               )}
             </div>
@@ -120,30 +101,21 @@ export default function CurrentPlanCard({
           {!isPaymentCompleted ? (
             <Button
               onClick={() => onOpenUpgrade(currentPlanObj)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 font-extrabold rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 border-0 flex items-center gap-1.5"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 px-4 font-extrabold rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 border-0 flex items-center gap-1.5"
             >
               <CreditCard className="w-3.5 h-3.5" />
-              Pay Subscription
+              Pay Subscription Now →
             </Button>
           ) : (
             <Button
-              variant="outline"
               onClick={() =>
-                toast.success("Opening billing management portal...")
+                onOpenUpgrade(plans.find((p) => p.id === "pro") || plans[2])
               }
-              className="text-xs h-8 font-bold rounded-xl border-slate-200 cursor-pointer shadow-none text-slate-700 hover:bg-slate-50"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-4 font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20 border-0"
             >
-              Manage Billing
+              Upgrade Plan
             </Button>
           )}
-          <Button
-            onClick={() =>
-              onOpenUpgrade(plans.find((p) => p.id === "pro") || plans[2])
-            }
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20 border-0"
-          >
-            Upgrade Plan
-          </Button>
         </div>
       </div>
 

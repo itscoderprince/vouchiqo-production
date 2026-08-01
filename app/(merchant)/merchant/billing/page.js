@@ -32,7 +32,11 @@ export default function MerchantSubscription() {
   }, []);
 
   // 1. Fetch live merchant profile from DB
-  const { data: merchant, isLoading: isLoadingMerchant } = useQuery({
+  const {
+    data: merchant,
+    isLoading: isLoadingMerchant,
+    refetch: refetchMerchant,
+  } = useQuery({
     queryKey: ["merchant-profile"],
     queryFn: async () => {
       const res = await fetch("/api/merchants/me");
@@ -40,6 +44,8 @@ export default function MerchantSubscription() {
       const json = await res.json();
       return json.data;
     },
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   // 2. Fetch live coupons from DB to calculate active listings count
@@ -412,7 +418,7 @@ export default function MerchantSubscription() {
               );
             }
 
-            queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+            await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
             queryClient.invalidateQueries({
               queryKey: ["merchant-coupons-count"],
             });
@@ -422,6 +428,7 @@ export default function MerchantSubscription() {
             await queryClient.invalidateQueries({
               queryKey: ["merchant-payment-history"],
             });
+            await refetchMerchant();
             await refetchPaymentHistory();
 
             toast.success(
@@ -514,10 +521,12 @@ export default function MerchantSubscription() {
       );
       setIsCheckoutOpen(false);
 
-      queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
       queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
       queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
-      queryClient.invalidateQueries({ queryKey: ["merchant-payment-history"] });
+      await queryClient.invalidateQueries({ queryKey: ["merchant-payment-history"] });
+      await refetchMerchant();
+      await refetchPaymentHistory();
     } catch (err) {
       toast.dismiss("dev-pay");
       toast.error(err.message || "Dev payment failed.");
