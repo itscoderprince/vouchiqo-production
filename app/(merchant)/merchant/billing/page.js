@@ -106,6 +106,80 @@ export default function MerchantSubscription() {
   });
 
   const plans = useMemo(() => {
+    // 1. Initial 1-second phase: Return STATIC DEMO DATA first (Growth Partner = ₹1,499)
+    if (isInitialLoading) {
+      return [
+        {
+          id: "starter",
+          name: "Starter Free",
+          priceMonthly: 0,
+          priceYearly: 0,
+          desc: "Zero subscription fee to start — ideal for micro businesses testing digital listings.",
+          features: [
+            "Up to 3 active verified listings",
+            "Smart Code redemption at your counter",
+            "Vouchiqo Verified badge standard",
+            "Basic CPM views & claims KPI cards",
+            "Campaign Manager (Add-on only)",
+            "Expired Coupon Revival (Locked)",
+            "72-hour email support SLA",
+          ],
+        },
+        {
+          id: "growth",
+          name: "Growth Partner",
+          priceMonthly: 1499,
+          priceYearly: 14990,
+          popular: true,
+          desc: "Full analytics + campaigns. Know exactly which customers came from Vouchiqo.",
+          features: [
+            "Up to 15 active offer listings",
+            "1 Active Campaign at a time",
+            "Standard Analytics & CSV performance exports",
+            "Campaign Manager 4-step wizard",
+            "Community verification credentials",
+            "48-hour priority email support",
+          ],
+        },
+        {
+          id: "pro",
+          name: "Pro Partner",
+          priceMonthly: 3999,
+          priceYearly: 39990,
+          bestValue: true,
+          desc: "Unlimited listings, Expired Offer Revival, push notifications & priority placement.",
+          features: [
+            "Unlimited active offer listings",
+            "4 Simultaneous Active Campaigns",
+            "50 Expired Offer Revival credits/month included",
+            "Homepage Featured Slot (2 days/month included)",
+            "Push Notification (1 send/month included)",
+            "Deep Advanced Analytics & Heatmaps",
+            "Read-only Webhook API Coupon validation",
+            "24-hour priority support SLA",
+          ],
+        },
+        {
+          id: "enterprise",
+          name: "Enterprise Partner",
+          priceMonthly: 9999,
+          priceYearly: 99990,
+          desc: "Custom multi-location scale with dedicated manager & full R/W API access.",
+          features: [
+            "Unlimited active offer listings",
+            "Unlimited Simultaneous Campaigns",
+            "Unlimited Expired Offer Revivals",
+            "Unlimited Targeted Push Notifications",
+            "Custom Homepage Featured Slot Allocation",
+            "Dedicated Account Manager",
+            "4-hour dedicated support SLA",
+            "Full Read/Write API Integration",
+          ],
+        },
+      ];
+    }
+
+    // 2. After 1 second: Return REAL FETCHED DATA from DB API
     if (Array.isArray(plansData) && plansData.length > 0) {
       return plansData
         .filter((p) => p.active !== false)
@@ -122,7 +196,9 @@ export default function MerchantSubscription() {
             badge: p.badge || "",
             priceMonthly: numPrice,
             priceYearly: numYearly,
-            priceText: p.priceText || (numPrice === 0 ? "₹0" : `₹${numPrice.toLocaleString("en-IN")}`),
+            priceText:
+              p.priceText ||
+              (numPrice === 0 ? "₹0" : `₹${numPrice.toLocaleString("en-IN")}`),
             originalPrice: p.originalPrice || "",
             priceSuffix: p.priceSuffix || "/ month",
             buttonText: p.buttonText || "Select Plan",
@@ -206,7 +282,7 @@ export default function MerchantSubscription() {
         ],
       },
     ];
-  }, [plansData]);
+  }, [isInitialLoading, plansData]);
 
   const addOns = [
     {
@@ -600,8 +676,6 @@ export default function MerchantSubscription() {
   const gst = parseFloat((basePrice * 0.18).toFixed(2));
   const totalPrice = Math.round(basePrice + gst);
 
-  const showSkeleton = isInitialLoading || isLoadingMerchant;
-
   return (
     <DashboardLayout
       title="Subscription & Billing"
@@ -610,11 +684,8 @@ export default function MerchantSubscription() {
         role: "merchant",
       }}
     >
-      {showSkeleton ? (
-        <DashboardSkeleton mode="billing" />
-      ) : (
-        <div className="space-y-4 text-left font-sans w-full pb-8">
-          <div data-tour="billing-plan">
+      <div className="space-y-4 text-left font-sans w-full pb-8">
+        <div data-tour="billing-plan">
             <CurrentPlanCard
               merchant={merchant}
               currentPlanId={currentPlanId}
@@ -661,7 +732,6 @@ export default function MerchantSubscription() {
             isPending={isRazorpayLoading}
           />
         </div>
-      )}
-    </DashboardLayout>
-  );
-}
+      </DashboardLayout>
+    );
+  }
