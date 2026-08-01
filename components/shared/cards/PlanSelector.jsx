@@ -92,15 +92,15 @@ export default function PlanSelector({
       )}
 
       {/* Plan name */}
-      <h3 className="font-heading text-base font-bold text-brand-text mt-2 mb-1">
+      <h3 className="font-sans text-base font-semibold text-slate-800 mt-2 mb-1">
         {name}
       </h3>
 
       {/* Price */}
       <div className="mb-4">
-        <span className="text-2xl font-extrabold text-brand-navy">{price}</span>
+        <span className="text-2xl font-semibold text-slate-900">{price}</span>
         {billingNote && (
-          <p className="text-[11px] text-brand-subtext mt-0.5">{billingNote}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{billingNote}</p>
         )}
       </div>
 

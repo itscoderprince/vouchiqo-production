@@ -21,17 +21,17 @@ export default function PlanComparisonGrid({
       {/* Header + billing toggle */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
         <div>
-          <h3 className="font-heading text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+          <h3 className="font-sans text-xs font-semibold text-slate-800 uppercase tracking-wider">
             Plan Comparison (All 4 Launch Tiers)
           </h3>
-          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 font-normal mt-0.5">
             Select the best subscription tier for your business scale
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 bg-slate-50/90 p-1.5 rounded-xl border border-slate-200/90 shrink-0 shadow-2xs">
+        <div className="flex items-center gap-2.5 bg-slate-50/80 p-1.5 rounded-lg border border-slate-200/80 shrink-0">
           <span
-            className={`text-xs font-bold ${billingCycle === "monthly" ? "text-slate-900" : "text-slate-500"}`}
+            className={`text-xs font-medium ${billingCycle === "monthly" ? "text-slate-900" : "text-slate-500"}`}
           >
             Monthly
           </span>
@@ -42,10 +42,10 @@ export default function PlanComparisonGrid({
             }
           />
           <span
-            className={`text-xs font-bold flex items-center gap-1.5 ${billingCycle === "yearly" ? "text-slate-900" : "text-slate-500"}`}
+            className={`text-xs font-medium flex items-center gap-1.5 ${billingCycle === "yearly" ? "text-slate-900" : "text-slate-500"}`}
           >
             Annual
-            <span className="bg-emerald-100 text-emerald-800 text-[9px] px-2 py-0.5 rounded-full font-bold">
+            <span className="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-medium">
               Save 15%
             </span>
           </span>
