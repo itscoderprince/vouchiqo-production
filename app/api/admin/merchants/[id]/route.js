@@ -47,6 +47,20 @@ export const PUT = asyncHandler(async (request, { params }) => {
   const { id } = await params;
   const body = await request.json();
 
+  if (body.action === "pause") {
+    body.subscriptionStatus = "paused";
+    body.paymentStatus = "pending";
+    delete body.action;
+  } else if (body.action === "stop" || body.action === "cancel") {
+    body.subscriptionStatus = "cancelled";
+    body.paymentStatus = "pending";
+    delete body.action;
+  } else if (body.action === "resume") {
+    body.subscriptionStatus = "active";
+    body.paymentStatus = "completed";
+    delete body.action;
+  }
+
   if (typeof body.extendDays === "number") {
     const existing = await Merchant.findById(id);
     if (existing) {
@@ -60,6 +74,7 @@ export const PUT = asyncHandler(async (request, { params }) => {
       body.subscriptionStatus = "active";
     }
     delete body.extendDays;
+    delete body.action;
   }
 
   const merchant = await Merchant.findByIdAndUpdate(

@@ -71,23 +71,23 @@ export default function MerchantKycDialog({
     return () => clearInterval(interval);
   }, [merchant?.planExpiry]);
 
-  const handleExtendPlan = async (days) => {
+  const handleControlPlan = async (actionPayload) => {
     setIsExtending(true);
-    toast.loading(`Extending plan by ${days} days...`, { id: "ext-plan" });
+    toast.loading(`Processing admin action...`, { id: "ctrl-plan" });
     try {
       const res = await fetch(`/api/admin/merchants/${merchant._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ extendDays: days }),
+        body: JSON.stringify(actionPayload),
       });
-      if (!res.ok) throw new Error("Failed to extend plan.");
-      toast.dismiss("ext-plan");
-      toast.success(`Plan extended by +${days} days! Payment completed.`);
+      if (!res.ok) throw new Error("Failed to update merchant plan status.");
+      toast.dismiss("ctrl-plan");
+      toast.success(`Merchant plan updated successfully!`);
       queryClient.invalidateQueries();
       if (onOpenChange) onOpenChange(false);
     } catch (err) {
-      toast.dismiss("ext-plan");
-      toast.error(err.message || "Failed to extend plan");
+      toast.dismiss("ctrl-plan");
+      toast.error(err.message || "Failed to update plan");
     } finally {
       setIsExtending(false);
     }
@@ -259,48 +259,133 @@ export default function MerchantKycDialog({
                       </div>
                     )}
 
-                    {/* Super Admin Manual Extension Controls */}
-                    <div className="pt-2 border-t border-slate-200/60 space-y-1.5">
+                    {/* Super Admin Full Plan Control Suite */}
+                    <div className="pt-2.5 border-t border-slate-200/60 space-y-2">
                       <span className="text-[10px] uppercase font-extrabold text-slate-600 block">
-                        ⚡ Super Admin: Manually Extend Plan Expiry
+                        ⚡ Super Admin Plan Control Center
                       </span>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isExtending}
-                          onClick={() => handleExtendPlan(7)}
-                          className="h-7 text-[10px] font-bold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded-lg cursor-pointer"
-                        >
-                          +7 Days
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isExtending}
-                          onClick={() => handleExtendPlan(30)}
-                          className="h-7 text-[10px] font-bold text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 rounded-lg cursor-pointer"
-                        >
-                          +30 Days
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isExtending}
-                          onClick={() => handleExtendPlan(90)}
-                          className="h-7 text-[10px] font-bold text-purple-700 bg-purple-50 border-purple-200 hover:bg-purple-100 rounded-lg cursor-pointer"
-                        >
-                          +90 Days
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isExtending}
-                          onClick={() => handleExtendPlan(365)}
-                          className="h-7 text-[10px] font-bold text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-lg cursor-pointer"
-                        >
-                          +1 Year
-                        </Button>
+
+                      {/* Section 1: Extend Expiry */}
+                      <div className="space-y-1">
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block">Extend Expiry:</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ extendDays: 7 })}
+                            className="h-6 text-[10px] font-bold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded-md cursor-pointer"
+                          >
+                            +7 Days
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ extendDays: 30 })}
+                            className="h-6 text-[10px] font-bold text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 rounded-md cursor-pointer"
+                          >
+                            +30 Days
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ extendDays: 90 })}
+                            className="h-6 text-[10px] font-bold text-purple-700 bg-purple-50 border-purple-200 hover:bg-purple-100 rounded-md cursor-pointer"
+                          >
+                            +90 Days
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ extendDays: 365 })}
+                            className="h-6 text-[10px] font-bold text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-md cursor-pointer"
+                          >
+                            +1 Year
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Section 2: Pause / Stop / Resume */}
+                      <div className="space-y-1 pt-1">
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block">Plan Lifecycle Actions:</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {merchant.subscriptionStatus === "paused" || merchant.paymentStatus !== "completed" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isExtending}
+                              onClick={() => handleControlPlan({ action: "resume" })}
+                              className="h-6 text-[10px] font-extrabold text-emerald-800 bg-emerald-100 border-emerald-300 hover:bg-emerald-200 rounded-md cursor-pointer"
+                            >
+                              ▶ Resume / Activate Plan
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isExtending}
+                              onClick={() => handleControlPlan({ action: "pause" })}
+                              className="h-6 text-[10px] font-bold text-amber-800 bg-amber-100 border-amber-300 hover:bg-amber-200 rounded-md cursor-pointer"
+                            >
+                              ⏸ Pause Plan
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ action: "stop" })}
+                            className="h-6 text-[10px] font-bold text-rose-800 bg-rose-100 border-rose-300 hover:bg-rose-200 rounded-md cursor-pointer"
+                          >
+                            ⏹ Stop / Cancel Plan
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Section 3: Switch Plan Tier */}
+                      <div className="space-y-1 pt-1">
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block">Change Subscription Tier:</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ plan: "starter" })}
+                            className="h-6 text-[9px] font-bold text-slate-700 bg-slate-100 border-slate-300 hover:bg-slate-200 rounded-md cursor-pointer"
+                          >
+                            Starter
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ plan: "growth" })}
+                            className="h-6 text-[9px] font-bold text-blue-800 bg-blue-100 border-blue-300 hover:bg-blue-200 rounded-md cursor-pointer"
+                          >
+                            Growth
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ plan: "pro" })}
+                            className="h-6 text-[9px] font-bold text-purple-800 bg-purple-100 border-purple-300 hover:bg-purple-200 rounded-md cursor-pointer"
+                          >
+                            Pro
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() => handleControlPlan({ plan: "enterprise" })}
+                            className="h-6 text-[9px] font-bold text-amber-800 bg-amber-100 border-amber-300 hover:bg-amber-200 rounded-md cursor-pointer"
+                          >
+                            Enterprise
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
