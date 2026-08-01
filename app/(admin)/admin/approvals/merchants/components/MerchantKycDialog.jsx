@@ -1,5 +1,8 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import {
   Building2,
   Check,
@@ -15,6 +18,8 @@ import {
   Store,
   UserCheck,
   X,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +38,58 @@ export default function MerchantKycDialog({
   merchant,
   onAction,
 }) {
+  const queryClient = useQueryClient();
+  const [isExtending, setIsExtending] = useState(false);
+
+  const isPaymentDone = merchant?.paymentStatus === "completed";
+  const planExpiryDate = merchant?.planExpiry ? new Date(merchant.planExpiry) : null;
+  const [countdownStr, setCountdownStr] = useState("");
+
+  useEffect(() => {
+    if (!planExpiryDate) {
+      setCountdownStr("");
+      return;
+    }
+    const calculate = () => {
+      const diff = planExpiryDate.getTime() - Date.now();
+      if (diff <= 0) {
+        setCountdownStr("Plan Expired");
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      setCountdownStr(`${days}d ${hours}h ${mins}m ${secs}s remaining`);
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [merchant?.planExpiry]);
+
+  const handleExtendPlan = async (days) => {
+    setIsExtending(true);
+    toast.loading(`Extending plan by ${days} days...`, { id: "ext-plan" });
+    try {
+      const res = await fetch(`/api/admin/merchants/${merchant._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ extendDays: days }),
+      });
+      if (!res.ok) throw new Error("Failed to extend plan.");
+      toast.dismiss("ext-plan");
+      toast.success(`Plan extended by +${days} days! Payment completed.`);
+      queryClient.invalidateQueries();
+      if (onOpenChange) onOpenChange(false);
+    } catch (err) {
+      toast.dismiss("ext-plan");
+      toast.error(err.message || "Failed to extend plan");
+    } finally {
+      setIsExtending(false);
+    }
+  };
+
   if (!merchant) return null;
 
   const lat = merchant.location?.coordinates?.lat || merchant.lat || "N/A";
@@ -160,19 +217,88 @@ export default function MerchantKycDialog({
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-slate-200/80 space-y-1">
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Selected Plan &amp; Commission Rate
+                  <div className="pt-2.5 border-t border-slate-200/80 space-y-2">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                      Subscription &amp; Payment Status
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <Badge className="bg-blue-600 text-white font-bold text-[10px] uppercase border-0">
                         Plan: {merchant.plan || "Starter Free"}
+                      </Badge>
+                      <Badge
+                        className={
+                          isPaymentDone
+                            ? "bg-emerald-600 text-white font-bold text-[10px] uppercase border-0"
+                            : "bg-amber-500 text-white font-bold text-[10px] uppercase border-0 animate-pulse"
+                        }
+                      >
+                        {isPaymentDone ? "Payment Completed" : "Payment Pending"}
                       </Badge>
                       {merchant.commissionRate && (
                         <Badge variant="outline" className="text-[10px] font-mono text-emerald-800 bg-emerald-50 border-emerald-300 font-bold">
                           Commission: {merchant.commissionRate} ({merchant.commissionModel || "CPA"})
                         </Badge>
                       )}
+                    </div>
+
+                    {planExpiryDate && (
+                      <div className="bg-blue-50/80 border border-blue-200/80 rounded-xl p-2.5 space-y-1 text-xs text-blue-900 font-medium">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-[11px]">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-blue-600" /> Expiry: <strong>{planExpiryDate.toLocaleDateString("en-IN")}</strong>
+                          </span>
+                          {countdownStr && (
+                            <span className="font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 w-fit">
+                              <Clock className="w-3 h-3 text-blue-600 animate-pulse" /> {countdownStr}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Super Admin Manual Extension Controls */}
+                    <div className="pt-2 border-t border-slate-200/60 space-y-1.5">
+                      <span className="text-[10px] uppercase font-extrabold text-slate-600 block">
+                        ⚡ Super Admin: Manually Extend Plan Expiry
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleExtendPlan(7)}
+                          className="h-7 text-[10px] font-bold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded-lg cursor-pointer"
+                        >
+                          +7 Days
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleExtendPlan(30)}
+                          className="h-7 text-[10px] font-bold text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 rounded-lg cursor-pointer"
+                        >
+                          +30 Days
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleExtendPlan(90)}
+                          className="h-7 text-[10px] font-bold text-purple-700 bg-purple-50 border-purple-200 hover:bg-purple-100 rounded-lg cursor-pointer"
+                        >
+                          +90 Days
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleExtendPlan(365)}
+                          className="h-7 text-[10px] font-bold text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-lg cursor-pointer"
+                        >
+                          +1 Year
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

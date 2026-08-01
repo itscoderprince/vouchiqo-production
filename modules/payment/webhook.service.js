@@ -125,8 +125,9 @@ export class WebhookService {
       }
 
       // Update merchant profile
-      if (payment.merchantId) {
-        const merchant = await Merchant.findById(payment.merchantId);
+      const targetMerchantId = payment.merchantId || notes?.merchantId;
+      if (targetMerchantId) {
+        const merchant = await Merchant.findById(targetMerchantId);
         if (merchant) {
           merchant.paymentStatus = "completed";
 

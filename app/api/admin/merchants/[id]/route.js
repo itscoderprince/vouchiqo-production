@@ -47,6 +47,21 @@ export const PUT = asyncHandler(async (request, { params }) => {
   const { id } = await params;
   const body = await request.json();
 
+  if (typeof body.extendDays === "number") {
+    const existing = await Merchant.findById(id);
+    if (existing) {
+      const baseDate =
+        existing.planExpiry && new Date(existing.planExpiry) > new Date()
+          ? new Date(existing.planExpiry)
+          : new Date();
+      baseDate.setDate(baseDate.getDate() + body.extendDays);
+      body.planExpiry = baseDate;
+      body.paymentStatus = "completed";
+      body.subscriptionStatus = "active";
+    }
+    delete body.extendDays;
+  }
+
   const merchant = await Merchant.findByIdAndUpdate(
     id,
     { $set: body },

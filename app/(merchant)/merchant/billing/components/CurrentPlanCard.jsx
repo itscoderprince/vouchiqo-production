@@ -1,6 +1,7 @@
 "use client";
 
-import { CreditCard } from "lucide-react";
+import { CreditCard, Clock, CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,30 @@ export default function CurrentPlanCard({
     plans.find((p) => p.id === currentPlanId) ||
     plans.find((p) => p.id === "growth") ||
     plans[0];
+
+  const expiryDate = planExpiry ? new Date(planExpiry) : null;
+
+  const [countdownStr, setCountdownStr] = useState("");
+
+  useEffect(() => {
+    if (!expiryDate) return;
+    const updateCountdown = () => {
+      const diff = expiryDate.getTime() - Date.now();
+      if (diff <= 0) {
+        setCountdownStr("Plan Expired");
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      setCountdownStr(`${days}d ${hours}h ${mins}m ${secs}s remaining`);
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [planExpiry]);
 
   return (
     <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-2xs space-y-4 text-left font-sans">
@@ -51,19 +76,30 @@ export default function CurrentPlanCard({
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-heading text-base font-extrabold text-slate-900 capitalize">
                 Current Plan: {currentPlanObj?.name}
               </h3>
               <Badge
                 className={
                   isPaymentCompleted
-                    ? "bg-emerald-100 text-emerald-800 rounded-full border-0 font-bold text-[9px] py-0.5 px-2 uppercase"
+                    ? "bg-emerald-600 text-white rounded-full border-0 font-bold text-[9px] py-0.5 px-2.5 uppercase shadow-xs flex items-center gap-1"
                     : "bg-amber-100 text-amber-900 rounded-full border-0 font-black text-[9px] py-0.5 px-2 uppercase animate-pulse"
                 }
               >
-                {isPaymentCompleted ? "Active Subscription" : "Payment Pending"}
+                {isPaymentCompleted ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3 text-white" /> Active Subscription
+                  </>
+                ) : (
+                  "Payment Pending"
+                )}
               </Badge>
+              {isPaymentCompleted && countdownStr && (
+                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-blue-600 animate-pulse" /> {countdownStr}
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-0.5">
               Billing Cycle: <strong>{billingCycle.toUpperCase()}</strong> •

@@ -191,7 +191,7 @@ export default function AdminMerchantsClient({
       header: "Subscription Plan",
       accessorKey: "subscriptionTier",
       cell: (row) => {
-        const tier = row.subscriptionTier || "starter";
+        const tier = row.subscriptionTier || row.plan || "starter";
         let tierBg = "bg-muted text-muted-foreground";
         if (tier === "growth")
           tierBg = "bg-blue-500/10 text-blue-500 border-blue-500/20";
@@ -207,6 +207,44 @@ export default function AdminMerchantsClient({
           >
             {tier}
           </Badge>
+        );
+      },
+    },
+    {
+      header: "Payment & Expiry",
+      accessorKey: "paymentStatus",
+      cell: (row) => {
+        const isPaid = row.paymentStatus === "completed";
+        const expiry = row.planExpiry ? new Date(row.planExpiry) : null;
+        let diffStr = "";
+        if (expiry) {
+          const diff = expiry.getTime() - Date.now();
+          if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            diffStr = `${days}d left`;
+          } else {
+            diffStr = "Expired";
+          }
+        }
+
+        return (
+          <div className="space-y-0.5">
+            <Badge
+              variant="outline"
+              className={
+                isPaid
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-bold text-[10px] uppercase"
+                  : "bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold text-[10px] uppercase"
+              }
+            >
+              {isPaid ? "Payment Done" : "Payment Pending"}
+            </Badge>
+            {diffStr && (
+              <p className="text-[10px] font-mono text-muted-foreground">
+                {diffStr}
+              </p>
+            )}
+          </div>
         );
       },
     },

@@ -63,10 +63,34 @@ export const POST = asyncHandler(async (request) => {
     },
   });
 
-  const updatedMerchant = await Merchant.findById(merchant._id);
+  // Explicitly update and persist merchant payment status & plan expiry in MongoDB
+  merchant.paymentStatus = "completed";
+  if (type === "subscription" || plan) {
+    const selectedPlan = plan || merchant.plan || "growth";
+    const expiryDays = cycle === "yearly" ? 365 : 30;
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + expiryDays);
+
+    merchant.plan = selectedPlan;
+    merchant.planExpiry = expiryDate;
+    merchant.planStartedAt = new Date();
+    merchant.subscriptionStatus = "active";
+    if (razorpay_payment_id) merchant.lastPaymentId = razorpay_payment_id;
+    if (razorpay_order_id) merchant.lastOrderId = razorpay_order_id;
+
+    if (selectedPlan === "pro") {
+      merchant.revivalCredits = (merchant.revivalCredits || 0) + 50;
+    } else if (selectedPlan === "enterprise") {
+      merchant.revivalCredits = 999999;
+    }
+  } else if (addOnId === "revival_pack") {
+    merchant.revivalCredits = (merchant.revivalCredits || 0) + 25;
+  }
+
+  await merchant.save();
 
   return ok(
-    updatedMerchant,
+    merchant,
     "Payment verified successfully and account state updated!",
   );
 });
