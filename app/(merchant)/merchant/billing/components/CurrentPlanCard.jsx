@@ -19,7 +19,10 @@ export default function CurrentPlanCard({
   planCampaignsLimit,
   onOpenUpgrade,
 }) {
-  const isPaymentCompleted = merchant?.paymentStatus === "completed";
+  const isPaymentCompleted =
+    merchant?.paymentStatus === "completed" ||
+    merchant?.subscriptionStatus === "active" ||
+    (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now());
   const currentPlanObj =
     plans.find((p) => p.id === currentPlanId) ||
     plans.find((p) => p.id === "growth") ||

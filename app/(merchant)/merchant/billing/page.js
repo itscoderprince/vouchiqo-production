@@ -566,7 +566,12 @@ export default function MerchantSubscription() {
             billingCycle={billingCycle}
             setBillingCycle={setBillingCycle}
             onOpenUpgrade={handleOpenUpgrade}
-            isPaymentCompleted={merchant?.paymentStatus === "completed"}
+            isPaymentCompleted={
+              merchant?.paymentStatus === "completed" ||
+              merchant?.subscriptionStatus === "active" ||
+              (merchant?.planExpiry &&
+                new Date(merchant.planExpiry).getTime() > Date.now())
+            }
             isLoading={isLoadingPlans || !plansData}
           />
 

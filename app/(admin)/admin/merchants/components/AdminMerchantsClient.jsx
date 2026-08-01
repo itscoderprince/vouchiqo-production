@@ -214,7 +214,10 @@ export default function AdminMerchantsClient({
       header: "Payment & Expiry",
       accessorKey: "paymentStatus",
       cell: (row) => {
-        const isPaid = row.paymentStatus === "completed";
+        const isPaid =
+          row.paymentStatus === "completed" ||
+          row.subscriptionStatus === "active" ||
+          (row.planExpiry && new Date(row.planExpiry).getTime() > Date.now());
         const expiry = row.planExpiry ? new Date(row.planExpiry) : null;
         let diffStr = "";
         if (expiry) {

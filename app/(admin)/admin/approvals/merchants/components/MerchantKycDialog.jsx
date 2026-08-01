@@ -41,7 +41,10 @@ export default function MerchantKycDialog({
   const queryClient = useQueryClient();
   const [isExtending, setIsExtending] = useState(false);
 
-  const isPaymentDone = merchant?.paymentStatus === "completed";
+  const isPaymentDone =
+    merchant?.paymentStatus === "completed" ||
+    merchant?.subscriptionStatus === "active" ||
+    (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now());
   const planExpiryDate = merchant?.planExpiry ? new Date(merchant.planExpiry) : null;
   const [countdownStr, setCountdownStr] = useState("");
 

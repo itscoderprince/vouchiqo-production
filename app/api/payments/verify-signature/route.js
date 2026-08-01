@@ -18,7 +18,12 @@ export const POST = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
 
-  const merchant = await Merchant.findOne({ authId: user.id });
+  let merchant = await Merchant.findOne({ authId: user.id });
+  if (!merchant && user.email) {
+    merchant = await Merchant.findOne({
+      contactEmail: user.email.toLowerCase().trim(),
+    });
+  }
   if (!merchant) throw new NotFoundError("Merchant profile");
 
   const body = await request.json();
