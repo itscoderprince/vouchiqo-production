@@ -357,9 +357,10 @@ export default function MerchantKycDialog({
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 pt-1">
                   {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
                     const dayData = merchant.operatingHours[day];
-                    const isOpen = dayData ? dayData.isOpen !== false : true;
-                    const openTime = dayData?.openTime || "10:00 AM";
-                    const closeTime = dayData?.closeTime || (day === "Sunday" ? "11:00 PM" : "08:00 PM");
+                    const isClosed = dayData ? (dayData.closed === true || dayData.isOpen === false) : false;
+                    const isOpen = !isClosed;
+                    const openTime = dayData?.open || dayData?.openTime || "10:00 AM";
+                    const closeTime = dayData?.close || dayData?.closeTime || (day === "Sunday" ? "11:00 PM" : "08:00 PM");
 
                     return (
                       <div key={day} className={`p-2 rounded-lg border text-center ${isOpen ? "bg-white border-slate-200 shadow-2xs" : "bg-rose-50/60 border-rose-200"}`}>

@@ -17,13 +17,13 @@ import {
  * step navigation guards, image uploads, and profile save mutations.
  */
 export const DEFAULT_OPERATING_HOURS = {
-  Monday: { open: "10:00 AM", close: "08:00 PM", closed: false },
-  Tuesday: { open: "10:00 AM", close: "08:00 PM", closed: false },
-  Wednesday: { open: "10:00 AM", close: "08:00 PM", closed: false },
-  Thursday: { open: "10:00 AM", close: "08:00 PM", closed: false },
-  Friday: { open: "10:00 AM", close: "08:00 PM", closed: false },
-  Saturday: { open: "10:00 AM", close: "08:00 PM", closed: false },
-  Sunday: { open: "10:00 AM", close: "08:00 PM", closed: true },
+  Monday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
+  Tuesday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
+  Wednesday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
+  Thursday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
+  Friday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
+  Saturday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
+  Sunday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: true, isOpen: false },
 };
 
 export function useMerchantProfileForm() {
@@ -134,16 +134,34 @@ export function useMerchantProfileForm() {
   const handleHoursChange = (day, field, value) => {
     const currentHours =
       form.getValues("operatingHours") || DEFAULT_OPERATING_HOURS;
+    const dayData = currentHours[day] || {
+      open: "10:00 AM",
+      close: "08:00 PM",
+      openTime: "10:00 AM",
+      closeTime: "08:00 PM",
+      closed: false,
+      isOpen: true,
+    };
+
+    const updatedDay = { ...dayData };
+
+    if (field === "closed") {
+      const isClosed = Boolean(value);
+      updatedDay.closed = isClosed;
+      updatedDay.isOpen = !isClosed;
+    } else if (field === "open") {
+      updatedDay.open = value;
+      updatedDay.openTime = value;
+    } else if (field === "close") {
+      updatedDay.close = value;
+      updatedDay.closeTime = value;
+    } else {
+      updatedDay[field] = value;
+    }
+
     const updatedHours = {
       ...currentHours,
-      [day]: {
-        ...(currentHours[day] || {
-          open: "10:00 AM",
-          close: "08:00 PM",
-          closed: false,
-        }),
-        [field]: value,
-      },
+      [day]: updatedDay,
     };
     form.setValue("operatingHours", updatedHours, {
       shouldValidate: true,

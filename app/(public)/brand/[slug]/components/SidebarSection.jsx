@@ -67,19 +67,24 @@ export default function SidebarSection({
         </div>
         <div className="space-y-1.5">
           {merchant.operatingHours ? (
-            Object.entries(merchant.operatingHours).map(([day, hrs]) => (
-              <div
-                key={day}
-                className="flex justify-between text-[12px] text-gray-500 font-normal"
-              >
-                <span className="capitalize font-medium text-gray-700">
-                  {day}
-                </span>
-                <span>
-                  {hrs.closed ? "Closed" : `${hrs.open} – ${hrs.close}`}
-                </span>
-              </div>
-            ))
+            Object.entries(merchant.operatingHours).map(([day, hrs]) => {
+              const isClosed = hrs?.closed === true || hrs?.isOpen === false;
+              const openStr = hrs?.open || hrs?.openTime || "10:00 AM";
+              const closeStr = hrs?.close || hrs?.closeTime || "08:00 PM";
+              return (
+                <div
+                  key={day}
+                  className="flex justify-between text-[12px] text-gray-500 font-normal"
+                >
+                  <span className="capitalize font-medium text-gray-700">
+                    {day}
+                  </span>
+                  <span>
+                    {isClosed ? "Closed" : `${openStr} – ${closeStr}`}
+                  </span>
+                </div>
+              );
+            })
           ) : (
             <p className="text-[12px] text-gray-400 font-normal">
               Hours not specified

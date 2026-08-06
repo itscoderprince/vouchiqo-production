@@ -53,7 +53,7 @@ export default function BrandClient({
     const now = new Date();
     const dayName = days[now.getDay()];
     const hours = merchant.operatingHours[dayName];
-    if (!hours || hours.closed)
+    if (!hours || hours.closed === true || hours.isOpen === false)
       return { label: "Closed Today", color: "text-red-500" };
     return { label: "Open Now", color: "text-blue-600" };
   }, [merchant.operatingHours]);
