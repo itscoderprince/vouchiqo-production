@@ -1,42 +1,28 @@
 "use client";
 
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-/**
- * FormInput — a fully labelled, unified, accessible input field with warning icon error support and password toggle.
- *
- * @param {string} name - field name (used for id + htmlFor)
- * @param {string} [label] - visible label text
- * @param {React.ComponentType} [icon] - lucide-react icon prepended to label
- * @param {string} [type="text"] - HTML input type
- * @param {string} [placeholder]
- * @param {boolean} [required=false]
- * @param {object} [error] - Zod error object (or error message string)
- * @param {string} [hint] - small helper text shown below the input
- * @param {React.ComponentType} [prefix] - icon shown inside input on the left
- * @param {React.ComponentType} [suffix] - icon shown inside input on the right
- * @param {string} [className] - extra classes on the wrapper
- * @param {object} [rest] - any other props forwarded to <Input />
- */
-export default function FormInput({
-  name,
-  label,
-  icon: Icon,
-  type = "text",
-  placeholder,
-  required = false,
-  error,
-  hint,
-  prefix: Prefix,
-  suffix: Suffix,
-  className,
+const FormInput = forwardRef(function FormInput(
+  {
+    name,
+    label,
+    icon: Icon,
+    type = "text",
+    placeholder,
+    required = false,
+    error,
+    hint,
+    prefix: Prefix,
+    suffix: Suffix,
+    className,
+    ...rest
+  },
   ref,
-  ...rest
-}) {
+) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
@@ -125,4 +111,8 @@ export default function FormInput({
       )}
     </div>
   );
-}
+});
+
+FormInput.displayName = "FormInput";
+
+export default FormInput;
