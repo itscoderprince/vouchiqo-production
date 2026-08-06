@@ -169,7 +169,8 @@ export function useMerchantProfileForm() {
     });
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
     const fieldsToValidate = STEP_FIELDS[step] || [];
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid && step < 3) {
@@ -177,13 +178,15 @@ export function useMerchantProfileForm() {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (step > 1) {
       setStep((prev) => prev - 1);
     }
   };
 
-  const goToStep = async (targetStep) => {
+  const goToStep = async (targetStep, e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (targetStep <= step) {
       setStep(targetStep);
       return;
@@ -287,21 +290,24 @@ export function useMerchantProfileForm() {
     });
   };
 
-  const handleFormSubmit = (e) => {
-    return form.handleSubmit(onSubmit, (formErrors) => {
+  const handleSubmit = form.handleSubmit(
+    (formData) => {
+      onSubmit(formData);
+    },
+    (formErrors) => {
       console.error("Profile Form Validation Failed:", formErrors);
       const firstField = Object.keys(formErrors)[0];
       const firstMessage =
         formErrors[firstField]?.message ||
         "Please fill in all required profile fields.";
       showError(firstMessage);
-    })(e);
-  };
+    }
+  );
 
   return {
     form,
     register: form.register,
-    handleSubmit: handleFormSubmit,
+    handleSubmit,
     setValue: form.setValue,
     watch: form.watch,
     errors: form.formState.errors,
