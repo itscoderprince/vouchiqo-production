@@ -289,11 +289,7 @@ export default function MerchantBusinessProfile() {
               </Button>
             ) : (
               <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }}
+                type="submit"
                 disabled={isPending}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
               >
