@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAuth } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
 import {
+  checkMerchantDuplicates,
   generateUniqueSlug,
   getMerchantByAuthId,
 } from "@/modules/merchant/merchant.service";
