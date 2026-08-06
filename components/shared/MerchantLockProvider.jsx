@@ -6,6 +6,10 @@ import { calculateProfileHealth } from "@/app/(merchant)/merchant/dashboard/comp
 
 const MerchantLockContext = createContext({
   isProfileIncomplete: false,
+  isPending: false,
+  isRejected: false,
+  isApproved: false,
+  isLocked: false,
   health: null,
   isModalOpen: false,
   openModal: () => {},
@@ -18,14 +22,17 @@ export function MerchantLockProvider({ children, isMerchant }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
-
   const health = isMerchant && merchant ? calculateProfileHealth(merchant) : null;
   const isProfileIncomplete = isMerchant && Boolean(merchant) && Boolean(health) && health.percentage < 100;
+  const isPending = isMerchant && Boolean(merchant) && merchant.status === "pending";
+  const isRejected = isMerchant && Boolean(merchant) && merchant.status === "rejected";
+  const isApproved = isMerchant && Boolean(merchant) && merchant.status === "approved";
+  const isLocked = isMerchant && Boolean(merchant) && (isProfileIncomplete || !isApproved);
 
   useEffect(() => {
     if (!isMerchant || !merchant) return;
 
-    if (isProfileIncomplete) {
+    if (isLocked) {
       if (!hasInitialized) {
         setIsModalOpen(true);
         setHasInitialized(true);
@@ -33,7 +40,7 @@ export function MerchantLockProvider({ children, isMerchant }) {
     } else {
       setIsModalOpen(false);
     }
-  }, [isMerchant, merchant, isProfileIncomplete, hasInitialized]);
+  }, [isMerchant, merchant, isLocked, hasInitialized]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -42,6 +49,10 @@ export function MerchantLockProvider({ children, isMerchant }) {
     <MerchantLockContext.Provider
       value={{
         isProfileIncomplete,
+        isPending,
+        isRejected,
+        isApproved,
+        isLocked,
         health,
         isModalOpen,
         openModal,

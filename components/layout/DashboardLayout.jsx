@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Lock, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock, Lock, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import CompleteProfileModal from "@/app/(merchant)/merchant/dashboard/components/CompleteProfileModal";
@@ -42,55 +42,75 @@ function MerchantLockModalRenderer() {
 function MerchantPageLockOverlay() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isProfileIncomplete, health, openModal } = useMerchantLock();
+  const { isLocked, isProfileIncomplete, isPending, isRejected, health, openModal, merchant } = useMerchantLock();
 
-  if (!isProfileIncomplete || pathname.startsWith("/merchant/profile")) {
+  if (
+    !isLocked ||
+    pathname.startsWith("/merchant/profile") ||
+    pathname.startsWith("/merchant/application-status")
+  ) {
     return null;
   }
 
   return (
     <div
       onClick={openModal}
-      className="absolute inset-0 z-30 bg-slate-900/40 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-hidden"
+      className="absolute inset-0 z-30 bg-slate-900/50 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-hidden"
     >
       <div className="max-w-md w-full bg-white text-slate-900 rounded-3xl p-8 border border-slate-200 shadow-2xl space-y-5">
-        <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-700 shadow-xs">
-          <Lock className="w-8 h-8 text-slate-700" />
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-xs">
+          {isPending ? (
+            <Clock className="w-8 h-8 text-amber-600 animate-pulse" />
+          ) : (
+            <Lock className="w-8 h-8 text-slate-700" />
+          )}
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-center gap-2">
             <h3 className="text-lg font-black text-slate-900 tracking-tight">
-              Dashboard Content Locked
+              {isPending
+                ? "Application Under Review"
+                : isRejected
+                  ? "Application Rejected"
+                  : "Dashboard Content Locked"}
             </h3>
-            <Badge className="bg-red-50 text-red-700 border-red-200 text-[10px] font-bold">
-              {health?.percentage || 0}% Complete
-            </Badge>
+            {isProfileIncomplete && (
+              <Badge className="bg-red-50 text-red-700 border-red-200 text-[10px] font-bold">
+                {health?.percentage || 0}% Complete
+              </Badge>
+            )}
+            {isPending && (
+              <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
+                Under Audit
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-slate-600 font-medium leading-relaxed">
-            Your store profile is currently incomplete. Complete all 15 required details to unlock your listings, analytics, and partner controls.
+            {isPending
+              ? "Your merchant profile & KYC verification are currently under review by our super admin team. Account features will be activated upon approval."
+              : isRejected
+                ? merchant?.rejectionReason || "Your merchant profile was rejected. Please update your details and resubmit."
+                : "Your store profile is currently incomplete. Complete all 15 required details to unlock your listings, analytics, and partner controls."}
           </p>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 flex flex-col gap-2">
           <Button
             type="button"
             onClick={(e) => {
-              if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-              if (typeof window !== "undefined") {
-                if (window.location.pathname === "/merchant/profile") {
-                  window.location.href = "/merchant/profile?edit=true";
-                } else {
-                  router.push("/merchant/profile?edit=true");
-                }
+              e.stopPropagation();
+              if (isPending) {
+                router.push("/merchant/application-status");
+              } else {
+                router.push("/merchant/profile?edit=true");
               }
             }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-11 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
           >
-            <span>Complete Profile Now</span>
+            <span>
+              {isPending ? "Track Application Status" : "Complete Profile Now"}
+            </span>
             <ArrowRight className="w-4 h-4 text-white" />
           </Button>
         </div>
@@ -103,6 +123,7 @@ export default function DashboardLayout({ title, user, children }) {
   const router = useRouter();
   const pathname = usePathname();
   const { role, isLoaded, isLoggedIn, user: authUser } = useUser();
+  const { isLocked, isPending, isProfileIncomplete } = useMerchantLock();
   const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
@@ -121,14 +142,30 @@ export default function DashboardLayout({ title, user, children }) {
       return;
     }
 
-    // Verify merchant access with stale-session tolerance.
-    // Better Auth caches the session cookie, so a newly registered merchant
-    // may still have role:"customer" in client session briefly.
-    // We check sessionStorage & /api/merchants/me before any redirect.
+    // Verify merchant access & restricted route protection when account is locked (pending/incomplete/rejected)
     if (pathname.startsWith("/merchant")) {
       const isRegisteredMerchant =
         typeof window !== "undefined" &&
         sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+      const isRestrictedPath =
+        pathname.startsWith("/merchant/coupons") ||
+        pathname.startsWith("/merchant/analytics") ||
+        pathname.startsWith("/merchant/campaigns") ||
+        pathname.startsWith("/merchant/notifications") ||
+        pathname.startsWith("/merchant/affiliates") ||
+        pathname.startsWith("/merchant/revivals");
+
+      if (isLocked && isRestrictedPath) {
+        if (isPending) {
+          router.push("/merchant/application-status");
+          return;
+        }
+        if (isProfileIncomplete) {
+          router.push("/merchant/profile?edit=true");
+          return;
+        }
+      }
 
       if (role === "merchant" || role === "admin" || isRegisteredMerchant) return;
 
@@ -151,7 +188,7 @@ export default function DashboardLayout({ title, user, children }) {
         router.push("/customer/dashboard");
       }
     }
-  }, [isLoaded, isLoggedIn, role, authUser?.id, authUser?.email, pathname, router]);
+  }, [isLoaded, isLoggedIn, role, isLocked, isPending, isProfileIncomplete, authUser?.id, authUser?.email, pathname, router]);
 
   const [mounted, setMounted] = useState(false);
 

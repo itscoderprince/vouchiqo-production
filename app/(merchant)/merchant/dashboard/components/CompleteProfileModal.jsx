@@ -106,25 +106,30 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
   // Controlled vs uncontrolled open state
   const open = isOpen !== undefined ? isOpen : internalOpen;
 
+  const isApproved = merchant?.status === "approved";
+  const isPending = merchant?.status === "pending";
+  const isRejected = merchant?.status === "rejected";
+
   useEffect(() => {
     if (!merchant) return;
 
-    if (isProfileComplete) {
+    if (isProfileComplete && isApproved) {
       if (isOpen === undefined) setInternalOpen(false);
       return;
     }
 
     if (isOpen === undefined) setInternalOpen(true);
-  }, [merchant, isProfileComplete, isOpen]);
+  }, [merchant, isProfileComplete, isApproved, isOpen]);
 
   const pathname = usePathname();
 
-  // Do not render modal on /merchant/profile page OR if profile is 100% complete
+  // Do not render modal on /merchant/profile or /merchant/application-status page OR if profile is 100% complete AND approved
   if (
     !open ||
     !merchant ||
     (pathname && pathname.startsWith("/merchant/profile")) ||
-    isProfileComplete
+    (pathname && pathname.startsWith("/merchant/application-status")) ||
+    (isProfileComplete && isApproved)
   ) {
     return null;
   }
@@ -250,7 +255,51 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
         {/* Slide Content */}
         <div className="p-6 space-y-5">
-          {currentSlide === 0 ? (
+          {isPending || isRejected ? (
+            <div className="space-y-5 animate-in fade-in duration-200 text-center">
+              <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-xs">
+                <Clock className="w-7 h-7 text-amber-600 animate-pulse" />
+              </div>
+
+              <div className="space-y-2">
+                <Badge className="bg-amber-100 text-amber-900 border-amber-300 text-[10px] font-bold uppercase tracking-wider">
+                  {isPending ? "Application Under Review" : "Application Rejected"}
+                </Badge>
+                <h4 className="text-base font-black text-slate-900 tracking-tight">
+                  {isPending
+                    ? "KYC Verification & Account Activation Pending"
+                    : "Action Required: Update Details"}
+                </h4>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  {isPending
+                    ? "Your store profile & documents are 100% complete and currently under audit by our super admin team. Feature controls will activate upon approval (usually 24–48h)."
+                    : merchant.rejectionReason || "Please update your profile details and resubmit."}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    handleClose();
+                    router.push("/merchant/application-status");
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Track Live Application Status</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoToProfile}
+                  className="w-full border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl h-10 cursor-pointer"
+                >
+                  <span>Modify Business Profile &amp; Documents</span>
+                </Button>
+              </div>
+            </div>
+          ) : currentSlide === 0 ? (
             /* SLIDE 1: PROFILE HEALTH & COUNTER */
             <div className="space-y-5 animate-in fade-in duration-200">
               {/* Circular Health Gauge & Score */}
