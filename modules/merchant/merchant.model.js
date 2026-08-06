@@ -163,7 +163,7 @@ const merchantSchema = new Schema(
   },
 );
 
-merchantSchema.pre("save", function (next) {
+merchantSchema.pre("save", function () {
   if (this.gstin !== undefined) {
     const cleanGstin = String(this.gstin || "").trim().toUpperCase();
     if (!cleanGstin) {
@@ -199,8 +199,6 @@ merchantSchema.pre("save", function (next) {
       this.liaisonPhone = cleanLiaison;
     }
   }
-
-  next();
 });
 
 merchantSchema.index({ status: 1, category: 1 });
@@ -210,7 +208,9 @@ merchantSchema.index({ contactPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ liaisonPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ gstin: 1 }, { unique: true, sparse: true });
 
-const Merchant =
-  mongoose.models.Merchant ?? mongoose.model("Merchant", merchantSchema);
+delete mongoose.models.Merchant;
+if (mongoose.modelSchemas) delete mongoose.modelSchemas.Merchant;
+
+const Merchant = mongoose.model("Merchant", merchantSchema);
 
 export default Merchant;
