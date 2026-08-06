@@ -290,24 +290,10 @@ export function useMerchantProfileForm() {
     });
   };
 
-  const handleSubmit = form.handleSubmit(
-    (formData) => {
-      onSubmit(formData);
-    },
-    (formErrors) => {
-      console.error("Profile Form Validation Failed:", formErrors);
-      const firstField = Object.keys(formErrors)[0];
-      const firstMessage =
-        formErrors[firstField]?.message ||
-        "Please fill in all required profile fields.";
-      showError(firstMessage);
-    }
-  );
-
   return {
     form,
     register: form.register,
-    handleSubmit,
+    handleSubmit: form.handleSubmit(onSubmit),
     setValue: form.setValue,
     watch: form.watch,
     errors: form.formState.errors,
