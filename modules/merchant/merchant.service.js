@@ -20,11 +20,11 @@ import { buildMeta, parsePagination } from "../../utils/pagination.js";
  * Helper to check for duplicate unique fields (email, phone, gstin, pan)
  */
 export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
-  const { contactEmail, contactPhone, liaisonPhone } = data;
+  const { contactEmail, contactPhone, liaisonPhone, gstin } = data;
 
   const baseFilter = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
 
-  if (contactEmail) {
+  if (contactEmail && contactEmail.trim()) {
     const emailLower = contactEmail.toLowerCase().trim();
     const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailLower });
     if (dupEmail) throw new ConflictError("Email address is already registered to another merchant.");
@@ -37,6 +37,12 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
       $or: [{ contactPhone: phoneToCheck }, { liaisonPhone: phoneToCheck }],
     });
     if (dupPhone) throw new ConflictError("Mobile / Contact phone number is already registered to another merchant.");
+  }
+
+  const cleanGstin = (gstin || "").trim().toUpperCase();
+  if (cleanGstin) {
+    const dupGstin = await Merchant.findOne({ ...baseFilter, gstin: cleanGstin });
+    if (dupGstin) throw new ConflictError("GSTIN is already registered to another merchant.");
   }
 }
 
@@ -251,6 +257,16 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
 
   const keyKycFieldsChanged =
     data.docImage && data.docImage !== merchant.docImage;
+
+  if (data.gstin !== undefined) {
+    const cleanGstin = (data.gstin || "").trim().toUpperCase();
+    if (!cleanGstin) {
+      data.gstin = undefined;
+      merchant.gstin = undefined;
+    } else {
+      data.gstin = cleanGstin;
+    }
+  }
 
   Object.assign(merchant, data);
 

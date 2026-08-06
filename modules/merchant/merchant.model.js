@@ -163,6 +163,46 @@ const merchantSchema = new Schema(
   },
 );
 
+merchantSchema.pre("save", function (next) {
+  if (this.gstin !== undefined) {
+    const cleanGstin = (this.gstin || "").trim().toUpperCase();
+    if (!cleanGstin) {
+      this.gstin = undefined;
+    } else {
+      this.gstin = cleanGstin;
+    }
+  }
+
+  if (this.contactEmail !== undefined) {
+    const cleanEmail = (this.contactEmail || "").trim().toLowerCase();
+    if (!cleanEmail) {
+      this.contactEmail = undefined;
+    } else {
+      this.contactEmail = cleanEmail;
+    }
+  }
+
+  if (this.contactPhone !== undefined) {
+    const cleanPhone = (this.contactPhone || "").trim();
+    if (!cleanPhone) {
+      this.contactPhone = undefined;
+    } else {
+      this.contactPhone = cleanPhone;
+    }
+  }
+
+  if (this.liaisonPhone !== undefined) {
+    const cleanLiaison = (this.liaisonPhone || "").trim();
+    if (!cleanLiaison) {
+      this.liaisonPhone = undefined;
+    } else {
+      this.liaisonPhone = cleanLiaison;
+    }
+  }
+
+  next();
+});
+
 merchantSchema.index({ status: 1, category: 1 });
 merchantSchema.index({ "location.city": 1, status: 1 });
 merchantSchema.index({ contactEmail: 1 }, { unique: true, sparse: true });

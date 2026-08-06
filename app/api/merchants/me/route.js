@@ -88,11 +88,22 @@ export const PUT = asyncHandler(async (request) => {
     "operatingHours",
   ];
 
+  await checkMerchantDuplicates(body, merchant._id);
+
   allowedFields.forEach((field) => {
     if (body[field] !== undefined) {
       merchant[field] = body[field];
     }
   });
+
+  if (body.gstin !== undefined) {
+    const cleanGstin = (body.gstin || "").trim().toUpperCase();
+    if (!cleanGstin) {
+      merchant.gstin = undefined;
+    } else {
+      merchant.gstin = cleanGstin;
+    }
+  }
 
   if (body.location) {
     merchant.location = {
