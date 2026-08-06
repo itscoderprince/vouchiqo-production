@@ -226,9 +226,7 @@ export function useMerchantProfileForm() {
 
   const saveMutation = useMutation({
     mutationFn: async (payload) => {
-      const url = merchant
-        ? `/api/merchants/${merchant._id}`
-        : "/api/merchants";
+      const url = merchant ? "/api/merchants/me" : "/api/merchants";
       const method = merchant ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -238,7 +236,13 @@ export function useMerchantProfileForm() {
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.message ?? "Failed to save profile");
+        const errStr =
+          typeof json.message === "string"
+            ? json.message
+            : typeof json.error === "string"
+              ? json.error
+              : json.error?.message || "Failed to save profile";
+        throw new Error(errStr);
       }
       return res.json();
     },

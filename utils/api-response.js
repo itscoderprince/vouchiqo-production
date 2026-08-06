@@ -46,19 +46,26 @@ export const errorResponse = error;
  * @param {unknown} err - The caught error
  */
 export function handleError(err) {
+  console.error("API Route Error Caught:", err);
+
   // Known operational errors — safe to expose
   if (err instanceof AppError) {
     return error(err.message, err.statusCode, err.code);
   }
 
-  // Mongoose duplicate key (e.g. unique email)
-  if (err.code === 11000) {
+  // Mongoose duplicate key (e.g. unique email / phone / gstin)
+  if (err?.code === 11000) {
     const field = Object.keys(err.keyValue ?? {})[0] ?? "field";
-    return error(`${field} already exists`, HTTP.CONFLICT, "DUPLICATE_KEY");
+    return error(`${field} is already registered to another account`, HTTP.CONFLICT, "DUPLICATE_KEY");
+  }
+
+  // Mongoose CastError (invalid ObjectId format)
+  if (err?.name === "CastError") {
+    return error(`Invalid identifier: ${err.value}`, HTTP.BAD_REQUEST, "INVALID_ID");
   }
 
   // Mongoose document validation errors
-  if (err.name === "ValidationError") {
+  if (err?.name === "ValidationError") {
     const message = Object.values(err.errors)
       .map((e) => e.message)
       .join(", ");
@@ -66,20 +73,17 @@ export function handleError(err) {
   }
 
   // Zod parse errors
-  if (err.name === "ZodError" || err.issues) {
-    console.error(
-      "Zod Validation Failed:",
-      JSON.stringify(err.issues || err.errors || err, null, 2),
-    );
+  if (err?.name === "ZodError" || err?.issues) {
     const issues = err.issues || err.errors || [];
     const first = issues[0];
     const message = first
-      ? `${first.path.join(".")}: ${first.message}`
-      : "Invalid input";
+      ? `${first.path?.join(".") || "field"}: ${first.message}`
+      : "Invalid input provided";
     return error(message, HTTP.BAD_REQUEST, "INVALID_INPUT");
   }
 
-  // Unknown errors — don't expose internals
+  // Unknown errors — log internally and return actual error message
   logger.error({ err }, "Unhandled server error");
-  return error("Something went wrong", HTTP.INTERNAL_ERROR, "INTERNAL_ERROR");
+  const message = err?.message || "An unexpected error occurred while processing request.";
+  return error(message, HTTP.INTERNAL_ERROR, "INTERNAL_ERROR");
 }
