@@ -20,26 +20,26 @@ import { buildMeta, parsePagination } from "../../utils/pagination.js";
  * Helper to check for duplicate unique fields (email, phone, gstin, pan)
  */
 export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
-  const { contactEmail, contactPhone, liaisonPhone, gstin } = data;
+  const { contactEmail, contactPhone, liaisonPhone, gstin } = data || {};
 
   const baseFilter = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
 
-  if (contactEmail && contactEmail.trim()) {
-    const emailLower = contactEmail.toLowerCase().trim();
-    const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailLower });
+  const emailStr = typeof contactEmail === "string" ? contactEmail.trim().toLowerCase() : "";
+  if (emailStr) {
+    const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailStr });
     if (dupEmail) throw new ConflictError("Email address is already registered to another merchant.");
   }
 
-  const phoneToCheck = (contactPhone || liaisonPhone || "").trim();
-  if (phoneToCheck) {
+  const phoneStr = String(contactPhone || liaisonPhone || "").trim();
+  if (phoneStr) {
     const dupPhone = await Merchant.findOne({
       ...baseFilter,
-      $or: [{ contactPhone: phoneToCheck }, { liaisonPhone: phoneToCheck }],
+      $or: [{ contactPhone: phoneStr }, { liaisonPhone: phoneStr }],
     });
     if (dupPhone) throw new ConflictError("Mobile / Contact phone number is already registered to another merchant.");
   }
 
-  const cleanGstin = (gstin || "").trim().toUpperCase();
+  const cleanGstin = String(gstin || "").trim().toUpperCase();
   if (cleanGstin) {
     const dupGstin = await Merchant.findOne({ ...baseFilter, gstin: cleanGstin });
     if (dupGstin) throw new ConflictError("GSTIN is already registered to another merchant.");
@@ -60,7 +60,7 @@ export async function generateUniqueSlug(
   state = "",
   excludeMerchantId = null,
 ) {
-  let cleanBase = (baseText || "merchant")
+  let cleanBase = String(baseText || "merchant")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
@@ -76,7 +76,7 @@ export async function generateUniqueSlug(
   if (!existingExact) return cleanBase;
 
   // 2. Try cleanBase + city suffix (e.g., "aditya-shoes-ranchi")
-  const cleanCity = (city || "")
+  const cleanCity = String(city || "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
@@ -89,7 +89,7 @@ export async function generateUniqueSlug(
   }
 
   // 3. Try cleanBase + state suffix (e.g., "aditya-shoes-bihar" or "aditya-shoes-jharkhand")
-  const cleanState = (state || "")
+  const cleanState = String(state || "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")

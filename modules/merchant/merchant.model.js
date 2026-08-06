@@ -165,7 +165,7 @@ const merchantSchema = new Schema(
 
 merchantSchema.pre("save", function (next) {
   if (this.gstin !== undefined) {
-    const cleanGstin = (this.gstin || "").trim().toUpperCase();
+    const cleanGstin = String(this.gstin || "").trim().toUpperCase();
     if (!cleanGstin) {
       this.gstin = undefined;
     } else {
@@ -174,7 +174,7 @@ merchantSchema.pre("save", function (next) {
   }
 
   if (this.contactEmail !== undefined) {
-    const cleanEmail = (this.contactEmail || "").trim().toLowerCase();
+    const cleanEmail = String(this.contactEmail || "").trim().toLowerCase();
     if (!cleanEmail) {
       this.contactEmail = undefined;
     } else {
@@ -183,7 +183,7 @@ merchantSchema.pre("save", function (next) {
   }
 
   if (this.contactPhone !== undefined) {
-    const cleanPhone = (this.contactPhone || "").trim();
+    const cleanPhone = String(this.contactPhone || "").trim();
     if (!cleanPhone) {
       this.contactPhone = undefined;
     } else {
@@ -192,7 +192,7 @@ merchantSchema.pre("save", function (next) {
   }
 
   if (this.liaisonPhone !== undefined) {
-    const cleanLiaison = (this.liaisonPhone || "").trim();
+    const cleanLiaison = String(this.liaisonPhone || "").trim();
     if (!cleanLiaison) {
       this.liaisonPhone = undefined;
     } else {

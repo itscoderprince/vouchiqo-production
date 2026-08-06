@@ -98,7 +98,7 @@ export const PUT = asyncHandler(async (request) => {
   });
 
   if (body.gstin !== undefined) {
-    const cleanGstin = (body.gstin || "").trim().toUpperCase();
+    const cleanGstin = String(body.gstin || "").trim().toUpperCase();
     if (!cleanGstin) {
       merchant.gstin = undefined;
     } else {
