@@ -100,6 +100,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
     merchant?.isPaid === true;
 
   const isPaymentPending = isPaidPlan && !isPaymentCompleted;
+  const totalSlides = isPaymentPending ? 2 : 1;
   const isProfileComplete = health.percentage >= 100;
 
   // Controlled vs uncontrolled open state
