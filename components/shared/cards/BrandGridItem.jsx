@@ -1,79 +1,80 @@
 "use client";
 
-import { Ticket } from "lucide-react";
+import { CheckCircle2, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function BrandGridItem({ name, logo, href, coupons = 12 }) {
-  const [isHovered, setIsHovered] = useState(false);
+export default function BrandGridItem({
+  name,
+  logo,
+  banner,
+  href,
+  coupons = 12,
+}) {
+  const [imgError, setImgError] = useState(false);
+
+  // Background banner fallback if store banner is missing
+  const bgBanner =
+    banner ||
+    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=400&auto=format&fit=crop";
 
   return (
     <Link
-      href={href}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="flex flex-col items-center gap-1.5 group select-none text-center w-full"
+      href={href || "#"}
+      className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white shadow-[0_2px_6px_rgba(15,23,42,0.06)] hover:shadow-[0_6px_16px_rgba(15,23,42,0.12)] hover:border-blue-600 transition-all duration-200 overflow-hidden select-none text-center w-full h-[115px] sm:h-[125px]"
       style={{ textDecoration: "none" }}
     >
-      {/* 3D Flip Container (Perspective) */}
-      <div
-        className="w-full h-[76px] sm:h-[84px] shrink-0"
-        style={{ perspective: "1000px" }}
-      >
-        {/* Flip Card Inner (Preserves 3D) */}
-        <div
-          className="w-full h-full relative"
-          style={{
-            transformStyle: "preserve-3d",
-            transform: isHovered ? "rotateX(180deg)" : "rotateX(0deg)",
-            transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+      {/* Top Background Banner (Upper 45%) */}
+      <div className="relative w-full h-[45%] overflow-hidden bg-slate-100">
+        <img
+          src={bgBanner}
+          alt={name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.target.src =
+              "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=400&auto=format&fit=crop";
           }}
-        >
-          {/* Front Face: Logo */}
-          <div
-            className="absolute inset-0 bg-white rounded-xl border border-slate-200 flex items-center justify-center p-2.5 sm:p-4 shadow-sm group-hover:shadow-md transition-all duration-300"
-            style={{
-              backfaceVisibility: "hidden",
-              WebkitBackfaceVisibility: "hidden",
-            }}
-          >
+        />
+        {/* Crisp Dark Scrim */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/5 to-transparent" />
+
+        {/* Coupons Count Badge (Top Right) */}
+        {coupons > 0 && (
+          <div className="absolute top-1.5 right-1.5 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-slate-700 shadow-xs flex items-center gap-0.5">
+            <Ticket className="w-2.5 h-2.5 text-blue-400" />
+            <span>{coupons}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Center Floating Brand Logo Badge */}
+      <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-[0_2px_6px_rgba(15,23,42,0.12)] group-hover:border-blue-600 group-hover:shadow-[0_4px_12px_rgba(15,23,42,0.18)] transition-all duration-200">
+          {!imgError && logo ? (
             <img
               src={logo}
               alt={name}
-              className="max-h-[44px] sm:max-h-[52px] max-w-full object-contain"
-              onError={(e) => {
-                e.target.src =
-                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233e80dd' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-              }}
+              className="max-h-full max-w-full object-contain rounded-md"
+              onError={() => setImgError(true)}
             />
-          </div>
-
-          {/* Back Face: Coupon Count */}
-          <div
-            className="absolute inset-0 bg-[#eff6ff] rounded-xl border border-brand-blue/30 flex flex-col items-center justify-center p-2 sm:p-3 shadow-md"
-            style={{
-              backfaceVisibility: "hidden",
-              WebkitBackfaceVisibility: "hidden",
-              transform: "rotateX(180deg)",
-            }}
-          >
-            <Ticket className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-blue mb-0.5 sm:mb-1 shrink-0" />
-            <div className="flex items-baseline gap-1">
-              <span className="text-[15px] sm:text-[17px] font-bold text-brand-blue leading-none">
-                {coupons}
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-medium text-slate-500 uppercase tracking-wider">
-                Offers
-              </span>
-            </div>
-          </div>
+          ) : (
+            <span className="text-[10px] font-black text-blue-600 uppercase tracking-tight">
+              {name ? name.slice(0, 2) : "VT"}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Brand Name Below */}
-      <span className="text-[11.5px] sm:text-[13px] text-slate-800 font-semibold transition-colors group-hover:text-brand-blue truncate max-w-full px-0.5">
-        {name}
-      </span>
+      {/* Bottom Brand Name & Status Details (Lower 55%) */}
+      <div className="pt-5 pb-2 px-1.5 flex flex-col items-center justify-center flex-1 bg-white text-center">
+        <span className="text-[11.5px] sm:text-[12.5px] font-bold text-slate-800 group-hover:text-blue-700 line-clamp-1 max-w-full tracking-tight px-1 drop-shadow-none [text-shadow:none]">
+          {name}
+        </span>
+        <span className="text-[9.5px] font-semibold text-slate-400 group-hover:text-blue-600 flex items-center gap-0.5 mt-0.5 drop-shadow-none [text-shadow:none]">
+          <CheckCircle2 className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+          <span>Verified Store</span>
+        </span>
+      </div>
     </Link>
   );
 }

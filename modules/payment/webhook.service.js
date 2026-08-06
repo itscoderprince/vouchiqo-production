@@ -1,3 +1,7 @@
+import {
+  sendMerchantPaymentCompletedEmail,
+  sendMerchantPaymentFailedEmail,
+} from "@/lib/email/merchant-email";
 import { verifyRazorpayWebhookSignature } from "@/lib/razorpay";
 import Merchant from "@/modules/merchant/merchant.model";
 import { IdempotencyService } from "./idempotency.service";
@@ -85,7 +89,7 @@ export class WebhookService {
   static async handlePaymentCaptured(payload) {
     const paymentData =
       payload.payload?.payment?.entity || payload.payment || {};
-    const { order_id, id: payment_id, notes } = paymentData;
+    const { order_id, id: payment_id, notes, amount } = paymentData;
 
     if (order_id) {
       await PaymentStateService.acquireLock(order_id);
@@ -160,6 +164,20 @@ export class WebhookService {
             merchant.lastPaymentId = payment_id;
             await merchant.save();
           }
+
+          // Trigger Payment Receipt Email to Merchant
+          const targetEmail = merchant.contactEmail;
+          if (targetEmail) {
+            sendMerchantPaymentCompletedEmail({
+              to: targetEmail,
+              businessName: merchant.businessName,
+              amount: amount || payment.amount || 0,
+              transactionId: payment_id,
+              orderId: order_id,
+              planName: (notes?.plan || merchant.plan || "growth").toUpperCase(),
+              planExpiry: merchant.planExpiry,
+            }).catch((err) => console.error("[Webhook Payment Email Error]:", err));
+          }
         }
       }
 
@@ -198,6 +216,17 @@ export class WebhookService {
           status: "FAILED",
           error: error_description,
         });
+      }
+
+      const merchant = await Merchant.findById(payment.merchantId);
+      if (merchant?.contactEmail) {
+        sendMerchantPaymentFailedEmail({
+          to: merchant.contactEmail,
+          businessName: merchant.businessName,
+          planName: (payment.metadata?.plan || "subscription").toUpperCase(),
+          amount: payment.amount,
+          failureReason: error_description,
+        }).catch((err) => console.error("[Payment Failed Email Error]:", err));
       }
     }
 

@@ -60,6 +60,8 @@ const userProfileSchema = new Schema(
 
     isActive: { type: Boolean, default: true },
     totalSavings: { type: Number, default: 0 },
+    lastLoginAt: { type: Date },
+    lastWelcomeEmailSentAt: { type: Date },
   },
   {
     timestamps: true,

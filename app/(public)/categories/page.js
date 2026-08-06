@@ -96,20 +96,21 @@ export default async function CategoriesPage() {
     },
   ]);
 
-  // Build categories with actual counts
-  const categories = COUPON_CATEGORIES.map((slug) => {
-    const meta = CATEGORY_META[slug] || {
-      title: slug,
-      icon: "https://cdn.grabon.in/gograbon/images/category/1773409656550/tickets.svg",
-      slug,
-    };
-    const countData = categoryCounts.find((c) => c._id === slug);
-    return {
-      ...meta,
-      slug,
-      total: countData ? countData.total : 0,
-    };
-  });
+  // Build 15 categories with actual counts (excluding 'others')
+  const categories = COUPON_CATEGORIES.filter((s) => s !== "others").map(
+    (slug) => {
+      const meta = CATEGORY_META[slug] || {
+        title: slug,
+        slug,
+      };
+      const countData = categoryCounts.find((c) => c._id === slug);
+      return {
+        ...meta,
+        slug,
+        total: countData ? countData.total : 0,
+      };
+    }
+  );
 
   const totalCoupons = categoryCounts.reduce((a, c) => a + c.total, 0);
 

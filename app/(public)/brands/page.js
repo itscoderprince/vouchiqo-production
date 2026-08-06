@@ -2,22 +2,25 @@ import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
+import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import BrandsClient from "./brands-client";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "All Brands Offers, Deals & Promo Codes | Vouchiqo",
+  title: "All Partner Brands & Stores Offers | Vouchiqo",
   description:
-    "Find verified promo codes, discounts and deals from all your favorite brands on Vouchiqo.",
+    "Find real verified promo codes, discount vouchers, and affiliate product deals from authentic partner merchants on Vouchiqo.",
 };
 
 export default async function BrandsPage() {
   await connectDB();
 
   // Find all approved merchants/brands
-  const dbMerchants = await Merchant.find({ status: "approved" }).lean();
+  const dbMerchants = await Merchant.find({ status: "approved" })
+    .select("businessName slug logo banner shopImage category isVerified")
+    .lean();
 
   // Get active coupon counts grouped by merchantId
   const couponCounts = await Coupon.aggregate([
@@ -35,34 +38,47 @@ export default async function BrandsPage() {
     },
   ]);
 
-  // Combine DB merchants with their coupon counts
+  // Get active affiliate product counts grouped by merchantId
+  const affiliateCounts = await AffiliateProduct.aggregate([
+    {
+      $match: {
+        status: "active",
+      },
+    },
+    {
+      $group: {
+        _id: "$merchantId",
+        total: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // Combine DB merchants with real coupon & affiliate counts
   const brandsList = dbMerchants.map((m) => {
-    const countData = couponCounts.find(
-      (c) => c._id.toString() === m._id.toString(),
+    const couponData = couponCounts.find(
+      (c) => c._id && c._id.toString() === m._id.toString()
     );
+    const affiliateData = affiliateCounts.find(
+      (c) => c._id && c._id.toString() === m._id.toString()
+    );
+
     return {
       _id: m._id.toString(),
       businessName: m.businessName,
       slug: m.slug,
       logo: m.logo || "",
-      category: m.category,
-      totalCoupons: countData ? countData.total : 0,
-      isVerified: m.isVerified,
+      banner: m.banner || m.shopImage || "",
+      category: m.category || "General Store",
+      totalCoupons: couponData ? couponData.total : 0,
+      totalAffiliateProducts: affiliateData ? affiliateData.total : 0,
+      isVerified: m.isVerified ?? true,
     };
   });
 
-  // Calculate stats
-  const totalBrandsCount = dbMerchants.length;
-  const totalCouponsCount = couponCounts.reduce((a, c) => a + c.total, 0);
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f6fa]">
+    <div className="min-h-screen flex flex-col bg-slate-50/50">
       <Navbar />
-      <BrandsClient
-        brands={brandsList}
-        totalBrands={totalBrandsCount}
-        totalCoupons={totalCouponsCount}
-      />
+      <BrandsClient brands={brandsList} />
       <Footer />
     </div>
   );

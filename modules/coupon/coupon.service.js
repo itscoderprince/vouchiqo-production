@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { sendMerchantOfferCreatedEmail } from "@/lib/email/merchant-email";
 import { analyticsQueue } from "@/lib/queue";
 import { redis } from "@/lib/redis";
 import { escapeRegex } from "@/lib/security";
@@ -38,6 +39,12 @@ export async function createCoupon(authId, data) {
     throw new ForbiddenError("Only approved merchants can create coupons");
   }
 
+  if (merchant.subscriptionStatus === "paused" || merchant.subscriptionStatus === "cancelled") {
+    throw new ForbiddenError(
+      `Your subscription plan is currently ${merchant.subscriptionStatus}. Please contact support or reactivate your plan to post new listings.`,
+    );
+  }
+
   // Subscription Plan limits gating check
   const activeCount = await Coupon.countDocuments({
     merchantId: merchant._id,
@@ -75,6 +82,20 @@ export async function createCoupon(authId, data) {
   });
 
   await Merchant.findByIdAndUpdate(merchant._id, { $inc: { totalCoupons: 1 } });
+
+  // Trigger Merchant Offer Created Email Notification
+  if (merchant.contactEmail) {
+    sendMerchantOfferCreatedEmail({
+      to: merchant.contactEmail,
+      businessName: merchant.businessName,
+      offerTitle: coupon.title,
+      code: coupon.code,
+      discountText:
+        coupon.discountType === "percentage"
+          ? `${coupon.discountValue}% OFF`
+          : `₹${coupon.discountValue} OFF`,
+    }).catch((err) => console.error("[Merchant Offer Email Error]:", err));
+  }
 
   return coupon;
 }

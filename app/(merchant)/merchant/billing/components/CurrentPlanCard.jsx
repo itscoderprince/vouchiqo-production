@@ -22,15 +22,23 @@ export default function CurrentPlanCard({
   const isPaused = merchant?.subscriptionStatus === "paused";
   const isCancelled = merchant?.subscriptionStatus === "cancelled";
 
+  const isStarter =
+    !currentPlanId ||
+    currentPlanId === "starter" ||
+    merchant?.plan === "starter" ||
+    String(merchant?.plan || "").toLowerCase().includes("starter") ||
+    String(merchant?.plan || "").toLowerCase().includes("free");
+
   const isPaymentCompleted =
-    !isPaused &&
-    !isCancelled &&
-    (merchant?.paymentStatus === "completed" ||
-      merchant?.subscriptionStatus === "active" ||
-      (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now()));
+    isStarter ||
+    (!isPaused &&
+      !isCancelled &&
+      (merchant?.paymentStatus === "completed" ||
+        merchant?.subscriptionStatus === "active" ||
+        (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now())));
   const currentPlanObj =
     plans.find((p) => p.id === currentPlanId) ||
-    plans.find((p) => p.id === "growth") ||
+    plans.find((p) => p.id === "starter") ||
     plans[0];
 
   const expiryDate = planExpiry ? new Date(planExpiry) : null;
@@ -38,7 +46,7 @@ export default function CurrentPlanCard({
   const [countdownStr, setCountdownStr] = useState("");
 
   useEffect(() => {
-    if (!expiryDate || isPaused || isCancelled) {
+    if (!expiryDate || isPaused || isCancelled || isStarter) {
       setCountdownStr("");
       return;
     }
@@ -58,7 +66,7 @@ export default function CurrentPlanCard({
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [planExpiry, isPaused, isCancelled]);
+  }, [planExpiry, isPaused, isCancelled, isStarter]);
 
   return (
     <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4 shadow-2xs space-y-3 text-left font-sans">
@@ -86,6 +94,13 @@ export default function CurrentPlanCard({
                 >
                   ⏹ Subscription Cancelled
                 </Badge>
+              ) : isStarter ? (
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-50 text-emerald-700 border-emerald-200/80 font-medium text-[10px] py-0 px-2 rounded-md flex items-center gap-1 shadow-none"
+                >
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Free Forever Plan
+                </Badge>
               ) : isPaymentCompleted ? (
                 <Badge
                   variant="outline"
@@ -102,26 +117,28 @@ export default function CurrentPlanCard({
                 </Badge>
               )}
 
-              {isPaymentCompleted && countdownStr && (
+              {isPaymentCompleted && !isStarter && countdownStr && (
                 <span className="bg-slate-50 text-slate-600 text-[10px] font-normal px-2 py-0.5 rounded-md border border-slate-200/60 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-slate-400" /> {countdownStr}
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 font-normal">
-              Billing Cycle: <span className="font-medium text-slate-700">{billingCycle}</span> •
+              Billing Cycle: <span className="font-medium text-slate-700">{isStarter ? "Free Forever" : billingCycle}</span> •
               Next Renewal / Expiry:{" "}
               <span className="font-medium text-slate-700">
-                {planExpiry
-                  ? new Date(planExpiry).toLocaleString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "Aug 31, 2026 at 11:59 PM"}
+                {isStarter
+                  ? "No Expiry (Free Forever)"
+                  : planExpiry
+                    ? new Date(planExpiry).toLocaleString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })
+                    : "No Expiry"}
               </span>
             </p>
           </div>
@@ -135,6 +152,15 @@ export default function CurrentPlanCard({
             >
               <CreditCard className="w-3.5 h-3.5" />
               Pay Subscription Now →
+            </Button>
+          ) : isStarter ? (
+            <Button
+              onClick={() =>
+                onOpenUpgrade(plans.find((p) => p.id === "growth") || plans[1])
+              }
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3.5 font-medium rounded-lg cursor-pointer border-0 shadow-none"
+            >
+              Upgrade to Growth Plan →
             </Button>
           ) : (
             <>

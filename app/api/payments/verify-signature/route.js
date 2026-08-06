@@ -1,3 +1,4 @@
+import { sendMerchantPaymentCompletedEmail } from "@/lib/email/merchant-email";
 import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
@@ -35,6 +36,7 @@ export const POST = asyncHandler(async (request) => {
     cycle = "monthly",
     type = "subscription",
     addOnId,
+    amount,
   } = body;
 
   const isValid = PaymentService.verifySignature({
@@ -93,6 +95,20 @@ export const POST = asyncHandler(async (request) => {
   }
 
   await merchant.save();
+
+  // Dispatch Payment Completed Email to Merchant
+  const targetEmail = merchant.contactEmail || user.email;
+  if (targetEmail) {
+    sendMerchantPaymentCompletedEmail({
+      to: targetEmail,
+      businessName: merchant.businessName,
+      amount: amount || 0,
+      transactionId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      planName: (plan || merchant.plan || "growth").toUpperCase(),
+      planExpiry: merchant.planExpiry,
+    }).catch((err) => console.error("[Payment Completed Email Error]:", err));
+  }
 
   return ok(
     merchant,

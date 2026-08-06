@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
+import { sendMerchantWelcomeEmail } from "@/lib/email/merchant-email";
 import { dispatchEvent } from "@/lib/socket/dispatcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireAuth, requireRole } from "@/modules/auth/auth.middleware";
@@ -44,6 +45,15 @@ export const POST = asyncHandler(async (request) => {
     category: merchant.category,
     createdAt: merchant.createdAt,
   };
+
+  // Dispatch Welcome Credentials Email to merchant
+  sendMerchantWelcomeEmail({
+    to: merchant.contactEmail || user.email,
+    email: merchant.contactEmail || user.email,
+    password: body.password || undefined,
+    businessName: merchant.businessName,
+    liaisonName: merchant.liaisonName,
+  }).catch((err) => console.error("[Merchant Welcome Email Error]:", err));
 
   // Broadcast new merchant application to Admins
   await dispatchEvent({

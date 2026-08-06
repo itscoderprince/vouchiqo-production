@@ -5,6 +5,10 @@ import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import Redemption from "@/modules/redemption/redemption.model";
 import UserProfile from "@/modules/user/user.model";
+import {
+  sendMerchantRedemptionNotificationEmail,
+} from "@/lib/email/merchant-email";
+import { sendUserCouponRedeemedEmail } from "@/lib/email/user-email";
 import { AppError, NotFoundError } from "@/utils/app-error";
 import { CLAIM_STATUS, COUPON_STATUS, REDIS_KEYS } from "@/utils/constants";
 import { buildMeta, parsePagination } from "@/utils/pagination";
@@ -95,6 +99,33 @@ export async function redeemCoupon(userId, claimId, couponId) {
     claim.status = CLAIM_STATUS.REDEEMED;
     claim.redeemedAt = new Date();
     await claim.save();
+
+    // Fetch merchant details for notifications
+    const merchant = await Merchant.findById(coupon.merchantId).lean();
+
+    // Trigger Customer Savings Email Notification
+    if (userEmail) {
+      sendUserCouponRedeemedEmail({
+        to: userEmail,
+        name: userName,
+        couponTitle: coupon.title,
+        merchantName: merchant?.businessName || "Merchant Store",
+        savingsAmount,
+        storeAddress: merchant?.location?.address || "",
+      }).catch((err) => console.error("[User Redemption Email Error]:", err));
+    }
+
+    // Trigger Merchant Instant Redemption Email Notification
+    const merchantEmail = merchant?.contactEmail;
+    if (merchantEmail) {
+      sendMerchantRedemptionNotificationEmail({
+        to: merchantEmail,
+        businessName: merchant.businessName,
+        offerTitle: coupon.title,
+        customerName: userName,
+        savingsGiven: savingsAmount,
+      }).catch((err) => console.error("[Merchant Redemption Email Error]:", err));
+    }
 
     // Increment counters atomically
     await Promise.all([

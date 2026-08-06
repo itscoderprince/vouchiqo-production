@@ -27,7 +27,9 @@ export function MerchantLockProvider({ children, isMerchant }) {
   const isPending = isMerchant && Boolean(merchant) && merchant.status === "pending";
   const isRejected = isMerchant && Boolean(merchant) && merchant.status === "rejected";
   const isApproved = isMerchant && Boolean(merchant) && merchant.status === "approved";
-  const isLocked = isMerchant && Boolean(merchant) && (isProfileIncomplete || !isApproved);
+  const isPaused = isMerchant && Boolean(merchant) && merchant.subscriptionStatus === "paused";
+  const isSubscriptionCancelled = isMerchant && Boolean(merchant) && merchant.subscriptionStatus === "cancelled";
+  const isLocked = isMerchant && Boolean(merchant) && (isProfileIncomplete || !isApproved || isPaused || isSubscriptionCancelled);
 
   useEffect(() => {
     if (!isMerchant || !merchant) return;
@@ -52,6 +54,8 @@ export function MerchantLockProvider({ children, isMerchant }) {
         isPending,
         isRejected,
         isApproved,
+        isPaused,
+        isSubscriptionCancelled,
         isLocked,
         health,
         isModalOpen,

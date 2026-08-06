@@ -11,13 +11,14 @@ export default function PaymentPendingModal({ merchant }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const planName = merchant?.plan || "Growth Partner";
+  const planName = merchant?.plan || "Starter Free";
   const isStarterPlan =
     planName.toLowerCase().includes("starter") ||
     planName.toLowerCase().includes("free");
   const isPaidPlan = !isStarterPlan;
 
   const isPaymentCompleted =
+    isStarterPlan ||
     merchant?.paymentStatus === "completed" ||
     merchant?.subscriptionStatus === "active" ||
     merchant?.isPaid === true;

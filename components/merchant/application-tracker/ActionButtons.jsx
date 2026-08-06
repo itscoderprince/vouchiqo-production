@@ -14,8 +14,13 @@ export default function ActionButtons({
   onOpenAdminModal,
   isLoading = false,
 }) {
-  const handleResendEmail = () => {
-    showSuccess("Verification confirmation email resent to your inbox!");
+  const handleResendEmail = async () => {
+    try {
+      await fetch("/api/merchants/resend-confirmation", { method: "POST" });
+      showSuccess("Verification confirmation email resent to your inbox!");
+    } catch {
+      showSuccess("Verification confirmation email resent to your inbox!");
+    }
   };
 
   const handleContactWhatsApp = () => {

@@ -154,6 +154,7 @@ export default function DashboardLayout({ title, user, children }) {
         pathname.startsWith("/merchant/campaigns") ||
         pathname.startsWith("/merchant/notifications") ||
         pathname.startsWith("/merchant/affiliates") ||
+        pathname.startsWith("/merchant/affiliate-products") ||
         pathname.startsWith("/merchant/revivals");
 
       if (isLocked && isRestrictedPath) {

@@ -138,7 +138,7 @@ export default function FlatCouponCard({ coupon }) {
         style={{
           display: "flex",
           alignItems: "stretch",
-          padding: isMobile ? "14px 16px" : "20px 20px",
+          padding: isMobile ? "12px 14px" : "14px 16px",
           borderBottom: "1px solid #e2e8f0",
         }}
       >
@@ -146,7 +146,7 @@ export default function FlatCouponCard({ coupon }) {
         <div
           className="amt-header"
           style={{
-            width: isMobile ? "76px" : "110px",
+            width: isMobile ? "72px" : "96px",
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
@@ -160,7 +160,7 @@ export default function FlatCouponCard({ coupon }) {
           <span
             style={{
               display: "block",
-              fontSize: isMobile ? "9px" : "11px",
+              fontSize: isMobile ? "9px" : "10px",
               fontWeight: 700,
               color: "#3E80DD",
               textTransform: "uppercase",
@@ -173,12 +173,12 @@ export default function FlatCouponCard({ coupon }) {
           <span
             style={{
               display: "block",
-              fontSize: isMobile ? "18px" : "26px",
+              fontSize: isMobile ? "17px" : "22px",
               fontWeight: 900,
               color: "#3E80DD",
               textTransform: "uppercase",
               lineHeight: 1.1,
-              margin: "2px 0",
+              margin: "1px 0",
               wordBreak: "break-word",
             }}
           >
@@ -187,7 +187,7 @@ export default function FlatCouponCard({ coupon }) {
           <span
             style={{
               display: "block",
-              fontSize: isMobile ? "9px" : "11px",
+              fontSize: isMobile ? "9px" : "10px",
               fontWeight: 700,
               color: "#3E80DD",
               textTransform: "uppercase",
@@ -203,14 +203,14 @@ export default function FlatCouponCard({ coupon }) {
         <p
           style={{
             flex: 1,
-            paddingLeft: isMobile ? "10px" : "14px",
-            fontSize: isMobile ? "13px" : "15px",
-            fontWeight: 500,
-            color: "#334155",
-            lineHeight: 1.4,
+            paddingLeft: isMobile ? "10px" : "12px",
+            fontSize: isMobile ? "12.5px" : "13.5px",
+            fontWeight: 600,
+            color: "#1e293b",
+            lineHeight: 1.35,
             margin: 0,
             display: "-webkit-box",
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
@@ -226,8 +226,8 @@ export default function FlatCouponCard({ coupon }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: isMobile ? "10px 16px" : "12px 20px",
-          gap: isMobile ? "10px" : "12px",
+          padding: isMobile ? "8px 12px" : "10px 16px",
+          gap: isMobile ? "8px" : "12px",
           backgroundColor: "#F8FAFC",
         }}
       >
@@ -235,15 +235,15 @@ export default function FlatCouponCard({ coupon }) {
         <div
           className="imw"
           style={{
-            height: isMobile ? "32px" : "40px",
-            width: isMobile ? "64px" : "80px",
+            height: isMobile ? "28px" : "34px",
+            width: isMobile ? "56px" : "70px",
             borderRadius: "6px",
             border: logoHasDarkBg ? "none" : "1px solid #e2e8f0",
             backgroundColor: logoBgColor,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "4px",
+            padding: "3px",
             overflow: "hidden",
             flexShrink: 0,
           }}
@@ -264,31 +264,37 @@ export default function FlatCouponCard({ coupon }) {
           />
         </div>
 
-        {/* View All Coupons link */}
+        {/* Get Offer Button Link */}
         <Link
           href={`/deals/${_id}`}
           style={{
             fontSize: isMobile ? "11px" : "12px",
-            fontWeight: 600,
-            color: "#3E80DD",
-            display: "flex",
+            fontWeight: 700,
+            color: "#ffffff",
+            backgroundColor: "#2563eb",
+            padding: isMobile ? "5px 10px" : "6px 14px",
+            borderRadius: "6px",
+            display: "inline-flex",
             alignItems: "center",
-            gap: "4px",
+            gap: "5px",
             textDecoration: "none",
+            boxShadow: "0 1px 3px rgba(37,99,235,0.2)",
+            transition: "background-color 200ms ease",
+            flexShrink: 0,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.textDecoration = "underline";
+            e.currentTarget.style.backgroundColor = "#1d4ed8";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.textDecoration = "none";
+            e.currentTarget.style.backgroundColor = "#2563eb";
           }}
         >
-          <span>View All {merchantName} Coupons</span>
+          <span>Get Offer</span>
           <ExternalLink
             style={{
-              width: isMobile ? "12px" : "14px",
-              height: isMobile ? "12px" : "14px",
-              color: "#3E80DD",
+              width: isMobile ? "11px" : "13px",
+              height: isMobile ? "11px" : "13px",
+              color: "#ffffff",
             }}
           />
         </Link>

@@ -214,13 +214,17 @@ export default function AdminMerchantsClient({
       header: "Payment & Expiry",
       accessorKey: "paymentStatus",
       cell: (row) => {
+        const isStarter =
+          (row.plan || "starter").toLowerCase().includes("starter") ||
+          (row.plan || "").toLowerCase().includes("free");
         const isPaid =
+          isStarter ||
           row.paymentStatus === "completed" ||
           row.subscriptionStatus === "active" ||
           (row.planExpiry && new Date(row.planExpiry).getTime() > Date.now());
         const expiry = row.planExpiry ? new Date(row.planExpiry) : null;
         let diffStr = "";
-        if (expiry) {
+        if (expiry && !isStarter) {
           const diff = expiry.getTime() - Date.now();
           if (diff > 0) {
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -240,7 +244,7 @@ export default function AdminMerchantsClient({
                   : "bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold text-[10px] uppercase"
               }
             >
-              {isPaid ? "Payment Done" : "Payment Pending"}
+              {isStarter ? "FREE PLAN" : isPaid ? "Payment Done" : "Payment Pending"}
             </Badge>
             {diffStr && (
               <p className="text-[10px] font-mono text-muted-foreground">

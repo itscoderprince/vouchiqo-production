@@ -26,6 +26,7 @@ import {
   Sliders,
   Sparkles,
   Store,
+  ShoppingBag,
   Tag,
   Ticket,
   TrendingUp,
@@ -582,7 +583,17 @@ export function AppSidebar({ ...props }) {
                     url: "/merchant/coupons?status=expired",
                     icon: Clock,
                   },
+                  {
+                    title: "Affiliate Products",
+                    url: "/merchant/affiliate-products",
+                    icon: ShoppingBag,
+                  },
                 ],
+              },
+              {
+                title: "Affiliate Products",
+                url: "/merchant/affiliate-products",
+                icon: ShoppingBag,
               },
               {
                 title: "Post New Listing",

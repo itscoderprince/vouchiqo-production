@@ -1,3 +1,4 @@
+import { sendMerchantSubscriptionAdminUpdateEmail } from "@/lib/email/merchant-email";
 import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -47,43 +48,72 @@ export const PUT = asyncHandler(async (request, { params }) => {
   const { id } = await params;
   const body = await request.json();
 
+  const existingMerchant = await Merchant.findById(id).lean();
+  if (!existingMerchant) {
+    throw new NotFoundError("Merchant");
+  }
+
+  let actionTitle = "";
+  let statusBadgeText = "";
+  let detailMessage = "";
+
   if (body.customExpiryDate) {
     const customDateObj = new Date(body.customExpiryDate);
     if (!isNaN(customDateObj.getTime())) {
       body.planExpiry = customDateObj;
       body.paymentStatus = "completed";
       body.subscriptionStatus = "active";
+      actionTitle = "Subscription Expiry Date Updated";
+      statusBadgeText = "⏳ Expiry Date Set";
+      detailMessage = `Your subscription validity has been updated by Vouchiqo Admin.`;
     }
     delete body.customExpiryDate;
     delete body.action;
   } else if (body.action === "pause") {
     body.subscriptionStatus = "paused";
     body.paymentStatus = "pending";
+    actionTitle = "Subscription Plan Paused";
+    statusBadgeText = "⏸️ Plan Paused";
+    detailMessage = `Your subscription plan has been temporarily paused by Vouchiqo Admin.`;
     delete body.action;
   } else if (body.action === "stop" || body.action === "cancel") {
     body.subscriptionStatus = "cancelled";
     body.paymentStatus = "pending";
+    actionTitle = "Subscription Plan Cancelled";
+    statusBadgeText = "🛑 Plan Stopped";
+    detailMessage = `Your subscription plan has been stopped/cancelled by Vouchiqo Admin.`;
     delete body.action;
   } else if (body.action === "resume") {
     body.subscriptionStatus = "active";
     body.paymentStatus = "completed";
+    actionTitle = "Subscription Plan Reactivated";
+    statusBadgeText = "▶️ Plan Reactivated";
+    detailMessage = `Your subscription plan has been reactivated and is now fully active.`;
     delete body.action;
   }
 
   if (typeof body.extendDays === "number") {
-    const existing = await Merchant.findById(id);
-    if (existing) {
-      const baseDate =
-        existing.planExpiry && new Date(existing.planExpiry) > new Date()
-          ? new Date(existing.planExpiry)
-          : new Date();
-      baseDate.setDate(baseDate.getDate() + body.extendDays);
-      body.planExpiry = baseDate;
-      body.paymentStatus = "completed";
-      body.subscriptionStatus = "active";
-    }
+    const baseDate =
+      existingMerchant.planExpiry && new Date(existingMerchant.planExpiry) > new Date()
+        ? new Date(existingMerchant.planExpiry)
+        : new Date();
+    baseDate.setDate(baseDate.getDate() + body.extendDays);
+    body.planExpiry = baseDate;
+    body.paymentStatus = "completed";
+    body.subscriptionStatus = "active";
+    actionTitle = `Subscription Extended by +${body.extendDays} Days`;
+    statusBadgeText = `➕ Extended ${body.extendDays} Days`;
+    detailMessage = `Vouchiqo Admin granted an extension of +${body.extendDays} days to your subscription.`;
     delete body.extendDays;
     delete body.action;
+  }
+
+  if (body.plan && body.plan !== existingMerchant.plan) {
+    if (!actionTitle) {
+      actionTitle = `Subscription Tier Changed to ${body.plan.toUpperCase()}`;
+      statusBadgeText = `🚀 Tier Upgraded`;
+      detailMessage = `Your subscription tier has been updated from ${existingMerchant.plan?.toUpperCase() || "STARTER"} to ${body.plan.toUpperCase()}.`;
+    }
   }
 
   const merchant = await Merchant.findByIdAndUpdate(
@@ -94,6 +124,20 @@ export const PUT = asyncHandler(async (request, { params }) => {
 
   if (!merchant) {
     throw new NotFoundError("Merchant");
+  }
+
+  // Dispatch Email Notification to Merchant if subscription control action was performed
+  const targetEmail = merchant.contactEmail;
+  if (targetEmail && (actionTitle || body.plan)) {
+    sendMerchantSubscriptionAdminUpdateEmail({
+      to: targetEmail,
+      businessName: merchant.businessName,
+      actionTitle: actionTitle || `Subscription Update for ${merchant.businessName}`,
+      statusBadgeText: statusBadgeText || "⚡ Subscription Update",
+      planName: merchant.plan,
+      planExpiry: merchant.planExpiry,
+      detailMessage,
+    }).catch((err) => console.error("[Admin Subscription Email Error]:", err));
   }
 
   try {

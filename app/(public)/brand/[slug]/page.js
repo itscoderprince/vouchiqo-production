@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
+import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import BrandClient from "./brand-client";
 
 export const dynamic = "force-dynamic";
@@ -338,6 +339,7 @@ export default async function BrandPage({ params }) {
   let merchant;
   let coupons = [];
   let expiredCoupons = [];
+  let affiliateProducts = [];
   let relatedBrands = [];
 
   try {
@@ -376,6 +378,15 @@ export default async function BrandPage({ params }) {
         .populate("merchantId", "businessName slug logo")
         .lean();
       expiredCoupons = JSON.parse(JSON.stringify(rawExpired || []));
+
+      // ── Active Affiliate Products ──
+      const rawAffiliateProducts = await AffiliateProduct.find({
+        merchantId: merchant._id,
+        status: "active",
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+      affiliateProducts = JSON.parse(JSON.stringify(rawAffiliateProducts || []));
     }
   } catch (err) {
     console.error("Error loading brand profile or coupons:", err);
@@ -407,6 +418,7 @@ export default async function BrandPage({ params }) {
       merchant={JSON.parse(JSON.stringify(merchant))}
       coupons={coupons}
       expiredCoupons={expiredCoupons}
+      affiliateProducts={affiliateProducts}
       relatedBrands={relatedBrands}
     />
   );

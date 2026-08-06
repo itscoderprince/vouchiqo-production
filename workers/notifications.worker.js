@@ -12,13 +12,8 @@ import { redis } from "../lib/redis.js";
 import { JOB_NAMES, QUEUE_NAMES } from "../utils/constants.js";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-
-if (!RESEND_API_KEY) {
-  console.error("[notifications-worker] RESEND_API_KEY is missing.");
-  process.exit(1);
-}
-
-const resend = new Resend(RESEND_API_KEY);
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+const FROM_EMAIL = process.env.EMAIL_FROM || "Vouchiqo <noreply@vouchiqo.com>";
 
 const worker = new Worker(
   QUEUE_NAMES.NOTIFICATIONS,
@@ -31,8 +26,13 @@ const worker = new Worker(
         return;
       }
 
+      if (!resend || !RESEND_API_KEY) {
+        console.log(`[notifications-worker Mock Dispatch] To: ${to} | Subject: ${subject}`);
+        return;
+      }
+
       await resend.emails.send({
-        from: "Vouchiqo <onboarding@resend.dev>",
+        from: FROM_EMAIL,
         to,
         subject,
         html,

@@ -1,3 +1,4 @@
+import { sendMerchantPlanSelectedEmail } from "@/lib/email/merchant-email";
 import { connectDB } from "@/lib/mongodb";
 import { razorpayKeyId } from "@/lib/razorpay";
 import { requireRole } from "@/modules/auth/auth.middleware";
@@ -81,6 +82,18 @@ export const POST = asyncHandler(async (request) => {
     },
     idempotencyKey,
   });
+
+  // Dispatch Email to Merchant about the chosen subscription plan
+  const recipientEmail = merchant?.contactEmail || user?.email;
+  if (recipientEmail && plan) {
+    sendMerchantPlanSelectedEmail({
+      to: recipientEmail,
+      businessName: merchant?.businessName || "Merchant Partner",
+      planName: String(plan).toUpperCase(),
+      planPrice: amount,
+      billingCycle: cycle,
+    }).catch((err) => console.error("[Plan Selected Email Error]:", err));
+  }
 
   return ok(
     {

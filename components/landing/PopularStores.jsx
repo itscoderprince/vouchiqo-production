@@ -305,55 +305,55 @@ export default function PopularStores({ merchants = [] }) {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 mt-6">
+      <div className="flex flex-col lg:flex-row gap-6 mt-6 items-stretch">
         {/* ── Store of the Month Card ── */}
-        <div className="w-full lg:w-1/4 shrink-0">
+        <div className="w-full lg:w-1/4 shrink-0 flex flex-col h-auto lg:h-[400px]">
           <Link
             href={somHref}
-            className="block relative no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-800 bg-[#090d16] shadow-md group transition-all duration-300 hover:shadow-xl hover:border-slate-700"
+            className="flex-1 relative flex flex-col justify-between no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] group transition-all duration-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)] hover:border-blue-600 h-full"
           >
             {/* Background photo + scrim */}
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+              className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:scale-105 transition-transform duration-700 pointer-events-none"
               style={{ backgroundImage: `url(${somBanner})` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/60 to-slate-950/95 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/25 via-slate-900/10 to-white pointer-events-none" />
 
             {/* Content Wrapper */}
-            <div className="relative z-10 p-4 sm:p-5 flex flex-col justify-between h-full min-h-[175px] md:min-h-[380px]">
+            <div className="relative z-10 p-4 sm:p-5 flex flex-col justify-between h-full">
               {/* Top Title & Logo Box */}
-              <div className="flex md:flex-col items-center md:items-start justify-between gap-4">
+              <div className="flex md:flex-col items-center md:items-start justify-between gap-3">
                 {/* Logo Box */}
-                <div className="w-28 h-16 md:w-full md:h-24 bg-[#111827] border border-[#1f2937] rounded-xl p-2.5 flex items-center justify-center shrink-0 shadow-inner group-hover:border-slate-700 transition-colors">
+                <div className="w-28 h-16 md:w-full md:h-24 bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-center shrink-0 shadow-sm group-hover:border-blue-500 transition-colors">
                   <img
                     src={somLogo}
                     alt="Store Logo"
-                    className="max-h-full max-w-full object-contain"
+                    className="max-h-full max-w-full object-contain rounded-lg"
                   />
                 </div>
 
                 {/* Title Text */}
                 <div className="text-right md:text-left flex-1 min-w-0">
-                  <span className="text-[10px] sm:text-[12px] font-extrabold text-[#a3e635] tracking-widest uppercase block mb-0.5">
+                  <span className="inline-block px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-extrabold bg-blue-600 text-white tracking-wider uppercase mb-1 shadow-2xs">
                     Most Popular
                   </span>
-                  <h3 className="text-[15px] sm:text-[19px] font-black text-white leading-tight tracking-tight">
+                  <h3 className="text-[16px] sm:text-[20px] font-bold text-slate-900 leading-tight tracking-tight">
                     Store Of The Month
                   </h3>
                 </div>
               </div>
 
               {/* Bottom Stats Bar with Dotted Divider */}
-              <div className="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 text-center divide-x divide-dashed divide-slate-700">
+              <div className="mt-4 p-3 bg-blue-50/80 rounded-xl border border-blue-100 grid grid-cols-2 text-center divide-x divide-dashed divide-blue-200">
                 <div className="flex items-center justify-center gap-1.5 px-2">
-                  <Tag className="w-3.5 h-3.5 text-[#a3e635] shrink-0" />
-                  <span className="text-[12px] font-bold text-white whitespace-nowrap">
+                  <Tag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span className="text-[12px] sm:text-[13px] font-bold text-slate-800 whitespace-nowrap">
                     {somCoupons} Coupons
                   </span>
                 </div>
                 <div className="flex items-center justify-center gap-1.5 px-2">
-                  <Percent className="w-3.5 h-3.5 text-[#a3e635] shrink-0" />
-                  <span className="text-[12px] font-bold text-white whitespace-nowrap">
+                  <Percent className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span className="text-[12px] sm:text-[13px] font-bold text-slate-800 whitespace-nowrap">
                     {somOffers} Offers
                   </span>
                 </div>
@@ -389,6 +389,7 @@ export default function PopularStores({ merchants = [] }) {
                         key={idx}
                         name={store.name}
                         logo={store.logo}
+                        banner={store.banner}
                         href={store.href}
                         coupons={store.coupons}
                       />

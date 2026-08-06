@@ -13,20 +13,37 @@ import { ROLES } from "@/utils/constants";
 
 const createCustomerRevivalSchema = z.object({
   code: z.string().toUpperCase().optional().nullable(),
-  brandName: z.string().min(2).max(100),
-  email: z.string().email(),
+  brandName: z
+    .string()
+    .min(2, "Brand name must be at least 2 characters")
+    .max(100),
+  email: z.string().email("Invalid email address"),
   whereDidYouFindThisOffer: z.string().optional().nullable(),
   merchantWebsite: z.string().optional().nullable(),
-  merchantCity: z.string().min(2).max(100),
-  discountType: z.string().min(2).max(50),
-  discountValue: z.number().min(0).optional().nullable(),
+  merchantCity: z
+    .string()
+    .min(2)
+    .max(100)
+    .optional()
+    .nullable()
+    .default("Online"),
+  discountType: z
+    .string()
+    .min(2)
+    .max(50)
+    .optional()
+    .nullable()
+    .default("Percentage"),
+  discountValue: z.number().min(0).optional().nullable().default(0),
   description: z.string().max(200).optional().nullable(),
   whenSeen: z.string().optional().nullable(),
   whatBuying: z.string().max(200).optional().nullable(),
   mobileNumber: z
     .string()
-    .regex(/^\d{10}$/, "WhatsApp mobile must be exactly 10 digits"),
-  consent: z.boolean(),
+    .optional()
+    .nullable()
+    .default("9999999999"),
+  consent: z.boolean().optional().nullable().default(true),
 });
 
 /**

@@ -9,6 +9,7 @@ import BrandHeader from "./components/BrandHeader";
 import BrandStats from "./components/BrandStats";
 import CouponCard from "./components/CouponCard";
 import ExpiredOfferCard from "./components/ExpiredOfferCard";
+import AffiliateProductCard from "./components/AffiliateProductCard";
 import RelatedFooter from "./components/RelatedFooter";
 import SidebarSection from "./components/SidebarSection";
 
@@ -16,6 +17,7 @@ export default function BrandClient({
   merchant,
   coupons = [],
   expiredCoupons = [],
+  affiliateProducts = [],
   relatedBrands = [],
 }) {
   const track = useTrackEvent();
@@ -204,48 +206,76 @@ export default function BrandClient({
         setExistingUser={setExistingUser}
         couponsCount={couponsCount}
         offersCount={offersCount}
+        affiliateProductsCount={affiliateProducts.length}
       />
 
       {/* Main content area - full width */}
       <main className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left: Coupons (8 cols) */}
+          {/* Left: Coupons & Affiliate Products (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {/* Stats row */}
             <BrandStats coupons={coupons} merchant={merchant} />
 
-            {/* Coupon list */}
-            <div className="space-y-3 pt-2">
-              {filteredCoupons.length > 0 ? (
-                filteredCoupons.map((coupon) => (
-                  <CouponCard
-                    key={coupon._id}
-                    coupon={coupon}
-                    isExpanded={expandedCouponId === coupon._id}
-                    toggleDetails={() => toggleDetails(coupon._id)}
-                    copiedCouponId={copiedCouponId}
-                    handleCopyCode={handleCopyCode}
-                    merchant={merchant}
-                  />
-                ))
-              ) : (
-                <div className="py-16 text-center bg-white border border-gray-100 rounded-xl">
-                  <p className="text-[14px] text-gray-500 font-normal">
-                    No deals match your current filter.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setActiveTab("all");
-                      setExistingUser(false);
-                    }}
-                    type="button"
-                    className="mt-3 text-blue-600 font-medium text-sm hover:underline border-0 bg-transparent cursor-pointer"
-                  >
-                    Reset filters
-                  </button>
+            {/* Affiliate Products section if activeTab is 'all' or 'affiliate' */}
+            {(activeTab === "all" || activeTab === "affiliate") && affiliateProducts.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-extrabold uppercase tracking-widest text-blue-600 flex items-center gap-1.5">
+                    <span>Affiliate Products</span>
+                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px]">
+                      {affiliateProducts.length}
+                    </span>
+                  </h3>
                 </div>
-              )}
-            </div>
+                <div className="space-y-3">
+                  {affiliateProducts.map((prod) => (
+                    <AffiliateProductCard
+                      key={prod._id}
+                      product={prod}
+                      merchant={merchant}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Coupon & Deal list */}
+            {activeTab !== "affiliate" && (
+              <div className="space-y-3 pt-2">
+                {filteredCoupons.length > 0 ? (
+                  filteredCoupons.map((coupon) => (
+                    <CouponCard
+                      key={coupon._id}
+                      coupon={coupon}
+                      isExpanded={expandedCouponId === coupon._id}
+                      toggleDetails={() => toggleDetails(coupon._id)}
+                      copiedCouponId={copiedCouponId}
+                      handleCopyCode={handleCopyCode}
+                      merchant={merchant}
+                    />
+                  ))
+                ) : (
+                  activeTab !== "all" && (
+                    <div className="py-16 text-center bg-white border border-gray-100 rounded-xl">
+                      <p className="text-[14px] text-gray-500 font-normal">
+                        No deals match your current filter.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setActiveTab("all");
+                          setExistingUser(false);
+                        }}
+                        type="button"
+                        className="mt-3 text-blue-600 font-medium text-sm hover:underline border-0 bg-transparent cursor-pointer"
+                      >
+                        Reset filters
+                      </button>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
 
             {/* Expired deals */}
             {expiredCoupons.length > 0 && (

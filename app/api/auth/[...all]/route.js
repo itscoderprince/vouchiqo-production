@@ -2,6 +2,11 @@ import { toNextJsHandler } from "better-auth/next-js";
 import mongoose from "mongoose";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { sendMerchantWelcomeEmail } from "@/lib/email/merchant-email";
+import {
+  sendUserWelcomeBackEmail,
+  sendUserWelcomeEmail,
+} from "@/lib/email/user-email";
 import { connectDB } from "@/lib/mongodb";
 import { ROLES } from "@/utils/constants";
 
@@ -214,7 +219,7 @@ export async function POST(request) {
 
   const response = await handler.POST(request);
 
-  // Post-process /sign-up/email to ensure merchant signups retain role: "merchant"
+  // Post-process /sign-up/email to send Welcome Email & promote merchant role
   if (pathname.endsWith("/sign-up/email") && response.ok) {
     try {
       const clone = request.clone();
@@ -226,37 +231,110 @@ export async function POST(request) {
         referer.includes("/merchant") ||
         referer.includes("/onboarding");
 
-      if (isMerchantSignup && body.email) {
+      if (body.email) {
+        const normalizedEmail = body.email.toLowerCase().trim();
+
+        if (isMerchantSignup) {
+          // Trigger Merchant Credentials Welcome Email
+          sendMerchantWelcomeEmail({
+            to: normalizedEmail,
+            email: normalizedEmail,
+            password: body.password || undefined,
+            businessName: body.name || "Your Store",
+          }).catch((err) =>
+            console.error("[Merchant Welcome Email Error]:", err),
+          );
+
+          await connectDB();
+          const db = mongoose.connection.db;
+
+          const userDoc = await db
+            .collection("user")
+            .findOne({ email: normalizedEmail });
+
+          if (userDoc) {
+            const userIdStr = userDoc.id || userDoc._id.toString();
+            await db
+              .collection("user")
+              .updateOne(
+                { _id: userDoc._id },
+                { $set: { role: ROLES.MERCHANT } },
+              );
+            await db
+              .collection("user_profiles")
+              .updateOne(
+                { authId: userIdStr },
+                { $set: { role: ROLES.MERCHANT } },
+                { upsert: true },
+              );
+            console.log(
+              `[Sign-Up Sync] Promoted newly registered user ${normalizedEmail} to role: merchant`,
+            );
+          }
+        } else {
+          // Trigger Customer Welcome Email
+          sendUserWelcomeEmail({
+            to: normalizedEmail,
+            name: body.name || normalizedEmail.split("@")[0],
+          }).catch((err) => console.error("[Welcome Email Error]:", err));
+        }
+      }
+    } catch (e) {
+      console.error("[Sign-Up Post-Process Error]:", e);
+    }
+  }
+
+  // Post-process /sign-in/email to send Welcome Back email if returning after > 1 day
+  if (pathname.endsWith("/sign-in/email") && response.ok) {
+    try {
+      const clone = request.clone();
+      const body = await clone.json().catch(() => ({}));
+      if (body.email) {
         await connectDB();
         const db = mongoose.connection.db;
         const normalizedEmail = body.email.toLowerCase().trim();
-
         const userDoc = await db
           .collection("user")
           .findOne({ email: normalizedEmail });
 
         if (userDoc) {
           const userIdStr = userDoc.id || userDoc._id.toString();
-          await db
-            .collection("user")
-            .updateOne(
-              { _id: userDoc._id },
-              { $set: { role: ROLES.MERCHANT } },
-            );
+          const profile = await db
+            .collection("user_profiles")
+            .findOne({ authId: userIdStr });
+          const now = new Date();
+
+          const lastLogin = profile?.lastLoginAt
+            ? new Date(profile.lastLoginAt)
+            : null;
+
+          const daysSinceLastLogin = lastLogin
+            ? (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24)
+            : 999;
+
+          // Update lastLoginAt in user_profiles
           await db
             .collection("user_profiles")
             .updateOne(
               { authId: userIdStr },
-              { $set: { role: ROLES.MERCHANT } },
+              { $set: { lastLoginAt: now, updatedAt: now } },
               { upsert: true },
             );
-          console.log(
-            `[Sign-Up Sync] Promoted newly registered user ${normalizedEmail} to role: merchant`,
-          );
+
+          // Send Welcome Back email if returning after >= 1 day
+          if (daysSinceLastLogin >= 1) {
+            sendUserWelcomeBackEmail({
+              to: normalizedEmail,
+              name: userDoc.name || normalizedEmail.split("@")[0],
+              lastLoginAt: lastLogin,
+            }).catch((err) =>
+              console.error("[Welcome Back Email Error]:", err),
+            );
+          }
         }
       }
     } catch (e) {
-      console.error("[Sign-Up Sync Error]:", e);
+      console.error("[Sign-In Post-Process Error]:", e);
     }
   }
 

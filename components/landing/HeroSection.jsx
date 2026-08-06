@@ -226,186 +226,113 @@ const RIGHT_BRANDS = [
 ];
 
 export function HeroSection({ banners = [] }) {
-  const [currentLeftSlide, setCurrentLeftSlide] = useState(0); // Start at index 0
-  const [currentRightCard, setCurrentRightCard] = useState(0); // Start at index 0
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
 
-  // Swipe/drag for left banner
-  const leftDragStart = useRef(0);
-  const leftIsDragging = useRef(false);
+  // Swipe/drag for banner
+  const dragStart = useRef(0);
+  const isDragging = useRef(false);
 
-  const handleLeftTouchStart = (e) => {
-    leftDragStart.current = e.touches[0].clientX;
-    leftIsDragging.current = true;
+  const handleTouchStart = (e) => {
+    dragStart.current = e.touches[0].clientX;
+    isDragging.current = true;
   };
 
-  const handleLeftTouchEnd = (e) => {
-    if (!leftIsDragging.current) return;
+  const handleTouchEnd = (e) => {
+    if (!isDragging.current) return;
     const dragEnd = e.changedTouches[0].clientX;
-    const diff = leftDragStart.current - dragEnd;
+    const diff = dragStart.current - dragEnd;
     if (diff > 50) {
       handleNext();
     } else if (diff < -50) {
       handlePrev();
     }
-    leftIsDragging.current = false;
+    isDragging.current = false;
   };
 
-  const handleLeftMouseDown = (e) => {
-    leftDragStart.current = e.clientX;
-    leftIsDragging.current = true;
+  const handleMouseDown = (e) => {
+    dragStart.current = e.clientX;
+    isDragging.current = true;
   };
 
-  const handleLeftMouseUp = (e) => {
-    if (!leftIsDragging.current) return;
+  const handleMouseUp = (e) => {
+    if (!isDragging.current) return;
     const dragEnd = e.clientX;
-    const diff = leftDragStart.current - dragEnd;
+    const diff = dragStart.current - dragEnd;
     if (diff > 50) {
       handleNext();
     } else if (diff < -50) {
       handlePrev();
     }
-    leftIsDragging.current = false;
+    isDragging.current = false;
   };
 
-  // Swipe/drag for right banner
-  const rightDragStart = useRef(0);
-  const rightIsDragging = useRef(false);
-
-  const handleRightTouchStart = (e) => {
-    rightDragStart.current = e.touches[0].clientX;
-    rightIsDragging.current = true;
-  };
-
-  const handleRightTouchEnd = (e) => {
-    if (!rightIsDragging.current) return;
-    const dragEnd = e.changedTouches[0].clientX;
-    const diff = rightDragStart.current - dragEnd;
-    if (diff > 50) {
-      handleRightNext();
-    } else if (diff < -50) {
-      handleRightPrev();
-    }
-    rightIsDragging.current = false;
-  };
-
-  const handleRightMouseDown = (e) => {
-    rightDragStart.current = e.clientX;
-    rightIsDragging.current = true;
-  };
-
-  const handleRightMouseUp = (e) => {
-    if (!rightIsDragging.current) return;
-    const dragEnd = e.clientX;
-    const diff = rightDragStart.current - dragEnd;
-    if (diff > 50) {
-      handleRightNext();
-    } else if (diff < -50) {
-      handleRightPrev();
-    }
-    rightIsDragging.current = false;
-  };
-
-  // Separate dynamic database slides with fallback to static constants
-  const leftSlides = useMemo(() => {
-    const dbBanners = (banners || []).filter((b) => b.slot === "left-hero");
+  const slides = useMemo(() => {
+    const dbBanners = (banners || []).filter(
+      (b) => b.slot === "left-hero" || b.slot === "hero" || !b.slot,
+    );
     return dbBanners.length > 0
       ? dbBanners.map((b, idx) => ({ id: b._id || idx, ...b }))
       : LEFT_BRANDS;
   }, [banners]);
 
-  const rightSlides = useMemo(() => {
-    const dbBanners = (banners || []).filter(
-      (b) =>
-        b.slot === "right-promo" ||
-        b.slot === "top-right" ||
-        b.slot === "bottom-right",
-    );
-    return dbBanners.length > 0
-      ? dbBanners.map((b, idx) => ({ id: b._id || idx, ...b }))
-      : RIGHT_BRANDS;
-  }, [banners]);
-
-  // Keep state indices within bounds if dynamic lists change size
   useEffect(() => {
-    if (currentLeftSlide >= leftSlides.length) {
-      setCurrentLeftSlide(0);
+    if (currentSlide >= slides.length) {
+      setCurrentSlide(0);
     }
-  }, [leftSlides.length, currentLeftSlide]);
+  }, [slides.length, currentSlide]);
 
   useEffect(() => {
-    if (currentRightCard >= rightSlides.length) {
-      setCurrentRightCard(0);
-    }
-  }, [rightSlides.length, currentRightCard]);
-
-  // Auto rotate slides
-  useEffect(() => {
-    if (!autoRotate || leftSlides.length <= 1) return;
+    if (!autoRotate || slides.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrentLeftSlide((prev) => (prev + 1) % leftSlides.length);
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, [autoRotate, leftSlides.length]);
+  }, [autoRotate, slides.length]);
 
   const handlePrev = useCallback(() => {
     setAutoRotate(false);
-    setCurrentLeftSlide(
-      (prev) => (prev - 1 + leftSlides.length) % leftSlides.length,
+    setCurrentSlide(
+      (prev) => (prev - 1 + slides.length) % slides.length,
     );
-  }, [leftSlides.length]);
+  }, [slides.length]);
 
   const handleNext = useCallback(() => {
     setAutoRotate(false);
-    setCurrentLeftSlide((prev) => (prev + 1) % leftSlides.length);
-  }, [leftSlides.length]);
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
 
-  const handleLeftBrandClick = (idx) => {
+  const handleBrandClick = (idx) => {
     setAutoRotate(false);
-    setCurrentLeftSlide(idx);
+    setCurrentSlide(idx);
   };
-
-  const handleRightBrandClick = (idx) => {
-    setCurrentRightCard(idx);
-  };
-
-  const handleRightPrev = useCallback(() => {
-    setCurrentRightCard(
-      (prev) => (prev - 1 + rightSlides.length) % rightSlides.length,
-    );
-  }, [rightSlides.length]);
-
-  const handleRightNext = useCallback(() => {
-    setCurrentRightCard((prev) => (prev + 1) % rightSlides.length);
-  }, [rightSlides.length]);
 
   return (
     <div className="w-full flex flex-col select-none">
-      {/* Upper Banners Row */}
-      <section className="flex flex-col md:flex-row gap-4 select-none w-full text-left">
-        {/* Left Column: Banners Carousel (75% Width) */}
-        <div className="md:w-3/4 rounded-md overflow-hidden shadow-sm relative w-full group border border-brand-border bg-slate-900 h-[200px] sm:h-[300px] md:h-[430px]">
+      {/* Full Width Banners Section */}
+      <section className="select-none w-full text-left">
+        <div className="w-full rounded-md overflow-hidden shadow-sm relative group border border-brand-border bg-slate-900 h-[200px] sm:h-[300px] md:h-[430px]">
           {/* Viewport for horizontal sliding */}
           <div
             className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing"
-            onTouchStart={handleLeftTouchStart}
-            onTouchEnd={handleLeftTouchEnd}
-            onMouseDown={handleLeftMouseDown}
-            onMouseUp={handleLeftMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
           >
             <div
               className="flex h-full transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentLeftSlide * 100}%)` }}
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
-              {leftSlides.map((slide) => (
+              {slides.map((slide) => (
                 <div
                   key={slide.id}
                   className="w-full h-full flex-shrink-0 min-w-full relative"
                 >
-                  <Link href={slide.link} className="block w-full h-full">
+                  <Link href={slide.link || "#"} className="block w-full h-full">
                     <img
                       src={slide.image}
-                      alt={slide.title || "Banner slide"}
+                      alt={slide.title || slide.name || "Banner slide"}
                       className="w-full h-full object-cover cursor-pointer"
                     />
                     {slide.isPaid && (
@@ -420,7 +347,7 @@ export function HeroSection({ banners = [] }) {
           </div>
 
           {/* Navigation Arrows */}
-          {leftSlides.length > 1 && (
+          {slides.length > 1 && (
             <>
               <button
                 onClick={handlePrev}
@@ -440,91 +367,15 @@ export function HeroSection({ banners = [] }) {
           )}
 
           {/* Pagination Dots */}
-          {leftSlides.length > 1 && (
+          {slides.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-              {leftSlides.map((_, idx) => (
+              {slides.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => handleLeftBrandClick(idx)}
+                  onClick={() => handleBrandClick(idx)}
                   className={`w-2 h-2 rounded-full transition-all border-0 cursor-pointer ${
-                    idx === currentLeftSlide
-                      ? "bg-white w-5"
-                      : "bg-white/40 hover:bg-white/60"
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Banners Carousel (25% Width) */}
-        <div className="md:w-1/4 rounded-md overflow-hidden shadow-sm relative w-full border border-brand-border bg-slate-900 h-[200px] sm:h-[300px] md:h-[430px] group">
-          {/* Viewport for horizontal sliding */}
-          <div
-            className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing"
-            onTouchStart={handleRightTouchStart}
-            onTouchEnd={handleRightTouchEnd}
-            onMouseDown={handleRightMouseDown}
-            onMouseUp={handleRightMouseUp}
-          >
-            <div
-              className="flex h-full transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentRightCard * 100}%)` }}
-            >
-              {rightSlides.map((slide) => (
-                <div
-                  key={slide.id}
-                  className="w-full h-full flex-shrink-0 min-w-full relative"
-                >
-                  <Link href={slide.link} className="block w-full h-full">
-                    <img
-                      src={slide.image}
-                      alt={slide.name || slide.title || "Promo banner"}
-                      className="w-full h-full object-cover cursor-pointer"
-                    />
-                    {slide.isPaid && (
-                      <div className="absolute top-3 right-3 bg-black/45 text-white/90 text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded backdrop-blur-xs select-none pointer-events-none z-10 border border-white/10">
-                        Sponsored
-                      </div>
-                    )}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Navigation Arrows */}
-          {rightSlides.length > 1 && (
-            <>
-              <button
-                onClick={handleRightPrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md backdrop-blur-sm border-0 cursor-pointer"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleRightNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md backdrop-blur-sm border-0 cursor-pointer"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
-
-          {/* Pagination Dots */}
-          {rightSlides.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-              {rightSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleRightBrandClick(idx)}
-                  className={`w-2 h-2 rounded-full transition-all border-0 cursor-pointer ${
-                    idx === currentRightCard
+                    idx === currentSlide
                       ? "bg-white w-5"
                       : "bg-white/40 hover:bg-white/60"
                   }`}
@@ -536,51 +387,15 @@ export function HeroSection({ banners = [] }) {
         </div>
       </section>
 
-      {/* Brands List (Synchronized directly with slider) */}
-      <div className="hidden md:flex flex-col md:flex-row gap-4 mt-2 select-none w-full text-left">
-        {/* Left brand list (75% width) */}
-        <div className="md:w-3/4 flex justify-start items-center overflow-x-auto scrollbar-hide py-3.5 gap-4 px-4">
-          {leftSlides.map((brand, idx) => {
-            const isActive = idx === currentLeftSlide;
+      {/* Synchronized Brands Bar Below */}
+      <div className="hidden md:flex w-full mt-2 select-none text-left">
+        <div className="w-full flex justify-start items-center overflow-x-auto scrollbar-hide py-3.5 gap-4 px-2">
+          {slides.map((brand, idx) => {
+            const isActive = idx === currentSlide;
             return (
               <button
                 key={brand.id}
-                onClick={() => handleLeftBrandClick(idx)}
-                type="button"
-                className={`relative flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 w-[76px] h-[40px] transition-all duration-200 shrink-0 ${
-                  isActive
-                    ? "border-[#2563eb] shadow-sm ring-1 ring-[#2563eb]/30"
-                    : "border-brand-border hover:border-[#2563eb]/50"
-                }`}
-                title={brand.name || brand.title}
-              >
-                {brand.logo ? (
-                  <img
-                    src={brand.logo}
-                    alt={brand.name || brand.title}
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                ) : (
-                  <span className="text-[9px] font-bold text-brand-subtext truncate max-w-full uppercase">
-                    {brand.name || brand.title}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Divider (Vertical line aligned with gap) */}
-        <div className="hidden md:block w-px h-6 bg-brand-border self-center" />
-
-        {/* Right brand list (25% width) */}
-        <div className="md:w-1/4 flex justify-around items-center py-3.5 gap-4 px-2">
-          {rightSlides.map((brand, idx) => {
-            const isActive = idx === currentRightCard;
-            return (
-              <button
-                key={brand.id}
-                onClick={() => handleRightBrandClick(idx)}
+                onClick={() => handleBrandClick(idx)}
                 type="button"
                 className={`relative flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 w-[76px] h-[40px] transition-all duration-200 shrink-0 ${
                   isActive

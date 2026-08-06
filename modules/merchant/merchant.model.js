@@ -164,6 +164,20 @@ const merchantSchema = new Schema(
 );
 
 merchantSchema.pre("save", function () {
+  if (
+    !this.plan ||
+    this.plan === "starter" ||
+    String(this.plan).toLowerCase().includes("starter") ||
+    String(this.plan).toLowerCase().includes("free")
+  ) {
+    if (!this.paymentStatus || this.paymentStatus === "pending") {
+      this.paymentStatus = "completed";
+    }
+    if (!this.subscriptionStatus || this.subscriptionStatus === "pending") {
+      this.subscriptionStatus = "active";
+    }
+  }
+
   if (this.gstin !== undefined) {
     const cleanGstin = String(this.gstin || "").trim().toUpperCase();
     if (!cleanGstin) {

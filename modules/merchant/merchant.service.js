@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import Merchant from "./merchant.model.js";
 import UserProfile from "../user/user.model.js";
 import {
+  sendMerchantApprovedEmail,
+  sendMerchantRejectedEmail,
+} from "../../lib/email/merchant-email.js";
+import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
@@ -381,6 +385,34 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
       ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } }).catch(() => {})]
       : []),
   ]);
+
+  // Dispatch Email Notification to Merchant on Approval / Rejection
+  try {
+    let targetEmail = merchant.contactEmail;
+    if (!targetEmail && merchant.authId && userCol) {
+      const uDoc = await userCol.findOne({ _id: merchant.authId }).catch(() => null);
+      targetEmail = uDoc?.email;
+    }
+
+    if (targetEmail) {
+      if (status === MERCHANT_STATUS.APPROVED) {
+        sendMerchantApprovedEmail({
+          to: targetEmail,
+          businessName: merchant.businessName,
+          liaisonName: merchant.liaisonName,
+        }).catch((err) => console.error("[Merchant Approved Email Error]:", err));
+      } else if (status === MERCHANT_STATUS.REJECTED) {
+        sendMerchantRejectedEmail({
+          to: targetEmail,
+          businessName: merchant.businessName,
+          liaisonName: merchant.liaisonName,
+          rejectionReason: merchant.rejectionReason || rejectionReason,
+        }).catch((err) => console.error("[Merchant Rejected Email Error]:", err));
+      }
+    }
+  } catch (err) {
+    console.error("[Review Merchant Email Dispatch Error]:", err);
+  }
 
   return merchant;
 }

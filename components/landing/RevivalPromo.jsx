@@ -2,59 +2,57 @@
 
 import {
   ArrowRight,
-  CheckCircle2,
+  Clock,
   Loader2,
   RotateCcw,
   Sparkles,
-  Zap
+  Zap,
+  ShieldCheck,
+  TrendingUp,
+  Coins,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import toast from "react-hot-toast";
 
 export function RevivalPromo() {
   const [form, setForm] = useState({ code: "", brandName: "", email: "" });
-  const [showAllFields, setShowAllFields] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const handleCodeChange = (e) => {
-    const val = e.target.value;
-    setForm({ ...form, code: val });
-    if (val.trim() !== "") {
-      setShowAllFields(true);
-    }
-  };
-
-  const handleInitialClick = () => {
-    if (!showAllFields) {
-      setShowAllFields(true);
-    }
-  };
-
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.code || !form.brandName || !form.email) {
-      setError("Please fill out all fields.");
+    if (!form.brandName.trim()) {
+      setError("Please enter the Store or Brand Name.");
       return;
     }
+    if (!form.email.trim() || !form.email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
     setError("");
+
     try {
       const res = await fetch("/api/revivals/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          code: form.code.trim() || undefined,
+          brandName: form.brandName.trim(),
+          email: form.email.trim().toLowerCase(),
+        }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
         setSuccess(true);
         setForm({ code: "", brandName: "", email: "" });
-        setShowAllFields(false);
+        toast.success("Revival request submitted successfully! 🎉");
       } else {
-        const data = await res.json();
         setError(data.message || "Failed to submit revival request.");
       }
     } catch (err) {
@@ -66,209 +64,203 @@ export function RevivalPromo() {
   }
 
   return (
-    <section className="w-full bg-[#0A2E6E] dark:bg-zinc-950 py-16 px-4 md:px-8 border-t border-b border-[#0e3a8a] dark:border-zinc-900 select-none relative overflow-hidden">
-      {/* Subtle visual radial highlight overlay */}
-      <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-blue-600/10 to-transparent pointer-events-none z-0" />
+    <section className="w-full bg-gradient-to-br from-blue-50/90 via-white to-blue-100/60 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 py-10 sm:py-12 px-4 sm:px-8 border-y border-blue-200/60 dark:border-zinc-900 select-none relative overflow-hidden font-sans text-left">
+      {/* Decorative Gradient Graphic Orbs & Subtle Pattern */}
+      <div className="absolute -left-20 -top-20 w-96 h-96 bg-gradient-to-br from-blue-400/25 to-cyan-300/15 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-gradient-to-tl from-blue-600/20 to-indigo-400/15 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute inset-0 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.06] pointer-events-none z-0" />
 
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-          
-          {/* Left Column: Form & Callout (7 cols) */}
-          <div className="lg:col-span-7 space-y-6 text-left">
-            <Badge className="bg-blue-500/10 hover:bg-blue-500/15 text-[#38bdf8] border border-blue-500/20 rounded-full px-3.5 py-1 font-bold text-[10px] tracking-wider uppercase w-fit shadow-none flex items-center gap-1.5">
-              <Zap className="w-3 h-3 text-[#38bdf8] fill-current animate-pulse" />
-              <span>Vouchiqo EXCLUSIVE</span>
-            </Badge>
+      <div className="w-full max-w-[1500px] mx-auto px-2 sm:px-6 md:px-10 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Left Column: Form & Callout (lg:col-span-7) */}
+          <div className="lg:col-span-7 space-y-4 text-left font-sans">
+            {/* Top Pill Badge */}
+            <div className="inline-flex items-center gap-1.5 bg-blue-100/80 border border-blue-200 text-blue-700 text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md shadow-2xs">
+              <Zap className="w-3 h-3 text-blue-600 fill-current" />
+              <span>Coupon Revival Engine</span>
+            </div>
 
-            <div className="space-y-3">
-              <h2 className="text-3xl md:text-4xl lg:text-[44px] font-black text-white tracking-tight leading-[1.15]">
-                Got an <span className="text-[#38bdf8]">expired coupon</span>? <br />
-                We&apos;ll bring it back to life.
+            {/* Main Title & Subtitle */}
+            <div className="space-y-1.5 font-sans">
+              <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                Got an expired coupon? <br />
+                <span className="text-blue-600">We&apos;ll bring it back to life.</span>
               </h2>
-              <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-medium max-w-xl">
-                Submit any expired or unused promo code. Our partnerships team negotiates a fresh equivalent with the brand — often within 24 hours. No other site does this.
+              <p className="text-xs sm:text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal max-w-xl">
+                Submit any expired code or store offer. Our merchant relations team negotiates a fresh active equivalent directly with the brand — usually within 24 hours.
               </p>
             </div>
 
-            {/* Input Submission interface */}
+            {/* Compact Form Container */}
             <div className="max-w-xl">
               {success ? (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center space-y-4 animate-fade-in-scale">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+                <div className="bg-white border border-blue-200 rounded-xl p-5 text-center space-y-2.5 shadow-sm font-sans">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
                     <Sparkles className="w-5 h-5 fill-current" />
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="text-base font-bold text-white">
-                      Request Registered!
-                    </h3>
-                    <p className="text-[11px] text-slate-300 max-w-[280px] mx-auto leading-relaxed font-medium">
-                      We will contact the merchant to negotiate a revival. We&apos;ll email you in 48 hours.
-                    </p>
-                  </div>
-                  <Button
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Revival Request Received!
+                  </h3>
+                  <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                    We&apos;ve logged your revival request for <span className="text-blue-600 font-bold">{form.brandName || "your brand"}</span>. We&apos;ll email you as soon as a fresh code is negotiated.
+                  </p>
+                  <button
                     onClick={() => setSuccess(false)}
-                    variant="ghost"
-                    className="text-xs font-bold text-[#38bdf8] hover:text-white hover:bg-white/5 rounded-xl mt-1 cursor-pointer"
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 pt-1 underline cursor-pointer"
                   >
-                    Revive Another Coupon
-                  </Button>
+                    Revive another coupon →
+                  </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-2.5">
-                    <div className="relative flex-1">
-                      <Input
-                        placeholder="Paste an expired code..."
-                        value={form.code}
-                        onChange={handleCodeChange}
-                        onFocus={handleInitialClick}
-                        className="bg-white/5 border border-white/10 text-white placeholder-slate-400/70 text-xs h-11 focus-visible:ring-1 focus-visible:ring-[#38bdf8] rounded-full shadow-none w-full pr-4 pl-5"
+                <form
+                  onSubmit={handleSubmit}
+                  className="bg-white border border-blue-100/90 rounded-xl p-4 space-y-3 shadow-xs font-sans"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Brand Name Input */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+                        Store / Brand Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Swiggy, Nike, Myntra"
+                        value={form.brandName}
+                        onChange={(e) =>
+                          setForm({ ...form, brandName: e.target.value })
+                        }
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-2xs font-medium"
                       />
                     </div>
-                    {!showAllFields && (
-                      <Button
-                        type="button"
-                        onClick={handleInitialClick}
-                        className="bg-[#2563eb] hover:bg-blue-600 text-white text-xs font-bold border-0 h-11 px-8 cursor-pointer shadow-md rounded-full transition-all duration-200 shrink-0"
-                      >
-                        Redeem
-                      </Button>
-                    )}
+
+                    {/* Email Input */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+                        Your Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="shopper@email.com"
+                        value={form.email}
+                        onChange={(e) =>
+                          setForm({ ...form, email: e.target.value })
+                        }
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-2xs font-medium"
+                      />
+                    </div>
                   </div>
 
-                  {/* Expandable fields (Brand Name and Email) */}
-                  {showAllFields && (
-                    <div className="space-y-3 pt-1 animate-fade-in-scale">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider pl-0.5">
-                            Brand Name
-                          </label>
-                          <Input
-                            placeholder="e.g. Zomato"
-                            value={form.brandName}
-                            onChange={(e) =>
-                              setForm({ ...form, brandName: e.target.value })
-                            }
-                            className="bg-white/5 border border-white/10 text-white placeholder-slate-400/70 text-xs h-10 focus-visible:ring-1 focus-visible:ring-[#38bdf8] rounded-full shadow-none pl-4"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider pl-0.5">
-                            Your Email Address
-                          </label>
-                          <Input
-                            type="email"
-                            placeholder="e.g. shopper@email.com"
-                            value={form.email}
-                            onChange={(e) =>
-                              setForm({ ...form, email: e.target.value })
-                            }
-                            className="bg-white/5 border border-white/10 text-white placeholder-slate-400/70 text-xs h-10 focus-visible:ring-1 focus-visible:ring-[#38bdf8] rounded-full shadow-none pl-4"
-                          />
-                        </div>
-                      </div>
+                  {/* Expired Code Input */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+                      Expired Coupon Code (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. WELCOME50, SAVE20"
+                      value={form.code}
+                      onChange={(e) =>
+                        setForm({ ...form, code: e.target.value })
+                      }
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 font-mono uppercase tracking-wider focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-2xs font-bold"
+                    />
+                  </div>
 
-                      {error && (
-                        <p className="text-xs text-red-400 font-semibold text-left pl-0.5">
-                          {error}
-                        </p>
-                      )}
-
-                      <div className="flex gap-2.5 pt-1.5">
-                        <Button
-                          type="submit"
-                          disabled={loading}
-                          className="flex-1 py-2.5 bg-[#2563eb] hover:bg-blue-600 text-white text-xs font-bold border-0 h-10 cursor-pointer shadow-md flex items-center justify-center gap-1.5 rounded-full transition-all duration-200 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none"
-                        >
-                          {loading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin text-white" />
-                              <span>Processing...</span>
-                            </>
-                          ) : (
-                            <>
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Redeem</span>
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() => {
-                            setShowAllFields(false);
-                            setError("");
-                          }}
-                          className="text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 rounded-full h-10 px-4"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
+                  {error && (
+                    <p className="text-xs text-red-500 font-semibold text-left">
+                      {error}
+                    </p>
                   )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Submitting Request...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Submit For Revival</span>
+                      </>
+                    )}
+                  </button>
                 </form>
               )}
             </div>
 
-            <div className="pt-2">
+            {/* Learn More Link */}
+            <div>
               <Link
                 href="/expired-coupon-revival"
-                className="text-xs font-bold text-[#38bdf8] hover:text-white transition-all duration-200 flex items-center gap-1 hover:underline w-fit"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center gap-1 hover:underline font-sans"
               >
-                <span>See how Coupon Revival works</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-250 hover:translate-x-0.5" />
+                <span>Learn how Revival Negotiation works</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
 
-          {/* Right Column: Statistics Grid (5 cols) */}
-          <div className="lg:col-span-5 w-full">
-            <div className="grid grid-cols-2 gap-4">
-              
+          {/* Right Column: Compact Metric Cards (lg:col-span-5) */}
+          <div className="lg:col-span-5 w-full font-sans">
+            <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
               {/* Stat Card 1 */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left backdrop-blur-sm transition-all duration-200 hover:bg-white/10">
-                <span className="block text-3xl font-black text-white tracking-tight">
+              <div className="bg-white border border-blue-100 rounded-xl p-4 text-left shadow-2xs hover:shadow-md hover:border-blue-500 transition-all duration-200">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 border border-blue-100">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <span className="block text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   94%
                 </span>
-                <span className="block text-[11px] text-blue-200/70 font-bold tracking-wide mt-1 uppercase">
-                  Redeem success rate
+                <span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+                  Redeem Success Rate
                 </span>
               </div>
 
               {/* Stat Card 2 */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left backdrop-blur-sm transition-all duration-200 hover:bg-white/10">
-                <span className="block text-3xl font-black text-white tracking-tight">
+              <div className="bg-white border border-blue-100 rounded-xl p-4 text-left shadow-2xs hover:shadow-md hover:border-blue-500 transition-all duration-200">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 border border-blue-100">
+                  <Clock className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <span className="block text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   &lt;24h
                 </span>
-                <span className="block text-[11px] text-blue-200/70 font-bold tracking-wide mt-1 uppercase">
-                  Average turnaround
+                <span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+                  Avg Turnaround
                 </span>
               </div>
 
               {/* Stat Card 3 */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left backdrop-blur-sm transition-all duration-200 hover:bg-white/10">
-                <span className="block text-3xl font-black text-white tracking-tight">
-                  8,400
+              <div className="bg-white border border-blue-100 rounded-xl p-4 text-left shadow-2xs hover:shadow-md hover:border-blue-500 transition-all duration-200">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 border border-blue-100">
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <span className="block text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  8,400+
                 </span>
-                <span className="block text-[11px] text-blue-200/70 font-bold tracking-wide mt-1 uppercase">
-                  Codes revived this week
+                <span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+                  Revived This Week
                 </span>
               </div>
 
               {/* Stat Card 4 */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left backdrop-blur-sm transition-all duration-200 hover:bg-white/10">
-                <span className="block text-3xl font-black text-[#38bdf8] tracking-tight">
+              <div className="bg-white border border-blue-100 rounded-xl p-4 text-left shadow-2xs hover:shadow-md hover:border-blue-500 transition-all duration-200">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 border border-blue-100">
+                  <Coins className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <span className="block text-xl sm:text-2xl font-bold text-blue-600 tracking-tight">
                   ₹17,500
                 </span>
-                <span className="block text-[11px] text-blue-200/70 font-bold tracking-wide mt-1 uppercase">
-                  Avg. saved per user
+                <span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+                  Avg User Savings
                 </span>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </section>

@@ -1,5 +1,7 @@
-import mongoose from "mongoose";
-import { NextResponse } from "next/server";
+import {
+  sendMerchantApprovedEmail,
+  sendMerchantRejectedEmail,
+} from "@/lib/email/merchant-email";
 import MerchantApplication from "@/modules/merchant/merchant-application.model";
 import Merchant from "@/modules/merchant/merchant.model";
 
@@ -146,6 +148,24 @@ export async function PUT(req, { params }) {
           },
         }
       ).catch(() => {});
+
+      const targetEmail = application?.email || application?.contactEmail;
+      if (targetEmail) {
+        if (status === "approved") {
+          sendMerchantApprovedEmail({
+            to: targetEmail,
+            businessName: application?.businessName || "Merchant",
+            liaisonName: application?.contactName,
+          }).catch((err) => console.error("[Approved Email Error]:", err));
+        } else if (status === "rejected") {
+          sendMerchantRejectedEmail({
+            to: targetEmail,
+            businessName: application?.businessName || "Merchant",
+            liaisonName: application?.contactName,
+            rejectionReason,
+          }).catch((err) => console.error("[Rejected Email Error]:", err));
+        }
+      }
     }
 
     if (application) {

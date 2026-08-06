@@ -33,14 +33,16 @@ export default function BrandHeader({
   setExistingUser,
   couponsCount,
   offersCount,
+  affiliateProductsCount = 0,
 }) {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
 
   const tabs = [
-    { id: "all", label: "All", count: coupons.length },
+    { id: "all", label: "All", count: coupons.length + affiliateProductsCount },
     { id: "cpn", label: "Codes", count: couponsCount },
     { id: "dl", label: "Offers", count: offersCount },
+    { id: "affiliate", label: "Affiliate Products", count: affiliateProductsCount },
   ];
 
   return (

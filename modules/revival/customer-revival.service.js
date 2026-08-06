@@ -4,6 +4,8 @@ import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import CustomerRevival from "@/modules/revival/customer-revival.model";
 import MerchantDemand from "@/modules/revival/merchant-demand.model";
+import { sendMerchantRevivalAlertEmail } from "@/lib/email/merchant-email";
+import { sendUserRevivalConfirmationEmail } from "@/lib/email/user-email";
 import { buildMeta, parsePagination } from "@/utils/pagination";
 
 /**
@@ -202,6 +204,25 @@ export async function createCustomerRevival(data) {
     status: initialStatus,
     outcomeStatus: initialOutcome,
   });
+
+  // Trigger User Revival Confirmation Email
+  if (data.email) {
+    sendUserRevivalConfirmationEmail({
+      to: data.email.trim().toLowerCase(),
+      name: data.email.split("@")[0],
+      brandName: data.brandName.trim(),
+    }).catch((err) => console.error("[User Revival Email Error]:", err));
+  }
+
+  // Trigger Merchant Revival Demand Alert Email if merchant exists
+  if (matchedMerchant?.contactEmail) {
+    sendMerchantRevivalAlertEmail({
+      to: matchedMerchant.contactEmail,
+      businessName: matchedMerchant.businessName,
+      brandName: data.brandName.trim(),
+      totalDemandsCount: 1,
+    }).catch((err) => console.error("[Merchant Revival Email Error]:", err));
+  }
 
   // 5. Upsert to Merchant Demand Intelligence Database (Category B & C only)
   if (category === "B" || category === "C") {

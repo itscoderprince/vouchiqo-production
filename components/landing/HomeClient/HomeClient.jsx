@@ -324,7 +324,7 @@ export function HomeClient({
       </main>
 
       {/* Full-bleed Edge-to-Edge Sections */}
-      <HowItWorks />
+      <HowItWorks coupons={initialCoupons} />
       <RevivalPromo />
 
       {/* Main Container */}

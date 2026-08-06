@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Claim from "@/modules/claim/claim.model";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
+import { sendUserCouponClaimedEmail } from "@/lib/email/user-email";
 import { AppError, NotFoundError } from "@/utils/app-error";
 import { CLAIM_STATUS, COUPON_STATUS } from "@/utils/constants";
 import { buildMeta, parsePagination } from "@/utils/pagination";
@@ -46,6 +47,22 @@ export async function claimCoupon(userId, couponId) {
     userName,
     userEmail,
   });
+
+  // Fetch Merchant for email details
+  const merchant = await Merchant.findById(coupon.merchantId).lean();
+
+  // Trigger Coupon Claimed Email to Customer
+  if (userEmail) {
+    sendUserCouponClaimedEmail({
+      to: userEmail,
+      name: userName,
+      couponTitle: coupon.title,
+      merchantName: merchant?.businessName || "Vouchiqo Partner",
+      couponCode: coupon.code,
+      discountText: coupon.discountType === "percentage" ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`,
+      validTill: coupon.expiresAt,
+    }).catch((err) => console.error("[Claim Email Error]:", err));
+  }
 
   // Increment claim counters atomically (coupon + merchant)
   await Promise.all([

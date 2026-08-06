@@ -41,7 +41,15 @@ export default function PlanSelector({
     badge,
   } = plan;
 
-  const isPendingPayment = isCurrent && !isPaymentCompleted;
+  const isStarter =
+    plan.id === "starter" ||
+    String(name).toLowerCase().includes("starter") ||
+    String(name).toLowerCase().includes("free") ||
+    price === "₹0" ||
+    price === "0";
+
+  const isCompleted = isStarter || isPaymentCompleted;
+  const isPendingPayment = isCurrent && !isCompleted;
   const highlight = isRecommended || isCurrent;
 
   return (
@@ -63,14 +71,19 @@ export default function PlanSelector({
             className={cn(
               "text-[10px] font-bold px-3.5 py-1 rounded-full border-0 shadow-md ring-2 ring-white flex items-center gap-1 shrink-0",
               isCurrent
-                ? isPaymentCompleted
+                ? isCompleted
                   ? "bg-emerald-600 text-white"
                   : "bg-amber-400 text-amber-950 font-black"
                 : "bg-blue-600 text-white",
             )}
           >
             {isCurrent ? (
-              isPaymentCompleted ? (
+              isStarter ? (
+                <>
+                  <CheckCircle2 className="w-3 h-3 mr-0.5" />
+                  Active Free Plan
+                </>
+              ) : isCompleted ? (
                 <>
                   <CheckCircle2 className="w-3 h-3 mr-0.5" />
                   Active Plan
@@ -139,12 +152,14 @@ export default function PlanSelector({
         return (
           <Button
             type="button"
-            disabled={loading}
+            disabled={loading || (isCurrent && isStarter)}
             onClick={() => onSelect?.(plan)}
             className={cn(
               "w-full h-10 text-xs sm:text-sm font-sans font-semibold cursor-pointer transition-all",
               isCurrent
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 font-bold"
+                ? isStarter
+                  ? "bg-slate-800 text-white border-0 shadow-none cursor-default opacity-90"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 font-bold"
                 : "bg-slate-900 text-white hover:bg-slate-800 shadow-none font-semibold",
             )}
           >
@@ -154,7 +169,12 @@ export default function PlanSelector({
                 Processing…
               </>
             ) : isCurrent ? (
-              isPaymentCompleted ? (
+              isStarter ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                  Active Starter Plan
+                </>
+              ) : isCompleted ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                   Current Plan (Renew)
@@ -168,7 +188,7 @@ export default function PlanSelector({
             ) : (
               <>
                 <Zap className="w-3.5 h-3.5 mr-1.5" />
-                Select Plan
+                {isStarter ? "Select Starter Free" : "Select Plan"}
               </>
             )}
           </Button>

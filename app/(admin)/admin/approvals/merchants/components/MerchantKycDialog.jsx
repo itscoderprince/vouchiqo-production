@@ -607,18 +607,32 @@ export default function MerchantKycDialog({
                       Active Plan &amp; Payment Status
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <Badge className="bg-blue-600 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md">
-                        Plan: {merchant.plan || "Starter Free"}
-                      </Badge>
-                      <Badge
-                        className={
-                          isPaymentDone
-                            ? "bg-emerald-600 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md"
-                            : "bg-amber-500 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md animate-pulse"
-                        }
-                      >
-                        {isPaymentDone ? "Payment Completed" : "Payment Pending"}
-                      </Badge>
+                      {(() => {
+                        const isStarter =
+                          (merchant.plan || "starter").toLowerCase().includes("starter") ||
+                          (merchant.plan || "").toLowerCase().includes("free");
+                        const isPaymentDone =
+                          isStarter ||
+                          merchant.paymentStatus === "completed" ||
+                          merchant.subscriptionStatus === "active";
+
+                        return (
+                          <>
+                            <Badge className="bg-blue-600 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md">
+                              Plan: {merchant.plan || "Starter Free"}
+                            </Badge>
+                            <Badge
+                              className={
+                                isStarter || isPaymentDone
+                                  ? "bg-emerald-600 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md"
+                                  : "bg-amber-500 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md animate-pulse"
+                              }
+                            >
+                              {isStarter ? "FREE PLAN (ACTIVE)" : isPaymentDone ? "Payment Completed" : "Payment Pending"}
+                            </Badge>
+                          </>
+                        );
+                      })()}
                       {merchant.commissionRate && (
                         <Badge variant="outline" className="text-xs font-mono text-emerald-800 bg-emerald-50 border-emerald-200/80 font-medium px-2 py-0.5 rounded-md">
                           Commission: {merchant.commissionRate} ({merchant.commissionModel || "CPA"})
