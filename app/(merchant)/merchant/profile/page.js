@@ -224,9 +224,7 @@ export default function MerchantBusinessProfile() {
 
         {/* Multi-Step Form */}
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
+          onSubmit={handleSubmit}
           className="space-y-6"
         >
           {step === 1 && (
