@@ -28,6 +28,7 @@ export default function MerchantBusinessProfile() {
     watch,
     errors,
     formData,
+    handleHoursChange,
     step,
     setStep,
     handleNext,
@@ -249,6 +250,8 @@ export default function MerchantBusinessProfile() {
               uploadingShop={uploadingShop}
               uploadingLogo={uploadingLogo}
               uploadingBanner={uploadingBanner}
+              formData={formData}
+              handleHoursChange={handleHoursChange}
             />
           )}
 

@@ -21,6 +21,7 @@ import {
   lookupByPincode,
   lookupStateByCity,
 } from "@/utils/indianGeoLookup";
+import OperatingHours from "./OperatingHours";
 
 export default function Step2Location({
   register,
@@ -31,6 +32,8 @@ export default function Step2Location({
   uploadingShop,
   uploadingLogo,
   uploadingBanner,
+  formData,
+  handleHoursChange,
 }) {
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [isDetectingGps, setIsDetectingGps] = useState(false);
@@ -323,6 +326,14 @@ export default function Step2Location({
           />
         </div>
       </div>
+
+      {/* STORE OPERATING HOURS SECTION */}
+      {formData && handleHoursChange && (
+        <OperatingHours
+          formData={formData}
+          handleHoursChange={handleHoursChange}
+        />
+      )}
     </Card>
   );
 }

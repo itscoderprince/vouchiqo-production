@@ -258,6 +258,10 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
     merchant.status = MERCHANT_STATUS.PENDING;
     merchant.isVerified = false;
   }
+  if (data.operatingHours) {
+    merchant.markModified("operatingHours");
+  }
+
   await merchant.save();
 
   // Keep user role as merchant when updating merchant profile

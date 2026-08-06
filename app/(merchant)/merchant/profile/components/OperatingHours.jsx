@@ -6,20 +6,36 @@ import {
   STANDARD_TIME_OPTIONS,
   normalizeTimeFormat,
 } from "@/utils/timeUtils";
+import { DEFAULT_OPERATING_HOURS } from "../hooks/use-merchant-profile-form";
 
 export default function OperatingHours({ formData, handleHoursChange }) {
+  const hoursObj =
+    formData?.operatingHours && Object.keys(formData.operatingHours).length > 0
+      ? formData.operatingHours
+      : DEFAULT_OPERATING_HOURS;
+
   return (
-    <div className="bg-white border border-brand-border rounded-xl p-5 shadow-sm space-y-4 text-left">
-      <h3 className="font-heading text-sm font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center gap-2">
-        <Clock className="w-4 h-4 text-brand-blue" />
-        <span>Weekly Operating Hours</span>
+    <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-4 text-left font-sans">
+      <h3 className="font-sans text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+        <Clock className="w-4 h-4 text-blue-600" />
+        <span>Weekly Store Operating Hours</span>
       </h3>
 
       <div className="space-y-3">
-        {Object.keys(formData.operatingHours).map((day) => {
-          const hr = formData.operatingHours[day];
-          const currentOpen = normalizeTimeFormat(hr.open || hr.openTime, "10:00 AM");
-          const currentClose = normalizeTimeFormat(hr.close || hr.closeTime, "08:00 PM");
+        {Object.keys(hoursObj).map((day) => {
+          const hr = hoursObj[day] || {
+            open: "10:00 AM",
+            close: "08:00 PM",
+            closed: false,
+          };
+          const currentOpen = normalizeTimeFormat(
+            hr.open || hr.openTime,
+            "10:00 AM",
+          );
+          const currentClose = normalizeTimeFormat(
+            hr.close || hr.closeTime,
+            "08:00 PM",
+          );
 
           return (
             <div

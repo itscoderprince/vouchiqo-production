@@ -35,6 +35,9 @@ export const merchantProfileSchema = z.object({
   banner: z.string().optional(),
   shopImage: z.string().optional(),
 
+  // Store Operating Hours
+  operatingHours: z.record(z.any()).optional(),
+
   // Step 3: KYC
   docType: z.string().optional(),
   docImage: z.string().optional(),

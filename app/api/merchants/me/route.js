@@ -101,6 +101,10 @@ export const PUT = asyncHandler(async (request) => {
     };
   }
 
+  if (body.operatingHours) {
+    merchant.markModified("operatingHours");
+  }
+
   await merchant.save();
   return ok(merchant);
 });

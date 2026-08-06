@@ -16,6 +16,16 @@ import {
  * Custom hook managing merchant business profile state, Zod validation,
  * step navigation guards, image uploads, and profile save mutations.
  */
+export const DEFAULT_OPERATING_HOURS = {
+  Monday: { open: "10:00 AM", close: "08:00 PM", closed: false },
+  Tuesday: { open: "10:00 AM", close: "08:00 PM", closed: false },
+  Wednesday: { open: "10:00 AM", close: "08:00 PM", closed: false },
+  Thursday: { open: "10:00 AM", close: "08:00 PM", closed: false },
+  Friday: { open: "10:00 AM", close: "08:00 PM", closed: false },
+  Saturday: { open: "10:00 AM", close: "08:00 PM", closed: false },
+  Sunday: { open: "10:00 AM", close: "08:00 PM", closed: true },
+};
+
 export function useMerchantProfileForm() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -57,6 +67,7 @@ export function useMerchantProfileForm() {
       shopImage: "",
       logo: "",
       banner: "",
+      operatingHours: DEFAULT_OPERATING_HOURS,
     },
   });
 
@@ -109,11 +120,36 @@ export function useMerchantProfileForm() {
         shopImage: merchant.shopImage ?? merchant.shopPhotoUrl ?? "",
         logo: merchant.logo ?? merchant.logoUrl ?? "",
         banner: merchant.banner ?? merchant.bannerUrl ?? "",
+        operatingHours:
+          merchant.operatingHours &&
+          Object.keys(merchant.operatingHours).length > 0
+            ? merchant.operatingHours
+            : DEFAULT_OPERATING_HOURS,
       });
     } else {
       setIsEditing(true);
     }
   }, [merchant, form.reset]);
+
+  const handleHoursChange = (day, field, value) => {
+    const currentHours =
+      form.getValues("operatingHours") || DEFAULT_OPERATING_HOURS;
+    const updatedHours = {
+      ...currentHours,
+      [day]: {
+        ...(currentHours[day] || {
+          open: "10:00 AM",
+          close: "08:00 PM",
+          closed: false,
+        }),
+        [field]: value,
+      },
+    };
+    form.setValue("operatingHours", updatedHours, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
 
   const handleNext = async () => {
     const fieldsToValidate = STEP_FIELDS[step] || [];
@@ -247,6 +283,7 @@ export function useMerchantProfileForm() {
     isLoading,
     error,
     handleImageUpload,
+    handleHoursChange,
     uploadingLogo,
     uploadingBanner,
     uploadingShop,
