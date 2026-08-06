@@ -42,15 +42,15 @@ export const merchantProfileSchema = z.object({
   docType: z.string().optional(),
   docImage: z.string().optional(),
   gstin: z
-    .string()
+    .any()
     .optional()
     .refine(
-      (val) =>
-        !val ||
-        val.trim().length === 0 ||
-        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-          val.trim().toUpperCase(),
-        ),
+      (val) => {
+        if (!val || typeof val !== "string") return true;
+        const clean = val.trim().toUpperCase();
+        if (clean.length === 0) return true;
+        return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(clean);
+      },
       {
         message:
           "Please enter a valid 15-character GSTIN (e.g. 22AAAAA1111A1Z1) or leave empty",

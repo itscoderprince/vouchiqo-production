@@ -43,6 +43,7 @@ export const registerSchema = z
       .min(1, "Mobile number is required")
       .refine(
         (val) => {
+          if (!val || typeof val !== "string") return false;
           const clean = val.replace(/[\s-()]/g, "");
           return /^\+?\d{10,15}$/.test(clean);
         },
