@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
   CreditCard,
   Image as ImageIcon,
   MapPin,
