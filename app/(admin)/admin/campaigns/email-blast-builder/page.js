@@ -261,7 +261,7 @@ export default function EmailBlastBuilderPage() {
                 </div>
 
                 <div className="text-center text-[10px] text-slate-400">
-                  © 2026 Vouchiqo Technologies • You received this email because
+                  © 2026 Vouchiqo • You received this email because
                   you opted into {targetCategory} updates.
                 </div>
               </div>

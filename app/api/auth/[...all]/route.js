@@ -284,7 +284,7 @@ export async function POST(request) {
     }
   }
 
-  // Post-process /sign-in/email to send Welcome Back email if returning after > 1 day
+  // Post-process /sign-in/email to send Welcome Email on FIRST LOGIN or Welcome Back on returning logins
   if (pathname.endsWith("/sign-in/email") && response.ok) {
     try {
       const clone = request.clone();
@@ -308,10 +308,6 @@ export async function POST(request) {
             ? new Date(profile.lastLoginAt)
             : null;
 
-          const daysSinceLastLogin = lastLogin
-            ? (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24)
-            : 999;
-
           // Update lastLoginAt in user_profiles
           await db
             .collection("user_profiles")
@@ -321,15 +317,35 @@ export async function POST(request) {
               { upsert: true },
             );
 
-          // Send Welcome Back email if returning after >= 1 day
-          if (daysSinceLastLogin >= 1) {
-            sendUserWelcomeBackEmail({
-              to: normalizedEmail,
-              name: userDoc.name || normalizedEmail.split("@")[0],
-              lastLoginAt: lastLogin,
-            }).catch((err) =>
-              console.error("[Welcome Back Email Error]:", err),
-            );
+          if (!lastLogin) {
+            // VERY FIRST LOGIN! Send Official Welcome Email to User / Merchant
+            console.log(`[First-Time Login Email]: Sending Welcome email to ${normalizedEmail}`);
+            if (userDoc.role === "merchant") {
+              sendMerchantWelcomeEmail({
+                to: normalizedEmail,
+                email: normalizedEmail,
+                businessName: userDoc.name || "Merchant Store",
+              }).catch((err) => console.error("[Merchant Welcome Email Error]:", err));
+            } else {
+              sendUserWelcomeEmail({
+                to: normalizedEmail,
+                name: userDoc.name || normalizedEmail.split("@")[0],
+              }).catch((err) => console.error("[User Welcome Email Error]:", err));
+            }
+          } else {
+            const daysSinceLastLogin =
+              (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24);
+
+            // Send Welcome Back email if returning after >= 1 day
+            if (daysSinceLastLogin >= 1) {
+              sendUserWelcomeBackEmail({
+                to: normalizedEmail,
+                name: userDoc.name || normalizedEmail.split("@")[0],
+                lastLoginAt: lastLogin,
+              }).catch((err) =>
+                console.error("[Welcome Back Email Error]:", err),
+              );
+            }
           }
         }
       }
