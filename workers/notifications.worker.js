@@ -43,12 +43,18 @@ const worker = new Worker(
       }
 
       try {
-        await resend.emails.send({
+        const res = await resend.emails.send({
           from: FROM_EMAIL,
           to: recipient,
           subject,
           html,
         });
+
+        if (res?.error) {
+          console.error(`[notifications-worker] Email dispatch error for ${to}:`, res.error.message || res.error);
+          return;
+        }
+
         console.log(`[notifications-worker] Email sent successfully to ${recipient}`);
       } catch (err) {
         console.error(`[notifications-worker] Email dispatch failed for ${to}:`, err.message || err);
