@@ -31,14 +31,28 @@ const worker = new Worker(
         return;
       }
 
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to,
-        subject,
-        html,
-      });
+      let recipient = to;
+      const isTestingDomain = FROM_EMAIL.includes("onboarding@resend.dev");
+      const devRecipient = process.env.EMAIL_DEV_RECIPIENT || "vouchiqo@gmail.com";
 
-      console.log(`[notifications-worker] Email sent successfully to ${to}`);
+      if (isTestingDomain && recipient !== devRecipient && process.env.NODE_ENV === "development") {
+        console.warn(
+          `[notifications-worker Dev Sandbox Notice]: Redirecting recipient '${to}' to '${devRecipient}' because 'onboarding@resend.dev' only allows sending to account owner email.`
+        );
+        recipient = devRecipient;
+      }
+
+      try {
+        await resend.emails.send({
+          from: FROM_EMAIL,
+          to: recipient,
+          subject,
+          html,
+        });
+        console.log(`[notifications-worker] Email sent successfully to ${recipient}`);
+      } catch (err) {
+        console.error(`[notifications-worker] Email dispatch failed for ${to}:`, err.message || err);
+      }
     } else {
       console.warn(`[notifications-worker] Unknown job: ${job.name}`);
     }

@@ -40,6 +40,12 @@ const envSchema = z.object({
 
   // Email
   RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
+  EMAIL_FROM: z.string().optional().default("Vouchiqo <noreply@vouchiqo.com>"),
+  EMAIL_FROM_MERCHANT: z
+    .string()
+    .optional()
+    .default("Vouchiqo Merchant <merchant@vouchiqo.com>"),
+  EMAIL_DEV_RECIPIENT: z.string().optional().default("vouchiqo@gmail.com"),
 
   // Google OAuth (Optional in local dev)
   GOOGLE_CLIENT_ID: z.string().optional(),
