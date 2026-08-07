@@ -174,41 +174,35 @@ export async function POST(request) {
           email === adminEmail &&
           password === adminPassword
         ) {
-          console.log(`[Admin Sync] Syncing admin user: ${adminEmail}`);
           await connectDB();
           const db = mongoose.connection.db;
 
           const existingAdmin = await db
             .collection("user")
             .findOne({ email: adminEmail });
-          if (existingAdmin) {
-            const adminId = existingAdmin.id || existingAdmin._id.toString();
-            await db.collection("user").deleteOne({ _id: existingAdmin._id });
-            await db.collection("account").deleteMany({ userId: adminId });
-            await db.collection("session").deleteMany({ userId: adminId });
-            console.log(`[Admin Sync] Cleaned existing admin: ${adminEmail}`);
-          }
 
-          await auth.api.signUpEmail({
-            body: {
-              email: adminEmail,
-              password: adminPassword,
-              name: "Super Admin",
-            },
-          });
-          console.log(`[Admin Sync] Created admin user: ${adminEmail}`);
+          if (!existingAdmin) {
+            console.log(`[Admin Sync] Initializing Super Admin user: ${adminEmail}`);
+            await auth.api.signUpEmail({
+              body: {
+                email: adminEmail,
+                password: adminPassword,
+                name: "Super Admin",
+              },
+            });
 
-          const adminUser = await db
-            .collection("user")
-            .findOne({ email: adminEmail });
-          if (adminUser) {
-            await db
+            const adminUser = await db
               .collection("user")
-              .updateOne(
-                { _id: adminUser._id },
-                { $set: { role: ROLES.ADMIN } },
-              );
-            console.log(`[Admin Sync] Admin role elevated to ${ROLES.ADMIN}`);
+              .findOne({ email: adminEmail });
+            if (adminUser) {
+              await db
+                .collection("user")
+                .updateOne(
+                  { _id: adminUser._id },
+                  { $set: { role: ROLES.ADMIN } },
+                );
+              console.log(`[Admin Sync] Admin role elevated to ${ROLES.ADMIN}`);
+            }
           }
         }
       }

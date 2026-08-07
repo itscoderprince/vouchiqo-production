@@ -41,7 +41,7 @@ export function useAdminLoginForm() {
         return;
       }
       toast.success("Access granted. Welcome, Admin!");
-      router.replace("/admin/dashboard");
+      window.location.href = "/admin/dashboard";
     },
     onError: (err) => {
       toast.error(err?.message ?? "Something went wrong. Try again.");

@@ -32,14 +32,21 @@ export function useLogin() {
         );
       }
 
+      let targetUrl = "/";
       if (callbackUrl?.startsWith("/")) {
-        router.replace(callbackUrl);
+        targetUrl = callbackUrl;
       } else if (role === "admin") {
-        router.replace("/admin/dashboard");
+        targetUrl = "/admin/dashboard";
       } else if (role === "merchant") {
-        router.replace("/merchant/dashboard");
+        targetUrl = "/merchant/dashboard";
       } else {
-        router.replace("/");
+        targetUrl = "/";
+      }
+
+      if (typeof window !== "undefined") {
+        window.location.href = targetUrl;
+      } else {
+        router.replace(targetUrl);
       }
     },
 

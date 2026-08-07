@@ -81,17 +81,17 @@ export function useMerchantLoginForm() {
           const meJson = await meRes.json();
           const merchantProfile = meJson?.data;
           if (merchantProfile?.status === "approved") {
-            router.replace("/merchant/dashboard");
+            window.location.href = "/merchant/dashboard";
           } else if (merchantProfile && (merchantProfile._id || merchantProfile.businessName)) {
-            router.replace("/merchant/application-status");
+            window.location.href = "/merchant/application-status";
           } else {
-            router.replace("/merchant/dashboard");
+            window.location.href = "/merchant/dashboard";
           }
         } else {
-          router.replace("/merchant/dashboard");
+          window.location.href = "/merchant/dashboard";
         }
       } catch {
-        router.replace("/merchant/dashboard");
+        window.location.href = "/merchant/dashboard";
       }
     },
     onError: (err) => {
