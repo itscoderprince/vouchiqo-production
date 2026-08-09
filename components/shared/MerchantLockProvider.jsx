@@ -36,7 +36,12 @@ export function MerchantLockProvider({ children, isMerchant }) {
 
     if (isLocked) {
       if (!hasInitialized) {
-        setIsModalOpen(true);
+        const isProfilePage =
+          typeof window !== "undefined" &&
+          window.location.pathname.startsWith("/merchant/profile");
+        if (!isProfilePage) {
+          setIsModalOpen(true);
+        }
         setHasInitialized(true);
       }
     } else {

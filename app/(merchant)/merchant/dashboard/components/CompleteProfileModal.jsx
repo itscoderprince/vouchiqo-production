@@ -128,7 +128,6 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
   if (
     !open ||
     !merchant ||
-    (pathname && pathname.startsWith("/merchant/profile")) ||
     (pathname && pathname.startsWith("/merchant/application-status")) ||
     (isProfileComplete && isApproved)
   ) {

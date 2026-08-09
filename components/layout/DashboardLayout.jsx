@@ -20,12 +20,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
 
 function MerchantLockModalRenderer() {
-  const pathname = usePathname();
   const { isModalOpen, closeModal, merchant } = useMerchantLock();
-
-  if (pathname.startsWith("/merchant/profile")) {
-    return null;
-  }
 
   return (
     <>

@@ -41,10 +41,6 @@ export function NavMain({ groups, isMerchant = false }) {
         e.preventDefault();
         e.stopPropagation();
         openModal();
-        toast.error(
-          "Profile Incomplete! Please complete your store profile to unlock this feature.",
-          { id: "profile-lock-toast" },
-        );
       }
     }
   };

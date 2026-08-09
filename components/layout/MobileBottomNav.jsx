@@ -20,9 +20,6 @@ export default function MobileBottomNav() {
       e.preventDefault();
       e.stopPropagation();
       openModal();
-      toast.error("Profile Incomplete! Please complete your store profile to unlock features.", {
-        id: "mobile-profile-lock-toast",
-      });
     }
   };
 

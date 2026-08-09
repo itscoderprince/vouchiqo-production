@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useMerchantTour } from "@/hooks/use-merchant-tour";
 import TourCard from "./TourCard";
 
-const SIDEBAR_W = 240;
+const SIDEBAR_W = 250;
 
 export default function MerchantTour() {
   const {

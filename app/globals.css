@@ -234,23 +234,32 @@ button:disabled,
 
 /* ─── Merchant Tour Utilities ─────────────────────────────────────────────── */
 
-/* Highlighted SIDEBAR item during tour */
+/* Highlighted SIDEBAR item during tour - clean crisp border without shadow spread */
 [data-tour-active="sidebar"] {
-  background: rgba(37, 99, 235, 0.15) !important;
-  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  background: #ffffff !important;
+  color: #1d4ed8 !important;
+  border: 1.5px solid #2563eb !important;
+  box-shadow: none !important;
   border-radius: 10px !important;
-  position: relative;
+  position: relative !important;
   z-index: 66 !important;
+  transition: all 0.2s ease !important;
 }
 
-/* Highlighted CONTENT element during tour — blue outline glow */
+[data-tour-active="sidebar"] * {
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
+
+/* Highlighted CONTENT element during tour — crisp thin blue outline without shadow spread */
 [data-tour-active="content"] {
-  outline: 2px solid rgba(37, 99, 235, 0.85) !important;
-  outline-offset: 6px !important;
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.35) !important;
-  border-radius: 12px !important;
-  position: relative;
+  outline: 1.5px solid #2563eb !important;
+  outline-offset: 4px !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  position: relative !important;
   z-index: 61 !important;
+  transition: all 0.2s ease !important;
 }
 
 .bg-brand-gradient {

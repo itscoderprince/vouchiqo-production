@@ -77,10 +77,6 @@ export default function UserDropdown({
         e.stopPropagation();
         if (onMobileClose) onMobileClose();
         openModal();
-        toast.error(
-          "Profile Incomplete! Please complete your store profile to unlock this feature.",
-          { id: "topbar-profile-lock-toast" },
-        );
       }
     }
   };
