@@ -138,11 +138,25 @@ function MerchantCouponsContent() {
   // Filter coupons based on search query and status filter selection
   const filteredCoupons = useMemo(() => {
     return couponsData.filter((coupon) => {
-      const matchesSearch = coupon.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || coupon.status === statusFilter;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        (coupon.title && coupon.title.toLowerCase().includes(q)) ||
+        (coupon.code && coupon.code.toLowerCase().includes(q)) ||
+        (coupon.category && coupon.category.toLowerCase().includes(q));
+
+      let matchesStatus = true;
+      if (statusFilter === "active" || statusFilter === "approved") {
+        matchesStatus = coupon.status === "active" || coupon.status === "approved";
+      } else if (statusFilter === "expired") {
+        const isPastDate = coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now();
+        matchesStatus = coupon.status === "expired" || isPastDate;
+      } else if (statusFilter === "pending") {
+        matchesStatus = coupon.status === "pending";
+      } else if (statusFilter !== "all") {
+        matchesStatus = coupon.status === statusFilter;
+      }
+
       return matchesSearch && matchesStatus;
     });
   }, [couponsData, searchQuery, statusFilter]);
@@ -152,8 +166,11 @@ function MerchantCouponsContent() {
     return {
       total: couponsData.length,
       pending: couponsData.filter((c) => c.status === "pending").length,
-      active: couponsData.filter((c) => c.status === "active").length,
-      expired: couponsData.filter((c) => c.status === "expired").length,
+      active: couponsData.filter((c) => c.status === "active" || c.status === "approved").length,
+      expired: couponsData.filter((c) => {
+        const isPastDate = c.expiresAt && new Date(c.expiresAt).getTime() < Date.now();
+        return c.status === "expired" || isPastDate;
+      }).length,
     };
   }, [couponsData]);
 
