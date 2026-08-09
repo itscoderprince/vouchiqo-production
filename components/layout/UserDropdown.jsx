@@ -39,7 +39,7 @@ export default function UserDropdown({
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useUser();
-  const { isProfileIncomplete, openModal } = useMerchantLock();
+  const { isLocked, openModal } = useMerchantLock();
 
   if (!user) return null;
 
@@ -71,8 +71,12 @@ export default function UserDropdown({
   };
 
   const handleMerchantNavClick = (e, url) => {
-    if (effectiveRole === "merchant" && isProfileIncomplete) {
-      if (!url || !url.startsWith("/merchant/profile")) {
+    if (effectiveRole === "merchant" && isLocked) {
+      if (
+        !url ||
+        (!url.startsWith("/merchant/profile") &&
+          !url.startsWith("/merchant/application-status"))
+      ) {
         e.preventDefault();
         e.stopPropagation();
         if (onMobileClose) onMobileClose();

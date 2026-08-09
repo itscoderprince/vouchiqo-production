@@ -8,7 +8,7 @@ import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const { isProfileIncomplete, openModal } = useMerchantLock();
+  const { isLocked, openModal } = useMerchantLock();
 
   // Only render on merchant routes
   if (!pathname.startsWith("/merchant")) {
@@ -16,7 +16,11 @@ export default function MobileBottomNav() {
   }
 
   const handleTabClick = (e, url) => {
-    if (isProfileIncomplete && !url.startsWith("/merchant/profile")) {
+    if (
+      isLocked &&
+      !url.startsWith("/merchant/profile") &&
+      !url.startsWith("/merchant/application-status")
+    ) {
       e.preventDefault();
       e.stopPropagation();
       openModal();

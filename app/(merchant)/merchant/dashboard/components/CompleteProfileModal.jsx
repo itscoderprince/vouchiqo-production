@@ -124,11 +124,10 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const pathname = usePathname();
 
-  // Do not render modal on /merchant/profile or /merchant/application-status page OR if profile is 100% complete AND approved
+  // Do not render modal if not open, no merchant data, or if account is 100% complete AND approved
   if (
     !open ||
     !merchant ||
-    (pathname && pathname.startsWith("/merchant/application-status")) ||
     (isProfileComplete && isApproved)
   ) {
     return null;

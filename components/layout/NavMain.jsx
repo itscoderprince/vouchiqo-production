@@ -24,7 +24,7 @@ export function NavMain({ groups, isMerchant = false }) {
   const searchParams = useSearchParams();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const { isProfileIncomplete, openModal } = useMerchantLock();
+  const { isLocked, openModal } = useMerchantLock();
 
   const [openSubMenus, setOpenSubMenus] = useState({});
 
@@ -36,8 +36,12 @@ export function NavMain({ groups, isMerchant = false }) {
   };
 
   const handleNavClick = (e, url) => {
-    if (isMerchant && isProfileIncomplete) {
-      if (!url || !url.startsWith("/merchant/profile")) {
+    if (isMerchant && isLocked) {
+      if (
+        !url ||
+        (!url.startsWith("/merchant/profile") &&
+          !url.startsWith("/merchant/application-status"))
+      ) {
         e.preventDefault();
         e.stopPropagation();
         openModal();
@@ -154,7 +158,7 @@ export function NavMain({ groups, isMerchant = false }) {
                     >
                       <SidebarMenuButton
                         onClick={(e) => {
-                          if (isMerchant && isProfileIncomplete) {
+                          if (isMerchant && isLocked) {
                             handleNavClick(e, item.url);
                           }
                           toggleSubMenu(item.title);
