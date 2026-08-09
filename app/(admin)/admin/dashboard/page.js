@@ -72,10 +72,11 @@ export default function AdminDashboard() {
   });
 
   const kpis = analyticsData?.kpis ?? {
-    totalUsers: 2847,
-    totalMerchants: 165,
-    activeCoupons: 1432,
-    monthlyRevenue: 6860,
+    totalUsers: 0,
+    totalMerchants: 0,
+    activeCoupons: 0,
+    monthlyRevenue: 0,
+    totalOrders: 0,
   };
 
   const trendData = analyticsData?.trendData ?? DEFAULT_TREND_DATA;

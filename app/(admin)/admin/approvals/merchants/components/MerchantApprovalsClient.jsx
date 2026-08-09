@@ -15,6 +15,8 @@ import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import MerchantKycDialog from "./MerchantKycDialog";
 
+import { cn } from "@/lib/utils";
+
 export default function MerchantApprovalsClient() {
   const queryClient = useQueryClient();
   const { data: allMerchants = [], isLoading, refetch } = useAdminMerchants({ limit: 100 });
@@ -67,6 +69,18 @@ export default function MerchantApprovalsClient() {
     setKycDialogOpen(true);
   };
 
+  const getMerchantRowColor = (row, index) => {
+    const rowTints = [
+      "bg-white hover:bg-blue-50/40",
+      "bg-slate-50/70 hover:bg-blue-50/40",
+      "bg-blue-50/20 hover:bg-blue-50/40",
+      "bg-emerald-50/15 hover:bg-emerald-50/30",
+      "bg-indigo-50/15 hover:bg-indigo-50/30",
+      "bg-purple-50/15 hover:bg-purple-50/30",
+    ];
+    return rowTints[index % rowTints.length];
+  };
+
   const columns = [
     {
       header: "Business Name",
@@ -77,9 +91,9 @@ export default function MerchantApprovalsClient() {
             ? `${row.location.city}, ${row.location.state}`
             : row.location?.city || row.location?.address || row.city || row.slug || "Main Outlet";
         return (
-          <div>
-            <p className="font-bold text-slate-900">{row.businessName || "Merchant Business"}</p>
-            <p className="text-xs text-slate-500 font-medium">{locationStr}</p>
+          <div className="py-0.5">
+            <p className="font-bold text-slate-900 text-xs leading-snug">{row.businessName || "Merchant Business"}</p>
+            <p className="text-[11px] text-slate-500 font-medium">{locationStr}</p>
           </div>
         );
       },
@@ -88,15 +102,34 @@ export default function MerchantApprovalsClient() {
       header: "Category",
       accessorKey: "category",
       cell: (row) => (
-        <span className="capitalize text-xs font-medium px-2 py-0.5 rounded bg-muted">
+        <span className="capitalize text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100/90 text-slate-700 border border-slate-200/80 inline-block shadow-2xs">
           {row.category || "General"}
         </span>
       ),
     },
     {
+      header: "Chosen Plan",
+      accessorKey: "plan",
+      cell: (row) => {
+        const rawPlan = (row.plan || "starter").toLowerCase();
+        const planMap = {
+          starter: { label: "Starter", bg: "bg-slate-100 text-slate-700 border-slate-200" },
+          growth: { label: "Growth Partner", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+          pro: { label: "Pro Merchant", bg: "bg-blue-50 text-blue-700 border-blue-200" },
+          enterprise: { label: "Enterprise", bg: "bg-amber-50 text-amber-700 border-amber-200" },
+        };
+        const pInfo = planMap[rawPlan] || planMap.starter;
+        return (
+          <span className={cn("px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", pInfo.bg)}>
+            {pInfo.label}
+          </span>
+        );
+      },
+    },
+    {
       header: "Status",
       accessorKey: "status",
-      cell: (row) => <StatusBadge status={row.status || "pending"} />,
+      cell: (row) => <StatusBadge status={row.status || "pending"} size="sm" />,
     },
     {
       header: "Owner / Email",
@@ -112,13 +145,13 @@ export default function MerchantApprovalsClient() {
           row.businessName ||
           "Merchant Owner";
         return (
-          <div>
+          <div className="py-0.5">
             {ownerName && (
-              <p className="text-xs font-bold text-slate-800 capitalize">
+              <p className="text-xs font-bold text-slate-800 capitalize leading-snug">
                 {ownerName}
               </p>
             )}
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-[11px] text-slate-500 font-medium truncate max-w-[180px]">
               {row.userId?.email || row.contactEmail || "No Email"}
             </p>
           </div>
@@ -129,7 +162,7 @@ export default function MerchantApprovalsClient() {
       header: "Phone",
       accessorKey: "phone",
       cell: (row) => (
-        <span className="text-xs text-slate-600 font-mono">
+        <span className="text-xs text-slate-700 font-mono font-semibold">
           {row.phone || row.contactPhone || row.location?.phone || "No Phone"}
         </span>
       ),
@@ -138,7 +171,7 @@ export default function MerchantApprovalsClient() {
       header: "Applied On",
       accessorKey: "createdAt",
       cell: (row) => (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-slate-500 font-medium">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -147,14 +180,14 @@ export default function MerchantApprovalsClient() {
       header: "Actions",
       accessorKey: "_id",
       cell: (row) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap min-w-[200px]">
           <Button
             size="sm"
             variant="outline"
             onClick={() => handleOpenKyc(row)}
-            className="h-8 gap-1 text-xs"
+            className="h-7 px-2.5 gap-1 text-[11px] font-bold border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
           >
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="h-3 w-3" />
             Review KYC
           </Button>
 
@@ -162,11 +195,11 @@ export default function MerchantApprovalsClient() {
           {(row.status === "pending" || !row.status) && (
             <Button
               size="sm"
-              className="h-8 bg-blue-600 hover:bg-blue-700 text-white gap-1 text-xs font-semibold cursor-pointer shadow-xs"
+              className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white gap-1 text-[11px] font-bold rounded-lg cursor-pointer shadow-2xs"
               onClick={() => handleAction(row._id, "form_accepted")}
               disabled={reviewMutation.isPending}
             >
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-3 w-3" />
               Accept Form
             </Button>
           )}
@@ -175,11 +208,11 @@ export default function MerchantApprovalsClient() {
           {(row.status === "form_accepted" || row.status === "under_review") && (
             <Button
               size="sm"
-              className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-xs font-semibold cursor-pointer shadow-xs"
+              className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-[11px] font-bold rounded-lg cursor-pointer shadow-2xs"
               onClick={() => handleAction(row._id, "approved")}
               disabled={reviewMutation.isPending}
             >
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-3 w-3" />
               Approve Merchant
             </Button>
           )}
@@ -188,11 +221,11 @@ export default function MerchantApprovalsClient() {
             <Button
               size="sm"
               variant="destructive"
-              className="h-8 gap-1 text-xs cursor-pointer"
+              className="h-7 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 gap-1 text-[11px] font-bold rounded-lg cursor-pointer shadow-2xs"
               onClick={() => handleAction(row._id, "rejected")}
               disabled={reviewMutation.isPending}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
               Reject
             </Button>
           )}
@@ -202,16 +235,16 @@ export default function MerchantApprovalsClient() {
   ];
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-6 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-5">
+    <div className="container max-w-7xl mx-auto space-y-6 pb-12 font-sans text-left">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
               Merchant Applications Queue
             </h1>
             <LiveIndicator label="Real-time Applications Queue" />
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-slate-500 text-xs mt-1 font-medium">
             Review submitted merchant account applications, verify business
             credentials, and approve or decline partner access.
           </p>
@@ -221,32 +254,33 @@ export default function MerchantApprovalsClient() {
           size="sm"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="self-start md:self-auto gap-2"
+          className="self-start md:self-auto gap-2 text-xs font-bold border-slate-200 text-slate-700 rounded-xl"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
           Refresh Queue
         </Button>
       </div>
 
-      <Card className="p-4 bg-card border-border/50 shadow-sm">
+      <Card className="p-3 bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-x-auto">
         <DataTable
           columns={columns}
           data={filteredMerchants}
           isLoading={isLoading}
           searchKey="businessName"
+          getRowClassName={getMerchantRowColor}
           rightActions={
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4 bg-muted/60 p-1">
-                <TabsTrigger value="all" className="text-xs font-semibold">
+              <TabsList className="grid grid-cols-4 bg-slate-100 p-1 rounded-xl">
+                <TabsTrigger value="all" className="text-xs font-bold rounded-lg">
                   All ({allMerchants.length})
                 </TabsTrigger>
-                <TabsTrigger value="pending" className="text-xs font-semibold">
+                <TabsTrigger value="pending" className="text-xs font-bold rounded-lg">
                   Pending ({pendingCount})
                 </TabsTrigger>
-                <TabsTrigger value="approved" className="text-xs font-semibold">
+                <TabsTrigger value="approved" className="text-xs font-bold rounded-lg">
                   Approved
                 </TabsTrigger>
-                <TabsTrigger value="rejected" className="text-xs font-semibold">
+                <TabsTrigger value="rejected" className="text-xs font-bold rounded-lg">
                   Rejected
                 </TabsTrigger>
               </TabsList>

@@ -57,6 +57,7 @@ export default function DataTable({
   defaultPageSize = 10,
   emptyState,
   rightActions,
+  getRowClassName,
   className,
 }) {
   const [search, setSearch] = useState("");
@@ -230,28 +231,34 @@ export default function DataTable({
                 </TableCell>
               </TableRow>
             ) : (
-              paged.map((row, rowIndex) => (
-                <TableRow
-                  key={row.id ?? row._id ?? `row-${rowIndex}`}
-                  className="border-brand-border hover:bg-brand-surface/60 transition-colors"
-                >
-                  {columns.map((col, colIdx) => {
-                    const dataKey = col.key || col.accessorKey;
-                    return (
-                      <TableCell
-                        key={colIdx}
-                        className={cn(
-                          "py-3 px-3 text-sm text-brand-text",
-                          col.align === "center" && "text-center",
-                          col.align === "right" && "text-right",
-                        )}
-                      >
-                        {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
+              paged.map((row, rowIndex) => {
+                const customRowClass = getRowClassName ? getRowClassName(row, rowIndex) : "";
+                return (
+                  <TableRow
+                    key={row.id ?? row._id ?? `row-${rowIndex}`}
+                    className={cn(
+                      "border-brand-border transition-colors",
+                      customRowClass || "hover:bg-brand-surface/60",
+                    )}
+                  >
+                    {columns.map((col, colIdx) => {
+                      const dataKey = col.key || col.accessorKey;
+                      return (
+                        <TableCell
+                          key={colIdx}
+                          className={cn(
+                            "py-3 px-3 text-sm text-brand-text",
+                            col.align === "center" && "text-center",
+                            col.align === "right" && "text-right",
+                          )}
+                        >
+                          {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
