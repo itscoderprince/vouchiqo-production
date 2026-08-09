@@ -86,6 +86,12 @@ export async function GET(req) {
             ? 33
             : 66;
 
+      const isGstExempt =
+        merchant.isGstExempt ||
+        !merchant.gstin ||
+        merchant.gstin.toUpperCase().includes("EXEMPT") ||
+        merchant.gstin.toUpperCase().includes("MICRO");
+
       const docs = [
         {
           name:
@@ -95,13 +101,19 @@ export async function GET(req) {
             ? isApproved
               ? "verified"
               : "under_review"
-            : "verified",
+            : isGstExempt
+              ? "exempt"
+              : "not_uploaded",
           verifiedAt: merchant.updatedAt,
         },
         {
           name: "Store Front & Location Photograph",
           type: "Physical Business Location",
-          status: merchant.shopImage ? "verified" : "under_review",
+          status: merchant.shopImage
+            ? isApproved
+              ? "verified"
+              : "under_review"
+            : "not_uploaded",
           verifiedAt: merchant.updatedAt,
         },
       ];

@@ -253,57 +253,89 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
         )}
 
         {/* Slide Content */}
-        <div className="p-6 space-y-5">
-          {isPending || isRejected ? (
-            <div className="space-y-5 animate-in fade-in duration-200 text-center">
-              <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-xs">
-                <Clock className="w-7 h-7 text-amber-600 animate-pulse" />
-              </div>
+        <div className="p-5 space-y-4 font-sans text-left">
+          {currentSlide === 0 ? (
+            /* SLIDE 1: STATUS BADGE + PROFILE HEALTH + REMAINING FIELDS */
+            <div className="space-y-4 animate-in fade-in duration-200">
+              {/* Application / Verification Status Banner */}
+              {isPending && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                      <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-amber-100 text-amber-900 border-amber-300 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0">
+                          Application Under Review
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-amber-900/90 font-medium truncate mt-0.5">
+                        KYC Verification &amp; Account Activation Pending Audit
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      handleClose();
+                      router.push("/merchant/application-status");
+                    }}
+                    className="h-7 px-2.5 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-lg shrink-0 shadow-xs cursor-pointer"
+                  >
+                    Track Status
+                  </Button>
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <Badge className="bg-amber-100 text-amber-900 border-amber-300 text-[10px] font-bold uppercase tracking-wider">
-                  {isPending ? "Application Under Review" : "Application Rejected"}
-                </Badge>
-                <h4 className="text-base font-black text-slate-900 tracking-tight">
-                  {isPending
-                    ? "KYC Verification & Account Activation Pending"
-                    : "Action Required: Update Details"}
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  {isPending
-                    ? "Your store profile & documents are 100% complete and currently under audit by our super admin team. Feature controls will activate upon approval (usually 24–48h)."
-                    : merchant.rejectionReason || "Please update your profile details and resubmit."}
-                </p>
-              </div>
+              {isRejected && (
+                <div className="p-3 rounded-2xl bg-red-50 border border-red-200/80 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 flex items-center justify-center shrink-0">
+                      <AlertCircle className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <Badge className="bg-red-100 text-red-900 border-red-300 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0">
+                        Action Required: Rejected
+                      </Badge>
+                      <p className="text-[11px] text-red-900/90 font-medium truncate mt-0.5">
+                        {merchant.rejectionReason || "Please update your details and resubmit."}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleGoToProfile}
+                    className="h-7 px-2.5 text-[11px] font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg shrink-0 shadow-xs cursor-pointer"
+                  >
+                    Fix Issues
+                  </Button>
+                </div>
+              )}
 
-              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
-                <Button
-                  type="button"
-                  onClick={() => {
-                    handleClose();
-                    router.push("/merchant/application-status");
-                  }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <span>Track Live Application Status</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGoToProfile}
-                  className="w-full border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl h-10 cursor-pointer"
-                >
-                  <span>Modify Business Profile &amp; Documents</span>
-                </Button>
-              </div>
-            </div>
-          ) : currentSlide === 0 ? (
-            /* SLIDE 1: PROFILE HEALTH & COUNTER */
-            <div className="space-y-5 animate-in fade-in duration-200">
+              {!isPending && !isRejected && (
+                <div className="p-3 rounded-2xl bg-blue-50/80 border border-blue-200/80 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <Badge className="bg-blue-100 text-blue-900 border-blue-300 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0">
+                        Profile Completion Required
+                      </Badge>
+                      <p className="text-[11px] text-blue-900/90 font-medium truncate mt-0.5">
+                        Fill remaining details to publish offers &amp; unlock dashboard
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Circular Health Gauge & Score */}
-              <div className="flex items-center gap-5 p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80">
-                <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+              <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/80">
+                <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                     <path
                       className="text-slate-200"
@@ -323,51 +355,51 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                     />
                   </svg>
                   <div className="absolute flex flex-col items-center justify-center text-center">
-                    <span className="text-lg font-extrabold text-slate-900 leading-none">
+                    <span className="text-base font-black text-slate-900 leading-none">
                       {health.percentage}%
                     </span>
-                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">
                       Health
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-1.5 flex-1">
+                <div className="space-y-1 flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className={`text-[10px] font-bold ${badgeBg}`}>
+                    <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${badgeBg}`}>
                       {health.percentage < 50
                         ? "Basic Profile"
                         : health.percentage < 85
                           ? "Good Progress"
                           : "Verified Store"}
                     </Badge>
-                    <span className="text-[11px] font-bold text-slate-600">
+                    <span className="text-[11px] font-bold text-slate-700">
                       {health.completedCount} / {health.totalCount} Fields
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-700 font-semibold leading-snug">
+                  <p className="text-[11px] text-slate-600 font-semibold leading-tight">
                     {health.percentage < 50
-                      ? "Complete your store profile details to list your offers and unlock full dashboard controls."
+                      ? "Complete your store profile details to list your offers and unlock full controls."
                       : health.percentage < 100
-                        ? "Almost ready! Complete your remaining profile fields to publish your offers & boost customer trust."
-                        : "Your store profile is 100% verified and fully active!"}
+                        ? "Almost ready! Complete your remaining profile fields to publish your offers."
+                        : "Your store profile details are 100% submitted & complete!"}
                   </p>
                 </div>
               </div>
 
               {/* Missing Fields List */}
-              {health.missingFields.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              {health.missingFields.length > 0 ? (
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
                     Remaining Fields to Fill ({health.missingFields.length}):
                   </span>
-                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                     {health.missingFields.map((fieldName, fIdx) => (
                       <span
                         key={fIdx}
                         onClick={handleGoToProfile}
-                        className="text-[11px] font-medium bg-blue-50/90 text-blue-700 border border-blue-200/90 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors cursor-pointer"
+                        className="text-[10px] font-semibold bg-blue-50/90 text-blue-700 border border-blue-200/90 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors cursor-pointer"
                       >
                         <span>+</span>
                         <span>{fieldName}</span>
@@ -375,17 +407,33 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                     ))}
                   </div>
                 </div>
+              ) : (
+                <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/80 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-[11px] font-bold text-emerald-900">
+                    All 15 Profile Fields Submitted &amp; Verified!
+                  </span>
+                </div>
               )}
 
               {/* Action Buttons */}
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
                 <Button
                   type="button"
-                  onClick={handleGoToProfile}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
+                  onClick={isPending ? () => { handleClose(); router.push("/merchant/application-status"); } : handleGoToProfile}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-9.5 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>Complete Profile Now</span>
+                  <span>{isPending ? "Track Live Application Status" : "Complete Profile Details"}</span>
                   <ArrowRight className="w-4 h-4" />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoToProfile}
+                  className="w-full border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl h-9 cursor-pointer"
+                >
+                  <span>Modify Business Profile &amp; Documents</span>
                 </Button>
               </div>
             </div>
