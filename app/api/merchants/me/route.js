@@ -20,6 +20,20 @@ export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireAuth(request);
   const merchant = await getMerchantByAuthId(user.id, user.email);
+
+  // Auto-clean legacy unmeaningful random suffixes (e.g. -g7y6) if present
+  if (merchant && merchant.slug && /-[a-z0-9]{4,6}$/i.test(merchant.slug)) {
+    const city = merchant.location?.city || merchant.city || "";
+    const state = merchant.location?.state || merchant.state || "";
+    const category = merchant.category || "";
+    const cleanBase = merchant.businessName || merchant.slug.replace(/-[a-z0-9]{4,6}$/i, "");
+    const newSlug = await generateUniqueSlug(cleanBase, city, state, category, merchant._id);
+    if (newSlug !== merchant.slug) {
+      merchant.slug = newSlug;
+      await merchant.save();
+    }
+  }
+
   return ok(merchant);
 });
 
@@ -37,17 +51,19 @@ export const PUT = asyncHandler(async (request) => {
     return ok({ message: "Merchant profile not found" }, 404);
   }
 
-  // Slug immutability & uniqueness: regular merchants cannot change existing slug. Only Super Admin can change it.
-  if (merchant.slug && user.role !== "admin") {
-    delete body.slug;
-  } else if (body.slug && body.slug !== merchant.slug) {
-    const city = body.location?.city || body.city || merchant.location?.city || "";
-    const state = body.location?.state || body.state || merchant.location?.state || "";
-    merchant.slug = await generateUniqueSlug(body.slug, city, state, merchant._id);
-  } else if (!merchant.slug) {
-    const city = body.location?.city || body.city || merchant.location?.city || "";
-    const state = body.location?.state || body.state || merchant.location?.state || "";
-    merchant.slug = await generateUniqueSlug(body.businessName || "merchant", city, state, merchant._id);
+  const city = body.location?.city || body.city || merchant.location?.city || "";
+  const state = body.location?.state || body.state || merchant.location?.state || "";
+  const category = body.category || merchant.category || "";
+
+  // Auto-clean legacy random suffixes like "-g7y6" from existing merchant slugs
+  const currentSlug = merchant.slug || "";
+  const hasRandomSuffix = /-[a-z0-9]{4,6}$/i.test(currentSlug);
+
+  if (!merchant.slug || hasRandomSuffix) {
+    const cleanBase = body.businessName || merchant.businessName || currentSlug.replace(/-[a-z0-9]{4,6}$/i, "");
+    merchant.slug = await generateUniqueSlug(cleanBase, city, state, category, merchant._id);
+  } else if (body.slug && body.slug !== merchant.slug && user.role === "admin") {
+    merchant.slug = await generateUniqueSlug(body.slug, city, state, category, merchant._id);
   }
 
   // Normalize document & image aliases from wizard / onboarding forms

@@ -14,7 +14,9 @@ export const createMerchantSchema = z.object({
     .regex(
       /^[a-z0-9-]+$/,
       "Slug can only contain lowercase letters, numbers, and hyphens",
-    ),
+    )
+    .optional()
+    .or(z.literal("")),
 
   description: z.string().max(500).optional(),
   shortDescription: z.string().max(300).optional(),

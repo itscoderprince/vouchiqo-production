@@ -53,18 +53,40 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
 /**
  * Helper to generate a 100% unique, meaningful, SEO-friendly brand slug.
  * Prioritizes:
- * 1. Clean brand slug (e.g. "aditya-shoes")
- * 2. Brand + City (e.g. "aditya-shoes-ranchi")
- * 3. Brand + State (e.g. "aditya-shoes-bihar" or "aditya-shoes-jharkhand")
- * 4. Brand + Location + Store Number (e.g. "aditya-shoes-ranchi-2", "aditya-shoes-ranchi-3")
+ * 1. Clean brand slug (e.g. "aditya-cars")
+ * 2. Brand + City (e.g. "aditya-cars-ranchi")
+ * 3. Brand + State (e.g. "aditya-cars-jharkhand")
+ * 4. Brand + City + State (e.g. "aditya-cars-ranchi-jharkhand")
+ * 5. Brand + Category (e.g. "aditya-cars-automotive")
+ * 6. Brand + City + Category (e.g. "aditya-cars-ranchi-automotive")
+ * 7. Brand + Location + Counter (e.g. "aditya-cars-ranchi-2", "aditya-cars-ranchi-3")
  */
 export async function generateUniqueSlug(
   baseText,
   city = "",
   state = "",
+  category = "",
   excludeMerchantId = null,
 ) {
-  let cleanBase = String(baseText || "merchant")
+  let cleanCategory = "";
+  let excludeId = excludeMerchantId;
+
+  if (typeof category === "object" || (typeof category === "string" && category.match(/^[0-9a-fA-F]{24}$/))) {
+    excludeId = category;
+    cleanCategory = "";
+  } else {
+    cleanCategory = String(category || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  // Strip any legacy random 4 to 6 character suffix (e.g. -g7y6) if baseText contains one
+  let rawText = String(baseText || "merchant");
+  rawText = rawText.replace(/-[a-z0-9]{4,6}$/i, "");
+
+  let cleanBase = rawText
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
@@ -73,13 +95,13 @@ export async function generateUniqueSlug(
 
   if (!cleanBase) cleanBase = "merchant";
 
-  const filterBase = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
+  const filterBase = excludeId ? { _id: { $ne: excludeId } } : {};
 
-  // 1. Try cleanBase directly (e.g., "aditya-shoes")
+  // 1. Try cleanBase directly (e.g., "aditya-cars")
   const existingExact = await Merchant.findOne({ ...filterBase, slug: cleanBase });
   if (!existingExact) return cleanBase;
 
-  // 2. Try cleanBase + city suffix (e.g., "aditya-shoes-ranchi")
+  // 2. Try cleanBase + city suffix (e.g., "aditya-cars-ranchi")
   const cleanCity = String(city || "")
     .toLowerCase()
     .trim()
@@ -92,7 +114,7 @@ export async function generateUniqueSlug(
     if (!existingCity) return citySlug;
   }
 
-  // 3. Try cleanBase + state suffix (e.g., "aditya-shoes-bihar" or "aditya-shoes-jharkhand")
+  // 3. Try cleanBase + state suffix (e.g., "aditya-cars-jharkhand")
   const cleanState = String(state || "")
     .toLowerCase()
     .trim()
@@ -105,7 +127,28 @@ export async function generateUniqueSlug(
     if (!existingState) return stateSlug;
   }
 
-  // 4. Try cleanBase + location + store number (e.g., "aditya-shoes-ranchi-2", "aditya-shoes-ranchi-3")
+  // 4. Try cleanBase + city + state (e.g., "aditya-cars-ranchi-jharkhand")
+  if (cleanCity && cleanState && cleanState !== cleanCity) {
+    const cityStateSlug = `${cleanBase}-${cleanCity}-${cleanState}`.slice(0, 80);
+    const existingCityState = await Merchant.findOne({ ...filterBase, slug: cityStateSlug });
+    if (!existingCityState) return cityStateSlug;
+  }
+
+  // 5. Try cleanBase + category (e.g., "aditya-cars-automotive")
+  if (cleanCategory) {
+    const categorySlug = `${cleanBase}-${cleanCategory}`.slice(0, 80);
+    const existingCategory = await Merchant.findOne({ ...filterBase, slug: categorySlug });
+    if (!existingCategory) return categorySlug;
+  }
+
+  // 6. Try cleanBase + city + category (e.g., "aditya-cars-ranchi-automotive")
+  if (cleanCity && cleanCategory) {
+    const cityCatSlug = `${cleanBase}-${cleanCity}-${cleanCategory}`.slice(0, 80);
+    const existingCityCat = await Merchant.findOne({ ...filterBase, slug: cityCatSlug });
+    if (!existingCityCat) return cityCatSlug;
+  }
+
+  // 7. Try cleanBase + location + store counter (e.g., "aditya-cars-ranchi-2", "aditya-cars-ranchi-3")
   const prefix = cleanCity
     ? `${cleanBase}-${cleanCity}`
     : cleanState
@@ -118,8 +161,7 @@ export async function generateUniqueSlug(
     if (!exists) return numberedSlug;
   }
 
-  // 5. Ultimate fallback with clean short code if > 50 stores exist
-  return `${prefix}-${Date.now().toString(36).slice(-4)}`;
+  return `${prefix}-1`;
 }
 
 /**
@@ -141,13 +183,15 @@ export async function createMerchant(authId, data) {
 
   await checkMerchantDuplicates(data);
 
-  // Auto-resolve slug collision by generating a guaranteed unique slug
+  // Auto-resolve slug collision by generating a guaranteed unique, meaningful slug
   const city = data.location?.city || data.city || "";
   const state = data.location?.state || data.state || "";
+  const category = data.category || "";
   data.slug = await generateUniqueSlug(
-    data.slug || data.businessName,
+    data.businessName || data.slug,
     city,
     state,
+    category,
     null,
   );
 
