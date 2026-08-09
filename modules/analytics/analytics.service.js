@@ -45,6 +45,7 @@ export async function getMerchantAnalytics(authId, period = "30d") {
     trafficSourcesRaw,
     weekdayEventsRaw,
     eventsByPeriodRaw,
+    redemptionsDailyRaw,
   ] = await Promise.all([
     // Aggregate coupon stats by status
     Coupon.aggregate([
@@ -157,6 +158,30 @@ export async function getMerchantAnalytics(authId, period = "30d") {
         },
       },
     ]),
+
+    // Actual daily redemptions and revenue from Redemption collection
+    Redemption.aggregate([
+      {
+        $match: {
+          merchantId,
+          createdAt: { $gte: startDate },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          totalRedemptions: { $sum: 1 },
+          totalRevenue: {
+            $sum: {
+              $ifNull: [
+                "$originalPrice",
+                { $ifNull: ["$savingsAmount", 0] },
+              ],
+            },
+          },
+        },
+      },
+    ]),
   ]);
 
   // Flatten coupon stats by status
@@ -188,13 +213,13 @@ export async function getMerchantAnalytics(authId, period = "30d") {
       totalStoreViews = item.total;
   }
 
-  // Calculate redemption rate
+  // Calculate redemption rate based on actual data
   const redemptionRate =
     totalClicks > 0
       ? `${((recentRedemptions / totalClicks) * 100).toFixed(1)}%`
-      : `${(recentRedemptions > 0 ? 12.5 : 0).toFixed(1)}%`;
+      : "0.0%";
 
-  // Build traffic sources array
+  // Build traffic sources array from real analytics events
   const sourceNameMap = {
     homepage: "Homepage Ticker & Banners",
     category: "Category & Search Pages",
@@ -212,19 +237,11 @@ export async function getMerchantAnalytics(authId, period = "30d") {
     other: "#64748b",
   };
 
-  const trafficSources =
-    trafficSourcesRaw.length > 0
-      ? trafficSourcesRaw.map((src) => ({
-          name: sourceNameMap[src._id] || src._id || "Direct Referral Links",
-          value: src.total,
-          color: sourceColorMap[src._id] || "#2563eb",
-        }))
-      : [
-          { name: "Homepage Ticker & Banners", value: 38, color: "#2563eb" },
-          { name: "Category & Search Pages", value: 28, color: "#e85d04" },
-          { name: "Direct Referral Links", value: 22, color: "#10b981" },
-          { name: "Social & Push Alerts", value: 12, color: "#8b5cf6" },
-        ];
+  const trafficSources = trafficSourcesRaw.map((src) => ({
+    name: sourceNameMap[src._id] || src._id || "Direct Referral Links",
+    value: src.total,
+    color: sourceColorMap[src._id] || "#2563eb",
+  }));
 
   // Build weekday performance array (Mon-Sun)
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -255,7 +272,7 @@ export async function getMerchantAnalytics(authId, period = "30d") {
     }),
   );
 
-  // Build continuous time-series trend array for period
+  // Build continuous time-series trend array for period based strictly on real DB records
   const trend = [];
   const daysCount = period === "7d" ? 7 : period === "90d" ? 90 : 30;
 
@@ -275,40 +292,24 @@ export async function getMerchantAnalytics(authId, period = "30d") {
     const redemptionMatch = eventsByPeriodRaw.find(
       (e) => e._id.dateStr === dateStr && e._id.eventType === "redemption",
     );
-    const redCount = redemptionMatch ? redemptionMatch.total : 0;
+    const redDailyMatch = redemptionsDailyRaw.find(
+      (r) => r._id === dateStr,
+    );
+
+    const clicks = clickMatch ? clickMatch.total : 0;
+    const redCount = redDailyMatch
+      ? redDailyMatch.totalRedemptions
+      : (redemptionMatch ? redemptionMatch.total : 0);
+    const revAmount = redDailyMatch ? redDailyMatch.totalRevenue : 0;
+
     trend.push({
       label,
       date: dateStr,
-      clicks: clickMatch ? clickMatch.total : 0,
+      clicks,
+      views: clicks,
       redemptions: redCount,
       orders: redCount,
-      revenue: redCount * 350,
-    });
-  }
-
-  // Populate realistic baseline if store is brand new (zero data)
-  const hasRealTrendData = trend.some((t) => t.clicks > 0 || t.redemptions > 0);
-  if (!hasRealTrendData) {
-    const demoOscillating = [
-      { clicks: 20, redemptions: 5 },
-      { clicks: 10, redemptions: 2 },
-      { clicks: 25, redemptions: 8 },
-      { clicks: 12, redemptions: 3 },
-      { clicks: 35, redemptions: 15 },
-      { clicks: 18, redemptions: 6 },
-      { clicks: 30, redemptions: 10 },
-      { clicks: 15, redemptions: 4 },
-      { clicks: 40, redemptions: 18 },
-      { clicks: 22, redemptions: 7 },
-      { clicks: 32, redemptions: 12 },
-      { clicks: 15, redemptions: 5 },
-    ];
-    trend.forEach((t, idx) => {
-      const demo = demoOscillating[idx % demoOscillating.length];
-      t.clicks = demo.clicks;
-      t.redemptions = demo.redemptions;
-      t.orders = demo.redemptions;
-      t.revenue = demo.redemptions * 350;
+      revenue: revAmount,
     });
   }
 

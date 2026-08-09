@@ -2,7 +2,7 @@
 
 import { Edit2, Pause, Play, Tag, Ticket, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable, StatusBadge } from "@/components/shared/data";
 import { ConfirmDeleteModal } from "@/components/shared/modals";
 import {
@@ -14,46 +14,13 @@ import {
 } from "@/components/ui/card";
 import { showSuccess } from "@/lib/toast";
 
-const DEMO_COUPONS = [
-  {
-    id: "cpn-1",
-    title: "20% OFF Mega Festive Sale",
-    code: "FESTIVE20",
-    discount: "20% OFF",
-    category: "Food & Dining",
-    clicks: 1420,
-    redemptions: 340,
-    successRate: 24,
-    status: "active",
-  },
-  {
-    id: "cpn-2",
-    title: "Flat ₹500 Cashback on Dining",
-    code: "DINING500",
-    discount: "₹500 OFF",
-    category: "Food & Dining",
-    clicks: 980,
-    redemptions: 210,
-    successRate: 21,
-    status: "active",
-  },
-  {
-    id: "cpn-3",
-    title: "Buy 1 Get 1 Free Appetizers",
-    code: "BOGOAPP",
-    discount: "BOGO Free",
-    category: "Food & Dining",
-    clicks: 650,
-    redemptions: 115,
-    successRate: 17,
-    status: "inactive",
-  },
-];
-
 export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
-  const [couponsList, setCouponsList] = useState(
-    initialCoupons.length > 0 ? initialCoupons : DEMO_COUPONS,
-  );
+  const [couponsList, setCouponsList] = useState(initialCoupons);
+
+  // Sync state if initialCoupons prop changes
+  useEffect(() => {
+    setCouponsList(initialCoupons);
+  }, [initialCoupons]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [couponToDelete, setCouponToDelete] = useState(null);
 

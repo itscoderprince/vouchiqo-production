@@ -157,7 +157,8 @@ export default function KpiCards({
       <KpiCard
         title="Coupon Redemptions"
         value={safeTotalRedemptions.toLocaleString("en-IN")}
-        trend={ordersMoM}
+        trend={safeTotalRedemptions > 0 ? ordersMoM : null}
+        subtitle="Redeemed by customers"
         icon={CheckCircle2}
         iconBg="bg-[#059669]/10"
         iconColor="text-[#059669]"
@@ -170,7 +171,8 @@ export default function KpiCards({
       <KpiCard
         title="Est. Revenue Driven (₹)"
         value={`₹${safeTotalRevenue.toLocaleString("en-IN")}`}
-        trend={revenueMoM}
+        trend={safeTotalRevenue > 0 ? revenueMoM : null}
+        subtitle="Gross sale value driven"
         icon={IndianRupee}
         iconBg="bg-blue-50 border border-blue-100"
         iconColor="text-blue-600"
