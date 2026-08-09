@@ -167,28 +167,27 @@ export default function AdminDashboard() {
       title="Dashboard"
       user={{ name: "Platform Admin", role: "admin" }}
     >
-      <div className="space-y-6 text-left font-sans w-full">
+      <div className="space-y-3 text-left font-sans w-full pb-8">
         {/* Welcome Banner */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200/80 pb-2 text-left">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold text-slate-900 tracking-tight">
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
                 Super Admin Dashboard
               </h1>
               <LiveIndicator />
             </div>
-            <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Welcome back, Admin. Here's what's happening with your business
-              today.
+            <p className="text-[11px] text-slate-500 font-normal mt-0.5">
+              Welcome back, Admin. Here's what's happening with your business today.
             </p>
           </div>
           <Link
             href="/admin/approvals/merchants"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-2xs relative"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-2xs relative shrink-0"
           >
             <span>Review Queue</span>
             {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+              <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
                 {unreadCount}
               </span>
             )}
@@ -196,7 +195,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* 4 Reusable KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <KPICard
             variant="emerald"
             title="Total Revenue"
@@ -232,14 +231,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Overview Chart & Traffic Column */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-          <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full p-0 gap-0">
-            <CardHeader className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30 min-h-[52px]">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
+          <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden flex flex-col h-full p-0 gap-0">
+            <CardHeader className="px-3.5 py-2.5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30 min-h-[44px]">
               <div>
-                <CardTitle className="font-sans text-xs font-semibold text-slate-900 tracking-wider uppercase m-0 leading-none">
+                <CardTitle className="font-sans text-xs font-bold text-slate-900 tracking-wider uppercase m-0 leading-none">
                   Overview
                 </CardTitle>
-                <CardDescription className="text-[11px] font-normal text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+                <CardDescription className="text-[11px] font-normal text-slate-500 mt-0.5 leading-none font-sans normal-case tracking-normal">
                   Monthly performance for the current year
                 </CardDescription>
               </div>
@@ -249,7 +248,7 @@ export default function AdminDashboard() {
                     key={metric}
                     type="button"
                     onClick={() => setActiveMetricTab(metric)}
-                    className={`text-[11px] font-medium px-2.5 py-0.5 rounded-md transition-all uppercase cursor-pointer border-0 ${
+                    className={`text-[10px] font-medium px-2 py-0.5 rounded-md transition-all uppercase cursor-pointer border-0 ${
                       activeMetricTab === metric
                         ? "bg-white text-blue-600 shadow-2xs"
                         : "text-slate-500 hover:text-slate-800 bg-transparent"
@@ -261,7 +260,7 @@ export default function AdminDashboard() {
               </div>
             </CardHeader>
 
-            <CardContent className="p-4 sm:p-5 pt-4">
+            <CardContent className="p-3 sm:p-4 pt-3">
               <DashboardChart
                 title=""
                 data={trendData}
@@ -271,34 +270,34 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <div className="col-span-full flex flex-col gap-4 xl:col-span-4">
+          <div className="col-span-full flex flex-col gap-3 xl:col-span-4">
             <TrafficSourcesCard analyticsData={analyticsData} />
             <MonthlyGoalsCard analyticsData={analyticsData} />
           </div>
         </div>
 
         {/* Recent Orders & Activity Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col h-full hover:shadow-xs transition-all duration-200 p-0 gap-0">
-            <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-slate-50/50 min-h-[56px]">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
+          <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden flex flex-col h-full p-0 gap-0">
+            <CardHeader className="px-3.5 py-2.5 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-slate-50/50 min-h-[44px]">
               <div>
-                <CardTitle className="font-heading text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
+                <CardTitle className="font-heading text-xs font-bold text-slate-900 tracking-wider uppercase m-0 leading-none">
                   Recent Orders
                 </CardTitle>
-                <CardDescription className="text-[11px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+                <CardDescription className="text-[11px] font-normal text-slate-500 mt-0.5 leading-none font-sans normal-case tracking-normal">
                   Latest transactions from your store
                 </CardDescription>
               </div>
               <Link
                 href="/admin/approvals/merchants"
-                className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-0.5"
+                className="text-[11px] font-medium text-[#2563eb] hover:underline flex items-center gap-0.5"
               >
                 <span>View all</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </CardHeader>
 
-            <CardContent className="p-4 sm:p-5 pt-4">
+            <CardContent className="p-3 sm:p-4 pt-2">
               <DataTable
                 columns={orderColumns}
                 data={livePendingOrders}
