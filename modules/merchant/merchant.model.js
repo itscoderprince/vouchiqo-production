@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { COUPON_CATEGORIES, MERCHANT_STATUS } from "../../utils/constants.js";
+import { COUPON_CATEGORIES, MERCHANT_STATUS, normalizeCategory } from "../../utils/constants.js";
 
 /**
  * Merchant profile.
@@ -48,6 +48,7 @@ const merchantSchema = new Schema(
       type: String,
       enum: COUPON_CATEGORIES,
       required: true,
+      set: (val) => normalizeCategory(val),
     },
 
     customCategoryNotes: {

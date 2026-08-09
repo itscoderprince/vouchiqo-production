@@ -43,6 +43,31 @@ export const COUPON_CATEGORIES = [
   "others",
 ];
 
+export function normalizeCategory(raw) {
+  if (!raw) return "food";
+  const lower = String(raw).toLowerCase().trim();
+
+  if (COUPON_CATEGORIES.includes(lower)) return lower;
+
+  if (lower.includes("food") || lower.includes("dining") || lower.includes("restaurant") || lower.includes("caf")) return "food";
+  if (lower.includes("fashion") || lower.includes("cloth")) return "fashion";
+  if (lower.includes("auto") || lower.includes("car") || lower.includes("vehicle")) return "automotive";
+  if (lower.includes("electr") || lower.includes("gadget")) return "electronics";
+  if (lower.includes("beauty") || lower.includes("well") || lower.includes("salon")) return "beauty";
+  if (lower.includes("travel") || lower.includes("hotel") || lower.includes("hospitality")) return "travel";
+  if (lower.includes("improvement")) return "home-improvement";
+  if (lower.includes("home") || lower.includes("living")) return "home";
+  if (lower.includes("fit") || lower.includes("health") || lower.includes("gym")) return "fitness";
+  if (lower.includes("edu") || lower.includes("course") || lower.includes("school")) return "education";
+  if (lower.includes("kid") || lower.includes("baby")) return "kids-baby";
+  if (lower.includes("jewel") || lower.includes("gold")) return "jewellery";
+  if (lower.includes("game") || lower.includes("entertain")) return "entertainment";
+  if (lower.includes("groc") || lower.includes("essential")) return "grocery";
+  if (lower.includes("finan") || lower.includes("insur")) return "finance";
+
+  return "others";
+}
+
 // ─────────────────────────────────────────────
 // Claim
 // ─────────────────────────────────────────────

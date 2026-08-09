@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { showError, showSuccess } from "@/lib/toast";
+import { normalizeCategory } from "@/utils/constants";
 import {
   merchantProfileSchema,
   STEP_FIELDS,
@@ -96,7 +97,7 @@ export function useMerchantProfileForm() {
       form.reset({
         businessName: merchant.businessName ?? merchant.registeredName ?? "",
         slug: merchant.slug ?? "",
-        category: merchant.category ?? "food",
+        category: normalizeCategory(merchant.category),
         customCategoryNotes: merchant.customCategoryNotes ?? "",
         description: merchant.description ?? "",
         contactEmail: merchant.contactEmail ?? merchant.email ?? "",

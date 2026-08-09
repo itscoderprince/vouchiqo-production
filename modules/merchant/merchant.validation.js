@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { COUPON_CATEGORIES } from "@/utils/constants";
+import { COUPON_CATEGORIES, normalizeCategory } from "@/utils/constants.js";
 
 export const createMerchantSchema = z.object({
   businessName: z
@@ -22,7 +22,10 @@ export const createMerchantSchema = z.object({
   shortDescription: z.string().max(300).optional(),
   longDescription: z.string().max(1000).optional(),
 
-  category: z.enum(COUPON_CATEGORIES),
+  category: z.preprocess(
+    (val) => normalizeCategory(val),
+    z.enum(COUPON_CATEGORIES),
+  ),
   customCategoryNotes: z.string().optional(),
 
   location: z
