@@ -70,15 +70,15 @@ export default function MerchantApprovalsClient() {
   };
 
   const getMerchantRowColor = (row, index) => {
-    const rowTints = [
-      "bg-white hover:bg-blue-50/40",
-      "bg-slate-50/70 hover:bg-blue-50/40",
-      "bg-blue-50/20 hover:bg-blue-50/40",
-      "bg-emerald-50/15 hover:bg-emerald-50/30",
-      "bg-indigo-50/15 hover:bg-indigo-50/30",
-      "bg-purple-50/15 hover:bg-purple-50/30",
+    const rowStyles = [
+      "bg-blue-50/40 hover:bg-blue-50/70 border-l-4 border-l-blue-500 border-b border-blue-100/80 transition-all",
+      "bg-emerald-50/40 hover:bg-emerald-50/70 border-l-4 border-l-emerald-500 border-b border-emerald-100/80 transition-all",
+      "bg-amber-50/40 hover:bg-amber-50/70 border-l-4 border-l-amber-500 border-b border-amber-100/80 transition-all",
+      "bg-purple-50/40 hover:bg-purple-50/70 border-l-4 border-l-purple-500 border-b border-purple-100/80 transition-all",
+      "bg-indigo-50/40 hover:bg-indigo-50/70 border-l-4 border-l-indigo-500 border-b border-indigo-100/80 transition-all",
+      "bg-rose-50/40 hover:bg-rose-50/70 border-l-4 border-l-rose-500 border-b border-rose-100/80 transition-all",
     ];
-    return rowTints[index % rowTints.length];
+    return rowStyles[index % rowStyles.length];
   };
 
   const columns = [
@@ -92,8 +92,8 @@ export default function MerchantApprovalsClient() {
             : row.location?.city || row.location?.address || row.city || row.slug || "Main Outlet";
         return (
           <div className="py-0.5">
-            <p className="font-bold text-slate-900 text-xs leading-snug">{row.businessName || "Merchant Business"}</p>
-            <p className="text-[11px] text-slate-500 font-medium">{locationStr}</p>
+            <p className="font-medium text-slate-900 text-xs leading-snug">{row.businessName || "Merchant Business"}</p>
+            <p className="text-[11px] text-slate-500 font-normal">{locationStr}</p>
           </div>
         );
       },
@@ -102,7 +102,7 @@ export default function MerchantApprovalsClient() {
       header: "Category",
       accessorKey: "category",
       cell: (row) => (
-        <span className="capitalize text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100/90 text-slate-700 border border-slate-200/80 inline-block shadow-2xs">
+        <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100/90 text-slate-700 border border-slate-200/80 inline-block shadow-2xs">
           {row.category || "General"}
         </span>
       ),
@@ -120,7 +120,7 @@ export default function MerchantApprovalsClient() {
         };
         const pInfo = planMap[rawPlan] || planMap.starter;
         return (
-          <span className={cn("px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", pInfo.bg)}>
+          <span className={cn("px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", pInfo.bg)}>
             {pInfo.label}
           </span>
         );
@@ -147,11 +147,11 @@ export default function MerchantApprovalsClient() {
         return (
           <div className="py-0.5">
             {ownerName && (
-              <p className="text-xs font-bold text-slate-800 capitalize leading-snug">
+              <p className="text-xs font-medium text-slate-800 capitalize leading-snug">
                 {ownerName}
               </p>
             )}
-            <p className="text-[11px] text-slate-500 font-medium truncate max-w-[180px]">
+            <p className="text-[11px] text-slate-500 font-normal truncate max-w-[180px]">
               {row.userId?.email || row.contactEmail || "No Email"}
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function MerchantApprovalsClient() {
       header: "Phone",
       accessorKey: "phone",
       cell: (row) => (
-        <span className="text-xs text-slate-700 font-mono font-semibold">
+        <span className="text-xs text-slate-700 font-mono font-normal">
           {row.phone || row.contactPhone || row.location?.phone || "No Phone"}
         </span>
       ),
@@ -171,7 +171,7 @@ export default function MerchantApprovalsClient() {
       header: "Applied On",
       accessorKey: "createdAt",
       cell: (row) => (
-        <span className="text-xs text-slate-500 font-medium">
+        <span className="text-xs text-slate-500 font-normal">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -180,40 +180,40 @@ export default function MerchantApprovalsClient() {
       header: "Actions",
       accessorKey: "_id",
       cell: (row) => (
-        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap min-w-[200px]">
+        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
           <Button
             size="sm"
             variant="outline"
             onClick={() => handleOpenKyc(row)}
-            className="h-7 px-2.5 gap-1 text-[11px] font-bold border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
+            className="h-7 px-2.5 gap-1 text-[11px] font-medium border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
           >
             <Eye className="h-3 w-3" />
-            Review KYC
+            <span>Review</span>
           </Button>
 
           {/* Step 1: If pending, show Accept Form button */}
           {(row.status === "pending" || !row.status) && (
             <Button
               size="sm"
-              className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white gap-1 text-[11px] font-bold rounded-lg cursor-pointer shadow-2xs"
+              className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white gap-1 text-[11px] font-medium rounded-lg cursor-pointer shadow-2xs"
               onClick={() => handleAction(row._id, "form_accepted")}
               disabled={reviewMutation.isPending}
             >
               <Check className="h-3 w-3" />
-              Accept Form
+              <span>Accept Form</span>
             </Button>
           )}
 
-          {/* Step 2: If form_accepted or under_review, show Approve Merchant button */}
+          {/* Step 2: If form_accepted or under_review, show Approve button */}
           {(row.status === "form_accepted" || row.status === "under_review") && (
             <Button
               size="sm"
-              className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-[11px] font-bold rounded-lg cursor-pointer shadow-2xs"
+              className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-[11px] font-medium rounded-lg cursor-pointer shadow-2xs"
               onClick={() => handleAction(row._id, "approved")}
               disabled={reviewMutation.isPending}
             >
               <Check className="h-3 w-3" />
-              Approve Merchant
+              <span>Approve</span>
             </Button>
           )}
 
@@ -221,12 +221,12 @@ export default function MerchantApprovalsClient() {
             <Button
               size="sm"
               variant="destructive"
-              className="h-7 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 gap-1 text-[11px] font-bold rounded-lg cursor-pointer shadow-2xs"
+              title="Reject"
+              className="h-7 w-7 p-0 flex items-center justify-center bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg cursor-pointer shadow-2xs shrink-0"
               onClick={() => handleAction(row._id, "rejected")}
               disabled={reviewMutation.isPending}
             >
-              <X className="h-3 w-3" />
-              Reject
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
@@ -254,7 +254,7 @@ export default function MerchantApprovalsClient() {
           size="sm"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="self-start md:self-auto gap-2 text-xs font-bold border-slate-200 text-slate-700 rounded-xl"
+          className="self-start md:self-auto gap-2 text-xs font-medium border-slate-200 text-slate-700 rounded-xl"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
           Refresh Queue
@@ -271,16 +271,16 @@ export default function MerchantApprovalsClient() {
           rightActions={
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-4 bg-slate-100 p-1 rounded-xl">
-                <TabsTrigger value="all" className="text-xs font-bold rounded-lg">
+                <TabsTrigger value="all" className="text-xs font-medium rounded-lg">
                   All ({allMerchants.length})
                 </TabsTrigger>
-                <TabsTrigger value="pending" className="text-xs font-bold rounded-lg">
+                <TabsTrigger value="pending" className="text-xs font-medium rounded-lg">
                   Pending ({pendingCount})
                 </TabsTrigger>
-                <TabsTrigger value="approved" className="text-xs font-bold rounded-lg">
+                <TabsTrigger value="approved" className="text-xs font-medium rounded-lg">
                   Approved
                 </TabsTrigger>
-                <TabsTrigger value="rejected" className="text-xs font-bold rounded-lg">
+                <TabsTrigger value="rejected" className="text-xs font-medium rounded-lg">
                   Rejected
                 </TabsTrigger>
               </TabsList>
