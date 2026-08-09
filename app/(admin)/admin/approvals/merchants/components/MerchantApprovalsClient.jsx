@@ -71,12 +71,12 @@ export default function MerchantApprovalsClient() {
 
   const getMerchantRowColor = (row, index) => {
     const rowStyles = [
-      "bg-blue-50/40 hover:bg-blue-50/70 border-l-4 border-l-blue-500 border-b border-blue-100/80 transition-all",
-      "bg-emerald-50/40 hover:bg-emerald-50/70 border-l-4 border-l-emerald-500 border-b border-emerald-100/80 transition-all",
-      "bg-amber-50/40 hover:bg-amber-50/70 border-l-4 border-l-amber-500 border-b border-amber-100/80 transition-all",
-      "bg-purple-50/40 hover:bg-purple-50/70 border-l-4 border-l-purple-500 border-b border-purple-100/80 transition-all",
-      "bg-indigo-50/40 hover:bg-indigo-50/70 border-l-4 border-l-indigo-500 border-b border-indigo-100/80 transition-all",
-      "bg-rose-50/40 hover:bg-rose-50/70 border-l-4 border-l-rose-500 border-b border-rose-100/80 transition-all",
+      "bg-blue-100/70 hover:bg-blue-100/90 border-l-4 border-l-blue-600 border-b border-blue-200/90 transition-all text-slate-900",
+      "bg-emerald-100/70 hover:bg-emerald-100/90 border-l-4 border-l-emerald-600 border-b border-emerald-200/90 transition-all text-slate-900",
+      "bg-amber-100/70 hover:bg-amber-100/90 border-l-4 border-l-amber-600 border-b border-amber-200/90 transition-all text-slate-900",
+      "bg-purple-100/70 hover:bg-purple-100/90 border-l-4 border-l-purple-600 border-b border-purple-200/90 transition-all text-slate-900",
+      "bg-indigo-100/70 hover:bg-indigo-100/90 border-l-4 border-l-indigo-600 border-b border-indigo-200/90 transition-all text-slate-900",
+      "bg-rose-100/70 hover:bg-rose-100/90 border-l-4 border-l-rose-600 border-b border-rose-200/90 transition-all text-slate-900",
     ];
     return rowStyles[index % rowStyles.length];
   };
@@ -93,7 +93,7 @@ export default function MerchantApprovalsClient() {
         return (
           <div className="py-0.5">
             <p className="font-medium text-slate-900 text-xs leading-snug">{row.businessName || "Merchant Business"}</p>
-            <p className="text-[11px] text-slate-500 font-normal">{locationStr}</p>
+            <p className="text-[11px] text-slate-600 font-normal">{locationStr}</p>
           </div>
         );
       },
@@ -102,7 +102,7 @@ export default function MerchantApprovalsClient() {
       header: "Category",
       accessorKey: "category",
       cell: (row) => (
-        <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100/90 text-slate-700 border border-slate-200/80 inline-block shadow-2xs">
+        <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded bg-white/90 text-slate-800 border border-slate-300 inline-block shadow-2xs">
           {row.category || "General"}
         </span>
       ),
@@ -113,10 +113,10 @@ export default function MerchantApprovalsClient() {
       cell: (row) => {
         const rawPlan = (row.plan || "starter").toLowerCase();
         const planMap = {
-          starter: { label: "Starter", bg: "bg-slate-100 text-slate-700 border-slate-200" },
-          growth: { label: "Growth Partner", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-          pro: { label: "Pro Merchant", bg: "bg-blue-50 text-blue-700 border-blue-200" },
-          enterprise: { label: "Enterprise", bg: "bg-amber-50 text-amber-700 border-amber-200" },
+          starter: { label: "Starter", bg: "bg-white text-slate-800 border-slate-300" },
+          growth: { label: "Growth Partner", bg: "bg-emerald-600 text-white border-emerald-700" },
+          pro: { label: "Pro Merchant", bg: "bg-blue-600 text-white border-blue-700" },
+          enterprise: { label: "Enterprise", bg: "bg-amber-600 text-white border-amber-700" },
         };
         const pInfo = planMap[rawPlan] || planMap.starter;
         return (
@@ -147,11 +147,11 @@ export default function MerchantApprovalsClient() {
         return (
           <div className="py-0.5">
             {ownerName && (
-              <p className="text-xs font-medium text-slate-800 capitalize leading-snug">
+              <p className="text-xs font-medium text-slate-900 capitalize leading-snug">
                 {ownerName}
               </p>
             )}
-            <p className="text-[11px] text-slate-500 font-normal truncate max-w-[180px]">
+            <p className="text-[11px] text-slate-600 font-normal truncate max-w-[180px]">
               {row.userId?.email || row.contactEmail || "No Email"}
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function MerchantApprovalsClient() {
       header: "Phone",
       accessorKey: "phone",
       cell: (row) => (
-        <span className="text-xs text-slate-700 font-mono font-normal">
+        <span className="text-xs text-slate-800 font-mono font-normal">
           {row.phone || row.contactPhone || row.location?.phone || "No Phone"}
         </span>
       ),
@@ -171,7 +171,7 @@ export default function MerchantApprovalsClient() {
       header: "Applied On",
       accessorKey: "createdAt",
       cell: (row) => (
-        <span className="text-xs text-slate-500 font-normal">
+        <span className="text-xs text-slate-600 font-normal">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -185,7 +185,7 @@ export default function MerchantApprovalsClient() {
             size="sm"
             variant="outline"
             onClick={() => handleOpenKyc(row)}
-            className="h-7 px-2.5 gap-1 text-[11px] font-medium border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
+            className="h-7 px-2.5 gap-1 text-[11px] font-medium border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
           >
             <Eye className="h-3 w-3" />
             <span>Review</span>
@@ -222,7 +222,7 @@ export default function MerchantApprovalsClient() {
               size="sm"
               variant="destructive"
               title="Reject"
-              className="h-7 w-7 p-0 flex items-center justify-center bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg cursor-pointer shadow-2xs shrink-0"
+              className="h-7 w-7 p-0 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 rounded-lg cursor-pointer shadow-2xs shrink-0"
               onClick={() => handleAction(row._id, "rejected")}
               disabled={reviewMutation.isPending}
             >
@@ -235,7 +235,7 @@ export default function MerchantApprovalsClient() {
   ];
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-6 pb-12 font-sans text-left">
+    <div className="w-full space-y-6 pb-12 font-sans text-left">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function MerchantApprovalsClient() {
         </Button>
       </div>
 
-      <Card className="p-3 bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         <DataTable
           columns={columns}
           data={filteredMerchants}
@@ -287,7 +287,7 @@ export default function MerchantApprovalsClient() {
             </Tabs>
           }
         />
-      </Card>
+      </div>
 
       {/* Merchant KYC Review Dialog */}
       <MerchantKycDialog
