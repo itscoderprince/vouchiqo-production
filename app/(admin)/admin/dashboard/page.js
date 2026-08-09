@@ -25,18 +25,18 @@ import RecentActivityTimeline from "./components/RecentActivityTimeline";
 import TrafficSourcesCard from "./components/TrafficSourcesCard";
 
 const DEFAULT_TREND_DATA = [
-  { label: "Jan", revenue: 18500, orders: 240, profit: 6200 },
-  { label: "Feb", revenue: 22000, orders: 310, profit: 8200 },
-  { label: "Mar", revenue: 20000, orders: 280, profit: 7200 },
-  { label: "Apr", revenue: 28500, orders: 390, profit: 12000 },
-  { label: "May", revenue: 32000, orders: 420, profit: 13200 },
-  { label: "Jun", revenue: 29500, orders: 380, profit: 11800 },
-  { label: "Jul", revenue: 36000, orders: 470, profit: 16000 },
-  { label: "Aug", revenue: 38000, orders: 500, profit: 17000 },
-  { label: "Sep", revenue: 41500, orders: 530, profit: 18200 },
-  { label: "Oct", revenue: 40000, orders: 510, profit: 17500 },
-  { label: "Nov", revenue: 44500, orders: 580, profit: 20800 },
-  { label: "Dec", revenue: 48000, orders: 610, profit: 22500 },
+  { label: "Jan", revenue: 0, orders: 0, profit: 0 },
+  { label: "Feb", revenue: 0, orders: 0, profit: 0 },
+  { label: "Mar", revenue: 0, orders: 0, profit: 0 },
+  { label: "Apr", revenue: 0, orders: 0, profit: 0 },
+  { label: "May", revenue: 0, orders: 0, profit: 0 },
+  { label: "Jun", revenue: 0, orders: 0, profit: 0 },
+  { label: "Jul", revenue: 0, orders: 0, profit: 0 },
+  { label: "Aug", revenue: 0, orders: 0, profit: 0 },
+  { label: "Sep", revenue: 0, orders: 0, profit: 0 },
+  { label: "Oct", revenue: 0, orders: 0, profit: 0 },
+  { label: "Nov", revenue: 0, orders: 0, profit: 0 },
+  { label: "Dec", revenue: 0, orders: 0, profit: 0 },
 ];
 
 import { LiveIndicator } from "@/components/shared/LiveIndicator";
@@ -195,45 +195,45 @@ export default function AdminDashboard() {
         </div>
 
         {/* 4 Reusable KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
           <KPICard
+            variant="emerald"
             title="Total Revenue"
-            value={`₹${kpis.monthlyRevenue.toLocaleString()}`}
-            change={12.5}
-            isPositive={true}
+            value={`₹${(kpis.monthlyRevenue || 0).toLocaleString()}`}
+            subtitle="Platform subscription MRR"
             icon={IndianRupee}
-            iconClassName="bg-emerald-50 border-emerald-200/80 text-emerald-600"
+            iconClassName="bg-emerald-50 border-emerald-200/90 text-emerald-600 shadow-2xs"
           />
           <KPICard
+            variant="blue"
             title="Active Users"
-            value={kpis.totalUsers.toLocaleString()}
-            change={8.2}
-            isPositive={true}
+            value={(kpis.totalUsers || 0).toLocaleString()}
+            subtitle="Registered user accounts"
             icon={Users}
-            iconClassName="bg-blue-50 border-blue-200/80 text-blue-600"
+            iconClassName="bg-blue-50 border-blue-200/90 text-blue-600 shadow-2xs"
           />
           <KPICard
+            variant="amber"
             title="Total Orders"
-            value={kpis.activeCoupons.toLocaleString()}
-            change={3.1}
-            isPositive={false}
+            value={(kpis.totalOrders ?? kpis.totalRedemptions ?? 0).toLocaleString()}
+            subtitle="Redeemed coupon orders"
             icon={Tag}
-            iconClassName="bg-amber-50 border-amber-200/80 text-amber-600"
+            iconClassName="bg-amber-50 border-amber-200/90 text-amber-600 shadow-2xs"
           />
           <KPICard
+            variant="purple"
             title="Page Views"
-            value={kpis.totalMerchants}
-            change={24.7}
-            isPositive={true}
+            value={(analyticsData?.totalVisits ?? 0).toLocaleString()}
+            subtitle="Live offer page visits"
             icon={Store}
-            iconClassName="bg-purple-50 border-purple-200/80 text-purple-600"
+            iconClassName="bg-purple-50 border-purple-200/90 text-purple-600 shadow-2xs"
           />
         </div>
 
         {/* Overview Chart & Traffic Column */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-          <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden flex flex-col h-full hover:shadow-xs transition-all duration-200 p-0 gap-0">
-            <CardHeader className="px-4 py-3 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50/50 min-h-[48px]">
+          <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full p-0 gap-0">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30 min-h-[52px]">
               <div>
                 <CardTitle className="font-sans text-xs font-semibold text-slate-900 tracking-wider uppercase m-0 leading-none">
                   Overview

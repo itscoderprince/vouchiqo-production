@@ -50,8 +50,8 @@ export default function RecentActivityTimeline() {
         ];
 
   return (
-    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col h-full hover:shadow-xs transition-all duration-200 p-0 gap-0 text-left">
-      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-slate-50/50 min-h-[56px]">
+    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full p-0 gap-0 text-left">
+      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-gradient-to-r from-emerald-50/60 via-white to-blue-50/40 min-h-[56px]">
         <div>
           <CardTitle className="font-heading text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
             Recent Activity

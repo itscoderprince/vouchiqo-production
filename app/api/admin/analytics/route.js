@@ -28,7 +28,7 @@ export const GET = asyncHandler(async (request) => {
     pendingCampaignsCount,
     pendingMerchants,
     pendingCoupons,
-    redemptions,
+    totalOrders,
     merchants,
     allCoupons,
   ] = await Promise.all([
@@ -40,9 +40,9 @@ export const GET = asyncHandler(async (request) => {
     Campaign.countDocuments({ status: "pending_review" }),
     Merchant.find({ status: "pending" }).limit(5).lean(),
     Coupon.find({ status: "pending" }).limit(5).lean(),
-    Redemption.find().lean(),
+    Redemption.countDocuments(),
     Merchant.find().lean(),
-    Coupon.find().select("viewCount totalClaims").lean(),
+    Coupon.find().select("viewCount clickCount totalClaims").lean(),
   ]);
 
   // Dynamic monthly billing MRR
@@ -56,7 +56,7 @@ export const GET = asyncHandler(async (request) => {
   // Calculate Total Live Visits across DB coupons
   let totalVisits = 0;
   allCoupons.forEach((c) => {
-    totalVisits += Number(c.viewCount) || 0;
+    totalVisits += (Number(c.viewCount) || 0) + (Number(c.clickCount) || 0);
   });
 
   const directCount = Math.round(totalVisits * 0.35);
@@ -172,6 +172,7 @@ export const GET = asyncHandler(async (request) => {
       totalMerchants,
       activeCoupons,
       monthlyRevenue,
+      totalOrders,
     },
     badges: {
       pendingMerchants: pendingMerchantsCount,

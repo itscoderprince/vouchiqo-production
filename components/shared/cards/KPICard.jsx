@@ -31,16 +31,34 @@ export default function KPICard({
   loading = false,
   href,
   className,
+  variant = "default",
 }) {
+  const variantStyles = {
+    emerald: "bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/20 border-emerald-200/80 hover:border-emerald-300 shadow-sm hover:shadow-md hover:shadow-emerald-500/5",
+    blue: "bg-gradient-to-br from-blue-50/80 via-white to-blue-50/20 border-blue-200/80 hover:border-blue-300 shadow-sm hover:shadow-md hover:shadow-blue-500/5",
+    amber: "bg-gradient-to-br from-amber-50/80 via-white to-amber-50/20 border-amber-200/80 hover:border-amber-300 shadow-sm hover:shadow-md hover:shadow-amber-500/5",
+    purple: "bg-gradient-to-br from-purple-50/80 via-white to-purple-50/20 border-purple-200/80 hover:border-purple-300 shadow-sm hover:shadow-md hover:shadow-purple-500/5",
+    default: "bg-white border-slate-200/90 hover:border-blue-300 shadow-xs hover:shadow-sm",
+  };
+
+  const topBarStyles = {
+    emerald: "bg-emerald-500",
+    blue: "bg-blue-600",
+    amber: "bg-amber-500",
+    purple: "bg-purple-500",
+    default: "bg-[#08214d]",
+  };
+
   const cardContent = (
     <Card
       className={cn(
-        "bg-white border border-slate-200/90 rounded-xl p-0 shadow-2xs hover:shadow-xs transition-all duration-200 overflow-hidden relative flex flex-col justify-between h-full group",
+        "rounded-2xl p-0 transition-all duration-300 overflow-hidden relative flex flex-col justify-between h-full group hover:-translate-y-0.5 font-sans border",
+        variantStyles[variant] || variantStyles.default,
         className,
       )}
     >
-      {/* Top Navy Accent Bar */}
-      <div className="h-1 bg-[#08214d] w-full absolute top-0 left-0" />
+      {/* Top Color Accent Bar */}
+      <div className={cn("h-1 w-full absolute top-0 left-0", topBarStyles[variant] || topBarStyles.default)} />
 
       <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between h-full pt-3.5">
         {loading ? (
@@ -110,7 +128,7 @@ export default function KPICard({
                   </span>
                 </span>
               )}
-              {timeFrame && (
+              {change !== undefined && change !== null && timeFrame && (
                 <span className="text-[10px] sm:text-[11px] font-medium text-slate-400">
                   {timeFrame}
                 </span>

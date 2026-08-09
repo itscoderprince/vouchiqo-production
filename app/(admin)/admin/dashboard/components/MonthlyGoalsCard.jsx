@@ -81,8 +81,8 @@ export default function MonthlyGoalsCard({ analyticsData = {} }) {
   ];
 
   return (
-    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col hover:shadow-xs transition-all duration-200 p-0 gap-0 text-left font-sans">
-      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-slate-50/50 min-h-[52px]">
+    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col p-0 gap-0 text-left font-sans">
+      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 via-white to-indigo-50/40 min-h-[52px]">
         <CardTitle className="font-sans text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
           Monthly Goals
         </CardTitle>
