@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Edit2,
+  Eye,
   ShieldCheck,
   Trash2,
   XCircle,
@@ -16,6 +17,7 @@ export function getOfferTableColumns({
   onReject,
   onEdit,
   onDelete,
+  onViewDetails,
   isApproving,
 }) {
   return [
@@ -24,31 +26,25 @@ export function getOfferTableColumns({
       header: "Offer & Merchant",
       accessorKey: "title",
       cell: (row) => (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">{row.title}</span>
+        <div className="space-y-0.5 py-0.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-medium text-slate-900 text-xs">{row.title}</span>
             {row.isFeatured && (
-              <Badge
-                variant="outline"
-                className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px]"
-              >
+              <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[9px] font-medium px-1.5 py-0.2 rounded">
                 Featured
-              </Badge>
+              </span>
             )}
             {row.isHot && (
-              <Badge
-                variant="outline"
-                className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[10px]"
-              >
+              <span className="bg-rose-100 text-rose-800 border border-rose-200 text-[9px] font-medium px-1.5 py-0.2 rounded">
                 🔥 Hot
-              </Badge>
+              </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-slate-600 font-normal">
             {row.merchantId?.businessName ||
               row.merchantName ||
-              "Unknown Merchant"}{" "}
-            • Category: <span className="capitalize">{row.category}</span>
+              "Merchant Partner"}{" "}
+            • <span className="capitalize">{row.category || "General"}</span>
           </p>
         </div>
       ),
@@ -58,14 +54,14 @@ export function getOfferTableColumns({
       header: "Discount & Code",
       accessorKey: "code",
       cell: (row) => (
-        <div className="space-y-0.5">
-          <div className="font-semibold text-emerald-500 text-sm">
+        <div className="space-y-0.5 py-0.5">
+          <div className="font-medium text-emerald-800 text-xs">
             {row.discountType === "percentage"
               ? `${row.discountValue}% OFF`
               : `₹${row.discountValue} OFF`}
           </div>
-          <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono border">
-            {row.code}
+          <code className="text-[10px] px-1.5 py-0.5 rounded bg-white/90 font-mono border border-slate-300 text-slate-800 shadow-2xs inline-block">
+            {row.code || "AUTO-APPLY"}
           </code>
         </div>
       ),
@@ -75,38 +71,37 @@ export function getOfferTableColumns({
       header: "Status / Verification",
       accessorKey: "status",
       cell: (row) => {
-        let statusBg = "bg-muted text-muted-foreground";
+        let statusBg = "bg-slate-100 text-slate-700 border-slate-300";
 
         if (row.status === "active")
-          statusBg = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+          statusBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
         else if (row.status === "pending")
-          statusBg = "bg-amber-500/10 text-amber-500 border-amber-500/20";
+          statusBg = "bg-amber-50 text-amber-700 border-amber-200";
         else if (row.status === "paused")
-          statusBg = "bg-rose-500/10 text-rose-500 border-rose-500/20";
+          statusBg = "bg-rose-50 text-rose-700 border-rose-200";
 
         return (
-          <div className="space-y-1">
+          <div className="space-y-0.5 py-0.5">
             <div className="flex items-center gap-1.5">
-              <Badge
-                variant="outline"
-                className={`capitalize text-xs font-semibold ${statusBg}`}
+              <span
+                className={`capitalize text-[10px] font-medium px-2 py-0.5 rounded-md border shadow-2xs inline-block ${statusBg}`}
               >
                 {row.status}
-              </Badge>
+              </span>
               {row.isVerified ? (
                 <ShieldCheck
-                  className="h-4 w-4 text-emerald-500"
+                  className="h-3.5 w-3.5 text-emerald-600"
                   title="Verified Listing"
                 />
               ) : (
                 <AlertTriangle
-                  className="h-4 w-4 text-amber-500"
+                  className="h-3.5 w-3.5 text-amber-500"
                   title="Unverified Listing"
                 />
               )}
             </div>
             {row.rejectionReason && (
-              <p className="text-[11px] text-rose-500 truncate max-w-[180px]">
+              <p className="text-[10px] text-rose-600 font-normal truncate max-w-[180px]">
                 Reason: {row.rejectionReason}
               </p>
             )}
@@ -119,15 +114,15 @@ export function getOfferTableColumns({
       header: "Stats",
       accessorKey: "usesCount",
       cell: (row) => (
-        <div className="text-xs space-y-0.5 text-muted-foreground">
+        <div className="text-[11px] space-y-0.5 text-slate-600 font-normal py-0.5">
           <div>
             Claims:{" "}
-            <strong className="text-foreground">{row.usesCount || 0}</strong> /{" "}
+            <span className="font-medium text-slate-900">{row.usesCount || 0}</span> /{" "}
             {row.usageLimit || "∞"}
           </div>
           <div>
             Views:{" "}
-            <strong className="text-foreground">{row.viewsCount || 0}</strong>
+            <span className="font-medium text-slate-900">{row.viewsCount || row.viewCount || 0}</span>
           </div>
         </div>
       ),
@@ -137,9 +132,9 @@ export function getOfferTableColumns({
       header: "Expiry",
       accessorKey: "expiresAt",
       cell: (row) => (
-        <span className="text-xs text-muted-foreground">
-          {row.expiresAt
-            ? new Date(row.expiresAt).toLocaleDateString()
+        <span className="text-[11px] text-slate-600 font-normal py-0.5 block">
+          {row.expiresAt || row.expiryDate
+            ? new Date(row.expiresAt || row.expiryDate).toLocaleDateString()
             : "No expiration"}
         </span>
       ),
@@ -149,49 +144,60 @@ export function getOfferTableColumns({
       header: "Actions",
       accessorKey: "_id",
       cell: (row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+          {onViewDetails && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onViewDetails(row)}
+              className="h-7 px-2.5 gap-1 text-[11px] font-medium border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
+            >
+              <Eye className="h-3 w-3" />
+              <span>Audit</span>
+            </Button>
+          )}
+
           {row.status === "pending" && (
             <>
               <Button
                 size="sm"
-                variant="ghost"
-                className="h-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 gap-1 px-2"
+                className="h-7 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs gap-1"
                 onClick={() => onApprove(row._id)}
                 disabled={isApproving}
               >
                 <CheckCircle className="h-3.5 w-3.5" />
-                Approve
+                <span>Approve</span>
               </Button>
               <Button
                 size="sm"
-                variant="ghost"
-                className="h-8 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 gap-1 px-2"
+                variant="destructive"
+                title="Reject Offer"
+                className="h-7 w-7 p-0 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 rounded-lg cursor-pointer shadow-2xs shrink-0"
                 onClick={() => onReject(row)}
               >
                 <XCircle className="h-3.5 w-3.5" />
-                Reject
               </Button>
             </>
           )}
 
           <Button
             size="sm"
-            variant="ghost"
-            className="h-8 w-8 p-0"
+            variant="outline"
+            className="h-7 w-7 p-0 flex items-center justify-center border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs shrink-0"
             onClick={() => onEdit(row)}
             title="Edit Offer"
           >
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="h-3 w-3" />
           </Button>
 
           <Button
             size="sm"
-            variant="ghost"
-            className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
+            variant="destructive"
+            className="h-7 w-7 p-0 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 rounded-lg cursor-pointer shadow-2xs shrink-0"
             onClick={() => onDelete(row)}
             title="Delete Offer"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       ),
