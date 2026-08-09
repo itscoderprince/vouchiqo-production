@@ -23,14 +23,18 @@ export const GET = asyncHandler(async (request) => {
 
   // Auto-clean legacy unmeaningful random suffixes (e.g. -g7y6) if present
   if (merchant && merchant.slug && /-[a-z0-9]{4,6}$/i.test(merchant.slug)) {
-    const city = merchant.location?.city || merchant.city || "";
-    const state = merchant.location?.state || merchant.state || "";
-    const category = merchant.category || "";
-    const cleanBase = merchant.businessName || merchant.slug.replace(/-[a-z0-9]{4,6}$/i, "");
-    const newSlug = await generateUniqueSlug(cleanBase, city, state, category, merchant._id);
-    if (newSlug !== merchant.slug) {
-      merchant.slug = newSlug;
-      await merchant.save();
+    try {
+      const city = merchant.location?.city || merchant.city || "";
+      const state = merchant.location?.state || merchant.state || "";
+      const category = merchant.category || "";
+      const cleanBase = merchant.businessName || merchant.slug.replace(/-[a-z0-9]{4,6}$/i, "");
+      const newSlug = await generateUniqueSlug(cleanBase, city, state, category, merchant._id);
+      if (newSlug && newSlug !== merchant.slug) {
+        await Merchant.updateOne({ _id: merchant._id }, { $set: { slug: newSlug } });
+        merchant.slug = newSlug;
+      }
+    } catch (err) {
+      console.error("[Slug Auto-Clean Error]:", err);
     }
   }
 
