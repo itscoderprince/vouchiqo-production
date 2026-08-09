@@ -1,8 +1,12 @@
 import { sendMerchantSubscriptionAdminUpdateEmail } from "@/lib/email/merchant-email";
 import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
+import Claim from "@/modules/claim/claim.model";
 import Coupon from "@/modules/coupon/coupon.model";
+import Campaign from "@/modules/merchant/campaign.model";
 import Merchant from "@/modules/merchant/merchant.model";
+import Redemption from "@/modules/redemption/redemption.model";
+import UserProfile from "@/modules/user/user.model";
 import { ok } from "@/utils/api-response";
 import { NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
@@ -166,4 +170,68 @@ export const PUT = asyncHandler(async (request, { params }) => {
   }
 
   return ok({ merchant }, "Merchant updated successfully");
+});
+
+/**
+ * DELETE /api/admin/merchants/[id]
+ * Delete single merchant and all associated DB records (coupons, claims, redemptions, campaigns, user profile). Admin only.
+ */
+export const DELETE = asyncHandler(async (request, { params }) => {
+  await connectDB();
+  await requireRole(request, ROLES.ADMIN);
+
+  const { id } = await params;
+  const merchant = await Merchant.findById(id).lean();
+
+  if (!merchant) {
+    throw new NotFoundError("Merchant");
+  }
+
+  // 1. Find all coupons owned by this merchant
+  const coupons = await Coupon.find({ merchantId: id }).select("_id").lean();
+  const couponIds = coupons.map((c) => c._id);
+
+  // 2. Delete all redemptions for this merchant / coupons
+  await Redemption.deleteMany({
+    $or: [{ merchantId: id }, { couponId: { $in: couponIds } }],
+  });
+
+  // 3. Delete all claims for this merchant / coupons
+  await Claim.deleteMany({
+    $or: [{ merchantId: id }, { couponId: { $in: couponIds } }],
+  });
+
+  // 4. Delete all campaigns for this merchant
+  await Campaign.deleteMany({ merchantId: id });
+
+  // 5. Delete all coupons for this merchant
+  await Coupon.deleteMany({ merchantId: id });
+
+  // 6. Delete merchant document
+  await Merchant.findByIdAndDelete(id);
+
+  // 7. Delete associated user account profile (by authId or userId)
+  if (merchant.authId || merchant.userId) {
+    await UserProfile.deleteMany({
+      $or: [
+        ...(merchant.authId ? [{ authId: merchant.authId }] : []),
+        ...(merchant.userId ? [{ _id: merchant.userId }] : []),
+      ],
+    });
+  }
+
+  // Dispatch realtime event
+  try {
+    const { dispatchEvent } = await import("@/lib/socket/dispatcher");
+    const { SOCKET_EVENTS } = await import("@/lib/socket/events");
+    await dispatchEvent({
+      target: "admins",
+      event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+      payload: { merchantId: id, deleted: true },
+    });
+  } catch (err) {
+    console.error("[DELETE /api/admin/merchants/[id]] Socket error:", err);
+  }
+
+  return ok({ id }, "Merchant and all associated data deleted permanently");
 });

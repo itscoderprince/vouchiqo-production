@@ -1,20 +1,22 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, RefreshCw } from "lucide-react";
+import { Eye, RefreshCw, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import DataTable from "@/components/shared/data/DataTable";
 import FormSelect from "@/components/shared/form/FormSelect";
 import { LiveIndicator } from "@/components/shared/LiveIndicator";
+import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminMerchants, useReviewMerchant } from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
+import { cn } from "@/lib/utils";
 
 import MerchantKycDialog from "../../approvals/merchants/components/MerchantKycDialog";
 
@@ -52,6 +54,32 @@ export default function AdminMerchantsClient({
   const [selectedMerchant, setSelectedMerchant] = useState(null);
   const [kycDialogOpen, setKycDialogOpen] = useState(false);
 
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteMerchant = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/merchants/${deleteId}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok) {
+        toast.success(json.message || "Merchant partner and all associated data deleted in depth!");
+        queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
+        queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+        refetch();
+      } else {
+        toast.error(json.error?.message || json.message || "Failed to delete merchant.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error while deleting merchant.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
   const handleOpenKyc = (merchant) => {
     setSelectedMerchant(merchant);
     setKycDialogOpen(true);
@@ -64,6 +92,18 @@ export default function AdminMerchantsClient({
         onSuccess: () => setKycDialogOpen(false),
       },
     );
+  };
+
+  const getMerchantRowColor = (row, index) => {
+    const rowStyles = [
+      "bg-blue-100/70 hover:bg-blue-100/90 border-l-4 border-l-blue-600 border-b border-blue-200/90 transition-all text-slate-900",
+      "bg-emerald-100/70 hover:bg-emerald-100/90 border-l-4 border-l-emerald-600 border-b border-emerald-200/90 transition-all text-slate-900",
+      "bg-amber-100/70 hover:bg-amber-100/90 border-l-4 border-l-amber-600 border-b border-amber-200/90 transition-all text-slate-900",
+      "bg-purple-100/70 hover:bg-purple-100/90 border-l-4 border-l-purple-600 border-b border-purple-200/90 transition-all text-slate-900",
+      "bg-indigo-100/70 hover:bg-indigo-100/90 border-l-4 border-l-indigo-600 border-b border-indigo-200/90 transition-all text-slate-900",
+      "bg-rose-100/70 hover:bg-rose-100/90 border-l-4 border-l-rose-600 border-b border-rose-200/90 transition-all text-slate-900",
+    ];
+    return rowStyles[index % rowStyles.length];
   };
 
   // Socket listener for real-time applications and status updates
@@ -102,7 +142,7 @@ export default function AdminMerchantsClient({
       }
 
       // Plan filter
-      if (planFilter !== "all" && m.subscriptionTier !== planFilter)
+      if (planFilter !== "all" && m.subscriptionTier !== planFilter && m.plan !== planFilter)
         return false;
 
       // Search filter
@@ -141,8 +181,8 @@ export default function AdminMerchantsClient({
         const emailStr = row.userId?.email || row.contactEmail || "No Email";
 
         return (
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0">
+          <div className="flex items-center gap-2.5 py-0.5">
+            <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium text-xs overflow-hidden border border-blue-200 shrink-0">
               {row.logoUrl || row.logo ? (
                 // biome-ignore lint/performance/noImgElement: dynamic user avatar
                 <img
@@ -157,11 +197,11 @@ export default function AdminMerchantsClient({
             <div>
               <Link
                 href={`/admin/merchants/${row._id}`}
-                className="font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                className="font-medium text-slate-900 hover:text-blue-600 transition-colors text-xs leading-snug block"
               >
                 {row.businessName || "Merchant Partner"}
               </Link>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-slate-600 font-normal">
                 {ownerName} • {emailStr}
               </p>
             </div>
@@ -175,14 +215,11 @@ export default function AdminMerchantsClient({
       cell: (row) => {
         const cityStr = row.location?.city || row.city || "Ranchi";
         return (
-          <div className="space-y-0.5">
-            <Badge
-              variant="outline"
-              className="capitalize text-xs font-medium bg-muted"
-            >
+          <div className="space-y-0.5 py-0.5">
+            <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded bg-white/90 text-slate-800 border border-slate-300 inline-block shadow-2xs">
               {row.category || "General"}
-            </Badge>
-            <p className="text-xs text-muted-foreground">{cityStr}</p>
+            </span>
+            <p className="text-[11px] text-slate-600 font-normal">{cityStr}</p>
           </div>
         );
       },
@@ -191,22 +228,25 @@ export default function AdminMerchantsClient({
       header: "Subscription Plan",
       accessorKey: "subscriptionTier",
       cell: (row) => {
-        const tier = row.subscriptionTier || row.plan || "starter";
-        let tierBg = "bg-muted text-muted-foreground";
-        if (tier === "growth")
-          tierBg = "bg-blue-500/10 text-blue-500 border-blue-500/20";
-        if (tier === "pro")
-          tierBg = "bg-purple-500/10 text-purple-500 border-purple-500/20";
-        if (tier === "enterprise")
-          tierBg = "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        const tier = (row.subscriptionTier || row.plan || "starter").toLowerCase();
+        let tierBg = "bg-white text-slate-800 border-slate-300";
+        let tierLabel = "Starter";
+
+        if (tier.includes("growth")) {
+          tierBg = "bg-emerald-600 text-white border-emerald-700";
+          tierLabel = "Growth";
+        } else if (tier.includes("pro")) {
+          tierBg = "bg-blue-600 text-white border-blue-700";
+          tierLabel = "Pro";
+        } else if (tier.includes("enterprise")) {
+          tierBg = "bg-amber-600 text-white border-amber-700";
+          tierLabel = "Enterprise";
+        }
 
         return (
-          <Badge
-            variant="outline"
-            className={`capitalize font-semibold text-xs ${tierBg}`}
-          >
-            {tier}
-          </Badge>
+          <span className={cn("px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", tierBg)}>
+            {tierLabel}
+          </span>
         );
       },
     },
@@ -235,19 +275,19 @@ export default function AdminMerchantsClient({
         }
 
         return (
-          <div className="space-y-0.5">
-            <Badge
-              variant="outline"
-              className={
+          <div className="space-y-0.5 py-0.5">
+            <span
+              className={cn(
+                "px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
                 isPaid
-                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-bold text-[10px] uppercase"
-                  : "bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold text-[10px] uppercase"
-              }
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-amber-50 text-amber-700 border-amber-200",
+              )}
             >
-              {isStarter ? "FREE PLAN" : isPaid ? "Payment Done" : "Payment Pending"}
-            </Badge>
+              {isStarter ? "FREE PLAN" : isPaid ? "PAYMENT DONE" : "PENDING"}
+            </span>
             {diffStr && (
-              <p className="text-[10px] font-mono text-muted-foreground">
+              <p className="text-[10px] font-mono text-slate-600 font-normal">
                 {diffStr}
               </p>
             )}
@@ -260,21 +300,22 @@ export default function AdminMerchantsClient({
       accessorKey: "status",
       cell: (row) => {
         const st = row.status || "pending";
-        let stBg = "bg-amber-500/10 text-amber-500 border-amber-500/20";
-        if (st === "approved" || st === "active")
-          stBg = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-        if (st === "form_accepted" || st === "under_review")
-          stBg = "bg-blue-500/10 text-blue-600 border-blue-500/20";
-        if (st === "suspended" || st === "rejected")
-          stBg = "bg-rose-500/10 text-rose-500 border-rose-500/20";
+        let stBg = "bg-amber-50 text-amber-700 border-amber-200";
+        let stLabel = st;
+        if (st === "approved" || st === "active") {
+          stBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
+          stLabel = "Active";
+        } else if (st === "form_accepted" || st === "under_review") {
+          stBg = "bg-blue-50 text-blue-700 border-blue-200";
+          stLabel = "Form Accepted";
+        } else if (st === "suspended" || st === "rejected") {
+          stBg = "bg-rose-50 text-rose-700 border-rose-200";
+        }
 
         return (
-          <Badge
-            variant="outline"
-            className={`capitalize font-semibold text-xs ${stBg}`}
-          >
-            {st === "approved" ? "Active" : st === "form_accepted" ? "Form Accepted" : st}
-          </Badge>
+          <span className={cn("px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", stBg)}>
+            {stLabel}
+          </span>
         );
       },
     },
@@ -287,22 +328,22 @@ export default function AdminMerchantsClient({
           reviewMutation.variables?.merchantId === row._id;
 
         return (
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
             <Button
               size="sm"
               variant="outline"
               onClick={() => handleOpenKyc(row)}
-              className="h-8 px-2.5 gap-1 text-xs font-medium cursor-pointer"
+              className="h-7 px-2.5 gap-1 text-[11px] font-medium border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
             >
-              <Eye className="h-3.5 w-3.5" />
-              KYC Audit
+              <Eye className="h-3 w-3" />
+              <span>Audit</span>
             </Button>
 
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
               asChild
-              className="h-8 px-2.5 text-xs font-medium cursor-pointer"
+              className="h-7 px-2.5 text-[11px] font-medium border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
             >
               <Link href={`/admin/merchants/${row._id}`}>
                 Details
@@ -312,7 +353,7 @@ export default function AdminMerchantsClient({
             {(row.status === "pending" || !row.status) && (
               <Button
                 size="sm"
-                className="h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 font-semibold cursor-pointer shadow-2xs"
+                className="h-7 bg-blue-600 hover:bg-blue-700 text-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
                 onClick={() => handleAction(row._id, "form_accepted")}
                 disabled={isPending}
               >
@@ -323,7 +364,7 @@ export default function AdminMerchantsClient({
             {(row.status === "form_accepted" || row.status === "under_review") && (
               <Button
                 size="sm"
-                className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 font-semibold cursor-pointer shadow-2xs"
+                className="h-7 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
                 onClick={() => handleAction(row._id, "approved")}
                 disabled={isPending}
               >
@@ -335,7 +376,7 @@ export default function AdminMerchantsClient({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 text-rose-500 hover:bg-rose-500/10 border-rose-500/20 text-xs px-2.5 font-medium cursor-pointer"
+                className="h-7 text-amber-700 hover:bg-amber-50 border-amber-300 bg-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
                 onClick={() => handleAction(row._id, "suspended")}
                 disabled={isPending}
               >
@@ -347,13 +388,23 @@ export default function AdminMerchantsClient({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 text-emerald-600 hover:bg-emerald-50 border-emerald-200 text-xs px-2.5 font-medium cursor-pointer"
+                className="h-7 text-emerald-700 hover:bg-emerald-50 border-emerald-300 bg-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
                 onClick={() => handleAction(row._id, "approved")}
                 disabled={isPending}
               >
                 Reactivate
               </Button>
             )}
+
+            <Button
+              size="sm"
+              variant="destructive"
+              title="Delete Merchant & All Data"
+              className="h-7 w-7 p-0 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 rounded-lg cursor-pointer shadow-2xs shrink-0"
+              onClick={() => setDeleteId(row._id)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
         );
       },
@@ -361,16 +412,16 @@ export default function AdminMerchantsClient({
   ];
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-6 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-5">
+    <div className="w-full space-y-3 pb-12 font-sans text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
               {title}
             </h1>
-            <LiveIndicator label="Real-time Merchant Directory" />
+            <LiveIndicator label="Real-time Directory" />
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
             {description}
           </p>
         </div>
@@ -379,35 +430,36 @@ export default function AdminMerchantsClient({
           size="sm"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="self-start md:self-auto gap-2"
+          className="self-start sm:self-auto gap-1.5 h-7 px-2.5 text-[11px] font-medium border-slate-200 text-slate-700 rounded-lg shrink-0 cursor-pointer shadow-2xs"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-          Refresh Queue
+          <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+          <span>Refresh Queue</span>
         </Button>
       </div>
 
-      <Card className="p-4 bg-card border-border/50 shadow-sm">
+      <div className="w-full overflow-x-auto">
         <DataTable
           columns={columns}
           data={filteredMerchants}
           isLoading={isLoading}
           searchKey="businessName"
+          getRowClassName={getMerchantRowColor}
           rightActions={
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <FormSelect
                 value={planFilter}
                 onValueChange={setPlanFilter}
                 options={PLAN_OPTIONS}
-                className="w-[130px] h-8 text-xs"
+                className="w-[120px] h-7 text-[11px] border-slate-200 bg-white"
               />
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-4 bg-muted/60 p-1">
-                  <TabsTrigger value="all" className="text-xs font-semibold">
+                <TabsList className="grid grid-cols-4 bg-slate-100/90 p-0.5 rounded-lg h-7 border border-slate-200/80">
+                  <TabsTrigger value="all" className="text-[11px] font-medium rounded-md h-6 px-2">
                     All ({merchants.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="pending"
-                    className="text-xs font-semibold relative"
+                    className="text-[11px] font-medium rounded-md h-6 px-2 relative"
                   >
                     Pending
                     {merchants.filter((m) => m.status === "pending").length >
@@ -417,10 +469,10 @@ export default function AdminMerchantsClient({
                       </span>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="approved" className="text-xs font-semibold">
+                  <TabsTrigger value="approved" className="text-[11px] font-medium rounded-md h-6 px-2">
                     Active
                   </TabsTrigger>
-                  <TabsTrigger value="suspended" className="text-xs font-semibold">
+                  <TabsTrigger value="suspended" className="text-[11px] font-medium rounded-md h-6 px-2">
                     Suspended
                   </TabsTrigger>
                 </TabsList>
@@ -428,7 +480,7 @@ export default function AdminMerchantsClient({
             </div>
           }
         />
-      </Card>
+      </div>
 
       {/* Merchant KYC Audit Dialog */}
       <MerchantKycDialog
@@ -436,6 +488,16 @@ export default function AdminMerchantsClient({
         onOpenChange={setKycDialogOpen}
         merchant={selectedMerchant}
         onAction={handleAction}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Delete Merchant Account & All Associated Data"
+        description="This action cannot be undone. This will permanently delete the merchant partner account, all their posted offer listings, active customer claims, redemptions, campaigns, and user profile data from the database."
+        onConfirm={handleDeleteMerchant}
+        isPending={isDeleting}
       />
     </div>
   );

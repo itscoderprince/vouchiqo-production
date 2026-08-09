@@ -235,18 +235,17 @@ export default function MerchantApprovalsClient() {
   ];
 
   return (
-    <div className="w-full space-y-6 pb-12 font-sans text-left">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+    <div className="w-full space-y-3 pb-12 font-sans text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
               Merchant Applications Queue
             </h1>
-            <LiveIndicator label="Real-time Applications Queue" />
+            <LiveIndicator label="Real-time Queue" />
           </div>
-          <p className="text-slate-500 text-xs mt-1 font-medium">
-            Review submitted merchant account applications, verify business
-            credentials, and approve or decline partner access.
+          <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+            Review submitted merchant account applications, verify business credentials, and approve or decline partner access.
           </p>
         </div>
         <Button
@@ -254,10 +253,10 @@ export default function MerchantApprovalsClient() {
           size="sm"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="self-start md:self-auto gap-2 text-xs font-medium border-slate-200 text-slate-700 rounded-xl"
+          className="self-start sm:self-auto gap-1.5 h-7 px-2.5 text-[11px] font-medium border-slate-200 text-slate-700 rounded-lg shrink-0 cursor-pointer shadow-2xs"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
-          Refresh Queue
+          <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+          <span>Refresh Queue</span>
         </Button>
       </div>
 
@@ -270,17 +269,17 @@ export default function MerchantApprovalsClient() {
           getRowClassName={getMerchantRowColor}
           rightActions={
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4 bg-slate-100 p-1 rounded-xl">
-                <TabsTrigger value="all" className="text-xs font-medium rounded-lg">
+              <TabsList className="grid grid-cols-4 bg-slate-100/90 p-0.5 rounded-lg h-7 border border-slate-200/80">
+                <TabsTrigger value="all" className="text-[11px] font-medium rounded-md h-6 px-2">
                   All ({allMerchants.length})
                 </TabsTrigger>
-                <TabsTrigger value="pending" className="text-xs font-medium rounded-lg">
+                <TabsTrigger value="pending" className="text-[11px] font-medium rounded-md h-6 px-2">
                   Pending ({pendingCount})
                 </TabsTrigger>
-                <TabsTrigger value="approved" className="text-xs font-medium rounded-lg">
+                <TabsTrigger value="approved" className="text-[11px] font-medium rounded-md h-6 px-2">
                   Approved
                 </TabsTrigger>
-                <TabsTrigger value="rejected" className="text-xs font-medium rounded-lg">
+                <TabsTrigger value="rejected" className="text-[11px] font-medium rounded-md h-6 px-2">
                   Rejected
                 </TabsTrigger>
               </TabsList>
