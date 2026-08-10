@@ -164,6 +164,101 @@ function MerchantPageLockOverlay() {
         </div>
       </div>
     </div>
+}
+
+function MerchantNoticeBanner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { merchant } = useMerchantLock();
+  const [dismissed, setDismissed] = useState(false);
+
+  if (!merchant || dismissed || pathname?.startsWith("/merchant/billing")) {
+    return null;
+  }
+
+  const rawPlan = String(merchant.plan || "starter").toLowerCase();
+  const isStarter =
+    rawPlan.includes("starter") ||
+    rawPlan.includes("free") ||
+    !merchant.plan;
+
+  const planName = isStarter
+    ? "Starter Free"
+    : rawPlan.includes("growth")
+      ? "Growth Partner"
+      : rawPlan.includes("pro")
+        ? "Pro Partner"
+        : rawPlan.includes("enterprise")
+          ? "Enterprise"
+          : merchant.plan;
+
+  let daysRemaining = 0;
+  let hasExpiry = false;
+
+  if (merchant.planExpiry) {
+    const expiryTime = new Date(merchant.planExpiry).getTime();
+    const diffMs = expiryTime - Date.now();
+    daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    hasExpiry = true;
+  } else if (!isStarter && merchant.createdAt) {
+    const createdTime = new Date(merchant.createdAt).getTime();
+    const elapsedDays = Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24));
+    daysRemaining = Math.max(0, 14 - elapsedDays);
+    hasExpiry = true;
+  }
+
+  const isPaused = merchant.subscriptionStatus === "paused";
+  const isCancelled = merchant.subscriptionStatus === "cancelled";
+  const isPendingPayment =
+    !isStarter &&
+    !isPaused &&
+    !isCancelled &&
+    merchant.paymentStatus !== "completed" &&
+    merchant.subscriptionStatus !== "active" &&
+    (!merchant.planExpiry || new Date(merchant.planExpiry).getTime() < Date.now());
+
+  return (
+    <div className="bg-blue-50/80 border-b border-blue-200/60 px-4 py-2.5 flex items-center justify-between text-xs font-normal text-blue-900 font-sans">
+      <div className="flex items-center gap-2 min-w-0">
+        <AlertTriangle className="w-4 h-4 text-blue-600 flex-shrink-0 animate-pulse" />
+        <span className="truncate">
+          <strong>Founding Merchant Program Active:</strong>{" "}
+          {isPaused ? (
+            <span>Your subscription is currently paused by admin.</span>
+          ) : isCancelled ? (
+            <span>Your subscription has been cancelled.</span>
+          ) : isPendingPayment ? (
+            <span>Payment is pending for your <strong>{planName}</strong> plan.</span>
+          ) : isStarter ? (
+            <span>You are on <strong>Starter Free</strong> plan (Up to 3 active listings included). Upgrade to Growth or Pro to unlock up to 15+ listings.</span>
+          ) : (
+            <span>
+              Your 14-day free trial on <strong>{planName}</strong> plan is active
+              {hasExpiry ? (
+                <span> (<strong>{daysRemaining} day{daysRemaining === 1 ? "" : "s"} remaining</strong>)</span>
+              ) : null}
+              . Rate lock guaranteed for 6 months.
+            </span>
+          )}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <Badge
+          onClick={() => router.push("/merchant/billing")}
+          className="bg-blue-600 hover:bg-blue-700 text-white border-0 text-[10px] font-medium cursor-pointer px-2.5 py-0.5 shadow-xs"
+        >
+          {isStarter ? "Upgrade Plan" : "Manage Subscription"}
+        </Badge>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          className="text-blue-700 hover:text-blue-900 p-0.5 cursor-pointer"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -264,35 +359,8 @@ export default function DashboardLayout({ title, user, children }) {
             <SidebarInset className="bg-white flex-1 flex flex-col min-w-0 font-sans">
               <Topbar title={title} user={user} />
 
-              {/* Plan Expiry / Notice Alert Banner for Merchants (Hidden when already on billing page) */}
-              {isMerchant && !pathname?.startsWith("/merchant/billing") && showBanner && (
-                <div className="bg-blue-50/80 border-b border-blue-200/60 px-4 py-2.5 flex items-center justify-between text-xs font-normal text-blue-900 font-sans">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-blue-600 flex-shrink-0 animate-pulse" />
-                    <span>
-                      <strong>Founding Merchant Program Active:</strong> Your
-                      14-day free trial on Growth Partner plan is active.{" "}
-                      <strong>11 days remaining</strong> — Rate lock guaranteed
-                      for 6 months.
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      onClick={() => router.push("/merchant/billing")}
-                      className="bg-blue-600 hover:bg-blue-700 text-white border-0 text-[10px] font-medium cursor-pointer px-2.5 py-0.5 shadow-xs"
-                    >
-                      Manage Subscription
-                    </Badge>
-                    <button
-                      type="button"
-                      onClick={() => setShowBanner(false)}
-                      className="text-blue-700 hover:text-blue-900 p-0.5 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Dynamic Live Merchant Notice Alert Banner */}
+              {isMerchant && <MerchantNoticeBanner />}
 
               <main className="p-4 space-y-6 w-full grow bg-white relative">
                 {isMerchant && <MerchantPageLockOverlay />}
