@@ -215,9 +215,10 @@ export async function createCustomerRevival(data) {
   }
 
   // Trigger Merchant Revival Demand Alert Email if merchant exists
-  if (matchedMerchant?.contactEmail) {
+  const merchantTargetEmail = matchedMerchant?.contactEmail || matchedMerchant?.email;
+  if (merchantTargetEmail) {
     sendMerchantRevivalAlertEmail({
-      to: matchedMerchant.contactEmail,
+      to: merchantTargetEmail,
       businessName: matchedMerchant.businessName,
       brandName: data.brandName.trim(),
       totalDemandsCount: 1,

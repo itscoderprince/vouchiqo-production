@@ -84,9 +84,10 @@ export async function createCoupon(authId, data) {
   await Merchant.findByIdAndUpdate(merchant._id, { $inc: { totalCoupons: 1 } });
 
   // Trigger Merchant Offer Created Email Notification
-  if (merchant.contactEmail) {
+  const targetEmail = merchant.contactEmail || merchant.email;
+  if (targetEmail) {
     sendMerchantOfferCreatedEmail({
-      to: merchant.contactEmail,
+      to: targetEmail,
       businessName: merchant.businessName,
       offerTitle: coupon.title,
       code: coupon.code,

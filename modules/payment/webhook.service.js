@@ -166,7 +166,7 @@ export class WebhookService {
           }
 
           // Trigger Payment Receipt Email to Merchant
-          const targetEmail = merchant.contactEmail;
+          const targetEmail = merchant.contactEmail || merchant.email;
           if (targetEmail) {
             sendMerchantPaymentCompletedEmail({
               to: targetEmail,
@@ -219,9 +219,10 @@ export class WebhookService {
       }
 
       const merchant = await Merchant.findById(payment.merchantId);
-      if (merchant?.contactEmail) {
+      const failedTargetEmail = merchant?.contactEmail || merchant?.email;
+      if (failedTargetEmail) {
         sendMerchantPaymentFailedEmail({
-          to: merchant.contactEmail,
+          to: failedTargetEmail,
           businessName: merchant.businessName,
           planName: (payment.metadata?.plan || "subscription").toUpperCase(),
           amount: payment.amount,

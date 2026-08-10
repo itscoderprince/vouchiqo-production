@@ -131,7 +131,7 @@ export const PUT = asyncHandler(async (request, { params }) => {
   }
 
   // Dispatch Email Notification to Merchant if subscription control action was performed
-  const targetEmail = merchant.contactEmail;
+  const targetEmail = merchant.contactEmail || merchant.email;
   if (targetEmail && (actionTitle || body.plan)) {
     sendMerchantSubscriptionAdminUpdateEmail({
       to: targetEmail,

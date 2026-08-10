@@ -924,6 +924,7 @@ export function MerchantOnboardingWizard() {
           },
         },
         contactEmail: (formData.email || authUser?.email || "").toLowerCase().trim(),
+        password: formData.password || undefined,
         contactPhone: cleanPhone(formData.mobile || authUser?.phoneNumber),
         whatsappNumber: cleanPhone(formData.whatsapp || formData.mobile),
         website: cleanUrl(formData.websiteUrl),

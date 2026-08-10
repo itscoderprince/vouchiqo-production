@@ -252,7 +252,7 @@ export async function POST(request) {
               .collection("user")
               .updateOne(
                 { _id: userDoc._id },
-                { $set: { role: ROLES.MERCHANT } },
+                { $set: { role: ROLES.MERCHANT, lastWelcomeEmailSentAt: new Date() } },
               );
             await db
               .collection("user_profiles")
