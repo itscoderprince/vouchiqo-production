@@ -60,12 +60,20 @@ export const createMerchantSchema = z.object({
 
   // KYC compliance onboarding fields
   constitution: z
-    .enum(["proprietorship", "partnership", "llp", "pvt_ltd", "others"])
+    .enum([
+      "proprietorship",
+      "partnership",
+      "llp",
+      "pvt_ltd",
+      "private_limited",
+      "public_limited",
+      "others",
+    ])
     .or(z.string())
     .optional(),
   liaisonName: z.string().optional(),
   liaisonDesignation: z
-    .enum(["owner", "partner", "manager", "others"])
+    .enum(["owner", "partner", "manager", "director", "others"])
     .or(z.string())
     .optional(),
   liaisonPhone: z.string().optional(),

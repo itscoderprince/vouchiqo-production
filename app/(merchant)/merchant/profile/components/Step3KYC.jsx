@@ -62,7 +62,7 @@ export default function Step3KYC({
 
       <div className="space-y-4">
         <FormSelect
-          label="Primary Identity Document Type"
+          label="Primary Identity Document Type (Optional)"
           icon={FileCheck}
           options={DOC_TYPES}
           value={docType}
@@ -76,7 +76,7 @@ export default function Step3KYC({
         <div className="space-y-2">
           <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
             <FileImage className="w-4 h-4 text-purple-600" />
-            Upload Document Image ({docType})
+            Upload Document Image ({docType}) — Optional
           </span>
 
           <div className="relative group flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-4 bg-purple-50/30 hover:bg-purple-50/70 transition-all cursor-pointer min-h-[120px] overflow-hidden text-center">

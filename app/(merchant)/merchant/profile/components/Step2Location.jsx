@@ -147,11 +147,11 @@ export default function Step2Location({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           {
-            label: "SHOP PHOTO",
+            label: "SHOP PHOTO (OPTIONAL)",
             field: "shopImage",
             state: shopImage,
             loading: uploadingShop,
-            ratio: "Ratio 1200×800",
+            ratio: "Ratio 1200×800 (Optional)",
             btnText: "Upload Photo (1200×800)",
           },
           {

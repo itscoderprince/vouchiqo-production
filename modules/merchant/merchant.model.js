@@ -136,20 +136,41 @@ const merchantSchema = new Schema(
     // KYC Compliance & Statutory Fields
     constitution: {
       type: String,
-      enum: ["proprietorship", "partnership", "llp", "pvt_ltd", "others"],
+      enum: [
+        "proprietorship",
+        "partnership",
+        "llp",
+        "pvt_ltd",
+        "private_limited",
+        "public_limited",
+        "others",
+        "",
+      ],
       default: "proprietorship",
+      set: (val) =>
+        !val || typeof val !== "string" || !val.trim()
+          ? undefined
+          : val.trim().toLowerCase(),
     },
     liaisonName: { type: String, trim: true },
     liaisonDesignation: {
       type: String,
-      enum: ["owner", "partner", "manager", "others"],
+      enum: ["owner", "partner", "manager", "director", "others", ""],
       default: "owner",
+      set: (val) =>
+        !val || typeof val !== "string" || !val.trim()
+          ? undefined
+          : val.trim().toLowerCase(),
     },
     liaisonPhone: { type: String, trim: true },
     regionalHubCity: {
       type: String,
-      enum: ["ranchi", "jamshedpur", "dhanbad", "bokaro"],
+      enum: ["ranchi", "jamshedpur", "dhanbad", "bokaro", ""],
       default: "ranchi",
+      set: (val) =>
+        !val || typeof val !== "string" || !val.trim()
+          ? undefined
+          : val.trim().toLowerCase(),
     },
     gmapsLink: { type: String, trim: true },
     docType: { type: String, trim: true },
@@ -176,6 +197,33 @@ merchantSchema.pre("save", function () {
     }
     if (!this.subscriptionStatus || this.subscriptionStatus === "pending") {
       this.subscriptionStatus = "active";
+    }
+  }
+
+  if (this.constitution !== undefined) {
+    const cleanCons = String(this.constitution || "").trim().toLowerCase();
+    if (!cleanCons) {
+      this.constitution = undefined;
+    } else {
+      this.constitution = cleanCons;
+    }
+  }
+
+  if (this.liaisonDesignation !== undefined) {
+    const cleanDesig = String(this.liaisonDesignation || "").trim().toLowerCase();
+    if (!cleanDesig) {
+      this.liaisonDesignation = undefined;
+    } else {
+      this.liaisonDesignation = cleanDesig;
+    }
+  }
+
+  if (this.regionalHubCity !== undefined) {
+    const cleanCity = String(this.regionalHubCity || "").trim().toLowerCase();
+    if (!cleanCity) {
+      this.regionalHubCity = undefined;
+    } else {
+      this.regionalHubCity = cleanCity;
     }
   }
 
@@ -212,6 +260,24 @@ merchantSchema.pre("save", function () {
       this.liaisonPhone = undefined;
     } else {
       this.liaisonPhone = cleanLiaison;
+    }
+  }
+
+  if (this.docImage !== undefined) {
+    const cleanDoc = String(this.docImage || "").trim();
+    if (!cleanDoc) {
+      this.docImage = undefined;
+    } else {
+      this.docImage = cleanDoc;
+    }
+  }
+
+  if (this.shopImage !== undefined) {
+    const cleanShop = String(this.shopImage || "").trim();
+    if (!cleanShop) {
+      this.shopImage = undefined;
+    } else {
+      this.shopImage = cleanShop;
     }
   }
 });

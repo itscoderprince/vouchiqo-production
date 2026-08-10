@@ -27,46 +27,50 @@ export function calculateProfileHealth(merchant) {
       completedCount: 0,
       totalCount: 15,
       missingFields: ["All details missing"],
+      isCoreComplete: false,
       color: "red",
     };
   }
 
   const fields = [
-    { name: "Business Name", isFilled: Boolean(merchant.businessName) },
-    { name: "Brand Slug", isFilled: Boolean(merchant.slug) },
-    { name: "Primary Category", isFilled: Boolean(merchant.category) },
-    { name: "Contact Email", isFilled: Boolean(merchant.contactEmail) },
-    { name: "Contact Phone", isFilled: Boolean(merchant.contactPhone) },
-    { name: "Store Address", isFilled: Boolean(merchant.location?.address || merchant.address) },
+    { name: "Business Name", isFilled: Boolean(merchant.businessName), isRequired: true },
+    { name: "Brand Slug", isFilled: Boolean(merchant.slug), isRequired: true },
+    { name: "Primary Category", isFilled: Boolean(merchant.category), isRequired: true },
+    { name: "Contact Email", isFilled: Boolean(merchant.contactEmail), isRequired: true },
+    { name: "Contact Phone", isFilled: Boolean(merchant.contactPhone), isRequired: true },
+    { name: "Store Address", isFilled: Boolean(merchant.location?.address || merchant.address), isRequired: true },
     {
       name: "City & State",
       isFilled: Boolean(
         (merchant.location?.city || merchant.city) &&
           (merchant.location?.state || merchant.state),
       ),
+      isRequired: true,
     },
-    { name: "Pincode", isFilled: Boolean(merchant.location?.pincode || merchant.pincode) },
-    { name: "Google Maps Link", isFilled: Boolean(merchant.location?.gmapsLink || merchant.gmapsLink) },
-    { name: "Store Logo", isFilled: Boolean(merchant.logo || merchant.logoUrl) },
-    { name: "Store Banner Image", isFilled: Boolean(merchant.banner || merchant.bannerUrl) },
-    { name: "Shop Storefront Photo", isFilled: Boolean(merchant.shopImage || merchant.shopImageUrl) },
-    { name: "Identity Document Type", isFilled: Boolean(merchant.docType) },
-    { name: "Identity Document Image", isFilled: Boolean(merchant.docImage) },
+    { name: "Pincode", isFilled: Boolean(merchant.location?.pincode || merchant.pincode), isRequired: true },
+    { name: "Google Maps Link (Optional)", isFilled: Boolean(merchant.location?.gmapsLink || merchant.gmapsLink), isRequired: false },
+    { name: "Store Logo (Optional)", isFilled: Boolean(merchant.logo || merchant.logoUrl), isRequired: false },
+    { name: "Store Banner Image (Optional)", isFilled: Boolean(merchant.banner || merchant.bannerUrl), isRequired: false },
+    { name: "Shop Storefront Photo (Optional)", isFilled: Boolean(merchant.shopImage || merchant.shopImageUrl), isRequired: false },
+    { name: "Identity Document Type (Optional)", isFilled: Boolean(merchant.docType), isRequired: false },
+    { name: "Identity Document Image (Optional)", isFilled: Boolean(merchant.docImage), isRequired: false },
     {
-      name: "Store Operating Hours",
+      name: "Store Operating Hours (Optional)",
       isFilled: Boolean(
         merchant.operatingHours && Object.keys(merchant.operatingHours).length > 0,
       ),
+      isRequired: false,
     },
   ];
 
   const completedCount = fields.filter((f) => f.isFilled).length;
   const totalCount = fields.length;
   const percentage = Math.round((completedCount / totalCount) * 100);
-  const missingFields = fields.filter((f) => !f.isFilled).map((f) => f.name);
+  const missingFields = fields.filter((f) => !f.isFilled && f.isRequired).map((f) => f.name);
+  const isCoreComplete = fields.filter((f) => f.isRequired).every((f) => f.isFilled);
 
   let color = "red";
-  if (percentage >= 85) {
+  if (percentage >= 85 || isCoreComplete) {
     color = "emerald";
   } else if (percentage >= 50) {
     color = "amber";
@@ -77,6 +81,7 @@ export function calculateProfileHealth(merchant) {
     completedCount,
     totalCount,
     missingFields,
+    isCoreComplete,
     color,
   };
 }
@@ -102,7 +107,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const isPaymentPending = isPaidPlan && !isPaymentCompleted;
   const totalSlides = isPaymentPending ? 2 : 1;
-  const isProfileComplete = health.percentage >= 100;
+  const isProfileComplete = health.percentage >= 100 || health.isCoreComplete;
 
   // Controlled vs uncontrolled open state
   const open = isOpen !== undefined ? isOpen : internalOpen;
@@ -124,7 +129,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const pathname = usePathname();
 
-  // Do not render modal if not open, no merchant data, or if account is 100% complete AND approved
+  // Do not render modal if not open, no merchant data, or if account is complete AND approved
   if (
     !open ||
     !merchant ||

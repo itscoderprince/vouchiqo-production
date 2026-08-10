@@ -95,25 +95,25 @@ export async function GET(req) {
       const docs = [
         {
           name:
-            merchant.docType || "Primary Statutory Document (GST/MSME/License)",
-          type: "Statutory Identity Proof",
+            merchant.docType || "Primary Statutory Document (GST/MSME/License) (Optional)",
+          type: "Statutory Identity Proof (Optional)",
           status: merchant.docImage
             ? isApproved
               ? "verified"
               : "under_review"
             : isGstExempt
               ? "exempt"
-              : "not_uploaded",
+              : "optional",
           verifiedAt: merchant.updatedAt,
         },
         {
-          name: "Store Front & Location Photograph",
-          type: "Physical Business Location",
+          name: "Store Front & Location Photograph (Optional)",
+          type: "Physical Business Location (Optional)",
           status: merchant.shopImage
             ? isApproved
               ? "verified"
               : "under_review"
-            : "not_uploaded",
+            : "optional",
           verifiedAt: merchant.updatedAt,
         },
       ];
