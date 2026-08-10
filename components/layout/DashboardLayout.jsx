@@ -161,9 +161,9 @@ function MerchantPageLockOverlay() {
             </span>
             <ArrowRight className="w-4 h-4 text-white" />
           </Button>
-        </div>
       </div>
     </div>
+  );
 }
 
 function MerchantNoticeBanner() {
