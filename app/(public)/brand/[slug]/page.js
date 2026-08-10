@@ -210,8 +210,8 @@ function getMockMerchant(slug) {
     slug,
     category: "grocery",
     logo: "",
-    description: `Verified discount coupons and promo codes for ${titleName}. Grab the latest offers and save today.`,
-    longDescription: `${titleName} is a verified partner brand offering premium products and services. Shop online using our exclusive discount coupons and get the best savings on every checkout.`,
+    description: `Verified discount offers and promo codes for ${titleName}. Grab the latest deals and save today.`,
+    longDescription: `${titleName} is a verified partner brand offering premium products and services. Shop online using our exclusive discount offers and get the best savings on every checkout.`,
     website: `https://www.${norm}.com`,
     followerCount: 42,
     isVerified: true,
@@ -306,10 +306,10 @@ export async function generateMetadata({ params }) {
       merchant = getMockMerchant(slug);
     }
 
-    const title = `${merchant.businessName} Coupons, Promo Codes & Deals | Vouchiqo`;
+    const title = `${merchant.businessName} Offers, Promo Codes & Deals | Vouchiqo`;
     const description =
       merchant.shortDescription ||
-      `Save at ${merchant.businessName} with verified coupon codes, discounts, and expiring offers. 100% community-tested and active.`;
+      `Save at ${merchant.businessName} with verified offer codes, discounts, and expiring deals. 100% community-tested and active.`;
 
     return {
       title,

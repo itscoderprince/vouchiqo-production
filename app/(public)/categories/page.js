@@ -8,7 +8,7 @@ import CategoriesClient from "./categories-client";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "All Categories Coupons, Offers & Promo Codes | Vouchiqo",
+  title: "All Categories Offers & Promo Codes | Vouchiqo",
   description:
     "Discover 1000+ verified coupons across all categories on Vouchiqo. Find the best deals on fashion, electronics, food, travel, beauty and more.",
 };

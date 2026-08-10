@@ -348,7 +348,7 @@ export default function PopularStores({ merchants = [] }) {
                 <div className="flex items-center justify-center gap-1.5 px-2">
                   <Tag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                   <span className="text-[12px] sm:text-[13px] font-bold text-slate-800 whitespace-nowrap">
-                    {somCoupons} Coupons
+                    {somCoupons} Offers
                   </span>
                 </div>
                 <div className="flex items-center justify-center gap-1.5 px-2">

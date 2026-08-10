@@ -76,15 +76,17 @@ export function RevivalPromo() {
           <div className="lg:col-span-7 space-y-4 text-left font-sans">
             {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-1.5 bg-blue-100/80 border border-blue-200 text-blue-700 text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md shadow-2xs">
-              <Zap className="w-3 h-3 text-blue-600 fill-current" />
-              <span>Coupon Revival Engine</span>
+              <span className="text-xs uppercase font-extrabold text-blue-600 tracking-wider flex items-center justify-center md:justify-start gap-1">
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Offer Revival Engine</span>
+              </span>
             </div>
 
             {/* Main Title & Subtitle */}
             <div className="space-y-1.5 font-sans">
-              <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                Got an expired coupon? <br />
-                <span className="text-blue-600">We&apos;ll bring it back to life.</span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                Got an expired offer? <br />
+                <span className="text-blue-600">We'll help you revive it.</span>
               </h2>
               <p className="text-xs sm:text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal max-w-xl">
                 Submit any expired code or store offer. Our merchant relations team negotiates a fresh active equivalent directly with the brand — usually within 24 hours.
@@ -108,7 +110,7 @@ export function RevivalPromo() {
                     onClick={() => setSuccess(false)}
                     className="text-xs font-semibold text-blue-600 hover:text-blue-700 pt-1 underline cursor-pointer"
                   >
-                    Revive another coupon →
+                    Revive another offer →
                   </button>
                 </div>
               ) : (
@@ -153,7 +155,7 @@ export function RevivalPromo() {
                   {/* Expired Code Input */}
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                      Expired Coupon Code (Optional)
+                      Expired Offer Code (Optional)
                     </label>
                     <input
                       type="text"

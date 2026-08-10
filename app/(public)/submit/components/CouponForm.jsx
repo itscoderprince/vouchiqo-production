@@ -68,7 +68,7 @@ export default function CouponForm() {
       return;
     }
     toast.success(
-      "Thank you! Your coupon has been submitted for verification.",
+      "Thank you! Your offer has been submitted for verification.",
     );
     setMerchant("");
     setCode("");
@@ -121,7 +121,7 @@ export default function CouponForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             icon={<Ticket />}
-            label="Coupon Code"
+            label="Offer Code"
             required
             placeholder="e.g. SAVE50, EXTRA20"
             value={code}
@@ -184,7 +184,7 @@ export default function CouponForm() {
             <FileText className="w-4 h-4 text-brand-blue" /> Terms & Conditions
           </label>
           <textarea
-            placeholder="List any coupon terms, minimum purchase limits..."
+            placeholder="List any offer terms, minimum purchase limits..."
             value={terms}
             onChange={(e) => setTerms(e.target.value)}
             rows={4}
@@ -196,7 +196,7 @@ export default function CouponForm() {
             <AlignLeft className="w-4 h-4 text-brand-blue" /> Description
           </label>
           <textarea
-            placeholder="Add a detailed description about how to use this coupon..."
+            placeholder="Add a detailed description about how to use this offer..."
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
             rows={4}
@@ -208,7 +208,7 @@ export default function CouponForm() {
           type="submit"
           className="w-full bg-[#2563eb] hover:bg-[#2563eb]/90 text-white font-bold py-3.5 rounded-xl text-[13px] uppercase tracking-wider transition-colors cursor-pointer border-none shadow-md shadow-blue-600/20"
         >
-          Submit Coupon
+          Submit Offer
         </button>
       </form>
     </div>

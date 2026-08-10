@@ -32,41 +32,41 @@ const ALL_FAQS = [
     q: "Are the discounts shown on Vouchiqo guaranteed?",
     a: "We strive for 100% accuracy, but final discount eligibility rests with the merchant's system at checkout. If a code doesn't work, use the 'Report' button and our team will verify it within 24 hours.",
   },
-  // Coupons & Redemption
+  // Offers & Redemption
   {
-    category: "Coupons",
-    q: "How do I redeem a coupon code from Vouchiqo?",
-    a: "Click 'Get Code' on any coupon listing. The code is automatically copied to your clipboard and the merchant's website opens in a new tab. Paste the code in the promo code field at checkout before completing payment.",
+    category: "Offers",
+    q: "How do I redeem an offer code from Vouchiqo?",
+    a: "Click 'Get Code' on any offer listing. The code is automatically copied to your clipboard and the merchant's website opens in a new tab. Paste the code in the promo code field at checkout before completing payment.",
   },
   {
-    category: "Coupons",
-    q: "Why is a coupon code not working at checkout?",
+    category: "Offers",
+    q: "Why is an offer code not working at checkout?",
     a: "Common reasons include: the offer has expired, your cart doesn't meet the minimum order value, the code is category-specific, or the merchant has paused the promotion. Report it via the 'Report Offer' button for a quick review.",
   },
   {
-    category: "Coupons",
-    q: "What is the difference between a coupon code and a deal?",
-    a: "A coupon code requires you to manually enter a promo string at checkout. A deal is a direct-link offer — clicking 'Get Deal' opens the merchant page with the discount pre-applied, no code required.",
+    category: "Offers",
+    q: "What is the difference between a promo code and a deal offer?",
+    a: "An offer code requires you to manually enter a promo string at checkout. A deal is a direct-link offer — clicking 'Get Deal' opens the merchant page with the discount pre-applied, no code required.",
   },
   {
-    category: "Coupons",
-    q: "How do I know if a coupon is still valid?",
-    a: "All listed coupons display an expiry date. Coupons marked 'Verified' have been tested within the last 24 hours. If no expiry is shown, the offer is ongoing but subject to stock availability.",
+    category: "Offers",
+    q: "How do I know if an offer is still valid?",
+    a: "All listed offers display an expiry date. Offers marked 'Verified' have been tested within the last 24 hours. If no expiry is shown, the offer is ongoing but subject to stock availability.",
   },
   {
-    category: "Coupons",
-    q: "Can I share a Vouchiqo coupon with friends?",
-    a: "Absolutely. Use the share button on any coupon card to copy the link. Shared links are tracked and help our platform surface the most popular deals to more users.",
+    category: "Offers",
+    q: "Can I share a Vouchiqo offer with friends?",
+    a: "Absolutely. Use the share button on any offer card to copy the link. Shared links are tracked and help our platform surface the most popular deals to more users.",
   },
   // Revival System
   {
     category: "Revival",
-    q: "What is the Expired Coupon Revival System?",
+    q: "What is the Expired Offer Revival System?",
     a: "When an offer expires, users can vote to revive it. Once a revival request threshold is met, Vouchiqo automatically notifies the partner merchant with real conversion projections, incentivizing them to reactivate the deal.",
   },
   {
     category: "Revival",
-    q: "How long does a coupon revival take?",
+    q: "How long does an offer revival take?",
     a: "Active merchants typically respond within 2–5 business days after receiving a revival alert. The timeline depends on the merchant's responsiveness and internal campaign scheduling.",
   },
   {
@@ -116,7 +116,7 @@ const ALL_FAQS = [
 const CATEGORIES = [
   "All",
   "General",
-  "Coupons",
+  "Offers",
   "Revival",
   "Merchants",
   "Account",

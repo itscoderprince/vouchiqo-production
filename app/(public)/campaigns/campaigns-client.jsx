@@ -90,7 +90,7 @@ export default function CampaignsClient() {
         label: "Total Festival Offers",
         shortLabel: "Festivals",
       }}
-      stat2={{ count: totalOffersCount, label: "Total Coupons & Offers" }}
+      stat2={{ count: totalOffersCount, label: "Total Verified Offers" }}
       aboutTitle="About Festival Offers"
       aboutText="India's got no shortage of festivals, and we're here for it. From Diwali lights to Christmas cheer, Vouchiqo brings you epic deals to grab the best savings."
     >

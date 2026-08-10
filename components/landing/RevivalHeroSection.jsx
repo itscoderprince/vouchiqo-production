@@ -73,15 +73,15 @@ export function RevivalHeroSection() {
           </div>
 
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black font-heading tracking-tight leading-tight text-white">
-            Expired Coupon? <br className="hidden md:inline" />
+            Expired Offer? <br className="hidden md:inline" />
             <span className="bg-gradient-to-r from-brand-warning to-[#ff5d8f] bg-clip-text text-transparent">
               Revive It Instantly!
             </span>
           </h2>
 
           <p className="text-sm md:text-base text-slate-300 max-w-xl font-medium leading-relaxed">
-            Don't let an expired coupon stop your checkout. Tell us the brand
-            and the coupon code you tried, and we will work with the merchant to
+            Don't let an expired offer stop your checkout. Tell us the brand
+            and the offer code you tried, and we will work with the merchant to
             revive it for you.
           </p>
 
@@ -131,7 +131,7 @@ export function RevivalHeroSection() {
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Coupon Code (Optional)
+                  Offer Code (Optional)
                 </label>
                 <input
                   type="text"

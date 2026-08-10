@@ -116,8 +116,8 @@ export async function generateMetadata({ params }) {
   };
 
   return {
-    title: `Verified ${categoryInfo.title} Coupons, Promo Codes & Deals | Vouchiqo`,
-    description: `Save money on ${categoryInfo.title} with verified discount coupons, promotional offers, and affiliate product deals on Vouchiqo.`,
+    title: `Verified ${categoryInfo.title} Offers, Promo Codes & Deals | Vouchiqo`,
+    description: `Save money on ${categoryInfo.title} with verified discount offers, promotional deals, and affiliate product offers on Vouchiqo.`,
   };
 }
 
@@ -233,12 +233,12 @@ export default async function CategoryPage({ params }) {
           </div>
         )}
 
-        {/* Section 1: Active Coupons & Promo Codes */}
+        {/* Section 1: Active Offers & Promo Codes */}
         <div className="space-y-5">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <h2 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
               <Tag className="w-5 h-5 text-blue-600" />
-              <span>Active Coupons & Vouchers</span>
+              <span>Active Offers & Vouchers</span>
             </h2>
             <span className="text-xs text-slate-500 font-bold bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
               {coupons.length} Available

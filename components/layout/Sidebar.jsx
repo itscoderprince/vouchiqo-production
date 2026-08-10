@@ -79,8 +79,8 @@ export default function Sidebar({ role = "customer" }) {
             href: "/customer/savings",
             icon: TrendingUp,
           },
-          { name: "Saved Coupons", href: "/customer/saved", icon: Bookmark },
-          { name: "Claimed Coupons", href: "/customer/claimed", icon: History },
+          { name: "Saved Offers", href: "/customer/saved", icon: Bookmark },
+          { name: "Claimed Offers", href: "/customer/claimed", icon: History },
           { name: "Followed Brands", href: "/customer/brands", icon: Store },
           { name: "Settings", href: "/profile/settings", icon: Settings },
         ];

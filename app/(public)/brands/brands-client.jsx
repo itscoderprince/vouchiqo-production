@@ -45,7 +45,7 @@ export default function BrandsClient({ brands = [] }) {
               All Partner Brands & Stores
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              Discover authentic partner brands with verified coupons, discounts, and affiliate products.
+              Discover authentic partner brands with verified offers, discounts, and affiliate products.
             </p>
           </div>
 

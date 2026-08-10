@@ -141,7 +141,7 @@ export default function MerchantsClient({
       }}
       stat2={{
         count: totalOffersCount.toLocaleString(),
-        label: "Total Coupons & Offers",
+        label: "Total Verified Offers",
       }}
       aboutTitle="About Stores"
       aboutText="Who doesn't love a great deal? Vouchiqo brings you the best discounts from top stores like Amazon, Flipkart, Myntra, Nykaa, Swiggy, Domino's and more. From shopping for the latest fashion to ordering your favorite food, we have active offers for all your needs."

@@ -56,7 +56,7 @@ export default function SubmitCouponPage() {
     if (!couponMerchant || !couponCode) {
       return showError("Please fill in all required fields.");
     }
-    showSuccess("Thank you! Your coupon has been submitted for verification.");
+    showSuccess("Thank you! Your offer has been submitted for verification.");
     setCouponMerchant("");
     setCouponCode("");
     setExpiryDate("");
@@ -83,7 +83,7 @@ export default function SubmitCouponPage() {
       <section className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="space-y-2">
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-            Submit Coupon &amp; Merchant Leads
+            Submit Offer &amp; Merchant Leads
           </h1>
           <p className="text-xs text-slate-500 font-semibold">
             Verified On: {new Date().toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
@@ -92,7 +92,7 @@ export default function SubmitCouponPage() {
         <div className="flex gap-4">
           <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center">
             <span className="text-xl font-black text-blue-600 block">12,358</span>
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Coupon Submissions</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase">Offer Submissions</span>
           </div>
           <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center">
             <span className="text-xl font-black text-blue-600 block">2,976</span>
@@ -107,7 +107,7 @@ export default function SubmitCouponPage() {
           <Tabs defaultValue="coupon" className="w-full">
             <TabsList className="bg-blue-50 p-1 rounded-xl w-full max-w-md mb-6 flex">
               <TabsTrigger value="coupon" className="flex-1 text-xs font-bold rounded-lg py-2 flex items-center justify-center gap-1.5">
-                <Ticket className="w-4 h-4" /> Submit Coupon
+                <Ticket className="w-4 h-4" /> Submit Offer
               </TabsTrigger>
               <TabsTrigger value="merchant" className="flex-1 text-xs font-bold rounded-lg py-2 flex items-center justify-center gap-1.5">
                 <Store className="w-4 h-4" /> Submit Merchant
@@ -138,14 +138,14 @@ export default function SubmitCouponPage() {
                     )}
                   </div>
 
-                  <FormInput name="code" label="Coupon Code" icon={Ticket} placeholder="e.g. SAVE50" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} required />
+                  <FormInput name="code" label="Offer Code" icon={Ticket} placeholder="e.g. SAVE50" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} required />
                   <FormInput name="expiry" label="Expiry Date" icon={Calendar} type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
                   <FormInput name="title" label="Offer Title" icon={Heading} placeholder="e.g. 50% Off First Order" value={couponTitle} onChange={(e) => setCouponTitle(e.target.value)} />
                   <FormTextarea name="desc" label="Offer Description / Details" icon={AlignLeft} rows={2} placeholder="Explain terms, min order value..." value={couponDesc} onChange={(e) => setCouponDesc(e.target.value)} />
                   <FormTextarea name="terms" label="Terms & Conditions" icon={FileText} rows={2} placeholder="e.g. Valid once per user..." value={terms} onChange={(e) => setTerms(e.target.value)} />
 
                   <button type="submit" className="w-full bg-[#e85d04] hover:bg-orange-600 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
-                    Submit Coupon Deal
+                    Submit Offer
                   </button>
                 </form>
               </Card>

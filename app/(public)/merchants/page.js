@@ -8,7 +8,7 @@ import MerchantsClient from "./merchants-client";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "All Stores Coupons, Offers & Promo Codes | Vouchiqo",
+  title: "All Stores Offers & Promo Codes | Vouchiqo",
   description:
     "Find verified coupon codes, discounts and deals from all your favorite online stores on Vouchiqo.",
 };

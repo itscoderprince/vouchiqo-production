@@ -15,7 +15,7 @@ export default function ExpiredCoupons({
   return (
     <div className="space-y-3 pt-4">
       <h3 className="text-sm font-extrabold text-[#4b5563] uppercase tracking-wider text-left">
-        Expired Coupons &amp; Offers
+        Expired Offers
       </h3>
       <div className="space-y-2">
         {expiredCoupons.map((coupon) => {
@@ -67,7 +67,7 @@ export default function ExpiredCoupons({
                     ) : (
                       <>
                         <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Revive Coupon</span>
+                        <span>Revive Offer</span>
                       </>
                     )}
                   </button>

@@ -1619,7 +1619,7 @@ export default function NearbyOffers() {
           title="Cities"
           icon={IconPin}
           stat1={{ count: 21, label: "Total Cities", shortLabel: "Cities" }}
-          stat2={{ count: "2,157", label: "Total Coupons & Offers" }}
+          stat2={{ count: "2,157", label: "Total Verified Offers" }}
           aboutTitle="About Cities"
           aboutText="Every city has its own vibe, and so do its deals. Vouchiqo brings you exclusive offers that cater to your city's tastes and needs."
           actionElement={
@@ -1719,7 +1719,7 @@ export default function NearbyOffers() {
                         margin: 0,
                       }}
                     >
-                      {c.coupons} Coupons &bull; {c.offers} Offers
+                      {c.coupons + c.offers} Active Offers
                     </p>
                   </div>
                 </div>

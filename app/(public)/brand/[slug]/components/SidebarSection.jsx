@@ -38,7 +38,7 @@ export default function SidebarSection({
             if (text && text.trim().length > 20 && !text.includes("sfsf")) {
               return text;
             }
-            return `Welcome to ${merchant.businessName}! Explore the latest verified discount coupons, promo codes, and exclusive store offers. Save more on every purchase with real, tested deals curated daily for you.`;
+            return `Welcome to ${merchant.businessName}! Explore the latest verified discount offers, promo codes, and exclusive store deals. Save more on every purchase with real, tested deals curated daily for you.`;
           })()}
         </p>
         {merchant.website && (

@@ -118,7 +118,7 @@ export default function UserDropdown({
                 className="flex items-center gap-2 text-sm font-medium hover:text-slate-300 transition-colors"
               >
                 <Bookmark className="w-4 h-4 text-slate-400" />
-                <span>Saved Coupons</span>
+                <span>Saved Offers</span>
               </Link>
               <Link
                 href="/profile?tab=wallet"

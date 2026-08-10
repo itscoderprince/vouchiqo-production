@@ -1,13 +1,13 @@
 import ExpiredCouponRevival from "./revival-client";
 
 export const metadata = {
-  title: "Expired Coupon Revival System | Vouchiqo",
+  title: "Expired Offer Revival System | Vouchiqo",
   description:
-    "Missed an amazing discount? Vote to revive expired promo codes on Vouchiqo. We negotiate directly with merchants to restore active coupon codes and savings.",
+    "Missed an amazing discount? Vote to revive expired promo codes on Vouchiqo. We negotiate directly with merchants to restore active offer codes and savings.",
   openGraph: {
-    title: "Expired Coupon Revival System | Vouchiqo",
+    title: "Expired Offer Revival System | Vouchiqo",
     description:
-      "Missed an amazing discount? Vote to revive expired promo codes on Vouchiqo. We negotiate directly with merchants to restore active coupon codes and savings.",
+      "Missed an amazing discount? Vote to revive expired promo codes on Vouchiqo. We negotiate directly with merchants to restore active offer codes and savings.",
     type: "website",
   },
 };

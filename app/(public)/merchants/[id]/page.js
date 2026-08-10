@@ -120,7 +120,7 @@ export default function MerchantPublicProfile({ params }) {
         {/* Left Section: Active Coupons */}
         <section className="lg:col-span-2 space-y-6">
           <h2 className="text-lg font-bold font-heading text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3 flex items-center justify-between">
-            <span>Active Coupons</span>
+            <span>Active Offers</span>
             <span className="text-xs text-brand-subtext font-semibold">
               ({merchant.activeDeals.length} deals available)
             </span>

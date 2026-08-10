@@ -123,8 +123,8 @@ export default function ConfirmationModal({ coupon, onClose, onConfirm }) {
             // Form / Claim Action State
             <div className="space-y-4">
               <p className="text-xs text-brand-subtext leading-relaxed">
-                By claiming this coupon, a unique redemption code will be
-                reserved for you. Please use this coupon before it expires on{" "}
+                By claiming this offer, a unique redemption code will be
+                reserved for you. Please use this offer code before it expires on{" "}
                 <strong className="text-brand-text">
                   {coupon.expiresAt
                     ? (() => {
