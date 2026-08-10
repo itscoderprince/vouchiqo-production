@@ -107,7 +107,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const isPaymentPending = isPaidPlan && !isPaymentCompleted;
   const totalSlides = isPaymentPending ? 2 : 1;
-  const isProfileComplete = health.percentage >= 100 || health.isCoreComplete;
+  const isProfileComplete = health.percentage >= 100;
 
   // Controlled vs uncontrolled open state
   const open = isOpen !== undefined ? isOpen : internalOpen;
@@ -129,12 +129,8 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const pathname = usePathname();
 
-  // Do not render modal if not open, no merchant data, or if account is complete AND approved
-  if (
-    !open ||
-    !merchant ||
-    (isProfileComplete && isApproved)
-  ) {
+  // Do not render modal if not open or no merchant data
+  if (!open || !merchant) {
     return null;
   }
 
@@ -340,33 +336,51 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
               {/* Circular Health Gauge & Score */}
               <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/80">
-                <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-200"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      strokeWidth="3.5"
-                      strokeDasharray={`${health.percentage}, 100`}
-                      strokeLinecap="round"
-                      stroke={strokeColor}
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      className="transition-all duration-700 ease-out"
-                    />
-                  </svg>
-                  <div className="absolute flex flex-col items-center justify-center text-center">
-                    <span className="text-base font-black text-slate-900 leading-none">
-                      {health.percentage}%
-                    </span>
-                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">
-                      Health
-                    </span>
-                  </div>
+                <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+                  {(() => {
+                    const radius = 38;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset =
+                      circumference - (health.percentage / 100) * circumference;
+                    return (
+                      <>
+                        <svg
+                          className="w-full h-full transform -rotate-90 origin-center"
+                          viewBox="0 0 100 100"
+                        >
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r={radius}
+                            className="text-slate-200"
+                            strokeWidth="7.5"
+                            stroke="currentColor"
+                            fill="none"
+                          />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r={radius}
+                            strokeWidth="7.5"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={strokeDashoffset}
+                            strokeLinecap="round"
+                            stroke={strokeColor}
+                            fill="none"
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                          <span className="text-lg font-black text-slate-900 leading-none tracking-tight">
+                            {health.percentage}%
+                          </span>
+                          <span className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">
+                            Health
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-1 flex-1 min-w-0">

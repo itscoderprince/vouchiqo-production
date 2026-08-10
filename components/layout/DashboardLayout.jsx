@@ -47,18 +47,71 @@ function MerchantPageLockOverlay() {
     return null;
   }
 
+  const percentage = health?.percentage || 0;
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const strokeColor =
+    percentage >= 85
+      ? "#10b981"
+      : percentage >= 50
+        ? "#ea580c"
+        : "#ef4444";
+
   return (
     <div
       onClick={openModal}
-      className="absolute inset-0 z-30 bg-slate-900/50 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-hidden"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-y-auto font-sans"
     >
-      <div className="max-w-md w-full bg-white text-slate-900 rounded-3xl p-8 border border-slate-200 shadow-2xl space-y-5">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-xs">
-          {isPending ? (
-            <Clock className="w-8 h-8 text-amber-600 animate-pulse" />
-          ) : (
-            <Lock className="w-8 h-8 text-slate-700" />
-          )}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="max-w-md w-full bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-5 relative animate-in zoom-in-95 duration-200"
+      >
+        {/* Circular Profile Health Gauge */}
+        <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
+          <svg className="w-full h-full transform -rotate-90 origin-center" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              className="text-slate-100"
+              strokeWidth="7.5"
+              stroke="currentColor"
+              fill="none"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              strokeWidth="7.5"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              stroke={strokeColor}
+              fill="none"
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+
+          {/* Centered Number & Label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-black text-slate-900 tracking-tight leading-none">
+              {percentage}%
+            </span>
+            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest mt-1">
+              Health
+            </span>
+          </div>
+
+          {/* Status Icon Badge */}
+          <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-white shadow-md border border-slate-200 flex items-center justify-center">
+            {isPending ? (
+              <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+            ) : (
+              <Lock className="w-4 h-4 text-slate-700" />
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -72,7 +125,7 @@ function MerchantPageLockOverlay() {
             </h3>
             {isProfileIncomplete && (
               <Badge className="bg-red-50 text-red-700 border-red-200 text-[10px] font-bold">
-                {health?.percentage || 0}% Complete
+                Incomplete
               </Badge>
             )}
             {isPending && (
@@ -86,11 +139,11 @@ function MerchantPageLockOverlay() {
               ? "Your merchant profile & KYC verification are currently under review by our super admin team. Account features will be activated upon approval."
               : isRejected
                 ? merchant?.rejectionReason || "Your merchant profile was rejected. Please update your details and resubmit."
-                : "Your store profile is currently incomplete. Complete all 15 required details to unlock your listings, analytics, and partner controls."}
+                : "Your store profile is currently incomplete. Complete your required store details to unlock your listings, analytics, and partner controls."}
           </p>
         </div>
 
-        <div className="pt-2 flex flex-col gap-2">
+        <div className="pt-1 flex flex-col gap-2">
           <Button
             type="button"
             onClick={(e) => {
@@ -98,7 +151,7 @@ function MerchantPageLockOverlay() {
               if (isPending) {
                 router.push("/merchant/application-status");
               } else {
-                router.push("/merchant/profile?edit=true");
+                openModal();
               }
             }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-11 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"

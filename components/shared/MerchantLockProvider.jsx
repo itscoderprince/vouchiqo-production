@@ -23,7 +23,8 @@ export function MerchantLockProvider({ children, isMerchant }) {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const health = isMerchant && merchant ? calculateProfileHealth(merchant) : null;
-  const isProfileIncomplete = isMerchant && Boolean(merchant) && Boolean(health) && health.percentage < 100;
+  const isProfileIncomplete =
+    isMerchant && Boolean(merchant) && Boolean(health) && health.percentage < 100;
   const isPending = isMerchant && Boolean(merchant) && merchant.status === "pending";
   const isRejected = isMerchant && Boolean(merchant) && merchant.status === "rejected";
   const isApproved = isMerchant && Boolean(merchant) && merchant.status === "approved";
@@ -36,10 +37,11 @@ export function MerchantLockProvider({ children, isMerchant }) {
 
     if (isLocked) {
       if (!hasInitialized) {
-        const isProfilePage =
+        const isExcludedPage =
           typeof window !== "undefined" &&
-          window.location.pathname.startsWith("/merchant/profile");
-        if (!isProfilePage) {
+          (window.location.pathname.startsWith("/merchant/profile") ||
+            window.location.pathname.startsWith("/merchant/application-status"));
+        if (!isExcludedPage) {
           setIsModalOpen(true);
         }
         setHasInitialized(true);
