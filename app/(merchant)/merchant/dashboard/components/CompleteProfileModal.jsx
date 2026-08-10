@@ -107,7 +107,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const isPaymentPending = isPaidPlan && !isPaymentCompleted;
   const totalSlides = isPaymentPending ? 2 : 1;
-  const isProfileComplete = health.percentage >= 100;
+  const isProfileComplete = health.isCoreComplete || health.percentage >= 100;
 
   // Controlled vs uncontrolled open state
   const open = isOpen !== undefined ? isOpen : internalOpen;
@@ -129,8 +129,12 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
   const pathname = usePathname();
 
-  // Do not render modal if not open or no merchant data
-  if (!open || !merchant) {
+  // Do not render modal if not open, no merchant data, or if mandatory fields are complete AND approved (when uncontrolled)
+  if (
+    !open ||
+    !merchant ||
+    (isProfileComplete && isApproved && isOpen === undefined)
+  ) {
     return null;
   }
 
@@ -430,7 +434,9 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                 <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/80 text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="text-[11px] font-bold text-emerald-900">
-                    All 15 Profile Fields Submitted &amp; Verified!
+                    {health.completedCount === health.totalCount
+                      ? "All 15 Profile Fields Submitted & Verified!"
+                      : "All Mandatory Profile Fields Submitted & Verified!"}
                   </span>
                 </div>
               )}

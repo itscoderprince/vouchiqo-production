@@ -24,7 +24,11 @@ export function MerchantLockProvider({ children, isMerchant }) {
 
   const health = isMerchant && merchant ? calculateProfileHealth(merchant) : null;
   const isProfileIncomplete =
-    isMerchant && Boolean(merchant) && Boolean(health) && health.percentage < 100;
+    isMerchant &&
+    Boolean(merchant) &&
+    Boolean(health) &&
+    !health.isCoreComplete &&
+    health.percentage < 100;
   const isPending = isMerchant && Boolean(merchant) && merchant.status === "pending";
   const isRejected = isMerchant && Boolean(merchant) && merchant.status === "rejected";
   const isApproved = isMerchant && Boolean(merchant) && merchant.status === "approved";
