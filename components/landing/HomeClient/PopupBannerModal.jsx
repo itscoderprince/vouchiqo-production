@@ -46,7 +46,7 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
       setActiveBanner(selected);
       const timer = setTimeout(() => {
         setOpen(true);
-      }, 1500);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [banners]);
@@ -65,14 +65,8 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
     activeBanner.link?.startsWith("https://");
   const targetUrl = activeBanner.link && activeBanner.link !== "#" ? activeBanner.link : "/deals";
 
-  const hasText = Boolean(
-    (activeBanner.title && activeBanner.title.trim() !== "") ||
-      (activeBanner.subtitle && activeBanner.subtitle.trim() !== "") ||
-      (activeBanner.buttonText && activeBanner.buttonText.trim() !== ""),
-  );
-
   const modalBody = (
-    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-700/50">
+    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-700/50 group">
       {/* Close button */}
       <button
         type="button"
@@ -87,68 +81,19 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
         <X className="w-4 h-4" />
       </button>
 
-      {/* Banner Image */}
-      <div className="relative w-full h-[280px] sm:h-[360px]">
+      {/* Pure Banner Image */}
+      <div className="relative w-full h-[280px] sm:h-[380px]">
         <img
           src={activeBanner.image}
           alt={activeBanner.title || "Promotional Banner"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover cursor-pointer"
         />
-
-        {/* Optional Text Overlay */}
-        {hasText && (
-          <div
-            className={`absolute inset-0 flex flex-col justify-end p-6 gap-2 pointer-events-none ${
-              activeBanner.textPosition === "center"
-                ? "items-center text-center bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent"
-                : activeBanner.textPosition === "right"
-                  ? "items-end text-right bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent"
-                  : "items-start text-left bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent"
-            }`}
-          >
-            {activeBanner.subtitle && (
-              <span
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: activeBanner.subtitleColor || "#fbbf24" }}
-              >
-                {activeBanner.subtitle}
-              </span>
-            )}
-            {activeBanner.title && (
-              <h3
-                className="text-xl sm:text-2xl font-extrabold leading-tight"
-                style={{ color: activeBanner.textColor || "#ffffff" }}
-              >
-                {activeBanner.title}
-              </h3>
-            )}
-            {activeBanner.buttonText && (
-              <div className="pt-1">
-                <span
-                  className="inline-flex items-center px-4 py-2 rounded-xl font-bold text-xs shadow-lg pointer-events-auto transition-transform active:scale-95"
-                  style={{
-                    backgroundColor: activeBanner.buttonBgColor || "#f59e0b",
-                    color: activeBanner.buttonTextColor || "#0f172a",
-                  }}
-                >
-                  {activeBanner.buttonText}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeBanner.isPaid && (
-          <div className="absolute top-3 left-3 bg-black/50 text-white/90 text-[9px] uppercase tracking-wider font-semibold px-2.5 py-0.5 rounded backdrop-blur-xs select-none pointer-events-none z-10 border border-white/10">
-            Sponsored
-          </div>
-        )}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-300">
       {/* Backdrop click to dismiss */}
       <div
         className="absolute inset-0"
