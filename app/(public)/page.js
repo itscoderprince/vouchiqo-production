@@ -29,37 +29,27 @@ export default async function Home() {
   const latestResult = await listCoupons(latestParams);
   const latestCoupons = JSON.parse(JSON.stringify(latestResult.coupons || []));
 
-  // 3.5. Fetch active approved merchants from MongoDB (cached in Redis for 5 minutes)
+  // 3.5. Fetch active approved/verified merchants from MongoDB
   let popularMerchants = [];
   try {
-    const cachedMerchants = await redis.get("home:popular_merchants");
-    if (cachedMerchants) {
-      popularMerchants = JSON.parse(cachedMerchants);
-    } else {
-      const rawMerchants = await Merchant.find({ status: "approved" })
-        .select(
-          "businessName slug logo banner totalCoupons totalRedemptions followerCount",
-        )
-        .sort({ followerCount: -1, totalCoupons: -1 })
-        .limit(24)
-        .lean();
-      popularMerchants = JSON.parse(JSON.stringify(rawMerchants || []));
-      await redis.setex(
-        "home:popular_merchants",
-        300,
-        JSON.stringify(popularMerchants),
-      );
-    }
-  } catch (err) {
-    console.error("Redis error fetching popular merchants:", err);
-    const rawMerchants = await Merchant.find({ status: "approved" })
+    const rawMerchants = await Merchant.find({
+      $or: [
+        { status: "approved" },
+        { status: "active" },
+        { applicationStatus: "approved" },
+        { isVerified: true },
+        { status: { $ne: "rejected" } },
+      ],
+    })
       .select(
-        "businessName slug logo banner totalCoupons totalRedemptions followerCount",
+        "businessName slug logo banner totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
       )
-      .sort({ followerCount: -1, totalCoupons: -1 })
-      .limit(24)
+      .sort({ createdAt: -1 })
+      .limit(36)
       .lean();
     popularMerchants = JSON.parse(JSON.stringify(rawMerchants || []));
+  } catch (err) {
+    console.error("Error fetching popular merchants:", err);
   }
 
   // 3.7. Fetch active promotional banners

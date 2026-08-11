@@ -7,195 +7,40 @@ import { useEffect, useRef, useState } from "react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
 import EmblaCarouselControls from "../shared/EmblaCarouselControls";
 
-const POPULAR_STORES_LIST = [
-  {
-    name: "Lenskart",
-    logo: "/brandlogos/10012.jpg",
-    href: "/brand/lenskart",
-    coupons: 25,
-  },
-  {
-    name: "Sonata",
-    logo: "/brandlogos/10035.jpg",
-    href: "/brand/sonata",
-    coupons: 19,
-  },
-  {
-    name: "Titan",
-    logo: "/brandlogos/10035.jpg",
-    href: "/brand/titan",
-    coupons: 8,
-  },
-  {
-    name: "Dell Store",
-    logo: "/brandlogos/10007.jpg",
-    href: "/brand/dell",
-    coupons: 12,
-  },
-  {
-    name: "Zara",
-    logo: "/brandlogos/10028.jpg",
-    href: "/brand/zara",
-    coupons: 34,
-  },
-  {
-    name: "Dominos Pizza",
-    logo: "/brandlogos/10027.jpg",
-    href: "/brand/dominos",
-    coupons: 9,
-  },
-  {
-    name: "Starbucks",
-    logo: "/brandlogos/10026.jpg",
-    href: "/brand/starbucks-coffee",
-    coupons: 15,
-  },
-  {
-    name: "KFC",
-    logo: "/brandlogos/10030.jpg",
-    href: "/brand/kfc",
-    coupons: 31,
-  },
-  {
-    name: "Samsung",
-    logo: "/brandlogos/10005.jpg",
-    href: "/brand/samsung",
-    coupons: 11,
-  },
-  {
-    name: "Puma",
-    logo: "/brandlogos/10011.jpg",
-    href: "/brand/puma",
-    coupons: 6,
-  },
-  {
-    name: "Nike",
-    logo: "/brandlogos/10010.jpg",
-    href: "/brand/nike",
-    coupons: 18,
-  },
-  {
-    name: "HP World",
-    logo: "/brandlogos/10009.jpg",
-    href: "/brand/hp-shopping",
-    coupons: 10,
-  },
-  {
-    name: "Biba",
-    logo: "/brandlogos/10021.jpg",
-    href: "/brand/biba",
-    coupons: 5,
-  },
-  {
-    name: "Westside",
-    logo: "/brandlogos/10021.jpg",
-    href: "/brand/westside",
-    coupons: 7,
-  },
-  {
-    name: "Shoppers Stop",
-    logo: "/brandlogos/10021.jpg",
-    href: "/brand/shoppers-stop",
-    coupons: 19,
-  },
-  {
-    name: "Decathlon",
-    logo: "/brandlogos/10012.jpg",
-    href: "/brand/decathlon",
-    coupons: 13,
-  },
-  {
-    name: "Fabindia",
-    logo: "/brandlogos/10028.jpg",
-    href: "/brand/fabindia",
-    coupons: 16,
-  },
-  {
-    name: "Bata",
-    logo: "/brandlogos/10036.jpg",
-    href: "/brand/bata",
-    coupons: 8,
-  },
-  {
-    name: "Pantaloons",
-    logo: "/brandlogos/10021.jpg",
-    href: "/brand/pantaloons",
-    coupons: 17,
-  },
-  {
-    name: "Max Fashion",
-    logo: "/brandlogos/10028.jpg",
-    href: "/brand/max-fashion",
-    coupons: 22,
-  },
-  {
-    name: "Raymond",
-    logo: "/brandlogos/10028.jpg",
-    href: "/brand/raymond",
-    coupons: 29,
-  },
-  {
-    name: "Peter England",
-    logo: "/brandlogos/10012.jpg",
-    href: "/brand/peter-england",
-    coupons: 24,
-  },
-  {
-    name: "Croma",
-    logo: "/brandlogos/10008.jpg",
-    href: "/brand/croma",
-    coupons: 15,
-  },
-  {
-    name: "Lakme Salon",
-    logo: "/brandlogos/10025.jpg",
-    href: "/brand/lakme-salon",
-    coupons: 12,
-  },
-];
-
 export default function PopularStores({ merchants = [] }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [dbMerchants, setDbMerchants] = useState(merchants || []);
 
-  // Map database merchants into standard structure
-  const dbStores = merchants.map((m) => ({
-    name: m.businessName,
+  useEffect(() => {
+    if (merchants && merchants.length > 0) {
+      setDbMerchants(merchants);
+    }
+  }, [merchants]);
+
+  // Map database merchants into standard structure (ONLY real merchants, NO static fake brands)
+  const finalStoresList = (dbMerchants || []).map((m) => ({
+    name: m.businessName || m.name || "Store Partner",
     logo: m.logo || "/placeholder-brand.png",
     href: `/brand/${m.slug}`,
     coupons: m.totalCoupons || 0,
     banner: m.banner,
-    totalOffers: m.totalCoupons + (m.totalRedemptions || 0),
+    totalOffers: (m.totalCoupons || 0) + (m.totalRedemptions || 0),
   }));
 
-  // Combine with static list fallback to ensure at least 12 stores are shown
-  const finalStoresList =
-    dbStores.length >= 8
-      ? dbStores
-      : [
-          ...dbStores,
-          ...POPULAR_STORES_LIST.filter(
-            (staticStore) =>
-              !dbStores.some(
-                (db) =>
-                  db.name.toLowerCase() === staticStore.name.toLowerCase(),
-              ),
-          ),
-        ];
-
-  // Store of the Month (dynamic first merchant, or fallback)
-  const firstDbMerchant = merchants[0];
+  // Store of the Month (dynamic first real merchant)
+  const firstDbMerchant = dbMerchants[0];
   const somBanner =
     firstDbMerchant?.banner ||
     "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=600&auto=format&fit=crop";
-  const somLogo = firstDbMerchant?.logo || "/brandlogos/10005.jpg";
+  const somLogo = firstDbMerchant?.logo || "/placeholder-brand.png";
   const somHref = firstDbMerchant
     ? `/brand/${firstDbMerchant.slug}`
-    : "/brand/samsung";
+    : "/deals";
   const somCoupons = firstDbMerchant ? firstDbMerchant.totalCoupons || 0 : 0;
   const somOffers = firstDbMerchant
     ? (firstDbMerchant.totalCoupons || 0) +
       (firstDbMerchant.totalRedemptions || 0)
-    : 71;
+    : 0;
 
   // Group into pages of stores (3 rows x 3 cols = 9 on mobile, 3 rows x 4 cols = 12 on desktop)
   const [itemsPerPage, setItemsPerPage] = useState(12);
