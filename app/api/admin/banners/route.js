@@ -33,9 +33,9 @@ export const POST = asyncHandler(async (request) => {
   await requireRole(request, ROLES.ADMIN);
 
   const body = await request.json();
-  if (!body.title || !body.image || !body.link || !body.slot) {
+  if (!body.image || !body.slot) {
     return error(
-      "Missing required fields: title, image, link, or slot",
+      "Missing required fields: image or slot",
       HTTP.BAD_REQUEST,
     );
   }

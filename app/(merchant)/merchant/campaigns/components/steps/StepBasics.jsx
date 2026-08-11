@@ -111,7 +111,7 @@ export default function StepBasics({
             />
           ) : (
             <FormInput
-              label="Ticker Public Headline"
+              label="Campaign Public Headline"
               icon={FileText}
               type="text"
               maxLength={70}
@@ -125,7 +125,7 @@ export default function StepBasics({
 
         {selectedType === "festival" && (
           <FormInput
-            label="Ticker Public Headline"
+            label="Campaign Public Headline"
             icon={FileText}
             type="text"
             maxLength={70}

@@ -4,17 +4,18 @@ const promoBannerSchema = new Schema(
   {
     title: {
       type: String,
-      required: [true, "Banner title/headline is required"],
       trim: true,
+      default: "",
     },
     subtitle: {
       type: String,
       trim: true,
+      default: "",
     },
     buttonText: {
       type: String,
-      default: "Explore",
       trim: true,
+      default: "",
     },
     image: {
       type: String,
@@ -25,14 +26,39 @@ const promoBannerSchema = new Schema(
     },
     link: {
       type: String,
-      required: [true, "Banner redirect link is required"],
       trim: true,
+      default: "#",
     },
     slot: {
       type: String,
-      enum: ["left-hero", "right-promo", "top-right", "bottom-right"],
+      enum: ["hero", "trending", "popup", "left-hero", "right-promo", "top-right", "bottom-right"],
       required: true,
       index: true,
+    },
+    textColor: {
+      type: String,
+      default: "#ffffff",
+    },
+    subtitleColor: {
+      type: String,
+      default: "#fbbf24",
+    },
+    buttonBgColor: {
+      type: String,
+      default: "#f59e0b",
+    },
+    buttonTextColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    textPosition: {
+      type: String,
+      enum: ["left", "center", "right"],
+      default: "left",
+    },
+    overlayOpacity: {
+      type: Number,
+      default: 70,
     },
     merchantId: {
       type: Schema.Types.ObjectId,

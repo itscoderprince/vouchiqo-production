@@ -69,7 +69,6 @@ export const ROUTES = {
     APPROVALS_COUPONS: "/admin/approvals/coupons",
     USERS: "/admin/users",
     FEATURED: "/admin/featured",
-    TICKER: "/admin/ticker",
     REVIVALS: "/admin/revivals",
     REVENUE: "/admin/revenue",
     CONTENT: "/admin/content",
@@ -109,7 +108,6 @@ export const ROUTES = {
     COUPONS: {
       BASE: "/api/coupons",
       DETAIL: (id) => `/api/coupons/${id}`,
-      TICKER: "/api/coupons/ticker",
     },
     CLAIMS: {
       BASE: "/api/claims",

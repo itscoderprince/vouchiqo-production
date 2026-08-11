@@ -87,8 +87,17 @@ function cleanBannerPayload(data) {
   ) {
     delete cleaned.campaignId;
   }
-  if (cleaned.logo === "") delete cleaned.logo;
-  if (cleaned.subtitle === "") delete cleaned.subtitle;
+  if (cleaned.title === undefined) cleaned.title = "";
+  if (cleaned.subtitle === undefined) cleaned.subtitle = "";
+  if (cleaned.buttonText === undefined) cleaned.buttonText = "";
+  if (cleaned.logo === undefined) cleaned.logo = "";
+  if (cleaned.link === undefined) cleaned.link = "#";
+  if (!cleaned.textColor) cleaned.textColor = "#ffffff";
+  if (!cleaned.subtitleColor) cleaned.subtitleColor = "#fbbf24";
+  if (!cleaned.buttonBgColor) cleaned.buttonBgColor = "#f59e0b";
+  if (!cleaned.buttonTextColor) cleaned.buttonTextColor = "#0f172a";
+  if (!cleaned.textPosition) cleaned.textPosition = "left";
+  if (cleaned.overlayOpacity === undefined || cleaned.overlayOpacity === null) cleaned.overlayOpacity = 70;
   return cleaned;
 }
 

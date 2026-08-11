@@ -246,13 +246,13 @@ export default function StepPromotion({
                 </div>
                 <div>
                   <span className="text-xs font-bold text-slate-900 block flex items-center gap-2">
-                    Homepage Ticker Priority
+                    Homepage Hero Priority
                     <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-bold text-[9px]">
                       ₹999 / 3-day window
                     </Badge>
                   </span>
                   <span className="text-[11px] text-slate-500 font-medium">
-                    Top 3 priority slot on homepage ticker banner for 72 hours
+                    Top priority slot on homepage hero carousel for 72 hours
                   </span>
                 </div>
               </div>

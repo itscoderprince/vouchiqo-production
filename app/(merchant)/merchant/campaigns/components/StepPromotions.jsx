@@ -3,9 +3,9 @@ import { Home, Mail, Volume2 } from "lucide-react";
 const PROMOTION_OPTIONS = [
   {
     key: "homepageSlot",
-    title: "Pin in Homepage Hot Deals Ticker",
+    title: "Pin in Homepage Hero Section",
     description:
-      "Elevates your attached offers to priority 1 in the marquee bar.",
+      "Elevates your attached offers to priority placement in the hero carousel.",
     icon: Home,
   },
   {

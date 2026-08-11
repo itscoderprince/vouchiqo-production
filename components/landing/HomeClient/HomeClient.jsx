@@ -40,6 +40,7 @@ import DealsOfTheDay from "./DealsOfTheDay";
 import InterestBanner from "./InterestBanner";
 import InterestSheet from "./InterestSheet";
 import LocationPromptModal from "@/components/shared/modals/LocationPromptModal";
+import PopupBannerModal from "./PopupBannerModal";
 // Component page sections
 import LeadingTaglineBar from "./LeadingTaglineBar";
 import NewsletterSubscription from "./NewsletterSubscription";
@@ -337,7 +338,7 @@ export function HomeClient({
         />
 
         {/* 11. Trending Offer Banner */}
-        <TrendingOffer />
+        <TrendingOffer banners={banners} />
 
         {/* 12. Deals of the Day (Product retail grid) */}
         <DealsOfTheDay />
@@ -391,6 +392,9 @@ export function HomeClient({
           handleSaveInterests={handleSaveInterests}
         />
       )}
+
+      {/* Popup Banner Modal */}
+      {isMounted && <PopupBannerModal banners={banners} />}
 
       {/* Geolocation Prompt Modal */}
       {isMounted && <LocationPromptModal />}

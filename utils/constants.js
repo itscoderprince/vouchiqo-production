@@ -230,12 +230,6 @@ export const ADDONS_PRICING = [
     price: 799,
     unit: "Send to category subscribers",
   },
-  {
-    id: "ticker_priority",
-    name: "Homepage Ticker Priority",
-    price: 999,
-    unit: "3-day window",
-  },
 ];
 export const REDIS_TTL = {
   SESSION: 86400, // 24 hours

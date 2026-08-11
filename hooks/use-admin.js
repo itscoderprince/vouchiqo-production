@@ -372,6 +372,28 @@ export function useCreateBanner() {
 }
 
 /**
+ * Update an existing promotional banner.
+ */
+export function useUpdateBanner() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }) =>
+      apiFetch("/api/admin/banners", {
+        method: "PUT",
+        body: { id, ...updateData },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.banners() });
+      toast.success("Banner updated!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update banner.");
+    },
+  });
+}
+
+/**
  * Delete a promotional banner.
  */
 export function useDeleteBanner() {
@@ -503,39 +525,7 @@ export function useReviewCustomerRevival() {
   });
 }
 
-// ─────────────────────────────────────────────
-// Ticker Management
-// ─────────────────────────────────────────────
 
-export function useTickerCoupons() {
-  return useQuery({
-    queryKey: qk.admin.tickerCoupons(),
-    queryFn: async () => {
-      const json = await apiFetch("/api/admin/coupons?status=active");
-      return json.data?.coupons || [];
-    },
-  });
-}
-
-export function useToggleCouponFlag() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ couponId, field, currentValue }) =>
-      apiFetch("/api/admin/coupons", {
-        method: "PUT",
-        body: { couponId, [field]: !currentValue },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.admin.tickerCoupons() });
-      queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
-      toast.success("Coupon flag updated!");
-    },
-    onError: () => {
-      toast.error("Failed to update coupon flag.");
-    },
-  });
-}
 
 // ─────────────────────────────────────────────
 // User Management

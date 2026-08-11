@@ -460,11 +460,6 @@ export function AppSidebar({ ...props }) {
                     url: "/admin/featured",
                     icon: Tag,
                   },
-                  {
-                    title: "Ticker Priority",
-                    url: "/admin/content/ticker",
-                    icon: Zap,
-                  },
                 ],
               },
               {

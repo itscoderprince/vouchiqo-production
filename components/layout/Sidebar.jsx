@@ -46,7 +46,6 @@ export default function Sidebar({ role = "customer" }) {
           { name: "Push Notification Builder", href: "/admin/campaigns/push-builder", icon: Bell },
           { name: "Merchant Demand Report", href: "/admin/merchant-demand", icon: Building2 },
           { name: "Master Revival Queue", href: "/admin/revivals", icon: AlertCircle },
-          { name: "Ticker Management", href: "/admin/content/ticker", icon: Zap },
           { name: "User Management", href: "/admin/users", icon: Users },
           { name: "Featured Deals", href: "/admin/featured", icon: Tag },
           { name: "Homepage Banners", href: "/admin/banners", icon: Sliders },

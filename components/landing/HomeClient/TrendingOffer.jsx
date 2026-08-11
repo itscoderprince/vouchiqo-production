@@ -1,73 +1,54 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 
-const TRENDING_SLIDES = [
-  {
-    id: 0,
-    image:
-      "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1400&auto=format&fit=crop",
-    label: "Klook Vietnam",
-    badge: "🌴 Travel Deal",
-    headline: "Vietnam Ha Long Bay Cruise",
-    discount: "Up to 50% OFF",
-    href: "/deals",
-  },
-  {
-    id: 1,
-    image:
-      "https://images.unsplash.com/photo-1601924582970-9238bcb495d9?q=80&w=1400&auto=format&fit=crop",
-    label: "Fashion Week",
-    badge: "👗 Fashion",
-    headline: "End of Season Mega Sale",
-    discount: "Flat 40% OFF",
-    href: "/deals",
-  },
-  {
-    id: 2,
-    image:
-      "https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?q=80&w=1400&auto=format&fit=crop",
-    label: "Tech Deals",
-    badge: "💻 Electronics",
-    headline: "Laptop & Gadgets Super Sale",
-    discount: "Save up to ₹15,000",
-    href: "/deals",
-  },
-  {
-    id: 3,
-    image:
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1400&auto=format&fit=crop",
-    label: "Food & Dining",
-    badge: "🍕 Dining",
-    headline: "Restaurant Week Special Offers",
-    discount: "Buy 1 Get 1 Free",
-    href: "/deals",
-  },
-  {
-    id: 4,
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1400&auto=format&fit=crop",
-    label: "Fitness & Health",
-    badge: "💪 Fitness",
-    headline: "Gym Memberships & Wellness",
-    discount: "3 Months for ₹999",
-    href: "/deals",
-  },
-];
-
-export const TrendingOffer = () => {
+export const TrendingOffer = ({ banners: initialBanners = [] }) => {
+  const [banners, setBanners] = useState(initialBanners);
   const [current, setCurrent] = useState(0);
   const dragStart = useRef(0);
   const isDragging = useRef(false);
-  const total = TRENDING_SLIDES.length;
 
-  // Auto-slide every 5 seconds
   useEffect(() => {
+    if (initialBanners && initialBanners.length > 0) {
+      setBanners(initialBanners);
+    }
+  }, [initialBanners]);
+
+  // Client-side fetch from /api/banners if no banners provided via props
+  useEffect(() => {
+    if (!initialBanners || initialBanners.length === 0) {
+      fetch("/api/banners")
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setBanners(json.data);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch trending banners:", err));
+    }
+  }, [initialBanners]);
+
+  const slides = useMemo(() => {
+    const dbTrending = (banners || []).filter(
+      (b) => b.slot === "trending" || b.slot === "trending-offer",
+    );
+    return dbTrending.map((b, idx) => ({ id: b._id || idx, ...b }));
+  }, [banners]);
+
+  const total = slides.length;
+
+  useEffect(() => {
+    if (total <= 1) return;
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % total);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, [total]);
+
+  useEffect(() => {
+    if (current >= total && total > 0) setCurrent(0);
+  }, [total, current]);
 
   const goTo = (idx) => setCurrent(idx);
   const goPrev = () => setCurrent((prev) => (prev - 1 + total) % total);
@@ -97,18 +78,19 @@ export const TrendingOffer = () => {
     isDragging.current = false;
   };
 
-  const slide = TRENDING_SLIDES[current];
+  // If no DB banners exist for Trending Offer section, hide section cleanly
+  if (!slides || slides.length === 0) return null;
 
   return (
     <section className="text-left w-full select-none">
-      {/* Compact heading */}
+      {/* Heading */}
       <h2 className="text-base md:text-xl font-bold text-brand-text mb-3">
         Trending Offer
       </h2>
 
       {/* Carousel wrapper */}
       <div
-        className="relative w-full rounded-xl overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative w-full rounded-xl overflow-hidden cursor-grab active:cursor-grabbing shadow-sm border border-slate-200/80 bg-slate-950"
         style={{ height: "200px" }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -116,49 +98,130 @@ export const TrendingOffer = () => {
         onMouseUp={handleMouseUp}
       >
         {/* Slides */}
-        {TRENDING_SLIDES.map((s, idx) => (
-          <a
-            key={s.id}
-            href={s.href}
-            draggable={false}
-            className="absolute inset-0 block w-full h-full transition-opacity duration-700"
-            style={{
-              opacity: idx === current ? 1 : 0,
-              pointerEvents: idx === current ? "auto" : "none",
-            }}
-          >
-            {/* Background image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700"
+        {slides.map((s, idx) => {
+          const isExternal =
+            s.link?.startsWith("http://") || s.link?.startsWith("https://");
+          const targetUrl = s.link && s.link !== "#" ? s.link : "/deals";
+
+          const hasText = Boolean(s.title || s.subtitle || s.buttonText);
+
+          const innerContent = (
+            <div className="relative w-full h-full">
+              {/* Background image */}
+              <img
+                src={s.image}
+                alt={s.title || "Trending Banner"}
+                className="w-full h-full object-cover transition-transform duration-700"
+                style={{
+                  transform: idx === current ? "scale(1.02)" : "scale(1)",
+                }}
+              />
+
+              {/* Optional Text Overlay */}
+              {hasText && (
+                <div
+                  className={`absolute inset-0 flex flex-col justify-center px-6 sm:px-10 gap-1.5 pointer-events-none ${
+                    s.textPosition === "center"
+                      ? "items-center text-center bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-transparent"
+                      : s.textPosition === "right"
+                        ? "items-end text-right bg-gradient-to-l from-slate-950/85 via-slate-950/40 to-transparent"
+                        : "items-start text-left bg-gradient-to-r from-slate-950/85 via-slate-950/40 to-transparent"
+                  }`}
+                >
+                  {s.subtitle && (
+                    <span
+                      className="text-[11px] uppercase tracking-wider font-semibold"
+                      style={{ color: s.subtitleColor || "#fbbf24" }}
+                    >
+                      {s.subtitle}
+                    </span>
+                  )}
+                  {s.title && (
+                    <h3
+                      className="text-lg sm:text-2xl font-extrabold max-w-lg leading-tight"
+                      style={{ color: s.textColor || "#ffffff" }}
+                    >
+                      {s.title}
+                    </h3>
+                  )}
+                  {s.buttonText && (
+                    <div className="mt-1">
+                      <span
+                        className="inline-flex items-center px-3.5 py-1.5 rounded-lg font-bold text-xs shadow-md pointer-events-auto transition-transform active:scale-95"
+                        style={{
+                          backgroundColor: s.buttonBgColor || "#f59e0b",
+                          color: s.buttonTextColor || "#0f172a",
+                        }}
+                      >
+                        {s.buttonText}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {s.isPaid && (
+                <div className="absolute top-3 right-3 bg-black/50 text-white/90 text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded backdrop-blur-xs select-none pointer-events-none z-10 border border-white/10">
+                  Sponsored
+                </div>
+              )}
+            </div>
+          );
+
+          return isExternal ? (
+            <a
+              key={s.id}
+              href={targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              draggable={false}
+              className="absolute inset-0 block w-full h-full transition-opacity duration-700"
               style={{
-                backgroundImage: `url(${s.image})`,
-                transform: idx === current ? "scale(1.03)" : "scale(1)",
+                opacity: idx === current ? 1 : 0,
+                pointerEvents: idx === current ? "auto" : "none",
               }}
-            />
-          </a>
-        ))}
+            >
+              {innerContent}
+            </a>
+          ) : (
+            <Link
+              key={s.id}
+              href={targetUrl}
+              draggable={false}
+              className="absolute inset-0 block w-full h-full transition-opacity duration-700"
+              style={{
+                opacity: idx === current ? 1 : 0,
+                pointerEvents: idx === current ? "auto" : "none",
+              }}
+            >
+              {innerContent}
+            </Link>
+          );
+        })}
 
         {/* Dot navigation — inside image at bottom center */}
-        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
-          {TRENDING_SLIDES.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                goTo(idx);
-              }}
-              aria-label={`Go to slide ${idx + 1}`}
-              className="border-0 p-0 transition-all duration-300 cursor-pointer rounded-full"
-              style={{
-                width: idx === current ? "20px" : "6px",
-                height: "6px",
-                backgroundColor:
-                  idx === current ? "#ffffff" : "rgba(255,255,255,0.45)",
-              }}
-            />
-          ))}
-        </div>
+        {slides.length > 1 && (
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  goTo(idx);
+                }}
+                aria-label={`Go to slide ${idx + 1}`}
+                className="border-0 p-0 transition-all duration-300 cursor-pointer rounded-full"
+                style={{
+                  width: idx === current ? "20px" : "6px",
+                  height: "6px",
+                  backgroundColor:
+                    idx === current ? "#ffffff" : "rgba(255,255,255,0.45)",
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

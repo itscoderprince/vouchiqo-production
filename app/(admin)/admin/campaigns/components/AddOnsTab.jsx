@@ -25,28 +25,6 @@ export default function AddOnsTab() {
   );
   const [pushSendTime, setPushSendTime] = useState("10:30");
 
-  // Ticker Slots State (3 max limit)
-  const [tickerSlots, setTickerSlots] = useState([
-    {
-      id: 1,
-      name: "Marbella Tiles Summer Sale",
-      merchant: "Marbella Tiles",
-      active: true,
-    },
-    {
-      id: 2,
-      name: "Burger House BOGO Deal",
-      merchant: "Burger House",
-      active: true,
-    },
-    {
-      id: 3,
-      name: "JewelCraft Diwali Offer",
-      merchant: "JewelCraft Ranchi",
-      active: true,
-    },
-  ]);
-
   const handleSchedulePush = () => {
     const hour = parseInt(pushSendTime.split(":")[0], 10);
     if (hour < 9 || hour >= 21) {
@@ -168,40 +146,6 @@ export default function AddOnsTab() {
           >
             Schedule MSG91 Push
           </Button>
-        </div>
-      </Card>
-
-      {/* 3. HOMEPAGE TICKER PRIORITY (₹999 / 3 DAYS) */}
-      <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4 md:col-span-2">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-amber-500" />
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              Homepage Ticker Priority Slots (Max 3 Active Slots)
-            </h3>
-          </div>
-          <Badge className="bg-amber-50 text-amber-800 font-bold border-0 text-xs">
-            {tickerSlots.length} / 3 Occupied
-          </Badge>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {tickerSlots.map((slot, idx) => (
-            <div
-              key={slot.id}
-              className="p-3.5 border border-amber-200/80 rounded-2xl bg-amber-50/40 space-y-1"
-            >
-              <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider block">
-                Priority Slot #{idx + 1}
-              </span>
-              <span className="text-xs font-bold text-slate-900 block">
-                {slot.name}
-              </span>
-              <span className="text-[11px] text-slate-500 font-semibold">
-                {slot.merchant}
-              </span>
-            </div>
-          ))}
         </div>
       </Card>
     </div>
