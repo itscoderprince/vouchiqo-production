@@ -31,9 +31,9 @@ export default function BrandClient({
   const [isFollowing, setIsFollowing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCouponId, setCopiedCouponId] = useState(null);
-  const [followers, setFollowers] = useState(merchant.followerCount || 42);
-  const [ratingVal, setRatingVal] = useState(4.8);
-  const [votesCount, setVotesCount] = useState(61);
+  const [followers, setFollowers] = useState(merchant.followerCount || 0);
+  const [ratingVal, setRatingVal] = useState(merchant.rating || merchant.avgRating || 5.0);
+  const [votesCount, setVotesCount] = useState(merchant.ratingCount || merchant.totalRedemptions || merchant.totalClaims || 0);
   const [isRated, setIsRated] = useState(false);
   const [existingUser, setExistingUser] = useState(false);
   const [expandedCouponId, setExpandedCouponId] = useState(null);
@@ -182,10 +182,7 @@ export default function BrandClient({
   }, [merchant.businessName]);
 
   return (
-    <div
-      className="min-h-screen flex flex-col bg-gray-50 text-gray-900"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
-    >
+    <div className="min-h-screen flex flex-col bg-slate-50/60 text-slate-900 font-sans">
       <Navbar />
 
       {/* Brand header (breadcrumb + banner + info + tabs) */}

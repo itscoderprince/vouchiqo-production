@@ -17,9 +17,18 @@ export const metadata = {
 export default async function BrandsPage() {
   await connectDB();
 
-  // Find all approved merchants/brands
-  const dbMerchants = await Merchant.find({ status: "approved" })
-    .select("businessName slug logo banner shopImage category isVerified")
+  // Find all approved/active merchants
+  const dbMerchants = await Merchant.find({
+    $or: [
+      { status: "approved" },
+      { status: "active" },
+      { applicationStatus: "approved" },
+      { isVerified: true },
+      { status: { $ne: "rejected" } },
+    ],
+  })
+    .select("businessName slug logo banner shopImage category isVerified status")
+    .sort({ businessName: 1 })
     .lean();
 
   // Get active coupon counts grouped by merchantId

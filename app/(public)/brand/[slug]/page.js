@@ -344,7 +344,10 @@ export default async function BrandPage({ params }) {
 
   try {
     // Fetch the merchant — full fields needed for brand page
-    merchant = await Merchant.findOne({ slug, status: "approved" }).lean();
+    merchant = await Merchant.findOne({
+      slug: { $regex: new RegExp(`^${slug.toLowerCase()}$`, "i") },
+      status: { $ne: "rejected" },
+    }).lean();
 
     if (!merchant) {
       // Fallback to mock data so the page never 404s for demo brands
@@ -354,9 +357,18 @@ export default async function BrandPage({ params }) {
     } else {
       // ── Active coupons (not expired, not deleted/paused) ──
       const rawCoupons = await Coupon.find({
-        merchantId: merchant._id,
-        status: "active",
-        expiresAt: { $gt: new Date() },
+        $or: [
+          { merchantId: merchant._id },
+          { merchantId: merchant._id.toString() },
+          { merchantSlug: merchant.slug },
+          { brandSlug: merchant.slug },
+        ],
+        status: { $nin: ["deleted", "expired", "paused", "rejected"] },
+        $or: [
+          { expiresAt: { $gt: new Date() } },
+          { expiresAt: null },
+          { expiresAt: { $exists: false } },
+        ],
       })
         .sort({ isFeatured: -1, createdAt: -1 })
         .populate("merchantId", "businessName slug logo website")
@@ -364,25 +376,34 @@ export default async function BrandPage({ params }) {
       coupons = JSON.parse(JSON.stringify(rawCoupons || []));
 
       // ── Expired coupons (status=expired OR active but past expiresAt) ──
-      // Exclude deleted coupons — they should not surface publicly
       const rawExpired = await Coupon.find({
-        merchantId: merchant._id,
-        status: { $ne: "deleted" },
+        $or: [
+          { merchantId: merchant._id },
+          { merchantId: merchant._id.toString() },
+          { merchantSlug: merchant.slug },
+          { brandSlug: merchant.slug },
+        ],
+        status: { $nin: ["deleted"] },
         $or: [
           { status: "expired" },
-          { status: "active", expiresAt: { $lte: new Date() } },
+          { expiresAt: { $lte: new Date() } },
         ],
       })
         .sort({ expiresAt: -1 })
-        .limit(5)
+        .limit(10)
         .populate("merchantId", "businessName slug logo")
         .lean();
       expiredCoupons = JSON.parse(JSON.stringify(rawExpired || []));
 
       // ── Active Affiliate Products ──
       const rawAffiliateProducts = await AffiliateProduct.find({
-        merchantId: merchant._id,
-        status: "active",
+        $or: [
+          { merchantId: merchant._id },
+          { merchantId: merchant._id.toString() },
+          { merchantSlug: merchant.slug },
+          { brandSlug: merchant.slug },
+        ],
+        status: { $ne: "inactive" },
       })
         .sort({ createdAt: -1 })
         .lean();
@@ -397,18 +418,22 @@ export default async function BrandPage({ params }) {
   try {
     const isRealId = merchant._id && /^[0-9a-fA-F]{24}$/.test(merchant._id.toString());
     const relatedQuery = {
-      category: merchant.category,
-      status: "approved",
+      $or: [
+        { category: merchant.category },
+        { status: "approved" },
+        { status: "active" },
+        { isVerified: true },
+      ],
       ...(isRealId ? { _id: { $ne: merchant._id } } : {}),
+      status: { $ne: "rejected" },
     };
     // Only select public-safe fields — never expose PAN, GSTIN, bank details, authId
     const rawRelated = await Merchant.find(relatedQuery)
       .select(MERCHANT_PUBLIC_FIELDS)
-      .limit(6)
+      .limit(8)
       .lean();
     relatedBrands = JSON.parse(JSON.stringify(rawRelated || []));
   } catch (err) {
-    // Related brands failing should not break the whole page
     console.warn("Related brands fetch failed (non-fatal):", err.message);
     relatedBrands = [];
   }

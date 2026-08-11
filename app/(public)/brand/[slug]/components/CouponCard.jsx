@@ -35,10 +35,7 @@ export default function CouponCard({
     : null;
 
   return (
-    <div
-      className="bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md hover:border-blue-100"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
-    >
+    <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden transition-all duration-200 shadow-xs hover:shadow-md hover:border-blue-300 font-sans text-left">
       {/* Main card row */}
       <div className="flex flex-col sm:flex-row items-stretch">
         {/* Discount badge column */}
