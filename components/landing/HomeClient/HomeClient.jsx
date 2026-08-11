@@ -301,11 +301,11 @@ export function HomeClient({
       {/* Sticky Navbar */}
       <Navbar />
 
-      {/* Main Container */}
-      <main className="w-full px-4 md:px-8 pt-6 pb-2">
+      {/* Main Container — Full-width Hero with 3-6px spacing */}
+      <main className="w-full px-1 sm:px-1.5 pt-1 sm:pt-1.5 pb-1">
         {/* 4. Split Hero Section */}
         <section
-          className="g-main-banner main__banner__div"
+          className="g-main-banner main__banner__div w-full"
           data-toppicks-show="True"
         >
           <HeroSection banners={banners} />
@@ -382,16 +382,7 @@ export function HomeClient({
         />
       )}
 
-      {/* Interest Capture Banner (for anonymous visitors) */}
-      {isMounted && (
-        <InterestBanner
-          show={showInterestBanner}
-          onDismiss={handleDismissInterestsBanner}
-          selectedInterests={selectedInterests}
-          setSelectedInterests={setSelectedInterests}
-          handleSaveInterests={handleSaveInterests}
-        />
-      )}
+
 
       {/* Popup Banner Modal */}
       {isMounted && <PopupBannerModal banners={banners} />}

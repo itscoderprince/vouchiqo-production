@@ -307,7 +307,7 @@ export default function PopularStores({ merchants = [] }) {
 
       <div className="flex flex-col lg:flex-row gap-6 mt-6 items-stretch">
         {/* ── Store of the Month Card ── */}
-        <div className="w-full lg:w-1/4 shrink-0 flex flex-col h-auto lg:h-[400px]">
+        <div className="w-full lg:w-1/4 shrink-0 flex flex-col h-auto lg:h-[432px]">
           <Link
             href={somHref}
             className="flex-1 relative flex flex-col justify-between no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] group transition-all duration-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)] hover:border-blue-600 h-full"
@@ -419,7 +419,7 @@ export default function PopularStores({ merchants = [] }) {
           height: 290px;
         }
         @media (min-width: 768px) {
-          .gp-feat { height: 400px; }
+          .gp-feat { height: 432px; }
         }
         .gp-feat:hover {
           box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
@@ -545,11 +545,11 @@ export default function PopularStores({ merchants = [] }) {
 
         /* ── Right-side store grid ── */
         .gp-store-wrap {
-          height: 350px;
+          height: 390px;
         }
         @media (min-width: 1024px) {
           .gp-store-wrap {
-            height: 400px;
+            height: 432px;
           }
         }
 

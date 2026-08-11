@@ -6,23 +6,29 @@ import { useLocation } from "@/hooks/use-location";
 
 export default function LocationPromptModal() {
   const [show, setShow] = useState(false);
+  const [isAcceptClicked, setIsAcceptClicked] = useState(false);
   const { city, status, detect } = useLocation();
-  const isDetecting = status === "detecting";
 
-  // Show if no city is set and not dismissed
+  const isDetecting = status === "detecting" || isAcceptClicked;
+
+  // Show modal if no city is set and hasn't been prompted/dismissed in localStorage
   useEffect(() => {
-    const prompted = localStorage.getItem("vouchiqo_location_prompted");
-    if (!city && prompted !== "true") {
-      const timer = setTimeout(() => {
-        if (!document.querySelector('[data-slot="dialog-content"]')) {
-          setShow(true);
-        }
-      }, 1800);
-      return () => clearTimeout(timer);
+    try {
+      const prompted = localStorage.getItem("vouchiqo_location_prompted");
+      if (!city && prompted !== "true") {
+        const timer = setTimeout(() => {
+          if (!document.querySelector('[data-slot="dialog-content"]')) {
+            setShow(true);
+          }
+        }, 1800);
+        return () => clearTimeout(timer);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }, [city]);
 
-  // Listen for custom trigger event from Navbar or other selector options
+  // Listen for custom trigger event from Navbar or location selector
   useEffect(() => {
     const handleOpen = () => setShow(true);
     window.addEventListener("show-location-prompt", handleOpen);
@@ -30,19 +36,47 @@ export default function LocationPromptModal() {
   }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem("vouchiqo_location_prompted", "true");
+    try {
+      localStorage.setItem("vouchiqo_location_prompted", "true");
+    } catch (e) {}
+    setIsAcceptClicked(false);
     setShow(false);
   };
 
   const handleAccept = () => {
+    try {
+      localStorage.setItem("vouchiqo_location_prompted", "true");
+    } catch (e) {}
+    setIsAcceptClicked(true);
     detect();
-    localStorage.setItem("vouchiqo_location_prompted", "true");
+
+    // Fallback timer: guarantee modal auto-closes after 3.5s max even if browser prompt hangs
+    setTimeout(() => {
+      setShow(false);
+      setIsAcceptClicked(false);
+    }, 3500);
   };
 
-  // Close modal automatically once location is successfully set
+  // Close modal automatically whenever detection completes or status transitions
+  useEffect(() => {
+    if (show && isAcceptClicked) {
+      if (
+        status === "ready" ||
+        status === "denied" ||
+        status === "unavailable" ||
+        status === "idle"
+      ) {
+        setShow(false);
+        setIsAcceptClicked(false);
+      }
+    }
+  }, [show, isAcceptClicked, status]);
+
+  // Also close modal if city is populated
   useEffect(() => {
     if (city && show) {
       setShow(false);
+      setIsAcceptClicked(false);
     }
   }, [city, show]);
 

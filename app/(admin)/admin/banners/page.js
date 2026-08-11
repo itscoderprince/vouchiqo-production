@@ -245,6 +245,32 @@ export default function BannerManagement() {
     }
   };
 
+  const handleToggleSponsored = async (bannerId, currentIsPaid) => {
+    const nextIsPaid = !currentIsPaid;
+    try {
+      const res = await fetch("/api/admin/banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: bannerId, isPaid: nextIsPaid }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showSuccess(
+          `Placement updated to ${nextIsPaid ? "Sponsored" : "Standard"}.`,
+        );
+        setBanners((prev) =>
+          prev.map((b) =>
+            b._id === bannerId ? { ...b, isPaid: nextIsPaid } : b,
+          ),
+        );
+      } else {
+        showError(json.error || "Failed to update placement type.");
+      }
+    } catch (err) {
+      showError("Failed to update placement type.");
+    }
+  };
+
   const handleToggleStatus = async (bannerId, currentStatus) => {
     const nextStatus = currentStatus === "active" ? "inactive" : "active";
     try {
@@ -437,7 +463,13 @@ export default function BannerManagement() {
       header: "Type",
       align: "center",
       cell: (r) => (
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center gap-1.5">
+          <Switch
+            size="sm"
+            checked={Boolean(r.isPaid)}
+            onCheckedChange={() => handleToggleSponsored(r._id, r.isPaid)}
+            aria-label="Toggle Sponsored placement"
+          />
           {r.isPaid ? (
             <span className="text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.2 rounded-full">
               Sponsored
