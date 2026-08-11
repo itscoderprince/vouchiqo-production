@@ -145,7 +145,9 @@ export function HeroSection({ banners: initialBanners = [] }) {
                   slide.link?.startsWith("http://") ||
                   slide.link?.startsWith("https://");
                 const hasText = Boolean(
-                  slide.title || slide.subtitle || slide.buttonText,
+                  (slide.title && slide.title.trim() !== "") ||
+                    (slide.subtitle && slide.subtitle.trim() !== "") ||
+                    (slide.buttonText && slide.buttonText.trim() !== ""),
                 );
 
                 const linkContent = (

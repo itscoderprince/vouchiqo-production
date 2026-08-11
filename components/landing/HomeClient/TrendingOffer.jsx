@@ -103,7 +103,11 @@ export const TrendingOffer = ({ banners: initialBanners = [] }) => {
             s.link?.startsWith("http://") || s.link?.startsWith("https://");
           const targetUrl = s.link && s.link !== "#" ? s.link : "/deals";
 
-          const hasText = Boolean(s.title || s.subtitle || s.buttonText);
+          const hasText = Boolean(
+            (s.title && s.title.trim() !== "") ||
+              (s.subtitle && s.subtitle.trim() !== "") ||
+              (s.buttonText && s.buttonText.trim() !== ""),
+          );
 
           const innerContent = (
             <div className="relative w-full h-full">

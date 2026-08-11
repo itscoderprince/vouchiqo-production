@@ -17,6 +17,7 @@ const dev = process.env.NODE_ENV !== "production";
 if (dev) {
   const devDir = path.join(process.cwd(), ".next", "dev");
   const reqFilesPath = path.join(devDir, "required-server-files.json");
+  const buildIdPath = path.join(devDir, "BUILD_ID");
   try {
     if (!fs.existsSync(devDir)) {
       fs.mkdirSync(devDir, { recursive: true });
@@ -33,6 +34,9 @@ if (dev) {
         }),
         "utf8"
       );
+    }
+    if (!fs.existsSync(buildIdPath)) {
+      fs.writeFileSync(buildIdPath, "development", "utf8");
     }
   } catch (e) {
     // Ignore FS errors

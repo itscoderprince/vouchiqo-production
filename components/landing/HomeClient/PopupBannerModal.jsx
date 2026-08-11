@@ -66,7 +66,9 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
   const targetUrl = activeBanner.link && activeBanner.link !== "#" ? activeBanner.link : "/deals";
 
   const hasText = Boolean(
-    activeBanner.title || activeBanner.subtitle || activeBanner.buttonText,
+    (activeBanner.title && activeBanner.title.trim() !== "") ||
+      (activeBanner.subtitle && activeBanner.subtitle.trim() !== "") ||
+      (activeBanner.buttonText && activeBanner.buttonText.trim() !== ""),
   );
 
   const modalBody = (
