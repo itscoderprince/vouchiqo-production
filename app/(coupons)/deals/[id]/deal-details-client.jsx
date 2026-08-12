@@ -51,17 +51,13 @@ function CountdownTimer({ expiresAt }) {
   }, [expiresAt]);
 
   return (
-    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 text-white px-4 py-2 rounded-xl text-xs font-black shadow-md border border-slate-700 select-none">
-      <span className="relative flex h-2.5 w-2.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-      </span>
-      <span className="text-amber-400 font-extrabold uppercase text-[10px] tracking-wider">Offer Expires In:</span>
-      <div className="flex items-center gap-1 font-mono font-black text-xs text-white">
-        <span className="bg-slate-800/80 px-1.5 py-0.5 rounded text-white">{String(timeLeft.days).padStart(2, "0")}d</span>:
-        <span className="bg-slate-800/80 px-1.5 py-0.5 rounded text-white">{String(timeLeft.hours).padStart(2, "0")}h</span>:
-        <span className="bg-slate-800/80 px-1.5 py-0.5 rounded text-white">{String(timeLeft.minutes).padStart(2, "0")}m</span>:
-        <span className="bg-emerald-950/80 px-1.5 py-0.5 rounded text-emerald-400 border border-emerald-500/30">{String(timeLeft.seconds).padStart(2, "0")}s</span>
+    <div className="pt-2 flex items-center justify-center">
+      <div className="inline-flex items-center gap-2 bg-slate-100/90 border border-slate-200/80 text-slate-700 px-4 py-2 rounded-full text-xs font-bold shadow-2xs select-none">
+        <Clock className="w-3.5 h-3.5 text-amber-500" />
+        <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Offer Expires In:</span>
+        <span className="font-mono font-black text-slate-800 tracking-wider">
+          {timeLeft.days}d : {String(timeLeft.hours).padStart(2, "0")}h : {String(timeLeft.minutes).padStart(2, "0")}m : {String(timeLeft.seconds).padStart(2, "0")}s
+        </span>
       </div>
     </div>
   );
@@ -307,9 +303,6 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
           </button>
 
           <div className="flex items-center gap-3">
-            {/* Live Expiry Countdown */}
-            <CountdownTimer expiresAt={coupon.expiresAt} />
-
             {/* Save Offer Toggle Action */}
             <button
               type="button"
@@ -347,7 +340,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Coupon Card (Left) */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 shadow-md overflow-hidden">
-            {/* Header section: label, title, countdown, and logo */}
+            {/* Header section: label, title, and logo */}
             <div className="p-6 md:p-8 flex justify-between items-start gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-900/[0.02] to-blue-50/20">
               <div className="space-y-3">
                 <div className="flex items-center gap-2.5">
@@ -421,7 +414,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               </div>
 
               {/* Dotted coupon box */}
-              <div className="max-w-md mx-auto select-all">
+              <div className="max-w-md mx-auto select-all space-y-3">
                 <button
                   type="button"
                   onClick={handleCopyCode}
@@ -440,6 +433,9 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                     </span>
                   </div>
                 </button>
+
+                {/* Simple Countdown directly under coupon code box */}
+                <CountdownTimer expiresAt={coupon.expiresAt} />
               </div>
 
               {/* Unique In-Store Claim Card */}
