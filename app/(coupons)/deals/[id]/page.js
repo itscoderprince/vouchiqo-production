@@ -17,10 +17,14 @@ export async function generateMetadata({ params }) {
   try {
     const coupon = await getCouponById(id);
     const brandName = coupon.merchantId?.businessName || "Verified Partner";
+    const val = coupon.rawDiscountValue || coupon.discountValue;
+    const isNum = val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
     const discountText =
-      coupon.discountType === "percentage"
-        ? `${coupon.discountValue}% OFF`
-        : `₹${coupon.discountValue} OFF`;
+      coupon.discountType === "percentage" && isNum
+        ? `${val}% OFF`
+        : coupon.discountType === "fixed" && isNum
+          ? `₹${val} OFF`
+          : "SPECIAL DEAL";
 
     const title = `${discountText} ${brandName} Coupon - ${coupon.title} | Vouchiqo`;
     const description =
