@@ -12,6 +12,7 @@ import {
   Tag,
   Ticket,
 } from "lucide-react";
+import { Controller, useWatch } from "react-hook-form";
 import { FormInput, FormSelect, FormTextarea } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -51,8 +52,6 @@ const REDEMPTION_METHODS = [
   },
 ];
 
-import { useWatch } from "react-hook-form";
-
 export default function SectionDiscount({
   control,
   register,
@@ -64,26 +63,39 @@ export default function SectionDiscount({
   onNext,
 }) {
   const offerType = useWatch({ control, name: "offerType" });
-  const discountType = useWatch({ control, name: "discountType" });
+  const discountType = useWatch({ control, name: "discountType" }) || "% Off";
   const specialOfferType = useWatch({ control, name: "specialOfferType" });
   const redemptionMethod = useWatch({ control, name: "redemptionMethod" });
 
+  const isFlatDiscount = discountType === "Flat ₹ Off";
+  const isPercentageDiscount = discountType === "% Off";
+  const isCustomDeal = !isFlatDiscount && !isPercentageDiscount;
+
   return (
-    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6 text-left font-sans">
-      <div className="border-b border-slate-100 pb-3">
-        <h3 className="text-base font-bold text-slate-900">
-          Section 3: Discount &amp; In-Store Mechanics
-        </h3>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">
-          Configure codes, discount values, caps &amp; in-store pricing
-          structure
-        </p>
+    <Card className="border-slate-200/90 shadow-sm rounded-2xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans relative overflow-hidden">
+      {/* Top Light Accent Bar */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+
+      <div className="border-b border-slate-100 pb-2.5 pt-1 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+            <Ticket className="w-4 h-4" />
+          </span>
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+              Section 3: Discount &amp; In-Store Mechanics
+            </h3>
+            <p className="text-[11px] text-slate-500 font-medium">
+              Configure codes, discount values, caps &amp; in-store pricing structure
+            </p>
+          </div>
+        </div>
       </div>
 
       {offerType === "code" && (
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Offer Code Input Card */}
-          <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200/80 space-y-2">
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                 Offer Code Configuration
@@ -112,42 +124,74 @@ export default function SectionDiscount({
                 )
               }
               error={errors.code}
-              className="font-mono uppercase font-bold text-base bg-white"
+              className="font-mono uppercase font-bold text-sm bg-white h-9"
             />
           </div>
 
           {/* Discount Type & Value in 2-column grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <FormSelect
-              label="Discount Type"
-              icon={Percent}
-              options={DISCOUNT_TYPES}
-              required
-              value={discountType}
-              onValueChange={(val) =>
-                setValue("discountType", val, { shouldValidate: true })
-              }
-              error={errors.discountType}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
+              name="discountType"
+              control={control}
+              render={({ field }) => (
+                <FormSelect
+                  label="Discount Type"
+                  icon={Percent}
+                  options={DISCOUNT_TYPES}
+                  required
+                  value={field.value}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    setValue("discountType", val, { shouldValidate: true });
+                  }}
+                  error={errors.discountType}
+                />
+              )}
             />
 
-            <FormInput
-              label="Discount Value"
-              icon={DollarSign}
-              type="number"
-              placeholder="e.g. 20 (for 20% or ₹200)"
-              required
-              {...register("discountValue")}
-              error={errors.discountValue}
-            />
+            {isPercentageDiscount && (
+              <FormInput
+                label="Discount Percentage (%)"
+                icon={Percent}
+                type="number"
+                placeholder="e.g. 20 (for 20% off)"
+                required
+                {...register("discountValue")}
+                error={errors.discountValue}
+              />
+            )}
+
+            {isFlatDiscount && (
+              <FormInput
+                label="Flat Discount Amount (₹)"
+                icon={DollarSign}
+                type="number"
+                placeholder="e.g. 200 (for ₹200 off)"
+                required
+                {...register("discountValue")}
+                error={errors.discountValue}
+              />
+            )}
+
+            {isCustomDeal && (
+              <FormInput
+                label="Deal / Offer Detail"
+                icon={Gift}
+                type="text"
+                placeholder="e.g. Buy 1 Get 1 or Free Gift on bill"
+                {...register("discountValue")}
+                error={errors.discountValue}
+              />
+            )}
           </div>
 
           {/* Max Cap & Min Order Value in 2-column grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Maximum Discount Cap (₹)"
               icon={ShieldCheck}
               type="number"
-              placeholder="e.g. 2000"
+              placeholder="e.g. 2000 (Optional limit)"
               {...register("maxCap")}
               error={errors.maxCap}
             />
@@ -156,7 +200,7 @@ export default function SectionDiscount({
               label="Minimum In-Store Purchase Value (₹)"
               icon={Tag}
               type="number"
-              placeholder="e.g. 5000"
+              placeholder="e.g. 5000 (Optional minimum bill)"
               {...register("minOrderValue")}
               error={errors.minOrderValue}
             />
@@ -164,15 +208,17 @@ export default function SectionDiscount({
         </div>
       )}
 
-      {/* In-Store Price Drop / Deal Mode (No URL - Offline Local Businesses Only) */}
+      {/* In-Store Price Drop / Deal Mode */}
       {offerType === "deal" && (
-        <div className="space-y-5">
-          <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-800 font-medium">
-            💡 <strong>In-Store Deal:</strong> Set your original store MRP and
-            discounted offer price for customers visiting your shop in Ranchi.
+        <div className="space-y-4">
+          <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-800 font-medium flex items-center gap-2">
+            <span>💡</span>
+            <span>
+              <strong>In-Store Deal:</strong> Set your original store MRP and discounted offer price for customers visiting your store.
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Original Price (MRP ₹)"
               icon={DollarSign}
@@ -197,30 +243,44 @@ export default function SectionDiscount({
 
       {/* Special Offer / Gift Mode */}
       {offerType === "special" && (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <FormSelect
-              label="Special Offer Format"
-              icon={Gift}
-              options={SPECIAL_OFFER_TYPES}
-              required
-              value={specialOfferType}
-              onValueChange={(val) =>
-                setValue("specialOfferType", val, { shouldValidate: true })
-              }
-              error={errors.specialOfferType}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
+              name="specialOfferType"
+              control={control}
+              render={({ field }) => (
+                <FormSelect
+                  label="Special Offer Format"
+                  icon={Gift}
+                  options={SPECIAL_OFFER_TYPES}
+                  required
+                  value={field.value}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    setValue("specialOfferType", val, { shouldValidate: true });
+                  }}
+                  error={errors.specialOfferType}
+                />
+              )}
             />
 
-            <FormSelect
-              label="Redemption Method"
-              icon={Ticket}
-              options={REDEMPTION_METHODS}
-              required
-              value={redemptionMethod}
-              onValueChange={(val) =>
-                setValue("redemptionMethod", val, { shouldValidate: true })
-              }
-              error={errors.redemptionMethod}
+            <Controller
+              name="redemptionMethod"
+              control={control}
+              render={({ field }) => (
+                <FormSelect
+                  label="Redemption Method"
+                  icon={Ticket}
+                  options={REDEMPTION_METHODS}
+                  required
+                  value={field.value}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    setValue("redemptionMethod", val, { shouldValidate: true });
+                  }}
+                  error={errors.redemptionMethod}
+                />
+              )}
             />
           </div>
 
@@ -236,20 +296,21 @@ export default function SectionDiscount({
         </div>
       )}
 
-      <div className="flex justify-between pt-4 border-t border-slate-100">
+      {/* Navigation Buttons */}
+      <div className="flex justify-between pt-3 border-t border-slate-100">
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-9 px-4"
+          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
         >
-          <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
+          <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-9 px-6 rounded-xl flex items-center gap-2 cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-8 px-5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20"
         >
           <span>Continue to Validity &amp; Limits</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       </div>
     </Card>

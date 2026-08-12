@@ -71,15 +71,12 @@ export function useCreateCouponForm() {
     },
   });
 
-  // Auto-fill category from merchant's registered profile if not manually changed
+  // Auto-fill category from merchant's registered profile and keep it locked
   useEffect(() => {
     if (merchant?.category) {
-      const currentCategory = form.getValues("category");
-      if (!currentCategory || currentCategory === "home-improvement") {
-        form.setValue("category", merchant.category, { shouldValidate: true });
-      }
+      form.setValue("category", merchant.category, { shouldValidate: true });
     }
-  }, [merchant, form.getValues, form.setValue]);
+  }, [merchant?.category, form]);
 
   // Step-by-step navigation guard
   const goToNextSection = async () => {

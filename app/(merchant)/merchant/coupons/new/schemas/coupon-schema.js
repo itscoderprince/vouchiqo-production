@@ -92,14 +92,19 @@ export const couponSchema = z
           message: "Offer Code is required for code offer type",
         });
       }
+      const isNumericDiscount =
+        data.discountType === "% Off" || data.discountType === "Flat ₹ Off";
       if (
-        data.discountType !== "Free Shipping" &&
+        isNumericDiscount &&
         (!data.discountValue || data.discountValue.trim().length === 0)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["discountValue"],
-          message: "Discount Value is required",
+          message:
+            data.discountType === "Flat ₹ Off"
+              ? "Flat discount amount is required"
+              : "Discount percentage is required",
         });
       }
     } else if (data.offerType === "special") {
