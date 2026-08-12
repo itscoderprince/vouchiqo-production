@@ -83,13 +83,13 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
 
       {/* Pure Banner Image */}
       <div
-        className="relative w-full min-h-[240px] flex items-center justify-center bg-slate-950"
+        className="relative w-full flex items-center justify-center bg-slate-950"
         style={{ aspectRatio: "600 / 400" }}
       >
         <img
           src={activeBanner.image}
           alt={activeBanner.title || "Promotional Banner"}
-          className="w-full h-full object-contain sm:object-cover cursor-pointer"
+          className="w-full h-full object-cover cursor-pointer"
         />
       </div>
     </div>
