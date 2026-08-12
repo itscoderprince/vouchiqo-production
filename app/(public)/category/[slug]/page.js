@@ -124,7 +124,12 @@ export default async function CategoryPage({ params }) {
     subs: [],
   };
 
-  const categoryTitle = categoryInfo.title;
+  const safeCategoryTitle = String(categoryInfo.title || cleanSlug);
+  const safeEmoji = String(categoryInfo.emoji || "🏷️");
+  const safeSubs = (categoryInfo.subs || []).map((s) =>
+    typeof s === "object" ? String(s?.name || s?.title || "") : String(s)
+  );
+
   const categoryRegex = new RegExp(cleanSlug.replace(/-/g, "|"), "i");
 
   // Fetch active coupons in category
@@ -133,21 +138,36 @@ export default async function CategoryPage({ params }) {
     expiresAt: { $gt: new Date() },
     $or: [
       { category: cleanSlug },
-      { category: categoryTitle },
+      { category: safeCategoryTitle },
       { category: categoryRegex },
     ],
   })
     .populate("merchantId", "businessName slug logo")
     .lean();
 
-  const coupons = JSON.parse(JSON.stringify(rawCoupons || []));
+  const parsedCoupons = JSON.parse(JSON.stringify(rawCoupons || []));
+  const coupons = parsedCoupons.map((c) => ({
+    ...c,
+    _id: String(c._id),
+    title: typeof c.title === "string" ? c.title : String(c.title?.title || "Exclusive Offer"),
+    description: typeof c.description === "string" ? c.description : String(c.description?.text || ""),
+    category: typeof c.category === "object" ? String(c.category?.title || c.category?.name || cleanSlug) : String(c.category || cleanSlug),
+    discountValue: typeof c.discountValue === "number" ? c.discountValue : (Number(c.discountValue) || 15),
+    discountType: typeof c.discountType === "string" ? c.discountType : "percentage",
+    merchantId: typeof c.merchantId === "object" && c.merchantId !== null ? {
+      _id: String(c.merchantId._id || ""),
+      businessName: String(c.merchantId.businessName || "Partner"),
+      slug: String(c.merchantId.slug || ""),
+      logo: String(c.merchantId.logo || ""),
+    } : String(c.merchantId || "Partner"),
+  }));
 
   // Fetch active affiliate products in category
   const rawAffiliateProducts = await AffiliateProduct.find({
     status: "active",
     $or: [
       { category: cleanSlug },
-      { category: categoryTitle },
+      { category: safeCategoryTitle },
       { category: categoryRegex },
     ],
   })
@@ -155,9 +175,27 @@ export default async function CategoryPage({ params }) {
     .sort({ createdAt: -1 })
     .lean();
 
-  const affiliateProducts = JSON.parse(
+  const parsedAffiliates = JSON.parse(
     JSON.stringify(rawAffiliateProducts || [])
   );
+  const affiliateProducts = parsedAffiliates.map((p) => ({
+    ...p,
+    _id: String(p._id),
+    title: typeof p.title === "string" ? p.title : String(p.title?.title || "Special Deal"),
+    description: typeof p.description === "string" ? p.description : "",
+    category: typeof p.category === "object" ? String(p.category?.title || p.category?.name || "Special") : String(p.category || "Special"),
+    originalPrice: typeof p.originalPrice === "number" ? p.originalPrice : (Number(p.originalPrice) || 0),
+    discountPrice: typeof p.discountPrice === "number" ? p.discountPrice : (Number(p.discountPrice) || 0),
+    discountPercentage: typeof p.discountPercentage === "number" ? p.discountPercentage : (Number(p.discountPercentage) || 0),
+    imageUrl: typeof p.imageUrl === "string" ? p.imageUrl : "",
+    affiliateUrl: typeof p.affiliateUrl === "string" ? p.affiliateUrl : "#",
+    merchantId: typeof p.merchantId === "object" && p.merchantId !== null ? {
+      _id: String(p.merchantId._id || ""),
+      businessName: String(p.merchantId.businessName || "Partner"),
+      slug: String(p.merchantId.slug || ""),
+      logo: String(p.merchantId.logo || ""),
+    } : String(p.merchantId || "Partner"),
+  }));
 
   const totalOffersCount = coupons.length + affiliateProducts.length;
 
@@ -186,12 +224,12 @@ export default async function CategoryPage({ params }) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
             <div className="space-y-1.5">
               <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
-                <span className="text-3xl md:text-4xl">{categoryInfo.emoji}</span>
-                <span>{categoryInfo.title} Offers & Vouchers</span>
+                <span className="text-3xl md:text-4xl">{safeEmoji}</span>
+                <span>{safeCategoryTitle} Offers & Vouchers</span>
               </h1>
 
               <p className="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed font-medium">
-                Explore {totalOffersCount} active verified promo codes, store discounts, and exclusive affiliate deals in {categoryInfo.title}.
+                Explore {totalOffersCount} active verified promo codes, store discounts, and exclusive affiliate deals in {safeCategoryTitle}.
               </p>
             </div>
 
@@ -209,12 +247,12 @@ export default async function CategoryPage({ params }) {
       {/* Full Width Main Container */}
       <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-8 text-left">
         {/* Sub-category chips */}
-        {categoryInfo.subs.length > 0 && (
+        {safeSubs.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
             <span className="text-xs font-black text-slate-700 uppercase tracking-wider pr-2">
               Popular Sub-Categories:
             </span>
-            {categoryInfo.subs.map((sub, idx) => (
+            {safeSubs.map((sub, idx) => (
               <Badge
                 key={idx}
                 className="bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1 text-xs font-bold hover:border-brand-blue hover:text-brand-blue hover:bg-blue-50/50 cursor-pointer transition-all shadow-2xs"

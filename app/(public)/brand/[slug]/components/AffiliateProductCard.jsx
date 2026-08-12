@@ -3,6 +3,8 @@
 import { ExternalLink, ShoppingBag } from "lucide-react";
 
 export default function AffiliateProductCard({ product }) {
+  if (!product) return null;
+
   const {
     _id,
     title,
@@ -15,10 +17,15 @@ export default function AffiliateProductCard({ product }) {
     description,
   } = product;
 
-  const savings = Math.max(0, originalPrice - discountPrice);
-  const percentOff = discountPercentage || (originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0);
+  const displayTitle = typeof title === "string" ? title : String(title?.title || "Special Deal");
+  const displayDesc = typeof description === "string" ? description : String(description?.text || "");
+  const numOrig = typeof originalPrice === "number" ? originalPrice : (Number(originalPrice) || 0);
+  const numDisc = typeof discountPrice === "number" ? discountPrice : (Number(discountPrice) || 0);
 
-  const categoryName = typeof category === "object" ? (category?.title || category?.name || "Special") : (category || "Special");
+  const savings = Math.max(0, numOrig - numDisc);
+  const percentOff = discountPercentage || (numOrig > 0 ? Math.round((savings / numOrig) * 100) : 0);
+
+  const categoryName = typeof category === "object" ? String(category?.title || category?.name || "Special") : String(category || "Special");
 
   const handleClick = () => {
     try {
@@ -36,7 +43,7 @@ export default function AffiliateProductCard({ product }) {
       }
     } catch {}
 
-    window.open(affiliateUrl, "_blank", "noopener,noreferrer");
+    window.open(affiliateUrl || "#", "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -71,23 +78,23 @@ export default function AffiliateProductCard({ product }) {
         </div>
 
         <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-1 tracking-tight">
-          {title}
+          {displayTitle}
         </h3>
 
-        {description && (
+        {displayDesc ? (
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium line-clamp-1 leading-normal">
-            {description}
+            {displayDesc}
           </p>
-        )}
+        ) : null}
 
         {/* Price Row */}
         <div className="flex items-baseline gap-2 pt-0.5">
           <span className="text-base sm:text-lg font-black text-slate-900">
-            ₹{discountPrice?.toLocaleString()}
+            ₹{numDisc.toLocaleString()}
           </span>
-          {originalPrice > discountPrice && (
+          {numOrig > numDisc && (
             <span className="text-xs font-semibold text-slate-400 line-through">
-              ₹{originalPrice?.toLocaleString()}
+              ₹{numOrig.toLocaleString()}
             </span>
           )}
           {savings > 0 && (
