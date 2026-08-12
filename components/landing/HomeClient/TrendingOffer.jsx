@@ -88,10 +88,10 @@ export const TrendingOffer = ({ banners: initialBanners = [] }) => {
         Trending Offer
       </h2>
 
-      {/* Carousel wrapper */}
+      {/* Carousel wrapper with responsive 1400:300 (~4.67:1) aspect ratio */}
       <div
-        className="relative w-full rounded-xl overflow-hidden cursor-grab active:cursor-grabbing shadow-sm border border-slate-200/80 bg-slate-950"
-        style={{ height: "200px" }}
+        className="relative w-full rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing shadow-sm border border-slate-200/80 bg-slate-950"
+        style={{ aspectRatio: "1400 / 300", minHeight: "120px" }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
@@ -110,14 +110,14 @@ export const TrendingOffer = ({ banners: initialBanners = [] }) => {
           );
 
           const innerContent = (
-            <div className="relative w-full h-full">
-              {/* Background image */}
+            <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
+              {/* Background image matching 1400x300 aspect ratio */}
               <img
                 src={s.image}
                 alt={s.title || "Trending Banner"}
-                className="w-full h-full object-cover transition-transform duration-700"
+                className="w-full h-full object-contain md:object-cover transition-transform duration-700"
                 style={{
-                  transform: idx === current ? "scale(1.02)" : "scale(1)",
+                  transform: idx === current ? "scale(1.01)" : "scale(1)",
                 }}
               />
 

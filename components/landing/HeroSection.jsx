@@ -222,7 +222,10 @@ export function HeroSection({ banners: initialBanners = [] }) {
     <div className="w-full flex flex-col select-none">
       {/* Full Width Banners Section */}
       <section className="select-none w-full text-left">
-        <div className="w-full rounded-md overflow-hidden shadow-sm relative group border border-slate-200/80 bg-slate-950 h-[220px] sm:h-[340px] md:h-[460px]">
+        <div
+          className="w-full rounded-md overflow-hidden shadow-sm relative group border border-slate-200/80 bg-slate-950 min-h-[200px]"
+          style={{ aspectRatio: "1200 / 430" }}
+        >
           {/* Viewport for horizontal sliding */}
           <div
             className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing touch-pan-y"
@@ -253,11 +256,11 @@ export function HeroSection({ banners: initialBanners = [] }) {
                 );
 
                 const linkContent = (
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
                     <img
                       src={slide.image}
                       alt={slide.title || slide.name || "Banner slide"}
-                      className="w-full h-full object-cover cursor-pointer select-none pointer-events-none"
+                      className="w-full h-full object-contain md:object-cover cursor-pointer select-none pointer-events-none"
                       draggable={false}
                     />
 
