@@ -18,6 +18,8 @@ export default function AffiliateProductCard({ product }) {
   const savings = Math.max(0, originalPrice - discountPrice);
   const percentOff = discountPercentage || (originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0);
 
+  const categoryName = typeof category === "object" ? (category?.title || category?.name || "Special") : (category || "Special");
+
   const handleClick = () => {
     try {
       const payload = JSON.stringify({ action: "click", productId: _id });
@@ -45,7 +47,7 @@ export default function AffiliateProductCard({ product }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
-            alt={title}
+            alt={typeof title === "string" ? title : "Product"}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-lg"
             onError={(e) => {
               e.target.src =
@@ -65,7 +67,7 @@ export default function AffiliateProductCard({ product }) {
       {/* Middle Details */}
       <div className="flex-1 min-w-0 space-y-1">
         <div className="inline-flex items-center bg-blue-50 border border-blue-100/80 text-blue-700 text-[8.5px] sm:text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded">
-          <span>Affiliate Deal · {category || "Special"}</span>
+          <span>Affiliate Deal · {String(categoryName)}</span>
         </div>
 
         <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-1 tracking-tight">

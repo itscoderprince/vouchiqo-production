@@ -28,7 +28,8 @@ export default function CouponCard({
   const trackedImpression = useRef(false);
 
   const mId = typeof merchantId === "object" ? merchantId?._id : merchantId;
-  const merchantName = typeof merchantId === "object" ? merchantId?.businessName : undefined;
+  const rawMerchantName = typeof merchantId === "object" ? merchantId?.businessName : (typeof merchantId === "string" ? merchantId : undefined);
+  const mName = typeof rawMerchantName === "string" ? rawMerchantName : "Partner";
 
   useEffect(() => {
     if (!cardRef.current || trackedImpression.current) return;
@@ -54,16 +55,33 @@ export default function CouponCard({
     track("click", { couponId: _id, merchantId: mId, source });
   };
 
-  const discountFormatted =
-    discountType === "percentage"
-      ? `${discountValue}% OFF`
-      : `₹${discountValue} OFF`;
+  const rawVal = coupon.rawDiscountValue || discountValue;
+  const rawType = coupon.rawDiscountType || discountType;
+  const isNum = rawVal !== null && rawVal !== undefined && rawVal !== "" && !isNaN(Number(rawVal));
+  const num = Number(rawVal);
+
+  const discountFormatted = (() => {
+    if (rawType === "percentage") {
+      if (isNum && num <= 100) return `${num}% OFF`;
+      if (isNum && num > 100) return `₹${num} OFF`;
+      return `${rawVal || 15}% OFF`;
+    }
+    if (rawType === "fixed" || rawType === "flat") {
+      return isNum ? `₹${num} OFF` : `₹${rawVal || 200} OFF`;
+    }
+    if (rawType === "freebie" || rawType === "bogo") {
+      return "BUY 1 GET 1 FREE";
+    }
+    return isNum && num <= 100 ? `${num}% OFF` : isNum ? `₹${num} OFF` : "SPECIAL OFFER";
+  })();
 
   const isExpiringSoon = expiresAt
     ? new Date(expiresAt) - Date.now() < 86400000 * 2 // Less than 2 days
     : false;
 
   const isHotOrFeatured = coupon.isHot || coupon.isFeatured;
+  const displayTitle = typeof title === "string" ? title : "Exclusive Offer";
+  const displayDesc = typeof description === "string" ? description : "No description provided. Terms and conditions apply.";
 
   return (
     <div
@@ -79,10 +97,10 @@ export default function CouponCard({
         {/* Merchant Brand Info */}
         <div className="flex items-center gap-2 mb-3">
           <div className="w-7 h-7 rounded-md bg-blue-50 border border-blue-100 flex items-center justify-center font-bold text-[11px] text-blue-600">
-            {merchantName ? merchantName[0].toUpperCase() : "M"}
+            {mName ? mName[0].toUpperCase() : "M"}
           </div>
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            {merchantName || "Premium Partner"}
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">
+            {mName}
           </span>
         </div>
 
@@ -91,11 +109,10 @@ export default function CouponCard({
           {discountFormatted}
         </h3>
         <p className="text-xs font-medium text-slate-700 mb-1.5 leading-snug line-clamp-1">
-          {title}
+          {displayTitle}
         </p>
         <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-          {description ||
-            "No description provided. Terms and conditions apply."}
+          {displayDesc}
         </p>
       </Link>
 
