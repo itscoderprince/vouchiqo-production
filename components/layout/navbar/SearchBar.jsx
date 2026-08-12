@@ -1,31 +1,23 @@
 "use client";
 
-import { Search, X, Store, Tag, Layers, ChevronRight } from "lucide-react";
+import { Search, X, Store, Tag, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-const POPULAR_BRANDS_INDEX = [
-  { name: "Maa Storefront", slug: "maa", category: "Grocery & Retail", type: "brand", logo: "/brandlogos/10001.jpg" },
-  { name: "Bewakoof.com", slug: "bewakoof", category: "Fashion & Apparel", type: "brand", logo: "/brandlogos/10012.jpg" },
-  { name: "Blackberrys", slug: "blackberrys", category: "Menswear", type: "brand", logo: "/brandlogos/10015.jpg" },
-  { name: "Cosmic Byte", slug: "cosmic-byte", category: "Gaming & Tech", type: "brand", logo: "/brandlogos/10022.jpg" },
-  { name: "Crocks & Cuts", slug: "crocks-cuts", category: "Food & Dining", type: "brand", logo: "/brandlogos/10008.jpg" },
-  { name: "KGDC Enterprises LLP", slug: "kgdc", category: "Retail & Supply", type: "brand", logo: "/brandlogos/10030.jpg" },
-  { name: "Kama Ayurveda", slug: "kama-ayurveda", category: "Beauty & Wellness", type: "brand", logo: "/brandlogos/10018.jpg" },
-  { name: "Maheshwari Decor", slug: "maheshwari-decor", category: "Home & Living", type: "brand", logo: "/brandlogos/10005.jpg" },
-  { name: "Marbella Tiles & Sanitary", slug: "marbella-tiles", category: "Home Improvement", type: "brand", logo: "/brandlogos/10007.jpg" },
-  { name: "Milton", slug: "milton", category: "Home & Kitchen", type: "brand", logo: "/brandlogos/10009.jpg" },
-  { name: "Skydine Cafe", slug: "skydine-cafe", category: "Food & Dining", type: "brand", logo: "/brandlogos/10010.jpg" },
-  { name: "Soul Decor Aisha", slug: "soul-decor", category: "Home & Living", type: "brand", logo: "/brandlogos/10011.jpg" },
-  { name: "Zomato", slug: "zomato", category: "Food & Delivery", type: "brand", logo: "/brandlogos/10002.jpg" },
-  { name: "Starbucks", slug: "starbucks", category: "Cafes & Dining", type: "brand", logo: "/brandlogos/10003.jpg" },
-  { name: "Nike", slug: "nike", category: "Sports & Footwear", type: "brand", logo: "/brandlogos/10004.jpg" },
-  { name: "Adidas", slug: "adidas", category: "Sports & Shoes", type: "brand", logo: "/brandlogos/10014.jpg" },
-  { name: "Sony", slug: "sony", category: "Electronics & Audio", type: "brand", logo: "/brandlogos/10035.jpg" },
-  { name: "Samsung", slug: "samsung", category: "Tech & Mobile", type: "brand", logo: "/brandlogos/10036.jpg" },
+// Animated typewriter placeholder phrases
+const PLACEHOLDER_PHRASES = [
+  "Search for 'Nike'...",
+  "Search for 'Fashion & Clothing'...",
+  "Search for 'Zomato'...",
+  "Search for 'Flat 50% OFF'...",
+  "Search for 'Electronics & Gadgets'...",
+  "Search for 'Bewakoof'...",
+  "Search for 'Beauty & Wellness'...",
+  "Search for brands, categories, deals...",
 ];
 
+// Clean category definitions index
 const CATEGORIES_INDEX = [
   { name: "Fashion & Clothing", slug: "fashion", type: "category", emoji: "🛍️" },
   { name: "Food & Dining", slug: "food", type: "category", emoji: "🍔" },
@@ -39,14 +31,70 @@ const CATEGORIES_INDEX = [
   { name: "Finance & Insurance", slug: "finance", type: "category", emoji: "💳" },
 ];
 
+// Clean partner brands index (without broken static image paths)
+const POPULAR_BRANDS_INDEX = [
+  { name: "Maa Storefront", slug: "maa", category: "Grocery & Retail" },
+  { name: "Bewakoof.com", slug: "bewakoof", category: "Fashion & Apparel" },
+  { name: "Blackberrys", slug: "blackberrys", category: "Menswear" },
+  { name: "Cosmic Byte", slug: "cosmic-byte", category: "Gaming & Tech" },
+  { name: "Crocks & Cuts", slug: "crocks-cuts", category: "Food & Dining" },
+  { name: "KGDC Enterprises LLP", slug: "kgdc", category: "Retail & Supply" },
+  { name: "Kama Ayurveda", slug: "kama-ayurveda", category: "Beauty & Wellness" },
+  { name: "Maheshwari Decor", slug: "maheshwari-decor", category: "Home & Living" },
+  { name: "Marbella Tiles & Sanitary", slug: "marbella-tiles", category: "Home Improvement" },
+  { name: "Milton", slug: "milton", category: "Home & Kitchen" },
+  { name: "Skydine Cafe", slug: "skydine-cafe", category: "Food & Dining" },
+  { name: "Soul Decor Aisha", slug: "soul-decor", category: "Home & Living" },
+  { name: "Zomato", slug: "zomato", category: "Food & Delivery" },
+  { name: "Starbucks", slug: "starbucks", category: "Cafes & Dining" },
+  { name: "Nike", slug: "nike", category: "Sports & Footwear" },
+  { name: "Adidas", slug: "adidas", category: "Sports & Shoes" },
+  { name: "Sony", slug: "sony", category: "Electronics & Audio" },
+  { name: "Samsung", slug: "samsung", category: "Tech & Mobile" },
+];
+
 export const SearchBar = () => {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Typewriter animation states
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Smooth Typewriter Effect for Search Placeholder
+  useEffect(() => {
+    const currentPhrase = PLACEHOLDER_PHRASES[phraseIndex];
+
+    let typingSpeed = isDeleting ? 35 : 75;
+
+    if (!isDeleting && charIndex === currentPhrase.length) {
+      typingSpeed = 1800; // Pause at end of full phrase
+    } else if (isDeleting && charIndex === 0) {
+      setIsDeleting(false);
+      setPhraseIndex((prev) => (prev + 1) % PLACEHOLDER_PHRASES.length);
+      typingSpeed = 250;
+    }
+
+    const timer = setTimeout(() => {
+      if (!isDeleting && charIndex < currentPhrase.length) {
+        setPlaceholderText(currentPhrase.substring(0, charIndex + 1));
+        setCharIndex((prev) => prev + 1);
+      } else if (isDeleting && charIndex > 0) {
+        setPlaceholderText(currentPhrase.substring(0, charIndex - 1));
+        setCharIndex((prev) => prev - 1);
+      } else if (!isDeleting && charIndex === currentPhrase.length) {
+        setIsDeleting(true);
+      }
+    }, typingSpeed);
+
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeleting, phraseIndex]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -59,7 +107,7 @@ export const SearchBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Compute and fetch search suggestions dynamically
+  // Compute search suggestions dynamically from DB and System index
   useEffect(() => {
     const q = query.trim().toLowerCase();
     if (!q) {
@@ -68,25 +116,9 @@ export const SearchBar = () => {
       return;
     }
 
-    setIsSearching(true);
     setIsOpen(true);
 
-    // 1. Instant local index filter (Brands & Categories)
-    const matchedBrands = POPULAR_BRANDS_INDEX.filter(
-      (b) =>
-        b.name.toLowerCase().includes(q) ||
-        b.slug.toLowerCase().includes(q) ||
-        b.category.toLowerCase().includes(q)
-    ).map((b) => ({
-      id: `brand_${b.slug}`,
-      title: b.name,
-      subtitle: b.category,
-      type: "Brand",
-      href: `/brand/${b.slug}`,
-      logo: b.logo,
-      iconType: "brand",
-    }));
-
+    // 1. Filter local categories
     const matchedCategories = CATEGORIES_INDEX.filter(
       (c) => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q)
     ).map((c) => ({
@@ -99,21 +131,43 @@ export const SearchBar = () => {
       iconType: "category",
     }));
 
-    let combined = [...matchedBrands, ...matchedCategories];
+    // 2. Filter local brands index
+    const matchedLocalBrands = POPULAR_BRANDS_INDEX.filter(
+      (b) =>
+        b.name.toLowerCase().includes(q) ||
+        b.slug.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q)
+    ).map((b) => ({
+      id: `brand_${b.slug}`,
+      title: b.name,
+      subtitle: b.category,
+      type: "Brand",
+      href: `/brand/${b.slug}`,
+      logo: null,
+      iconType: "brand",
+    }));
 
-    // 2. Fetch live DB merchants & coupons if query is 2+ chars
+    let combined = [...matchedLocalBrands, ...matchedCategories];
+
+    // 3. Query real DB merchants & coupons asynchronously
     let isCancelled = false;
     const timer = setTimeout(async () => {
       try {
         const [resMerchants, resCoupons] = await Promise.all([
-          fetch(`/api/merchants?search=${encodeURIComponent(q)}`).then((r) => r.ok ? r.json() : null),
-          fetch(`/api/coupons?search=${encodeURIComponent(q)}`).then((r) => r.ok ? r.json() : null),
+          fetch(`/api/merchants?search=${encodeURIComponent(q)}`).then((r) =>
+            r.ok ? r.json() : null
+          ),
+          fetch(`/api/coupons?search=${encodeURIComponent(q)}`).then((r) =>
+            r.ok ? r.json() : null
+          ),
         ]);
 
         if (isCancelled) return;
 
-        const dbMerchants = resMerchants?.data?.merchants || resMerchants?.merchants || [];
-        const dbCoupons = resCoupons?.data?.coupons || resCoupons?.coupons || [];
+        const dbMerchants =
+          resMerchants?.data?.merchants || resMerchants?.merchants || [];
+        const dbCoupons =
+          resCoupons?.data?.coupons || resCoupons?.coupons || [];
 
         const extraBrands = dbMerchants.map((m) => ({
           id: `db_brand_${m._id || m.slug}`,
@@ -141,17 +195,20 @@ export const SearchBar = () => {
           (item) => !existingHrefs.has(item.href)
         );
 
-        combined = [...combined, ...newItems];
+        // Replace local mock items with DB items if DB has a matching brand
+        const dbHrefs = new Set(extraBrands.map((item) => item.href));
+        const filteredLocal = combined.filter(
+          (item) => !dbHrefs.has(item.href)
+        );
+
+        combined = [...filteredLocal, ...newItems];
         setSuggestions(combined);
       } catch (err) {
         console.error("Live search fetch error:", err);
-      } finally {
-        if (!isCancelled) setIsSearching(false);
       }
-    }, 150);
+    }, 100);
 
     setSuggestions(combined);
-    setIsSearching(false);
 
     return () => {
       isCancelled = true;
@@ -193,7 +250,7 @@ export const SearchBar = () => {
       <input
         ref={inputRef}
         type="text"
-        placeholder="Search for brands, categories"
+        placeholder={placeholderText || "Search for brands, categories..."}
         value={query}
         onFocus={() => {
           if (query.trim() && suggestions.length > 0) setIsOpen(true);
@@ -216,16 +273,13 @@ export const SearchBar = () => {
       {/* Live Suggestions Floating Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
-          <div className="p-2 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider pl-2">
-              Suggestions ({suggestions.length})
-            </span>
-            <span className="text-[10px] text-slate-400 font-semibold pr-2">
-              Scroll for more
-            </span>
+          {/* Simple non-bold header section */}
+          <div className="px-3.5 py-2 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs font-normal text-slate-400">
+            <span>Suggestions ({suggestions.length})</span>
+            <span>Scroll for more</span>
           </div>
 
-          {/* Max 5 visible viewport items (~240px height) with scroll bar */}
+          {/* Scrollable suggestions box */}
           <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
             {suggestions.length > 0 ? (
               suggestions.map((item) => (
@@ -236,24 +290,26 @@ export const SearchBar = () => {
                   className="flex items-center justify-between gap-3 p-2.5 hover:bg-slate-50 transition-colors group cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    {/* Small Square Image Container */}
-                    <div className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-2xs group-hover:border-blue-400 transition-colors">
+                    {/* Small Square Logo / Avatar Container */}
+                    <div className="w-8 h-8 rounded-lg border border-slate-200 bg-blue-50/50 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs group-hover:border-blue-400 transition-colors">
                       {item.iconType === "category" ? (
                         <span className="text-sm select-none">{item.emoji || "🏷️"}</span>
-                      ) : item.logo ? (
+                      ) : item.logo && typeof item.logo === "string" && item.logo.startsWith("http") ? (
                         <img
                           src={item.logo}
                           alt={item.title}
                           className="w-full h-full object-contain p-0.5"
                           onError={(e) => {
-                            e.target.src =
-                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233e80dd' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
+                            e.target.onerror = null;
+                            e.target.style.display = "none";
                           }}
                         />
                       ) : item.iconType === "deal" ? (
                         <Tag className="w-4 h-4 text-blue-600" />
                       ) : (
-                        <Store className="w-4 h-4 text-blue-600" />
+                        <span className="text-xs font-black text-blue-600 uppercase select-none">
+                          {item.title ? item.title[0] : "B"}
+                        </span>
                       )}
                     </div>
 
@@ -286,18 +342,10 @@ export const SearchBar = () => {
                 </Link>
               ))
             ) : (
-              <div className="p-4 text-center text-xs font-semibold text-slate-500">
-                No matching brands, deals, or categories found.
+              <div className="p-4 text-center text-xs font-normal text-slate-400">
+                No matching results found.
               </div>
             )}
-          </div>
-
-          <div
-            onClick={handleSearchClick}
-            className="p-2.5 bg-slate-50 border-t border-slate-100 text-center text-xs font-bold text-[#2563eb] hover:bg-blue-50/80 cursor-pointer transition-colors flex items-center justify-center gap-1.5"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>Search all results for &quot;{query}&quot;</span>
           </div>
         </div>
       )}
