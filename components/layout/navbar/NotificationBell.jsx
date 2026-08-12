@@ -7,7 +7,6 @@ import {
   Tag,
   Store,
   Clock,
-  Award,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -19,83 +18,107 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const DEFAULT_RECENT_ACTIVITIES = [
-  {
-    id: "act_1",
-    title: "Zomato Added New Code",
-    message: "Get flat 50% OFF using ZOMATO50 on your next order.",
-    time: "2 mins ago",
-    type: "coupon",
-    unread: true,
-    href: "/brand/zomato",
-  },
-  {
-    id: "act_2",
-    title: "New Partner Store",
-    message: "Milton Kitchenware is now a verified partner store.",
-    time: "45 mins ago",
-    type: "brand",
-    unread: true,
-    href: "/brand/milton",
-  },
-  {
-    id: "act_3",
-    title: "Coupon Expiring Soon",
-    message: "Your claimed code SAVENEW15 expires in 2 hours.",
-    time: "1 hour ago",
-    type: "expiring",
-    unread: false,
-    href: "/customer/claimed",
-  },
-  {
-    id: "act_4",
-    title: "Reward Points Earned!",
-    message: "You earned +10 savings points for active engagement.",
-    time: "3 hours ago",
-    type: "reward",
-    unread: false,
-    href: "/customer/savings",
-  },
-  {
-    id: "act_5",
-    title: "Adidas Exclusive Deal",
-    message: "Adidas offers 20% off on winter arrivals with code ADI20.",
-    time: "5 hours ago",
-    type: "deal",
-    unread: false,
-    href: "/brand/adidas",
-  },
-];
+function formatRelativeTime(dateString) {
+  if (!dateString) return "Recently";
+  const diff = Date.now() - new Date(dateString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export const NotificationBell = () => {
-  const [activities, setActivities] = useState(DEFAULT_RECENT_ACTIVITIES);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch real notifications from DB API on mount
+  // Fetch 100% REAL database activities (Coupons, Merchants, Notifications)
   useEffect(() => {
     let isCancelled = false;
-    async function loadNotifications() {
+
+    async function fetchRealActivities() {
       try {
-        const res = await fetch("/api/notifications");
-        if (!res.ok) return;
-        const data = await res.json();
-        const rawList = data?.data?.notifications || data?.notifications || [];
-        if (!isCancelled && Array.isArray(rawList) && rawList.length > 0) {
-          const formatted = rawList.slice(0, 5).map((n, idx) => ({
-            id: n._id || `db_notif_${idx}`,
-            title: n.title || "New Update",
-            message: n.message || n.content || "Check out latest offers.",
-            time: n.createdAt ? `${Math.max(1, Math.floor((Date.now() - new Date(n.createdAt)) / 60000))}m ago` : "Just now",
-            type: n.type || "coupon",
-            unread: !n.read,
-            href: n.link || "/deals",
-          }));
-          setActivities(formatted);
+        setLoading(true);
+        const [resCoupons, resMerchants, resNotifs] = await Promise.all([
+          fetch("/api/coupons?limit=5").then((r) => (r.ok ? r.json() : null)),
+          fetch("/api/merchants?limit=5").then((r) => (r.ok ? r.json() : null)),
+          fetch("/api/notifications").then((r) => (r.ok ? r.json() : null)),
+        ]);
+
+        if (isCancelled) return;
+
+        const dbCoupons = resCoupons?.data?.coupons || resCoupons?.coupons || [];
+        const dbMerchants = resMerchants?.data?.merchants || resMerchants?.merchants || [];
+        const dbNotifs = resNotifs?.data?.notifications || resNotifs?.notifications || [];
+
+        const realList = [];
+
+        // 1. Map real DB notifications if any
+        if (Array.isArray(dbNotifs)) {
+          dbNotifs.forEach((n) => {
+            realList.push({
+              id: `notif_${n._id}`,
+              title: n.title || "Notification Update",
+              message: n.message || n.content || "Check out latest offers.",
+              time: formatRelativeTime(n.createdAt),
+              createdAt: new Date(n.createdAt || Date.now()).getTime(),
+              type: "notification",
+              unread: !n.read,
+              href: n.link || "/deals",
+            });
+          });
         }
+
+        // 2. Map real DB coupons added recently
+        if (Array.isArray(dbCoupons)) {
+          dbCoupons.forEach((c) => {
+            const brandName = c.merchantId?.businessName || "Partner Brand";
+            const codeText = c.code ? `Code: ${c.code}` : "Special Offer";
+            realList.push({
+              id: `coupon_${c._id}`,
+              title: `${brandName} Added New Code`,
+              message: `${c.title || "Exclusive Offer"}. ${codeText}`,
+              time: formatRelativeTime(c.createdAt),
+              createdAt: new Date(c.createdAt || Date.now()).getTime(),
+              type: "coupon",
+              unread: true,
+              href: `/deals/${c._id}`,
+            });
+          });
+        }
+
+        // 3. Map real DB merchants joined recently
+        if (Array.isArray(dbMerchants)) {
+          dbMerchants.forEach((m) => {
+            realList.push({
+              id: `merchant_${m._id}`,
+              title: "New Partner Store",
+              message: `${m.businessName} is now live on Vouchiqo!`,
+              time: formatRelativeTime(m.createdAt),
+              createdAt: new Date(m.createdAt || Date.now()).getTime(),
+              type: "brand",
+              unread: false,
+              href: `/brand/${m.slug}`,
+            });
+          });
+        }
+
+        // Sort combined list by newest first and take top 5
+        realList.sort((a, b) => b.createdAt - a.createdAt);
+        const top5Real = realList.slice(0, 5);
+
+        setActivities(top5Real);
       } catch (err) {
-        // Fallback to default recent activities
+        console.error("Error fetching real activity notifications:", err);
+      } finally {
+        if (!isCancelled) setLoading(false);
       }
     }
-    loadNotifications();
+
+    fetchRealActivities();
+
     return () => {
       isCancelled = true;
     };
@@ -123,10 +146,8 @@ export const NotificationBell = () => {
         return <Tag className="w-3.5 h-3.5 text-blue-600" />;
       case "brand":
         return <Store className="w-3.5 h-3.5 text-emerald-600" />;
-      case "expiring":
-        return <Clock className="w-3.5 h-3.5 text-amber-600" />;
-      case "reward":
-        return <Award className="w-3.5 h-3.5 text-purple-600" />;
+      case "notification":
+        return <Bell className="w-3.5 h-3.5 text-amber-600" />;
       default:
         return <Sparkles className="w-3.5 h-3.5 text-blue-500" />;
     }
@@ -164,20 +185,24 @@ export const NotificationBell = () => {
           <span className="text-[10px] text-slate-400 font-normal">Top 5</span>
         </div>
 
-        {/* Scrollable Compact 5 Activities List */}
+        {/* Scrollable Compact 5 Real Activities List */}
         <ScrollArea className="max-h-72 w-full flex-grow">
-          {activities.length === 0 ? (
+          {loading ? (
+            <div className="p-6 text-center text-xs font-normal text-slate-400">
+              Loading recent activities...
+            </div>
+          ) : activities.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-44 text-center px-4">
               <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center mb-1.5 border border-slate-100">
                 <Bell className="w-4 h-4 text-slate-400" />
               </div>
               <p className="text-xs font-normal text-slate-500">
-                No recent activity updates.
+                No recent activity updates yet.
               </p>
             </div>
           ) : (
             <div className="flex flex-col divide-y divide-slate-100">
-              {activities.slice(0, 5).map((act) => (
+              {activities.map((act) => (
                 <Link
                   key={act.id}
                   href={act.href || "#"}
