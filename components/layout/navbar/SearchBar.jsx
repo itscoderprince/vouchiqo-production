@@ -5,16 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-// Animated typewriter placeholder phrases
+// Animated typewriter placeholder phrases (only real existing brands & categories on Vouchiqo)
 const PLACEHOLDER_PHRASES = [
-  "Search for 'Nike'...",
+  "Search for 'Bewakoof'...",
   "Search for 'Fashion & Clothing'...",
   "Search for 'Zomato'...",
-  "Search for 'Flat 50% OFF'...",
+  "Search for 'Milton'...",
+  "Search for 'Food & Dining'...",
+  "Search for 'Blackberrys'...",
   "Search for 'Electronics & Gadgets'...",
-  "Search for 'Bewakoof'...",
+  "Search for 'Kama Ayurveda'...",
   "Search for 'Beauty & Wellness'...",
-  "Search for brands, categories, deals...",
+  "Search for 'Cosmic Byte'...",
+  "Search for brands, categories...",
 ];
 
 // Clean category definitions index
