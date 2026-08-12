@@ -286,7 +286,7 @@ export default function MerchantAffiliates() {
               </p>
             </div>
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-600">
-              <span>Pending Payout: ₹{pendingPayoutTotal.toLocaleString("en-IN")}</span>
+              <span>Pending Payout: ₹{(Number(pendingPayoutTotal) || 0).toLocaleString("en-IN")}</span>
               <span className="text-blue-600 font-bold">
                 Auto-Transfer Active
               </span>
@@ -439,7 +439,7 @@ export default function MerchantAffiliates() {
                         {row.rate}
                       </TableCell>
                       <TableCell className="py-2.5 px-3.5 text-right font-extrabold text-slate-900 text-xs">
-                        ₹{row.earnings.toLocaleString("en-IN")}
+                        ₹{(Number(row?.earnings) || 0).toLocaleString("en-IN")}
                       </TableCell>
                       <TableCell className="py-2.5 px-3.5 text-center">
                         <Badge

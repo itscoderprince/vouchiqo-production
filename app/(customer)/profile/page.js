@@ -324,7 +324,7 @@ function ProfileContent() {
   };
 
   const handleShareSavings = () => {
-    const saved = savingsData?.kpis?.totalSavedMonth || 0;
+    const saved = Number(savingsData?.kpis?.totalSavedMonth) || 0;
     const shareText = `I saved ₹${saved.toLocaleString("en-IN")} this month using Vouchiqo! 🔴 Find verified offer codes and save. https://vouchiqo.com`;
     navigator.clipboard.writeText(shareText);
     setCopiedShareCard(true);

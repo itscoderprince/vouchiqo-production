@@ -254,7 +254,7 @@ export default function AdminCampaignAnalyticsPage() {
         align: "right",
         cell: (row) => (
           <span className="font-mono text-slate-700">
-            {row.clicks.toLocaleString()}
+            {(Number(row?.clicks) || 0).toLocaleString()}
           </span>
         ),
       },
@@ -265,7 +265,7 @@ export default function AdminCampaignAnalyticsPage() {
         align: "right",
         cell: (row) => (
           <span className="font-black text-slate-900">
-            {row.redemptions.toLocaleString()}
+            {(Number(row?.redemptions) || 0).toLocaleString()}
           </span>
         ),
       },

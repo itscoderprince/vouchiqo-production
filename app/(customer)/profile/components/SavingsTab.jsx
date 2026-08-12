@@ -157,19 +157,19 @@ export default function SavingsTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Saved This Month"
-          value={`₹${savingsData.kpis.totalSavedMonth.toLocaleString("en-IN")}`}
-          change={savingsData.kpis.savingsRate || 12.5}
+          value={`₹${(Number(savingsData?.kpis?.totalSavedMonth) || 0).toLocaleString("en-IN")}`}
+          change={savingsData?.kpis?.savingsRate || 12.5}
           icon={PiggyBank}
         />
         <KPICard
           title="Total Lifetime Saved"
-          value={`₹${savingsData.kpis.totalSavedAllTime.toLocaleString("en-IN")}`}
+          value={`₹${(Number(savingsData?.kpis?.totalSavedAllTime) || 0).toLocaleString("en-IN")}`}
           change={8.2}
           icon={Award}
         />
         <KPICard
           title="Total Spent Tracked"
-          value={`₹${savingsData.kpis.totalSpentAllTime.toLocaleString("en-IN")}`}
+          value={`₹${(Number(savingsData?.kpis?.totalSpentAllTime) || 0).toLocaleString("en-IN")}`}
           change={4.5}
           icon={TrendingUp}
         />

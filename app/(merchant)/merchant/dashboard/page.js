@@ -172,22 +172,61 @@ export default function MerchantDashboard() {
   const recentClaims = claimsData?.claims ?? [];
   const recentActivities = analyticsData?.recentActivities ?? [];
 
-  // Top performing coupons from overview stats
-  const topCoupons = Object.entries(overviewStats)
-    .map(([id, stats]) => ({
-      id,
-      title: stats.title || "Offer Listing",
-      views: stats.views || 0,
-      claims: stats.claims || 0,
-      redemptions: stats.redemptions || 0,
-      conversion:
-        stats.views > 0
-          ? Math.round((stats.redemptions / stats.views) * 100)
-          : 0,
-      status: stats.isActive !== false ? "Active" : "Paused",
-    }))
-    .sort((a, b) => b.redemptions - a.redemptions)
-    .slice(0, 5);
+  // Top performing coupons from real API analytics or overview stats fallback
+  const rawTopCoupons = analyticsData?.topCoupons ?? [];
+  const topCoupons =
+    rawTopCoupons.length > 0
+      ? rawTopCoupons.map((c) => ({
+          id: c._id || c.id,
+          title: c.title || "Offer Listing",
+          code: c.code || "N/A",
+          discount: c.discount || (c.discountValue ? `${c.discountValue}% OFF` : "Deal"),
+          category: c.category || "General",
+          clicks: Number(c.clickCount ?? c.views ?? c.viewCount) || 0,
+          views: Number(c.viewCount) || 0,
+          claims: Number(c.totalClaims) || 0,
+          redemptions: Number(c.totalRedemptions) || 0,
+          successRate:
+            (c.viewCount || c.clickCount) > 0
+              ? Math.round(
+                  ((c.totalRedemptions || 0) /
+                    (c.clickCount || c.viewCount || 1)) *
+                    100,
+                )
+              : 0,
+          conversion:
+            (c.viewCount || c.clickCount) > 0
+              ? Math.round(
+                  ((c.totalRedemptions || 0) /
+                    (c.clickCount || c.viewCount || 1)) *
+                    100,
+                )
+              : 0,
+          status: c.status || "active",
+        }))
+      : Object.entries(overviewStats)
+          .map(([id, stats]) => ({
+            id,
+            title: stats.title || "Offer Listing",
+            code: stats.code || "N/A",
+            discount: stats.discount || "Deal",
+            category: stats.category || "General",
+            views: Number(stats.views) || 0,
+            clicks: Number(stats.clicks ?? stats.views) || 0,
+            claims: Number(stats.claims) || 0,
+            redemptions: Number(stats.redemptions) || 0,
+            conversion:
+              stats.views > 0
+                ? Math.round(((stats.redemptions || 0) / stats.views) * 100)
+                : 0,
+            successRate:
+              stats.views > 0
+                ? Math.round(((stats.redemptions || 0) / stats.views) * 100)
+                : 0,
+            status: stats.isActive !== false ? "Active" : "Paused",
+          }))
+          .sort((a, b) => b.redemptions - a.redemptions)
+          .slice(0, 5);
 
   return (
     <DashboardLayout

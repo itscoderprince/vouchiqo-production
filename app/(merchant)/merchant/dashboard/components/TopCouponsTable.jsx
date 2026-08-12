@@ -60,7 +60,7 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       sortable: true,
       cell: (row) => (
         <span className="font-bold text-brand-text truncate block max-w-[160px]">
-          {row.title}
+          {row?.title || "Offer Listing"}
         </span>
       ),
     },
@@ -70,7 +70,7 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       cell: (row) => (
         <span className="font-mono text-[10px] font-bold uppercase text-brand-navy flex items-center gap-1">
           <Ticket className="w-3 h-3" />
-          {row.code}
+          {row?.code || "N/A"}
         </span>
       ),
     },
@@ -79,7 +79,7 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       header: "Discount",
       cell: (row) => (
         <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 font-sans">
-          {row.discount}
+          {row?.discount || "Offer"}
         </span>
       ),
     },
@@ -89,7 +89,7 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       cell: (row) => (
         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-subtext flex items-center gap-1 font-sans">
           <Tag className="w-2.5 h-2.5" />
-          {row.category}
+          {row?.category || "General"}
         </span>
       ),
     },
@@ -97,32 +97,37 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       key: "clicks",
       header: "Clicks",
       sortable: true,
-      cell: (row) => row.clicks.toLocaleString(),
+      cell: (row) => (Number(row?.clicks ?? row?.views) || 0).toLocaleString(),
     },
     {
       key: "redemptions",
       header: "Redemptions",
       sortable: true,
       cell: (row) => (
-        <span className="font-bold">{row.redemptions.toLocaleString()}</span>
+        <span className="font-bold">
+          {(Number(row?.redemptions) || 0).toLocaleString()}
+        </span>
       ),
     },
     {
       key: "successRate",
       header: "Success %",
       sortable: true,
-      cell: (row) => (
-        <span
-          className={`font-bold ${row.successRate >= 10 ? "text-emerald-600" : row.successRate >= 5 ? "text-blue-600" : "text-brand-subtext"}`}
-        >
-          {row.successRate}%
-        </span>
-      ),
+      cell: (row) => {
+        const rate = Number(row?.successRate ?? row?.conversion) || 0;
+        return (
+          <span
+            className={`font-bold ${rate >= 10 ? "text-emerald-600" : rate >= 5 ? "text-blue-600" : "text-brand-subtext"}`}
+          >
+            {rate}%
+          </span>
+        );
+      },
     },
     {
       key: "status",
       header: "Status",
-      cell: (row) => <StatusBadge status={row.status} size="sm" />,
+      cell: (row) => <StatusBadge status={row?.status || "active"} size="sm" />,
     },
     {
       key: "actions",

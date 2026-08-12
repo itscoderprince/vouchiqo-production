@@ -219,7 +219,7 @@ export default function ExpiredCouponRevival() {
             <div className="w-px h-8 bg-gray-200" />
             <div className="text-center">
               <span className="block text-xl font-bold text-gray-900">
-                {stats.totalRequests.toLocaleString()}
+                {(Number(stats?.totalRequests) || 0).toLocaleString()}
               </span>
               <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
                 Total Revived

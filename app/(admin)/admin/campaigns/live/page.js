@@ -322,7 +322,7 @@ export default function AdminLiveCampaignsPage() {
                               Clicks
                             </span>
                             <span className="font-black text-slate-900">
-                              {c.clicks.toLocaleString()}
+                              {(Number(c?.clicks) || 0).toLocaleString()}
                             </span>
                           </div>
                           <div className="p-2.5 bg-slate-50 rounded-xl">
@@ -330,7 +330,7 @@ export default function AdminLiveCampaignsPage() {
                               Redemptions
                             </span>
                             <span className="font-black text-slate-900">
-                              {c.redemptions.toLocaleString()} / {c.capLimit}
+                              {(Number(c?.redemptions) || 0).toLocaleString()} / {c?.capLimit || "∞"}
                             </span>
                           </div>
                           <div className="p-2.5 bg-slate-50 rounded-xl">

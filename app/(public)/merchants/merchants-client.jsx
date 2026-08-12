@@ -140,7 +140,7 @@ export default function MerchantsClient({
         shortLabel: "Stores",
       }}
       stat2={{
-        count: totalOffersCount.toLocaleString(),
+        count: (Number(totalOffersCount) || 0).toLocaleString(),
         label: "Total Verified Offers",
       }}
       aboutTitle="About Stores"

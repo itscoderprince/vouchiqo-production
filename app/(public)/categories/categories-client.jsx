@@ -272,8 +272,8 @@ export default function CategoriesClient({ categories = [] }) {
                       <span
                         className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${style.badgeBg}`}
                       >
-                        {cat.total > 0
-                          ? `${cat.total.toLocaleString()} Verified Offers`
+                        {cat?.total > 0
+                          ? `${Number(cat.total).toLocaleString()} Verified Offers`
                           : "Offers Available"}
                       </span>
 

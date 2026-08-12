@@ -245,7 +245,7 @@ export default function MerchantAnalytics() {
       sortable: true,
       cell: (row) => (
         <span className="text-right block font-medium">
-          {row.clicks.toLocaleString()}
+          {(Number(row?.clicks) || 0).toLocaleString()}
         </span>
       ),
     },
@@ -255,7 +255,7 @@ export default function MerchantAnalytics() {
       sortable: true,
       cell: (row) => (
         <span className="text-right block font-bold text-slate-900">
-          {row.redemptions.toLocaleString()}
+          {(Number(row?.redemptions) || 0).toLocaleString()}
         </span>
       ),
     },
@@ -266,12 +266,12 @@ export default function MerchantAnalytics() {
       cell: (row) => (
         <span
           className={`text-xs font-bold px-2 py-0.5 rounded-full block text-center ${
-            row.successRate >= 10
+            (Number(row?.successRate) || 0) >= 10
               ? "bg-emerald-50 text-emerald-700"
               : "bg-slate-100 text-slate-600"
           }`}
         >
-          {row.successRate}%
+          {Number(row?.successRate) || 0}%
         </span>
       ),
     },
@@ -281,7 +281,7 @@ export default function MerchantAnalytics() {
       sortable: true,
       cell: (row) => (
         <span className="text-right block font-black text-slate-900">
-          ₹{row.revenue.toLocaleString("en-IN")}
+          ₹{(Number(row?.revenue) || 0).toLocaleString("en-IN")}
         </span>
       ),
     },
@@ -378,28 +378,28 @@ export default function MerchantAnalytics() {
         >
           <KPICard
             title="Total Impressions"
-            value={totalImpressions.toLocaleString()}
+            value={(Number(totalImpressions) || 0).toLocaleString()}
             subtitle="ticker & list views"
             icon={Eye}
             iconClassName="bg-blue-50 border-blue-200/80 text-blue-600"
           />
           <KPICard
             title="Total Clicks"
-            value={totalClicks.toLocaleString()}
+            value={(Number(totalClicks) || 0).toLocaleString()}
             subtitle="offer detail visits"
             icon={Share2}
             iconClassName="bg-indigo-50 border-indigo-200/80 text-indigo-600"
           />
           <KPICard
             title="Coupon Claims"
-            value={totalClaims.toLocaleString()}
+            value={(Number(totalClaims) || 0).toLocaleString()}
             subtitle="codes claimed"
             icon={Ticket}
             iconClassName="bg-amber-50 border-amber-200/80 text-amber-600"
           />
           <KPICard
             title="Redemptions"
-            value={totalRedemptions.toLocaleString()}
+            value={(Number(totalRedemptions) || 0).toLocaleString()}
             subtitle="verified in-store"
             icon={CheckCircle2}
             iconClassName="bg-emerald-50 border-emerald-200/80 text-emerald-600"
