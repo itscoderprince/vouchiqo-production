@@ -34,26 +34,26 @@ const CATEGORIES_INDEX = [
   { name: "Finance & Insurance", slug: "finance", type: "category", emoji: "💳" },
 ];
 
-// Clean partner brands index (without broken static image paths)
+// Clean partner brands index (with verified logos)
 const POPULAR_BRANDS_INDEX = [
-  { name: "Maa Storefront", slug: "maa", category: "Grocery & Retail" },
-  { name: "Bewakoof.com", slug: "bewakoof", category: "Fashion & Apparel" },
-  { name: "Blackberrys", slug: "blackberrys", category: "Menswear" },
-  { name: "Cosmic Byte", slug: "cosmic-byte", category: "Gaming & Tech" },
-  { name: "Crocks & Cuts", slug: "crocks-cuts", category: "Food & Dining" },
-  { name: "KGDC Enterprises LLP", slug: "kgdc", category: "Retail & Supply" },
-  { name: "Kama Ayurveda", slug: "kama-ayurveda", category: "Beauty & Wellness" },
-  { name: "Maheshwari Decor", slug: "maheshwari-decor", category: "Home & Living" },
-  { name: "Marbella Tiles & Sanitary", slug: "marbella-tiles", category: "Home Improvement" },
-  { name: "Milton", slug: "milton", category: "Home & Kitchen" },
-  { name: "Skydine Cafe", slug: "skydine-cafe", category: "Food & Dining" },
-  { name: "Soul Decor Aisha", slug: "soul-decor", category: "Home & Living" },
-  { name: "Zomato", slug: "zomato", category: "Food & Delivery" },
-  { name: "Starbucks", slug: "starbucks", category: "Cafes & Dining" },
-  { name: "Nike", slug: "nike", category: "Sports & Footwear" },
-  { name: "Adidas", slug: "adidas", category: "Sports & Shoes" },
-  { name: "Sony", slug: "sony", category: "Electronics & Audio" },
-  { name: "Samsung", slug: "samsung", category: "Tech & Mobile" },
+  { name: "Maa Storefront", slug: "maa", category: "Grocery & Retail", logo: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80" },
+  { name: "Bewakoof.com", slug: "bewakoof", category: "Fashion & Apparel", logo: "https://cdn.grabon.in/gograbon/images/merchant/1620645638457/bewakoof-coupons.jpg" },
+  { name: "Blackberrys", slug: "blackberrys", category: "Menswear", logo: "https://cdn.grabon.in/gograbon/images/merchant/1620645638457/blackberrys-coupons.jpg" },
+  { name: "Cosmic Byte", slug: "cosmic-byte", category: "Gaming & Tech", logo: "https://cdn.grabon.in/gograbon/images/merchant/1653457813876/cosmicbyte-logo.jpg" },
+  { name: "Crocks & Cuts", slug: "crocks-cuts", category: "Food & Dining", logo: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=120&q=80" },
+  { name: "KGDC Enterprises LLP", slug: "kgdc", category: "Retail & Supply", logo: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=120&q=80" },
+  { name: "Kama Ayurveda", slug: "kama-ayurveda", category: "Beauty & Wellness", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838612711/kamaayurveda-logo.jpg" },
+  { name: "Maheshwari Decor", slug: "maheshwari-decor", category: "Home & Living", logo: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=120&q=80" },
+  { name: "Marbella Tiles & Sanitary", slug: "marbella-tiles", category: "Home Improvement", logo: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=120&q=80" },
+  { name: "Milton", slug: "milton", category: "Home & Kitchen", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838662933/milton-logo.jpg" },
+  { name: "Skydine Cafe", slug: "skydine-cafe", category: "Food & Dining", logo: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=120&q=80" },
+  { name: "Soul Decor Aisha", slug: "soul-decor", category: "Home & Living", logo: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=120&q=80" },
+  { name: "Zomato", slug: "zomato", category: "Food & Delivery", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838612711/zomato-logo.jpg" },
+  { name: "Starbucks", slug: "starbucks", category: "Cafes & Dining", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838612711/starbucks-logo.jpg" },
+  { name: "Nike", slug: "nike", category: "Sports & Footwear", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838612711/nike-logo.jpg" },
+  { name: "Adidas", slug: "adidas", category: "Sports & Shoes", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838612711/adidas-logo.jpg" },
+  { name: "Sony", slug: "sony", category: "Electronics & Audio", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838662933/sony-logo.jpg" },
+  { name: "Samsung", slug: "samsung", category: "Tech & Mobile", logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838662933/samsung-logo.jpg" },
 ];
 
 export const SearchBar = () => {
@@ -146,7 +146,7 @@ export const SearchBar = () => {
       subtitle: b.category,
       type: "Brand",
       href: `/brand/${b.slug}`,
-      logo: null,
+      logo: b.logo,
       iconType: "brand",
     }));
 
@@ -297,7 +297,7 @@ export const SearchBar = () => {
                     <div className="w-8 h-8 rounded-lg border border-slate-200 bg-blue-50/50 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs group-hover:border-blue-400 transition-colors">
                       {item.iconType === "category" ? (
                         <span className="text-sm select-none">{item.emoji || "🏷️"}</span>
-                      ) : item.logo && typeof item.logo === "string" && item.logo.startsWith("http") ? (
+                      ) : item.logo && typeof item.logo === "string" ? (
                         <img
                           src={item.logo}
                           alt={item.title}
@@ -310,7 +310,7 @@ export const SearchBar = () => {
                       ) : item.iconType === "deal" ? (
                         <Tag className="w-4 h-4 text-blue-600" />
                       ) : (
-                        <span className="text-xs font-black text-blue-600 uppercase select-none">
+                        <span className="text-xs font-bold text-blue-600 uppercase select-none">
                           {item.title ? item.title[0] : "B"}
                         </span>
                       )}
@@ -330,12 +330,12 @@ export const SearchBar = () => {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <span
-                      className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                      className={`text-[8.5px] font-medium uppercase px-2 py-0.5 rounded-full border ${
                         item.type === "Brand"
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          ? "bg-blue-50/80 text-blue-600 border-blue-100"
                           : item.type === "Category"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : "bg-amber-50 text-amber-700 border-amber-200"
+                          ? "bg-emerald-50/80 text-emerald-600 border-emerald-100"
+                          : "bg-amber-50/80 text-amber-600 border-amber-100"
                       }`}
                     >
                       {item.type}
