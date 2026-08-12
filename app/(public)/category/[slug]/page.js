@@ -10,100 +10,85 @@ import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import { COUPON_CATEGORIES } from "@/utils/constants";
-import { ArrowLeft, Sparkles, Tag, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Tag, ShoppingBag, ShieldCheck, Layers } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-// Category metadata with rich colors, icons & sub-categories
+// Category metadata with clean icon definitions & sub-categories
 const CATEGORY_META = {
   fashion: {
     title: "Fashion & Clothing",
     emoji: "🛍️",
-    banner: "bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700",
     subs: ["Men's Fashion", "Women's Wear", "Footwear", "Watches & Accessories"],
   },
   food: {
     title: "Food & Dining",
     emoji: "🍔",
-    banner: "bg-gradient-to-r from-amber-500 via-orange-600 to-amber-700",
     subs: ["Fast Food", "Fine Dining", "Bakeries & Desserts", "Cloud Kitchens"],
   },
   electronics: {
     title: "Electronics & Gadgets",
     emoji: "💻",
-    banner: "bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700",
     subs: ["Smartphones", "Laptops & PCs", "Headphones & Audio", "Smart Home"],
   },
   beauty: {
     title: "Beauty & Wellness",
     emoji: "💄",
-    banner: "bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-700",
     subs: ["Makeup", "Skincare", "Salons & Spas", "Fragrance"],
   },
   travel: {
     title: "Travel & Hospitality",
     emoji: "✈️",
-    banner: "bg-gradient-to-r from-indigo-600 via-sky-600 to-indigo-700",
     subs: ["Hotels & Resorts", "Flight Tickets", "Tour Packages", "Car Rentals"],
   },
   home: {
     title: "Home & Living",
     emoji: "🏠",
-    banner: "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700",
     subs: ["Furniture", "Home Décor", "Kitchenware", "Furnishings"],
   },
   "home-improvement": {
     title: "Home Improvement",
     emoji: "🛠️",
-    banner: "bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700",
     subs: ["Tiles & Granite", "Hardware & Tools", "Paints", "Electricals"],
   },
   fitness: {
     title: "Fitness & Healthcare",
     emoji: "💪",
-    banner: "bg-gradient-to-r from-red-600 via-rose-600 to-red-700",
     subs: ["Gym Memberships", "Protein & Supplements", "Pharmacies", "Labs"],
   },
   education: {
     title: "Education & Courses",
     emoji: "🎓",
-    banner: "bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-700",
     subs: ["Coaching Classes", "Online Courses", "Certifications", "Skill Bootcamps"],
   },
   "kids-baby": {
     title: "Kids & Baby Products",
     emoji: "👶",
-    banner: "bg-gradient-to-r from-violet-600 via-purple-600 to-violet-700",
     subs: ["Toys & Games", "Baby Care", "Kidswear", "Nursery"],
   },
   jewellery: {
     title: "Jewellery & Accessories",
     emoji: "💎",
-    banner: "bg-gradient-to-r from-yellow-600 via-amber-600 to-yellow-700",
     subs: ["Gold & Diamond", "Silver Jewellery", "Fashion Jewellery", "Eyewear"],
   },
   automotive: {
     title: "Automobile & Services",
     emoji: "🚗",
-    banner: "bg-gradient-to-r from-slate-700 via-zinc-700 to-slate-800",
     subs: ["Car Services", "Auto Spare Parts", "Tyres & Care", "Car Accessories"],
   },
   entertainment: {
     title: "Gaming & Entertainment",
     emoji: "🎮",
-    banner: "bg-gradient-to-r from-fuchsia-600 via-pink-600 to-fuchsia-700",
     subs: ["Gaming Consoles", "Peripherals", "Movie Tickets", "Events"],
   },
   grocery: {
     title: "Grocery & Essentials",
     emoji: "🛒",
-    banner: "bg-gradient-to-r from-lime-600 via-emerald-600 to-lime-700",
     subs: ["Daily Grocery", "Organic Produce", "Dairy & Bakery", "Dry Fruits"],
   },
   finance: {
     title: "Finance & Insurance",
     emoji: "💳",
-    banner: "bg-gradient-to-r from-teal-600 via-cyan-600 to-teal-700",
     subs: ["Credit Cards", "Insurance Plans", "Mutual Funds", "Personal Loans"],
   },
 };
@@ -136,7 +121,6 @@ export default async function CategoryPage({ params }) {
   const categoryInfo = CATEGORY_META[cleanSlug] || {
     title: cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1),
     emoji: "🏷️",
-    banner: "bg-gradient-to-r from-blue-600 to-slate-800",
     subs: [],
   };
 
@@ -178,54 +162,62 @@ export default async function CategoryPage({ params }) {
   const totalOffersCount = coupons.length + affiliateProducts.length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/50 text-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#F7F9FB] text-slate-900 font-sans">
       <Navbar />
 
-      {/* Hero Category Banner */}
-      <section
-        className={`${categoryInfo.banner} text-white py-12 md:py-16 px-4 sm:px-6 relative overflow-hidden select-none border-b border-white/10`}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff0d_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
-
-        <div className="max-w-7xl mx-auto space-y-4 relative z-10 text-left">
+      {/* Clean Compact Category Header */}
+      <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white py-8 md:py-10 px-4 sm:px-6 relative overflow-hidden select-none border-b border-slate-800">
+        <div className="w-full max-w-[1440px] mx-auto space-y-3 relative z-10 text-left">
           <div className="flex items-center gap-3">
             <Link
               href="/categories"
-              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>All Categories</span>
             </Link>
 
-            <Badge className="bg-white/20 text-white border border-white/20 px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-white" />
-              <span>Verified Category Hub</span>
+            <Badge className="bg-blue-600/30 text-blue-300 border border-blue-400/30 px-3 py-0.5 rounded-full text-xs font-extrabold flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+              <span>Verified Category Directory</span>
             </Badge>
           </div>
 
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight flex items-center gap-3">
-            <span className="text-4xl md:text-6xl">{categoryInfo.emoji}</span>
-            <span>{categoryInfo.title} Offers</span>
-          </h1>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
+            <div className="space-y-1.5">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                <span className="text-3xl md:text-4xl">{categoryInfo.emoji}</span>
+                <span>{categoryInfo.title} Offers & Vouchers</span>
+              </h1>
 
-          <p className="text-xs md:text-sm text-white/90 max-w-xl leading-relaxed font-medium">
-            Explore {totalOffersCount} active verified promo codes, store discounts, and exclusive affiliate deals in {categoryInfo.title}.
-          </p>
+              <p className="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed font-medium">
+                Explore {totalOffersCount} active verified promo codes, store discounts, and exclusive affiliate deals in {categoryInfo.title}.
+              </p>
+            </div>
+
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-2.5 shrink-0 flex items-center gap-3 self-start md:self-auto">
+              <Layers className="w-4 h-4 text-brand-blue" />
+              <div className="text-left">
+                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Listings</div>
+                <div className="text-sm font-black text-white">{totalOffersCount} Active Offers</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full flex-grow space-y-10 text-left">
+      {/* Full Width Main Container */}
+      <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-8 text-left">
         {/* Sub-category chips */}
         {categoryInfo.subs.length > 0 && (
-          <div className="flex items-center gap-2.5 flex-wrap border-b border-slate-200 pb-5">
-            <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+          <div className="flex items-center gap-2 flex-wrap bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
+            <span className="text-xs font-black text-slate-700 uppercase tracking-wider pr-2">
               Popular Sub-Categories:
             </span>
             {categoryInfo.subs.map((sub, idx) => (
               <Badge
                 key={idx}
-                className="bg-white text-slate-700 border border-slate-200 px-3 py-1 text-xs font-bold hover:border-blue-500 hover:text-blue-600 cursor-pointer transition-all shadow-2xs"
+                className="bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1 text-xs font-bold hover:border-brand-blue hover:text-brand-blue hover:bg-blue-50/50 cursor-pointer transition-all shadow-2xs"
               >
                 {sub}
               </Badge>
@@ -234,14 +226,14 @@ export default async function CategoryPage({ params }) {
         )}
 
         {/* Section 1: Active Offers & Promo Codes */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-            <h2 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <Tag className="w-5 h-5 text-blue-600" />
-              <span>Active Offers & Vouchers</span>
+            <h2 className="text-base md:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <Tag className="w-4 h-4 text-brand-blue" />
+              <span>Active Vouchers & Promo Codes</span>
             </h2>
-            <span className="text-xs text-slate-500 font-bold bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-              {coupons.length} Available
+            <span className="text-xs text-slate-600 font-bold bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
+              {coupons.length} Active
             </span>
           </div>
 
@@ -250,9 +242,12 @@ export default async function CategoryPage({ params }) {
               <CouponCard key={coupon._id} coupon={coupon} isLocal={false} />
             ))}
             {coupons.length === 0 && (
-              <div className="col-span-full py-12 text-center bg-white border border-slate-200 rounded-2xl p-6 space-y-3">
-                <p className="text-xs sm:text-sm font-semibold text-slate-500">
-                  No active coupon vouchers in {categoryInfo.title} right now.
+              <div className="col-span-full py-10 text-center bg-white border border-slate-200 rounded-2xl p-6 space-y-2 shadow-2xs">
+                <p className="text-xs sm:text-sm font-bold text-slate-500">
+                  No active coupon vouchers currently listed in {categoryInfo.title}.
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Check out the affiliate product deals below or browse other categories.
                 </p>
               </div>
             )}
@@ -260,13 +255,13 @@ export default async function CategoryPage({ params }) {
         </div>
 
         {/* Section 2: Active Affiliate Products */}
-        <div className="space-y-5 pt-4">
+        <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-            <h2 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-blue-600" />
+            <h2 className="text-base md:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-brand-blue" />
               <span>Affiliate Product Deals</span>
             </h2>
-            <span className="text-xs text-slate-500 font-bold bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+            <span className="text-xs text-slate-600 font-bold bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
               {affiliateProducts.length} Products
             </span>
           </div>
@@ -280,8 +275,8 @@ export default async function CategoryPage({ params }) {
               />
             ))}
             {affiliateProducts.length === 0 && (
-              <div className="col-span-full py-12 text-center bg-white border border-slate-200 rounded-2xl p-6 space-y-3">
-                <p className="text-xs sm:text-sm font-semibold text-slate-500">
+              <div className="col-span-full py-10 text-center bg-white border border-slate-200 rounded-2xl p-6 space-y-2 shadow-2xs">
+                <p className="text-xs sm:text-sm font-bold text-slate-500">
                   No active affiliate deals in {categoryInfo.title} right now.
                 </p>
               </div>
@@ -291,13 +286,13 @@ export default async function CategoryPage({ params }) {
 
         {/* Global Empty State */}
         {totalOffersCount === 0 && (
-          <div className="py-16 text-center bg-white border border-slate-200 rounded-2xl p-8 space-y-4 max-w-md mx-auto shadow-2xs">
-            <p className="text-sm font-semibold text-slate-600">
+          <div className="py-14 text-center bg-white border border-slate-200 rounded-2xl p-8 space-y-4 max-w-md mx-auto shadow-sm">
+            <p className="text-xs sm:text-sm font-bold text-slate-600">
               No active offers or products currently listed in {categoryInfo.title}.
             </p>
             <Button
               asChild
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-6 rounded-xl cursor-pointer"
+              className="bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs py-2 px-6 rounded-xl cursor-pointer shadow-xs"
             >
               <Link href="/categories">Browse All Categories</Link>
             </Button>
