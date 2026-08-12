@@ -4,11 +4,23 @@ import { Percent, Store, Tag, ShoppingBag } from "lucide-react";
 
 export default function BrandStats({ coupons, merchant }) {
   const pctArr = coupons
-    .filter((c) => c.discountType === "percentage" && c.discountValue)
-    .map((c) => c.discountValue);
+    .filter(
+      (c) =>
+        c.discountType === "percentage" &&
+        c.discountValue !== null &&
+        c.discountValue !== undefined &&
+        !isNaN(Number(c.discountValue)),
+    )
+    .map((c) => Number(c.discountValue));
   const fixedArr = coupons
-    .filter((c) => c.discountType === "fixed" && c.discountValue)
-    .map((c) => c.discountValue);
+    .filter(
+      (c) =>
+        c.discountType === "fixed" &&
+        c.discountValue !== null &&
+        c.discountValue !== undefined &&
+        !isNaN(Number(c.discountValue)),
+    )
+    .map((c) => Number(c.discountValue));
   const hasFreebie = coupons.some((c) => c.discountType === "freebie");
 
   let discountLabel = "See Deals";

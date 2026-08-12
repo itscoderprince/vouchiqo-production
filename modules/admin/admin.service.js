@@ -177,7 +177,10 @@ export async function listAllCoupons(searchParams) {
 
   const [coupons, total] = await Promise.all([
     Coupon.find(filter)
-      .populate("merchantId", "businessName slug plan")
+      .populate(
+        "merchantId",
+        "businessName slug plan contactEmail contactPhone whatsappNumber website location category customCategoryNotes status businessType isVerified logo banner liaisonName liaisonDesignation liaisonPhone gstin docType docImage shopImage regionalHubCity constitution",
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

@@ -129,24 +129,38 @@ export default function SectionBasic({
         />
 
         {/* Offer Banner Image Upload Card */}
-        <div className="space-y-2 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
-          <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
-            <ImageIcon className="w-3.5 h-3.5 text-blue-600" /> Banner Image Upload
-            <span className="text-[10px] text-slate-400 font-normal normal-case ml-1">
-              (Optional)
+        <div className="space-y-2.5 p-4 bg-slate-50/90 rounded-xl border border-slate-200/90 shadow-2xs">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-900 uppercase tracking-wider">
+              <ImageIcon className="w-4 h-4 text-blue-600" /> Banner Image Upload
+              <span className="text-[10px] text-slate-400 font-normal normal-case">
+                (Optional)
+              </span>
+            </Label>
+
+            {/* Prominent Image Ratio Callout Badge */}
+            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200/90 px-2.5 py-1 rounded-lg shadow-2xs">
+              <span className="text-blue-600 font-black">📷 Aspect Ratio: 2:1</span>
+              <span className="text-slate-400 font-normal">•</span>
+              <span className="text-slate-800 font-bold">800×400px Landscape</span>
             </span>
-          </Label>
-          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
             <FormInput
               type="text"
-              placeholder="Paste image URL (https://...) or upload file below"
+              placeholder="Paste image URL (https://...) or upload below"
               {...register("image")}
               error={errors.image}
-              className="flex-1 bg-white"
+              className="flex-1 bg-white h-10 text-xs"
             />
-            <label className="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3.5 h-9 rounded-xl cursor-pointer shrink-0 transition-colors shadow-2xs">
-              <Upload className="w-3.5 h-3.5 text-white" />
-              <span>{uploadingImage ? "Uploading..." : "Upload File"}</span>
+
+            {/* Upload Button with prominent ratio text */}
+            <label className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-4 h-10 rounded-xl cursor-pointer shrink-0 transition-all shadow-md shadow-slate-900/10">
+              <Upload className="w-4 h-4 text-white" />
+              <span>
+                {uploadingImage ? "Uploading..." : "Upload 800×400 Banner (2:1)"}
+              </span>
               <input
                 type="file"
                 accept="image/*"
@@ -156,9 +170,11 @@ export default function SectionBasic({
               />
             </label>
           </div>
-          <span className="text-[10px] text-slate-500 font-medium block pt-0.5">
-            📷 Preferred resolution: 800×400px horizontal landscape image (PNG/JPG, max 5MB).
-          </span>
+
+          <div className="p-2 bg-white rounded-lg border border-slate-200/70 text-[11px] text-slate-600 font-medium flex items-center justify-between flex-wrap gap-1">
+            <span>💡 <strong>Banner Tip:</strong> 2:1 Horizontal ratio (800px width × 400px height, PNG/JPG max 5MB) renders perfectly on all devices.</span>
+            <span className="text-blue-600 font-bold text-[10px] uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">2:1 Ratio</span>
+          </div>
         </div>
       </div>
 

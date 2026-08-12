@@ -143,6 +143,29 @@ export default function SectionDiscount({
                   onValueChange={(val) => {
                     field.onChange(val);
                     setValue("discountType", val, { shouldValidate: true });
+                    const currentVal = watch("discountValue");
+                    const isNum =
+                      currentVal !== undefined &&
+                      currentVal !== null &&
+                      currentVal !== "" &&
+                      !isNaN(Number(currentVal));
+                    if (val === "% Off" || val === "Flat ₹ Off") {
+                      if (!isNum) {
+                        setValue("discountValue", "", { shouldValidate: true });
+                      }
+                    } else if (val === "BOGO") {
+                      if (isNum || !currentVal || currentVal === "20" || currentVal === "200") {
+                        setValue("discountValue", "Buy 1 Get 1", { shouldValidate: true });
+                      }
+                    } else if (val === "Free Gift") {
+                      if (isNum || !currentVal || currentVal === "20" || currentVal === "200") {
+                        setValue("discountValue", "Free Gift with Purchase", { shouldValidate: true });
+                      }
+                    } else if (val === "Other") {
+                      if (isNum) {
+                        setValue("discountValue", "Special In-Store Offer", { shouldValidate: true });
+                      }
+                    }
                   }}
                   error={errors.discountType}
                 />

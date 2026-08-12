@@ -86,7 +86,7 @@ export default function CreateCoupon() {
         role: "merchant",
       }}
     >
-      <div className="flex flex-col gap-3.5 text-left font-sans w-full max-w-6xl mx-auto">
+      <div className="flex flex-col gap-3.5 text-left font-sans w-full">
         {/* COMPACT STEPPER BAR */}
         <div className="w-full flex items-center gap-2 py-2 px-3 bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-x-auto">
           <Button

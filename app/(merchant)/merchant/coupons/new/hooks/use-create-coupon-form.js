@@ -191,15 +191,28 @@ export function useCreateCouponForm() {
     let backendDiscountType = "percentage";
     if (formData.offerType === "code") {
       if (formData.discountType.includes("Flat")) backendDiscountType = "fixed";
-      else if (formData.discountType.includes("Free"))
+      else if (
+        formData.discountType.includes("Free") ||
+        formData.discountType.includes("BOGO") ||
+        formData.discountType.includes("Other")
+      )
         backendDiscountType = "freebie";
     } else if (formData.offerType === "special") {
       backendDiscountType = "freebie";
+    } else if (formData.offerType === "deal") {
+      backendDiscountType = "fixed";
     }
 
-    const rawDiscount = Number(formData.discountValue);
-    const parsedDiscount =
-      !Number.isNaN(rawDiscount) && rawDiscount > 0 ? rawDiscount : 0;
+    const rawDiscountNum = Number(formData.discountValue);
+    const isNum =
+      formData.discountValue !== undefined &&
+      formData.discountValue !== null &&
+      formData.discountValue !== "" &&
+      !Number.isNaN(rawDiscountNum);
+
+    const parsedDiscount = isNum
+      ? rawDiscountNum
+      : formData.discountValue || 0;
 
     const rawOriginal = Number(formData.originalPrice);
     const parsedOriginal =
@@ -218,6 +231,8 @@ export function useCreateCouponForm() {
       code: formData.code || "DEALOFFER",
       discountType: backendDiscountType,
       discountValue: parsedDiscount,
+      rawDiscountValue: formData.discountValue,
+      rawDiscountType: formData.discountType,
       originalPrice: parsedOriginal,
       salePrice: parsedSale,
       category: formData.category,

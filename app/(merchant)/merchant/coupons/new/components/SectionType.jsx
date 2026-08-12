@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Gift, Link2, Tag, Ticket } from "lucide-react";
+import { ArrowRight, CheckCircle2, Gift, Link2, Tag, Ticket } from "lucide-react";
 import { useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,8 +13,8 @@ const OFFER_TYPES = [
     icon: Ticket,
     desc: "Customer copies code for online checkout or presents a Smart Code at counter in-store.",
     bestFor: "Best for: Restaurants, salons, retail stores, or online checkouts.",
-    badgeBg: "bg-blue-50 text-blue-600",
-    color: "border-blue-600 bg-blue-50/40 text-blue-950",
+    badgeBg: "bg-blue-100 text-blue-700",
+    activeColor: "border-blue-600 bg-blue-50/70 text-blue-950 ring-2 ring-blue-500/25 shadow-xs",
   },
   {
     id: "deal",
@@ -22,8 +22,8 @@ const OFFER_TYPES = [
     icon: Link2,
     desc: "No code required. Clicking the deal opens your pre-discounted page directly.",
     bestFor: "Best for: E-commerce sites, product sales pages, online bookings.",
-    badgeBg: "bg-teal-50 text-teal-600",
-    color: "border-teal-600 bg-teal-50/40 text-teal-950",
+    badgeBg: "bg-teal-100 text-teal-700",
+    activeColor: "border-teal-600 bg-teal-50/70 text-teal-950 ring-2 ring-teal-500/25 shadow-xs",
   },
   {
     id: "special",
@@ -31,13 +31,17 @@ const OFFER_TYPES = [
     icon: Gift,
     desc: "Non-standard format: BOGO, free gift with purchase, free service upgrade, bundle deals.",
     bestFor: "Best for: BOGO meals, free treatments, gym trials, package deals.",
-    badgeBg: "bg-purple-50 text-purple-600",
-    color: "border-purple-600 bg-purple-50/40 text-purple-950",
+    badgeBg: "bg-purple-100 text-purple-700",
+    activeColor: "border-purple-600 bg-purple-50/70 text-purple-950 ring-2 ring-purple-500/25 shadow-xs",
   },
 ];
 
 export default function SectionType({ control, setValue, watch, onNext }) {
   const selectedOfferType = useWatch({ control, name: "offerType" }) ?? "code";
+
+  const handleSelect = (id) => {
+    setValue("offerType", id, { shouldValidate: true, shouldDirty: true });
+  };
 
   return (
     <Card className="border-slate-200/90 shadow-sm rounded-2xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans relative overflow-hidden">
@@ -60,40 +64,62 @@ export default function SectionType({ control, setValue, watch, onNext }) {
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-3" role="radiogroup" aria-label="Select Offer Type">
         {OFFER_TYPES.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedOfferType === type.id;
           return (
             <div
               key={type.id}
-              onClick={() =>
-                setValue("offerType", type.id, { shouldValidate: true })
-              }
+              role="radio"
+              aria-checked={isSelected}
+              tabIndex={0}
+              onClick={() => handleSelect(type.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleSelect(type.id);
+                }
+              }}
               className={cn(
-                "p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col gap-1.5",
+                "p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col gap-2 relative group outline-none select-none",
                 isSelected
-                  ? `${type.color} shadow-2xs ring-2 ring-blue-500/20`
-                  : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60",
+                  ? type.activeColor
+                  : "border-slate-200/80 bg-white hover:border-blue-300 hover:bg-slate-50/60",
               )}
             >
-              <div className="flex items-center gap-2.5">
-                <span
-                  className={cn(
-                    "p-1 rounded-md shrink-0 transition-colors",
-                    type.badgeBg,
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={cn(
+                      "p-1.5 rounded-lg shrink-0 transition-colors",
+                      type.badgeBg,
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </span>
+                  <span className="text-xs font-extrabold text-slate-900">
+                    {type.name}
+                  </span>
+                </div>
+
+                {/* Selection Indicator */}
+                <div className="flex items-center gap-1">
+                  {isSelected ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-blue-600 bg-white border border-blue-200 px-2 py-0.5 rounded-full shadow-2xs">
+                      <CheckCircle2 className="w-3 h-3 text-blue-600 fill-blue-50 stroke-blue-600" />
+                      Selected
+                    </span>
+                  ) : (
+                    <span className="w-4 h-4 rounded-full border-2 border-slate-300 group-hover:border-blue-400 transition-colors" />
                   )}
-                >
-                  <Icon className="w-4 h-4" />
-                </span>
-                <span className="text-xs font-extrabold text-slate-900">
-                  {type.name}
-                </span>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-600 font-medium leading-relaxed pl-7">
+
+              <p className="text-[11px] text-slate-600 font-medium leading-relaxed pl-8">
                 {type.desc}
               </p>
-              <span className="text-[10px] text-slate-400 font-semibold block pl-7">
+              <span className="text-[10px] text-slate-400 font-semibold block pl-8">
                 {type.bestFor}
               </span>
             </div>

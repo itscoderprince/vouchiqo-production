@@ -64,11 +64,16 @@ export default function CouponModerationTable({
                   )}
                 </TableCell>
                 <TableCell className="p-4 text-brand-blue font-bold">
-                  {coupon.discountType === "percentage"
-                    ? `${coupon.discountValue}% OFF`
-                    : coupon.discountType === "fixed"
-                      ? `₹${coupon.discountValue} OFF`
-                      : "FREEBIE"}
+                  {(() => {
+                    const val = coupon.rawDiscountValue || coupon.discountValue;
+                    const isNum = val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
+                    if (coupon.offerType === "deal" && coupon.salePrice) return `₹${coupon.salePrice} Deal`;
+                    if (coupon.discountType === "percentage" && isNum) return `${val}% OFF`;
+                    if (coupon.discountType === "fixed" && isNum) return `₹${val} OFF`;
+                    if (coupon.specialOfferType) return coupon.specialOfferType;
+                    if (typeof val === "string" && val.trim() && !isNum) return val;
+                    return "FREE GIFT";
+                  })()}
                 </TableCell>
                 <TableCell className="p-4 text-brand-subtext max-w-[200px] truncate">
                   Code:{" "}

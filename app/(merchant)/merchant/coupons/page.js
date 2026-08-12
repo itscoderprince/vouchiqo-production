@@ -54,9 +54,26 @@ function StatCard({ title, count, description, colorClass }) {
  * Format discount display string
  */
 function formatDiscount(coupon) {
-  if (coupon.discountType === "percentage") return `${coupon.discountValue}% OFF`;
-  if (coupon.discountType === "fixed") return `₹${coupon.discountValue} OFF`;
-  return "Freebie";
+  if (!coupon) return "Special Offer";
+  const val = coupon.rawDiscountValue || coupon.discountValue;
+  const isNum =
+    val !== null &&
+    val !== undefined &&
+    val !== "" &&
+    !isNaN(Number(val));
+
+  if (coupon.offerType === "deal" && coupon.salePrice) {
+    return `₹${coupon.salePrice} Deal`;
+  }
+  if (coupon.discountType === "percentage" && isNum) return `${val}% OFF`;
+  if (coupon.discountType === "fixed" && isNum) return `₹${val} OFF`;
+  if (coupon.discountType === "freebie" || coupon.offerType === "special") {
+    if (coupon.specialOfferType) return coupon.specialOfferType;
+    if (typeof val === "string" && val.trim() && !isNum) return val;
+    return "Freebie / Gift";
+  }
+  if (val) return isNum ? `${val}% OFF` : String(val);
+  return "Special Offer";
 }
 
 /**

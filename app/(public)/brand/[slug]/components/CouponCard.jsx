@@ -1,15 +1,23 @@
 "use client";
 
 import {
+  Calendar,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
   ExternalLink,
+  Gift,
+  Lock,
+  MapPin,
+  ShieldCheck,
+  Tag,
+  Ticket,
   Users,
 } from "lucide-react";
 
 export default function CouponCard({
-  coupon,
+  coupon = {},
   isExpanded,
   toggleDetails,
   copiedCouponId,
@@ -17,12 +25,60 @@ export default function CouponCard({
   merchant,
 }) {
   const hasCode = coupon.code && coupon.code.trim() !== "";
-  const discountText =
-    coupon.discountValue && coupon.discountType
-      ? coupon.discountType === "percentage"
-        ? `${coupon.discountValue}%`
-        : `₹${coupon.discountValue}`
-      : null;
+  const offerType = coupon.offerType || (hasCode ? "code" : "deal");
+  const discountType = coupon.discountType || "percentage";
+  const rawVal = coupon.rawDiscountValue || coupon.discountValue;
+
+  const isNumericValue =
+    rawVal !== null &&
+    rawVal !== undefined &&
+    rawVal !== "" &&
+    !isNaN(Number(rawVal));
+
+  let topSaveLabel = "Save";
+  let mainDiscountBadge = null;
+  let bottomTag = "OFF";
+
+  if (offerType === "deal" && coupon.salePrice) {
+    if (coupon.originalPrice && coupon.originalPrice > coupon.salePrice) {
+      const pct = Math.round(
+        ((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) * 100,
+      );
+      topSaveLabel = "Save";
+      mainDiscountBadge = `${pct}%`;
+      bottomTag = "OFF";
+    } else {
+      topSaveLabel = "Deal";
+      mainDiscountBadge = `₹${coupon.salePrice}`;
+      bottomTag = "PRICE";
+    }
+  } else if (discountType === "percentage" && isNumericValue) {
+    topSaveLabel = "Save";
+    mainDiscountBadge = `${rawVal}%`;
+    bottomTag = "OFF";
+  } else if (discountType === "fixed" && isNumericValue) {
+    topSaveLabel = "Save";
+    mainDiscountBadge = `₹${rawVal}`;
+    bottomTag = "OFF";
+  } else if (discountType === "freebie" || offerType === "special") {
+    topSaveLabel = "Gift";
+    if (coupon.specialOfferType) {
+      mainDiscountBadge = coupon.specialOfferType.split(" ")[0];
+    } else if (typeof rawVal === "string" && rawVal.trim() && !isNumericValue) {
+      mainDiscountBadge = rawVal.length > 8 ? rawVal.slice(0, 7) + "…" : rawVal;
+    } else {
+      mainDiscountBadge = "BOGO";
+    }
+    bottomTag = "DEAL";
+  } else if (rawVal) {
+    topSaveLabel = "Save";
+    mainDiscountBadge = isNumericValue
+      ? `${rawVal}%`
+      : String(rawVal).length > 8
+        ? String(rawVal).slice(0, 7) + "…"
+        : String(rawVal);
+    bottomTag = "OFF";
+  }
 
   const expiryLabel = coupon.expiresAt
     ? (() => {
@@ -40,34 +96,34 @@ export default function CouponCard({
       <div className="flex flex-col sm:flex-row items-stretch">
         {/* Discount badge column */}
         <div
-          className="sm:w-[110px] flex-shrink-0 flex flex-col items-center justify-center py-5 px-3 text-center"
+          className="sm:w-[115px] flex-shrink-0 flex flex-col items-center justify-center py-5 px-3 text-center"
           style={{
             background: hasCode
               ? "linear-gradient(160deg, #1d4ed8, #2563eb)"
               : "linear-gradient(160deg, #0f172a, #1e3a5f)",
           }}
         >
-          {discountText ? (
+          {mainDiscountBadge ? (
             <>
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-200 mb-0.5">
-                Save
+              <span className="text-[9px] font-bold uppercase tracking-widest text-blue-200 mb-0.5">
+                {topSaveLabel}
               </span>
-              <span className="text-2xl font-bold text-white leading-none">
-                {discountText}
+              <span className="text-xl sm:text-2xl font-black text-white leading-none uppercase truncate max-w-full">
+                {mainDiscountBadge}
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-white/60 mt-1">
-                OFF
+              <span className="text-[9px] font-bold uppercase tracking-wider text-white/70 mt-1">
+                {bottomTag}
               </span>
             </>
           ) : (
             <>
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-200 mb-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-blue-200 mb-0.5">
                 {hasCode ? "Code" : "Deal"}
               </span>
               <span className="text-base font-bold text-white leading-none">
                 {hasCode ? "PROMO" : "OFFER"}
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-wider bg-white/15 px-1.5 py-0.5 rounded mt-1.5 text-white/80">
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-white/15 px-1.5 py-0.5 rounded mt-1.5 text-white/80">
                 Active
               </span>
             </>
@@ -79,39 +135,60 @@ export default function CouponCard({
           <div className="space-y-1.5">
             {/* Badges row */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-semibold">
-                <CheckCircle2 className="w-2.5 h-2.5" />
-                Verified
+              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-bold">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                100% Verified
               </span>
-              <span className="text-[11px] text-gray-400 font-normal flex items-center gap-1">
-                <Users className="w-3 h-3" />3 used today
+              <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                <Users className="w-3 h-3 text-slate-400" /> Community Tested
               </span>
               {expiryLabel && (
-                <span className="text-[10px] text-orange-500 font-medium">
+                <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
                   {expiryLabel}
                 </span>
               )}
             </div>
 
-            {/* Title */}
-            <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
-              {coupon.title}
+            {/* Title / Headline */}
+            <h3 className="text-[15px] font-bold text-slate-900 leading-snug">
+              {coupon.title || coupon.headline}
             </h3>
 
             {/* Description */}
-            {coupon.description && (
-              <p className="text-[12px] text-gray-500 leading-relaxed line-clamp-2 font-normal">
-                {coupon.description}
+            {(coupon.description || coupon.shortDescription) && (
+              <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 font-medium">
+                {coupon.description || coupon.shortDescription}
               </p>
+            )}
+
+            {/* Additional In-Depth Info Chips */}
+            {(coupon.minOrderValue || coupon.maxCap || coupon.validHours) && (
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-bold text-slate-600">
+                {coupon.minOrderValue && (
+                  <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-blue-600" /> Min Bill: ₹{coupon.minOrderValue}
+                  </span>
+                )}
+                {coupon.maxCap && (
+                  <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-slate-500" /> Max Cap: ₹{coupon.maxCap}
+                  </span>
+                )}
+                {coupon.validHours && (
+                  <span className="bg-blue-50 border border-blue-100 text-blue-700 px-2 py-0.5 rounded flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-blue-600" /> {coupon.validHours}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
           {/* Actions row */}
-          <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+          <div className="flex justify-between items-center pt-2 border-t border-slate-100">
             <button
               onClick={toggleDetails}
               type="button"
-              className="text-[12px] font-medium text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
+              className="text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
             >
               {isExpanded ? "Hide details" : "Show details"}
               {isExpanded ? (
@@ -124,15 +201,15 @@ export default function CouponCard({
             {hasCode ? (
               <div>
                 {copiedCouponId === coupon._id ? (
-                  <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-100 text-[11px] font-semibold px-3 py-1.5 rounded-lg">
-                    <CheckCircle2 className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-3 py-1.5 rounded-lg shadow-2xs">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
                     Code Copied!
                   </span>
                 ) : (
                   <button
                     onClick={() => handleCopyCode(coupon.code, coupon._id)}
                     type="button"
-                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-[12px] font-semibold px-4 py-1.5 rounded-lg border-0 cursor-pointer transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold px-4 py-1.5 rounded-xl border-0 cursor-pointer transition-colors shadow-sm shadow-blue-500/20"
                   >
                     Get Code
                   </button>
@@ -142,39 +219,51 @@ export default function CouponCard({
               <button
                 onClick={() => handleCopyCode("", coupon._id)}
                 type="button"
-                className="bg-gray-900 hover:bg-black active:bg-gray-800 text-white text-[12px] font-semibold px-4 py-1.5 rounded-lg border-0 cursor-pointer transition-colors flex items-center gap-1.5"
+                className="bg-slate-900 hover:bg-slate-800 active:bg-black text-white text-xs font-bold px-4 py-1.5 rounded-xl border-0 cursor-pointer transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                Get Deal
-                <ExternalLink className="w-3 h-3" />
+                Get In-Store Deal
+                <ExternalLink className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Expanded details */}
+      {/* Expanded details in depth */}
       {isExpanded && (
-        <div className="bg-gray-50 border-t border-gray-100 px-5 py-4 text-left">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
-            Terms & Conditions
-          </p>
-          <ul className="space-y-1 text-[12px] text-gray-500 font-normal list-disc pl-4">
-            <li>
-              Applicable only on verified purchases via official partner
-              channels.
-            </li>
-            <li>
-              Discount applies to base order value; taxes and fees excluded.
-            </li>
-            <li>Cannot be combined with other ongoing merchant promotions.</li>
-            <li>Offer valid for a limited time. Valid until stock lasts.</li>
-          </ul>
+        <div className="bg-slate-50/90 border-t border-slate-200/80 px-5 py-4 text-left space-y-3 font-sans">
+          <div className="space-y-1">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+              Terms &amp; Redemption Conditions
+            </p>
+            {coupon.termsAndConditions ? (
+              <p className="text-xs text-slate-700 font-medium leading-relaxed whitespace-pre-line">
+                {coupon.termsAndConditions}
+              </p>
+            ) : (
+              <ul className="space-y-1 text-xs text-slate-600 font-medium list-disc pl-4">
+                <li>Applicable only on verified purchases at participating merchant counters.</li>
+                <li>Discount applies to base invoice total; taxes and fees excluded.</li>
+                <li>Cannot be combined with other ongoing store promotions.</li>
+              </ul>
+            )}
+          </div>
+
+          {coupon.redemptionMethod && (
+            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold text-slate-700">
+              <span>Redemption Method:</span>
+              <span className="text-blue-700 bg-white px-2.5 py-1 rounded-md border border-blue-200">
+                {coupon.redemptionMethod}
+              </span>
+            </div>
+          )}
+
           {hasCode && (
-            <div className="mt-3 flex items-center gap-2">
-              <span className="text-[12px] font-medium text-gray-600">
+            <div className="pt-2 border-t border-slate-200/60 flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-600">
                 Promo code:
               </span>
-              <span className="font-mono bg-white border border-gray-200 text-blue-600 px-2.5 py-1 rounded-lg text-[12px] font-semibold tracking-wider">
+              <span className="font-mono bg-white border border-slate-300 text-blue-700 px-3 py-1 rounded-lg text-xs font-black tracking-wider uppercase shadow-2xs">
                 {coupon.code}
               </span>
             </div>
