@@ -29,6 +29,44 @@ import {
 import { useUser } from "@/hooks/use-user";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
 
+function CountdownTimer({ expiresAt }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 8, minutes: 22, seconds: 45 });
+
+  useEffect(() => {
+    const target = expiresAt ? new Date(expiresAt).getTime() : Date.now() + 86400000 * 14;
+
+    const update = () => {
+      const now = Date.now();
+      const diff = Math.max(0, target - now);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  return (
+    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 text-white px-4 py-2 rounded-xl text-xs font-black shadow-md border border-slate-700 select-none">
+      <span className="relative flex h-2.5 w-2.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+      </span>
+      <span className="text-amber-400 font-extrabold uppercase text-[10px] tracking-wider">Offer Expires In:</span>
+      <div className="flex items-center gap-1 font-mono font-black text-xs text-white">
+        <span className="bg-slate-800/80 px-1.5 py-0.5 rounded text-white">{String(timeLeft.days).padStart(2, "0")}d</span>:
+        <span className="bg-slate-800/80 px-1.5 py-0.5 rounded text-white">{String(timeLeft.hours).padStart(2, "0")}h</span>:
+        <span className="bg-slate-800/80 px-1.5 py-0.5 rounded text-white">{String(timeLeft.minutes).padStart(2, "0")}m</span>:
+        <span className="bg-emerald-950/80 px-1.5 py-0.5 rounded text-emerald-400 border border-emerald-500/30">{String(timeLeft.seconds).padStart(2, "0")}s</span>
+      </div>
+    </div>
+  );
+}
+
 export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   const router = useRouter();
   const { isLoggedIn, user } = useUser();
@@ -181,10 +219,28 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   const merchantName = coupon.merchantId?.businessName || "Partner";
   const logoUrl = coupon.merchantId?.logo || "/placeholder-brand.png";
 
-  const discountFormatted =
-    coupon.discountType === "percentage"
-      ? `${coupon.discountValue}% OFF`
-      : `₹${coupon.discountValue} OFF`;
+  const discountFormatted = (() => {
+    const rawVal = coupon.rawDiscountValue || coupon.discountValue;
+    const rawType = coupon.rawDiscountType || coupon.discountType;
+    const isNum = rawVal !== null && rawVal !== undefined && rawVal !== "" && !isNaN(Number(rawVal));
+    const num = Number(rawVal);
+
+    if (rawType === "percentage") {
+      if (isNum && num <= 100) return `${num}% OFF`;
+      if (isNum && num > 100) return `₹${num} OFF`;
+      return `${rawVal || 15}% OFF`;
+    }
+    if (rawType === "fixed" || rawType === "flat") {
+      return isNum ? `₹${num} OFF` : `₹${rawVal || 200} OFF`;
+    }
+    if (rawType === "freebie" || rawType === "bogo") {
+      return "BUY 1 GET 1 FREE";
+    }
+    if (rawType === "deal" || rawType === "price") {
+      return isNum ? `SPECIAL DEAL @ ₹${num}` : "SPECIAL DEAL";
+    }
+    return isNum && num <= 100 ? `${num}% OFF` : isNum ? `₹${num} OFF` : "SPECIAL OFFER";
+  })();
 
   const formattedExpiry = (() => {
     if (!coupon.expiresAt) return "30 Nov 2026";
@@ -238,19 +294,22 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
     <div className="min-h-screen flex flex-col bg-[#F7F9FB] text-slate-800">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full flex-grow space-y-6">
+      <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
         {/* Navigation Action Row */}
         <div className="flex justify-between items-center select-none">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-xs font-bold text-brand-blue hover:underline bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all"
+            className="flex items-center gap-2 text-xs font-bold text-brand-blue hover:underline bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all hover:bg-slate-50"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Go Back</span>
           </button>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
+            {/* Live Expiry Countdown */}
+            <CountdownTimer expiresAt={coupon.expiresAt} />
+
             {/* Save Offer Toggle Action */}
             <button
               type="button"
@@ -288,17 +347,22 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Coupon Card (Left) */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 shadow-md overflow-hidden">
-            {/* Header section: label, title, and logo */}
-            <div className="p-6 md:p-8 flex justify-between items-start gap-4 border-b border-slate-100 bg-white">
-              <div className="space-y-2">
-                <span className="inline-block bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
-                  {coupon.code ? "Coupon" : "Sale"}
-                </span>
-                <h1 className="text-lg md:text-xl font-black text-slate-800 leading-snug tracking-tight">
+            {/* Header section: label, title, countdown, and logo */}
+            <div className="p-6 md:p-8 flex justify-between items-start gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-900/[0.02] to-blue-50/20">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-block bg-brand-blue text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    {discountFormatted}
+                  </span>
+                  <span className="inline-block bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
+                    {coupon.code ? "PROMO CODE" : "VERIFIED SALE"}
+                  </span>
+                </div>
+                <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-snug tracking-tight">
                   {coupon.code ? (
                     <>
                       {"Use Code & Get "}
-                      {discountFormatted}
+                      <span className="text-brand-blue">{discountFormatted}</span>
                       {" on "}
                       {coupon.merchantId?.slug ? (
                         <Link
@@ -312,7 +376,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                       )}
                     </>
                   ) : (
-                    `Sale: ${coupon.title}`
+                    `Exclusive Deal: ${coupon.title}`
                   )}
                 </h1>
               </div>
@@ -507,30 +571,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               </ul>
             </div>
 
-            {/* Telegram promotional banner */}
-            <div className="p-6 md:p-8 border-b border-slate-100">
-              <a
-                href="https://t.me/vouchiqo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-              >
-                <div className="bg-gradient-to-r from-blue-500 to-sky-600 p-6 text-white flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="space-y-1.5 text-center md:text-left">
-                    <h3 className="text-lg font-black tracking-tight">
-                      Don't Miss out on incredible deals &amp; exclusive
-                      coupons!
-                    </h3>
-                    <p className="text-xs text-blue-100 font-semibold">
-                      Join the Vouchiqo official channel and save more.
-                    </p>
-                  </div>
-                  <span className="bg-white text-blue-600 font-black text-xs px-5 py-2.5 rounded-full uppercase tracking-wider hover:bg-slate-100 transition-colors">
-                    Join Our Telegram
-                  </span>
-                </div>
-              </a>
-            </div>
+
 
             {/* T&C Section */}
             <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/20 text-left">
