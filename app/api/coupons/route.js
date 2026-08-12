@@ -31,6 +31,7 @@ export const GET = asyncHandler(async (request) => {
 
     const merchantParams = new URLSearchParams(searchParams);
     merchantParams.set("merchantId", merchant._id.toString());
+    merchantParams.set("isMerchantSelf", "true");
     merchantParams.delete("status");
 
     const result = await listCoupons(merchantParams);

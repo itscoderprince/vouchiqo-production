@@ -309,18 +309,19 @@ export async function listCoupons(searchParams) {
 
   const status = searchParams.get("status");
   const merchantId = searchParams.get("merchantId");
+  const isMerchantSelfQuery = searchParams.get("isMerchantSelf") === "true";
 
   if (status && status !== "all") {
     filter.status = status;
-  } else if (!merchantId) {
-    // For public browse endpoints without merchantId, default to active deals
+  } else if (!isMerchantSelfQuery) {
+    // For all public queries, strictly enforce active status
     filter.status = COUPON_STATUS.ACTIVE;
   }
 
   if (merchantId) filter.merchantId = merchantId;
 
   // Public active deals must be verified and unexpired (unless queried by merchant)
-  if (filter.status === COUPON_STATUS.ACTIVE && !merchantId) {
+  if (filter.status === COUPON_STATUS.ACTIVE && !isMerchantSelfQuery) {
     filter.isVerified = true;
     if (!searchParams.get("allDates")) {
       filter.expiresAt = { $gt: new Date() };

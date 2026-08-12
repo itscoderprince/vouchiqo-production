@@ -367,11 +367,11 @@ export default async function BrandPage({ params }) {
         ],
       };
 
-      // ── Active coupons (not expired, not deleted/paused) ──
+      // ── Active coupons (only approved & active status) ──
       const rawCoupons = await Coupon.find({
         $and: [
           merchantFilter,
-          { status: { $nin: ["deleted", "expired", "paused", "rejected"] } },
+          { status: "active" },
           {
             $or: [
               { expiresAt: { $gt: new Date() } },

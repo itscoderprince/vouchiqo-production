@@ -25,10 +25,28 @@ const CATEGORY_GRADIENTS = {
 };
 
 function PopularOfferCard({ coupon }) {
-  const discountFormatted =
-    coupon.discountType === "percentage"
-      ? `${coupon.discountValue}% OFF`
-      : `₹${coupon.discountValue} OFF`;
+  const val = coupon.rawDiscountValue || coupon.discountValue;
+  const isNum = val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
+  let discountFormatted = "SPECIAL DEAL";
+
+  if (coupon.offerType === "deal" && coupon.salePrice) {
+    if (coupon.originalPrice && coupon.originalPrice > coupon.salePrice) {
+      const pct = Math.round(((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) * 100);
+      discountFormatted = `${pct}% OFF`;
+    } else {
+      discountFormatted = `₹${coupon.salePrice} DEAL`;
+    }
+  } else if (coupon.discountType === "percentage" && isNum) {
+    discountFormatted = `${val}% OFF`;
+  } else if (coupon.discountType === "fixed" && isNum) {
+    discountFormatted = `₹${val} OFF`;
+  } else if (coupon.specialOfferType) {
+    discountFormatted = coupon.specialOfferType.toUpperCase();
+  } else if (typeof val === "string" && val.trim() && !isNum) {
+    discountFormatted = val.toUpperCase();
+  } else if (val) {
+    discountFormatted = isNum ? `${val}% OFF` : String(val).toUpperCase();
+  }
 
   const merchantName =
     coupon.merchantId?.businessName || coupon.merchantId?.name || "Partner";
