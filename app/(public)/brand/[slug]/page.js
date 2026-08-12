@@ -355,59 +355,93 @@ export default async function BrandPage({ params }) {
       coupons = getMockCoupons(slug, merchant._id);
       expiredCoupons = getMockExpiredCoupons(slug, merchant._id);
     } else {
+      const mId = merchant._id;
+      const mIdStr = merchant._id ? merchant._id.toString() : null;
+      const mSlug = merchant.slug ? merchant.slug.toLowerCase() : null;
+
+      const merchantFilter = {
+        $or: [
+          ...(mId ? [{ merchantId: mId }] : []),
+          ...(mIdStr ? [{ merchantId: mIdStr }] : []),
+          ...(mSlug ? [{ merchantSlug: mSlug }, { brandSlug: mSlug }] : []),
+        ],
+      };
+
       // ── Active coupons (not expired, not deleted/paused) ──
       const rawCoupons = await Coupon.find({
-        $or: [
-          { merchantId: merchant._id },
-          { merchantId: merchant._id.toString() },
-          { merchantSlug: merchant.slug },
-          { brandSlug: merchant.slug },
-        ],
-        status: { $nin: ["deleted", "expired", "paused", "rejected"] },
-        $or: [
-          { expiresAt: { $gt: new Date() } },
-          { expiresAt: null },
-          { expiresAt: { $exists: false } },
+        $and: [
+          merchantFilter,
+          { status: { $nin: ["deleted", "expired", "paused", "rejected"] } },
+          {
+            $or: [
+              { expiresAt: { $gt: new Date() } },
+              { expiresAt: null },
+              { expiresAt: { $exists: false } },
+            ],
+          },
         ],
       })
         .sort({ isFeatured: -1, createdAt: -1 })
         .populate("merchantId", "businessName slug logo website")
         .lean();
-      coupons = JSON.parse(JSON.stringify(rawCoupons || []));
+
+      const validCoupons = (rawCoupons || []).filter((c) => {
+        if (!c) return false;
+        const cMerchId = c.merchantId?._id ? c.merchantId._id.toString() : c.merchantId?.toString();
+        const cSlug = (c.merchantId?.slug || c.merchantSlug || c.brandSlug || "").toLowerCase();
+        const matchesId = cMerchId && mIdStr && cMerchId === mIdStr;
+        const matchesSlug = cSlug && mSlug && cSlug === mSlug;
+        return matchesId || matchesSlug;
+      });
+      coupons = JSON.parse(JSON.stringify(validCoupons));
 
       // ── Expired coupons (status=expired OR active but past expiresAt) ──
       const rawExpired = await Coupon.find({
-        $or: [
-          { merchantId: merchant._id },
-          { merchantId: merchant._id.toString() },
-          { merchantSlug: merchant.slug },
-          { brandSlug: merchant.slug },
-        ],
-        status: { $nin: ["deleted"] },
-        $or: [
-          { status: "expired" },
-          { expiresAt: { $lte: new Date() } },
+        $and: [
+          merchantFilter,
+          { status: { $nin: ["deleted"] } },
+          {
+            $or: [
+              { status: "expired" },
+              { expiresAt: { $lte: new Date() } },
+            ],
+          },
         ],
       })
         .sort({ expiresAt: -1 })
         .limit(10)
         .populate("merchantId", "businessName slug logo")
         .lean();
-      expiredCoupons = JSON.parse(JSON.stringify(rawExpired || []));
+
+      const validExpired = (rawExpired || []).filter((c) => {
+        if (!c) return false;
+        const cMerchId = c.merchantId?._id ? c.merchantId._id.toString() : c.merchantId?.toString();
+        const cSlug = (c.merchantId?.slug || c.merchantSlug || c.brandSlug || "").toLowerCase();
+        const matchesId = cMerchId && mIdStr && cMerchId === mIdStr;
+        const matchesSlug = cSlug && mSlug && cSlug === mSlug;
+        return matchesId || matchesSlug;
+      });
+      expiredCoupons = JSON.parse(JSON.stringify(validExpired));
 
       // ── Active Affiliate Products ──
       const rawAffiliateProducts = await AffiliateProduct.find({
-        $or: [
-          { merchantId: merchant._id },
-          { merchantId: merchant._id.toString() },
-          { merchantSlug: merchant.slug },
-          { brandSlug: merchant.slug },
+        $and: [
+          merchantFilter,
+          { status: { $ne: "inactive" } },
         ],
-        status: { $ne: "inactive" },
       })
         .sort({ createdAt: -1 })
         .lean();
-      affiliateProducts = JSON.parse(JSON.stringify(rawAffiliateProducts || []));
+
+      const validAffiliateProducts = (rawAffiliateProducts || []).filter((p) => {
+        if (!p) return false;
+        const pMerchId = p.merchantId?._id ? p.merchantId._id.toString() : p.merchantId?.toString();
+        const pSlug = (p.merchantId?.slug || p.merchantSlug || p.brandSlug || "").toLowerCase();
+        const matchesId = pMerchId && mIdStr && pMerchId === mIdStr;
+        const matchesSlug = pSlug && mSlug && pSlug === mSlug;
+        return matchesId || matchesSlug;
+      });
+      affiliateProducts = JSON.parse(JSON.stringify(validAffiliateProducts));
     }
   } catch (err) {
     console.error("Error loading brand profile or coupons:", err);
