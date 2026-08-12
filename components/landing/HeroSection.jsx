@@ -238,11 +238,14 @@ export function HeroSection({ banners: initialBanners = [] }) {
             onMouseLeave={handleMouseLeave}
           >
             <div
-              className={`flex h-full ${
+              className={`flex h-full w-full ${
                 isDragging.current ? "transition-none" : "transition-transform duration-500 ease-in-out"
               }`}
               style={{
-                transform: `translateX(calc(-${currentSlide * 100}% + ${dragOffset}px))`,
+                transform:
+                  dragOffset !== 0
+                    ? `translateX(calc(-${currentSlide * 100}% + ${dragOffset}px))`
+                    : `translateX(-${currentSlide * 100}%)`,
               }}
             >
               {slides.map((slide) => {
@@ -325,7 +328,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                 return (
                   <div
                     key={slide.id}
-                    className="w-full h-full flex-shrink-0 min-w-full relative"
+                    className="w-full h-full flex-none shrink-0 min-w-full max-w-full basis-full relative overflow-hidden"
                   >
                     {isExternal ? (
                       <a
@@ -413,7 +416,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
           {/* Logos Scroll Track */}
           <div
             ref={thumbTrackRef}
-            className="w-full flex items-center overflow-x-auto scrollbar-hide py-2 gap-2 sm:gap-3 px-1 scroll-smooth"
+            className="w-full flex items-center overflow-x-auto scrollbar-hide py-2 gap-2 sm:gap-3 px-1 scroll-smooth flex-nowrap"
           >
             {slides.map((brand, idx) => {
               const isActive = idx === currentSlide;
@@ -424,7 +427,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                   ref={(el) => (thumbRefs.current[idx] = el)}
                   onClick={() => handleBrandClick(idx)}
                   type="button"
-                  className={`relative flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 min-w-[68px] sm:min-w-[76px] h-[36px] sm:h-[40px] transition-all duration-200 shrink-0 ${
+                  className={`relative flex-none shrink-0 inline-flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 w-[76px] sm:w-[84px] h-[36px] sm:h-[40px] transition-all duration-200 ${
                     isActive
                       ? "border-blue-600 shadow-sm ring-1 ring-blue-600/30 scale-105"
                       : "border-slate-200 hover:border-blue-400 opacity-80 hover:opacity-100"
@@ -435,10 +438,10 @@ export function HeroSection({ banners: initialBanners = [] }) {
                     <img
                       src={brand.logo}
                       alt={titleText}
-                      className="w-full h-full object-contain rounded-md select-none pointer-events-none"
+                      className="max-w-full max-h-full w-auto h-auto object-contain rounded-md select-none pointer-events-none"
                     />
                   ) : (
-                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 truncate max-w-full uppercase px-1">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 truncate max-w-full text-center uppercase px-0.5 select-none">
                       {titleText}
                     </span>
                   )}
