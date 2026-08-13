@@ -1,31 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Plus,
   Search,
   ShoppingBag,
-  ExternalLink,
-  Edit2,
-  Trash2,
-  Copy,
-  Check,
-  Tag,
   MousePointerClick,
   Loader2,
+  Sparkles,
+  Power,
+  Tag,
+  Filter,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import AffiliateProductPreviewCard, { CATEGORIES } from "./components/AffiliateProductPreviewCard";
+import AffiliateProductModal from "./components/AffiliateProductModal";
 
 export default function MerchantAffiliateProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [copiedId, setCopiedId] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [deletingId, setDeletingId] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -53,11 +60,35 @@ export default function MerchantAffiliateProductsPage() {
     }
   }
 
-  const handleCopyLink = (url, id) => {
+  const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
-    setCopiedId(id);
     toast.success("Affiliate link copied to clipboard! ✂️");
-    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleToggleStatus = async (product) => {
+    const nextStatus = product.status === "active" ? "paused" : "active";
+    setTogglingId(product._id);
+    try {
+      const res = await fetch(`/api/merchant/affiliate-products/${product._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      if (res.ok) {
+        setProducts((prev) =>
+          prev.map((p) => (p._id === product._id ? { ...p, status: nextStatus } : p))
+        );
+        toast.success(`Product listing set to ${nextStatus.toUpperCase()}`);
+      } else {
+        toast.error("Failed to update status.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error updating status.");
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -81,67 +112,182 @@ export default function MerchantAffiliateProductsPage() {
     }
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const openAddModal = () => {
+    setEditingProduct(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  };
+
+  // Filtered Products
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const matchSearch =
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.affiliateUrl.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase());
+
+      const matchCategory =
+        categoryFilter === "all" || p.category === categoryFilter;
+
+      return matchSearch && matchCategory;
+    });
+  }, [products, search, categoryFilter]);
+
+  // Statistics
+  const totalProducts = products.length;
+  const activeProducts = products.filter((p) => p.status === "active").length;
+  const totalClicks = products.reduce((acc, p) => acc + (p.clickCount || 0), 0);
+  const avgSavingsPct =
+    totalProducts > 0
+      ? Math.round(
+          products.reduce((acc, p) => acc + (p.discountPercentage || 0), 0) /
+            totalProducts
+        )
+      : 0;
 
   return (
     <DashboardLayout title="Affiliate Products" user={{ role: "merchant" }}>
-      <div className="p-2 sm:p-4 lg:p-6 space-y-6 max-w-7xl mx-auto font-sans text-left">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="p-3 sm:p-5 lg:p-6 space-y-5 max-w-7xl mx-auto font-sans text-left">
+        {/* Top Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-xl shadow-xs">
                 <ShoppingBag className="w-5 h-5" />
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                Affiliate Products
-              </h1>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Affiliate Products Management
+                </h1>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  List deals with custom affiliate links (CashKaro, Bitly, EarnKaro) and track shopper engagement.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-1 font-medium">
-              List products with custom affiliate links (CashKaro, Bitly, EarnKaro, etc.) and track shopper clicks.
-            </p>
           </div>
 
-          <Link
-            href="/merchant/affiliate-products/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Affiliate Product</span>
-          </Link>
+          </button>
         </div>
 
-        {/* Filter & Search Toolbar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Compact KPI Metrics Header Bar */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Total Products
+              </span>
+              <span className="text-lg font-black text-slate-900 leading-none mt-0.5 block">
+                {totalProducts}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Active Listings
+              </span>
+              <span className="text-lg font-black text-emerald-600 leading-none mt-0.5 block">
+                {activeProducts}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+              <MousePointerClick className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Total Clicks
+              </span>
+              <span className="text-lg font-black text-purple-600 leading-none mt-0.5 block">
+                {totalClicks}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Avg Discount
+              </span>
+              <span className="text-lg font-black text-amber-600 leading-none mt-0.5 block">
+                {avgSavingsPct}% OFF
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Search, Category & Status Filter Toolbar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
           {/* Search Input */}
-          <div className="relative w-full sm:w-80">
+          <div className="relative w-full sm:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search products or links..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors font-medium"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors font-medium"
             />
           </div>
 
-          {/* Status Pills */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
-            {["all", "active", "paused"].map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all border cursor-pointer ${
-                  statusFilter === st
-                    ? "bg-blue-600 border-blue-600 text-white shadow-2xs"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                }`}
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+            {/* Category Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 shrink-0">
+              <Filter className="w-3.5 h-3.5 text-slate-500" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
               >
-                {st}
-              </button>
-            ))}
+                <option value="all">All Categories</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Pills */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
+              {["all", "active", "paused"].map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                    statusFilter === st
+                      ? "bg-blue-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -152,142 +298,56 @@ export default function MerchantAffiliateProductsPage() {
             <p className="text-xs text-slate-500 font-semibold">Loading affiliate products...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="py-16 px-4 bg-white border border-slate-200 rounded-2xl text-center space-y-4 shadow-2xs">
+          <div className="py-16 px-4 bg-white border border-slate-200 rounded-3xl text-center space-y-4 shadow-2xs">
             <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
               <ShoppingBag className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900">No Affiliate Products Listed</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                You haven&apos;t created any affiliate products yet. Add products with custom affiliate links (e.g. CashKaro, Bitly) to earn commissions.
+              <h3 className="text-base font-bold text-slate-900">
+                {search || categoryFilter !== "all"
+                  ? "No Matching Affiliate Products"
+                  : "No Affiliate Products Listed"}
+              </h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+                {search || categoryFilter !== "all"
+                  ? "Try resetting your search filters or category selection."
+                  : "Create custom affiliate products (e.g. CashKaro, Bitly) to earn commissions from shoppers."}
               </p>
             </div>
-            <Link
-              href="/merchant/affiliate-products/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-2xs cursor-pointer"
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-extrabold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-2xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create First Affiliate Product</span>
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {filteredProducts.map((p) => {
-              const savings = p.originalPrice - p.discountPrice;
-              const savingsPercent = p.discountPercentage || Math.round((savings / p.originalPrice) * 100);
-
-              return (
-                <div
-                  key={p._id}
-                  className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3.5 shadow-2xs hover:shadow-md hover:border-blue-500/80 transition-all flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    {/* Top Image + Status Badge */}
-                    <div className="relative w-full h-40 bg-slate-100 rounded-xl overflow-hidden border border-slate-100">
-                      <img
-                        src={p.imageUrl || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop"}
-                        alt={p.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src =
-                            "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop";
-                        }}
-                      />
-                      <div className="absolute top-2 left-2 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs">
-                        {p.category}
-                      </div>
-                      {savingsPercent > 0 && (
-                        <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-2xs">
-                          {savingsPercent}% OFF
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Product Title */}
-                    <h3 className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug">
-                      {p.title}
-                    </h3>
-
-                    {/* Pricing Box */}
-                    <div className="flex items-baseline gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-base font-black text-blue-600">
-                        ₹{p.discountPrice?.toLocaleString()}
-                      </span>
-                      {p.originalPrice > p.discountPrice && (
-                        <span className="text-xs font-semibold text-slate-400 line-through">
-                          ₹{p.originalPrice?.toLocaleString()}
-                        </span>
-                      )}
-                      {savings > 0 && (
-                        <span className="text-[10px] font-bold text-emerald-600 ml-auto bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                          Save ₹{savings.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Affiliate Link Details */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Affiliate Link URL
-                      </span>
-                      <div className="flex items-center gap-1.5 bg-slate-100 p-2 rounded-lg border border-slate-200 text-xs">
-                        <span className="truncate text-slate-700 font-mono text-[11px] flex-1">
-                          {p.affiliateUrl}
-                        </span>
-                        <button
-                          onClick={() => handleCopyLink(p.affiliateUrl, p._id)}
-                          className="p-1 text-slate-500 hover:text-blue-600 hover:bg-white rounded transition-colors cursor-pointer"
-                          title="Copy Affiliate Link"
-                        >
-                          {copiedId === p._id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                        <a
-                          href={p.affiliateUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1 text-slate-500 hover:text-blue-600 hover:bg-white rounded transition-colors"
-                          title="Test Link"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Footer Controls */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1 text-slate-500 font-semibold text-[11px]">
-                      <MousePointerClick className="w-3.5 h-3.5 text-blue-600" />
-                      <span>{p.clickCount || 0} clicks</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <Link
-                        href={`/merchant/affiliate-products/${p._id}`}
-                        className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-colors"
-                        title="Edit Product"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(p._id)}
-                        disabled={deletingId === p._id}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg border border-red-200 transition-colors cursor-pointer disabled:opacity-50"
-                        title="Delete Product"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredProducts.map((p) => (
+              <AffiliateProductPreviewCard
+                key={p._id}
+                product={p}
+                isPreview={false}
+                onCopy={handleCopyLink}
+                onEdit={openEditModal}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+                isDeleting={deletingId === p._id}
+                isToggling={togglingId === p._id}
+              />
+            ))}
           </div>
         )}
+
+        {/* Add/Edit Modal with Split View & Live Preview */}
+        <AffiliateProductModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          initialData={editingProduct}
+          onSuccess={fetchProducts}
+        />
       </div>
     </DashboardLayout>
   );

@@ -1,75 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
+import { useState } from "react";
 import {
-  ArrowLeft,
+  X,
   Loader2,
-  ShoppingBag,
   UploadCloud,
   Eye,
+  ShoppingBag,
+  Sparkles,
+  Tag,
   DollarSign,
   Link as LinkIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import AffiliateProductPreviewCard, {
-  CATEGORIES,
-} from "../components/AffiliateProductPreviewCard";
+import AffiliateProductPreviewCard, { CATEGORIES } from "./AffiliateProductPreviewCard";
 
-export default function EditAffiliateProductPage() {
-  const router = useRouter();
-  const params = useParams();
-  const id = params?.id;
-
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [uploadingImage, setUploadingImage] = useState(false);
+export default function AffiliateProductModal({
+  isOpen,
+  onClose,
+  initialData = null,
+  onSuccess,
+}) {
+  const isEdit = Boolean(initialData?._id);
 
   const [form, setForm] = useState({
-    title: "",
-    category: "Fashion & Clothing",
-    originalPrice: "",
-    discountPrice: "",
-    affiliateUrl: "",
-    imageUrl: "",
-    description: "",
-    status: "active",
+    title: initialData?.title || "",
+    category: initialData?.category || "Fashion & Clothing",
+    originalPrice: initialData?.originalPrice || "",
+    discountPrice: initialData?.discountPrice || "",
+    affiliateUrl: initialData?.affiliateUrl || "",
+    imageUrl: initialData?.imageUrl || "",
+    description: initialData?.description || "",
+    status: initialData?.status || "active",
   });
 
-  useEffect(() => {
-    if (id) fetchProduct();
-  }, [id]);
+  const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  async function fetchProduct() {
-    setFetching(true);
-    try {
-      const res = await fetch(`/api/merchant/affiliate-products/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        const p = data.data || data;
-        setForm({
-          title: p.title || "",
-          category: p.category || "Fashion & Clothing",
-          originalPrice: p.originalPrice || "",
-          discountPrice: p.discountPrice || "",
-          affiliateUrl: p.affiliateUrl || "",
-          imageUrl: p.imageUrl || "",
-          description: p.description || "",
-          status: p.status || "active",
-        });
-      } else {
-        toast.error("Failed to load product details.");
-        router.push("/merchant/affiliate-products");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error fetching product.");
-    } finally {
-      setFetching(false);
-    }
-  }
+  if (!isOpen) return null;
 
   const original = Number(form.originalPrice) || 0;
   const discount = Number(form.discountPrice) || 0;
@@ -122,7 +90,7 @@ export default function EditAffiliateProductPage() {
       return;
     }
     if (Number(form.discountPrice) > Number(form.originalPrice)) {
-      toast.error("Discount price cannot exceed actual price.");
+      toast.error("Discount price cannot exceed the actual price.");
       return;
     }
     if (!form.affiliateUrl.trim()) {
@@ -132,18 +100,28 @@ export default function EditAffiliateProductPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/merchant/affiliate-products/${id}`, {
-        method: "PUT",
+      const url = isEdit
+        ? `/api/merchant/affiliate-products/${initialData._id}`
+        : "/api/merchant/affiliate-products";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
       if (res.ok) {
-        toast.success("Affiliate product updated successfully! ✨");
-        router.push("/merchant/affiliate-products");
+        toast.success(
+          isEdit
+            ? "Affiliate product updated successfully! ✨"
+            : "Affiliate product created successfully! 🎉"
+        );
+        if (onSuccess) onSuccess();
+        onClose();
       } else {
         const data = await res.json();
-        toast.error(data.message || "Failed to update product.");
+        toast.error(data.message || "Failed to save product.");
       }
     } catch (err) {
       console.error(err);
@@ -153,46 +131,41 @@ export default function EditAffiliateProductPage() {
     }
   };
 
-  if (fetching) {
-    return (
-      <DashboardLayout title="Edit Affiliate Product" user={{ role: "merchant" }}>
-        <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-          <p className="text-xs text-slate-500 font-semibold">Loading product details...</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout title="Edit Affiliate Product" user={{ role: "merchant" }}>
-      <div className="p-3 sm:p-5 lg:p-6 space-y-5 max-w-6xl mx-auto font-sans text-left">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/merchant/affiliate-products"
-              className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 bg-slate-950/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-5xl my-auto overflow-hidden font-sans text-left flex flex-col max-h-[92vh]">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/80">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Edit Affiliate Product
-              </h1>
+              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                {isEdit ? "Edit Affiliate Product" : "Add Affiliate Product"}
+              </h2>
               <p className="text-xs text-slate-500 font-medium">
-                Update product pricing, affiliate link, or image with real-time preview on the right.
+                Fill details on the left — live preview card updates in real-time on the right.
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* 2-Column Split View Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Modal Body - 2 Column Split Layout */}
+        <div className="flex-1 overflow-y-auto p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Form (7 columns) */}
           <form
+            id="affiliate-form"
             onSubmit={handleSubmit}
-            className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-5 space-y-4 shadow-2xs"
+            className="lg:col-span-7 space-y-4"
           >
             {/* Title & Category */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -205,14 +178,14 @@ export default function EditAffiliateProductPage() {
                   placeholder="e.g. Nike Air Max 270 Sneakers"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-semibold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-semibold"
                   required
                 />
               </div>
 
               <div className="sm:col-span-5 space-y-1">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Category *
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block flex items-center justify-between">
+                  <span>Category *</span>
                 </label>
                 <select
                   value={form.category}
@@ -378,51 +351,56 @@ export default function EditAffiliateProductPage() {
                 </button>
               </div>
             </div>
-
-            {/* Form Submit */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-              <Link
-                href="/merchant/affiliate-products"
-                className="px-4 py-2 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={loading || uploadingImage}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Updating...</span>
-                  </>
-                ) : (
-                  <span>Update Affiliate Product</span>
-                )}
-              </button>
-            </div>
           </form>
 
-          {/* Right Live Preview Card Section (5 columns) */}
-          <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-5 space-y-4 shadow-2xs sticky top-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          {/* Right Live Preview Section (5 columns) */}
+          <div className="lg:col-span-5 bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
               <span className="flex items-center gap-1.5 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                <Eye className="w-4 h-4 text-blue-600" /> Live Product Preview
+                <Eye className="w-4 h-4 text-blue-600" /> Live Preview Card
               </span>
-              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-                Interactive Preview
+              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                Real-Time Updates
               </span>
             </div>
 
-            <AffiliateProductPreviewCard product={form} isPreview={true} />
+            <div className="my-auto">
+              <AffiliateProductPreviewCard product={form} isPreview={true} />
+            </div>
 
-            <p className="text-[11px] text-slate-500 text-center font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 leading-relaxed">
-              This is an exact preview of how your affiliate card appears to buyers on your brand page.
+            <p className="text-[11px] text-slate-500 text-center font-medium bg-white p-2 rounded-xl border border-slate-200/80">
+              This card is how your affiliate product will appear to shoppers on your brand storefront.
             </p>
           </div>
         </div>
+
+        {/* Modal Footer */}
+        <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-slate-100 bg-slate-50/80">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            form="affiliate-form"
+            disabled={loading || uploadingImage}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <span>{isEdit ? "Update Product" : "Publish Affiliate Product"}</span>
+            )}
+          </button>
+        </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
