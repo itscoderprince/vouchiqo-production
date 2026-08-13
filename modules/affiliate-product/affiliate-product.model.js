@@ -32,17 +32,22 @@ const affiliateProductSchema = new Schema(
     },
     originalPrice: {
       type: Number,
-      required: [true, "Actual / Original price is required"],
+      default: 0,
       min: [0, "Price cannot be negative"],
     },
     discountPrice: {
       type: Number,
-      required: [true, "Discount / Sale price is required"],
+      default: 0,
       min: [0, "Discount price cannot be negative"],
     },
     discountPercentage: {
       type: Number,
       default: 0,
+    },
+    discountText: {
+      type: String,
+      trim: true,
+      default: "",
     },
     affiliateUrl: {
       type: String,
@@ -74,11 +79,11 @@ const affiliateProductSchema = new Schema(
   }
 );
 
-// Calculate discount percentage before saving
+// Calculate discount percentage before saving if pricing is specified
 affiliateProductSchema.pre("save", function () {
   if (this.originalPrice && this.discountPrice && this.originalPrice > 0) {
     const savings = this.originalPrice - this.discountPrice;
-    this.discountPercentage = Math.round((savings / this.originalPrice) * 100);
+    this.discountPercentage = Math.max(0, Math.round((savings / this.originalPrice) * 100));
   }
 });
 

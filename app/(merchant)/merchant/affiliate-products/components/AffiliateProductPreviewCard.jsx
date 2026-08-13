@@ -58,14 +58,31 @@ export default function AffiliateProductPreviewCard({
   const category = product.category || "General Offers";
   const originalPrice = Number(product.originalPrice) || 0;
   const discountPrice = Number(product.discountPrice) || 0;
+  const discountPercentage = Number(product.discountPercentage) || 0;
+  const discountText = product.discountText || "";
   const affiliateUrl = product.affiliateUrl || "https://webitya.com";
   const imageUrl = product.imageUrl || "";
   const status = product.status || "active";
   const clickCount = product.clickCount || 0;
 
-  const savings = Math.max(0, originalPrice - discountPrice);
-  const savingsPercent =
-    originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0;
+  const hasExactPricing = originalPrice > 0 && discountPrice > 0;
+  const hasFixedPrice = discountPrice > 0 && originalPrice === 0;
+  const savings = hasExactPricing ? Math.max(0, originalPrice - discountPrice) : 0;
+  const savingsPercent = hasExactPricing
+    ? Math.round((savings / originalPrice) * 100)
+    : discountPercentage;
+
+  // Format Top Badge text
+  let badgeDiscountText = discountText || null;
+  if (!badgeDiscountText) {
+    if (hasExactPricing) {
+      badgeDiscountText = `${savingsPercent}% OFF`;
+    } else if (hasFixedPrice) {
+      badgeDiscountText = `JUST @ ₹${discountPrice}`;
+    } else if (discountPercentage > 0) {
+      badgeDiscountText = `${discountPercentage}% OFF`;
+    }
+  }
 
   const badgeStyle =
     CATEGORY_COLORS[category] || "bg-slate-900 text-white border-slate-800";
@@ -119,11 +136,11 @@ export default function AffiliateProductPreviewCard({
           </div>
 
           {/* Discount Tag (Top Right) */}
-          {savingsPercent > 0 && (
+          {badgeDiscountText && (
             <div className="absolute top-2.5 right-2.5 z-10">
-              <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-md shadow-xs border border-emerald-500">
-                <Sparkles className="w-3 h-3" />
-                {savingsPercent}% OFF
+              <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-md shadow-xs border border-emerald-500 max-w-[160px] truncate">
+                <Sparkles className="w-3 h-3 shrink-0" />
+                {badgeDiscountText}
               </span>
             </div>
           )}
@@ -153,20 +170,43 @@ export default function AffiliateProductPreviewCard({
 
         {/* Pricing Info Box */}
         <div className="flex items-center justify-between bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/80">
-          <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold text-blue-600">
-              ₹{discountPrice ? discountPrice.toLocaleString() : "0"}
-            </span>
-            {originalPrice > discountPrice && (
-              <span className="text-xs font-normal text-slate-400 line-through">
-                ₹{originalPrice.toLocaleString()}
+          {hasExactPricing ? (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-base font-bold text-blue-600">
+                  ₹{discountPrice.toLocaleString()}
+                </span>
+                <span className="text-xs font-normal text-slate-400 line-through">
+                  ₹{originalPrice.toLocaleString()}
+                </span>
+              </div>
+              {savings > 0 && (
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80">
+                  Save ₹{savings.toLocaleString()}
+                </span>
+              )}
+            </>
+          ) : hasFixedPrice ? (
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-medium text-slate-500">Offer Price:</span>
+                <span className="text-base font-bold text-emerald-600">
+                  ₹{discountPrice.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80 truncate max-w-[180px]">
+                {discountText || `Just @ ₹${discountPrice}`}
               </span>
-            )}
-          </div>
-          {savings > 0 && (
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80">
-              Save ₹{savings.toLocaleString()}
-            </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <span className="text-sm font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
+                {badgeDiscountText || "SPECIAL OFFER"}
+              </span>
+              <span className="text-xs font-medium text-slate-500">
+                Brand Deal
+              </span>
+            </div>
           )}
         </div>
 

@@ -10,10 +10,11 @@ export async function createAffiliateProduct(merchantId, data) {
 
   const originalPrice = Number(data.originalPrice) || 0;
   const discountPrice = Number(data.discountPrice) || 0;
-  const discountPercentage =
-    originalPrice > 0
-      ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100)
-      : 0;
+  let discountPercentage = Number(data.discountPercentage) || 0;
+
+  if (originalPrice > 0 && discountPrice > 0) {
+    discountPercentage = Math.round(((originalPrice - discountPrice) / originalPrice) * 100);
+  }
 
   const product = await AffiliateProduct.create({
     merchantId,
@@ -23,6 +24,7 @@ export async function createAffiliateProduct(merchantId, data) {
     originalPrice,
     discountPrice,
     discountPercentage: Math.max(0, discountPercentage),
+    discountText: data.discountText || "",
     affiliateUrl: data.affiliateUrl,
     imageUrl: data.imageUrl || "",
     status: data.status || "active",
@@ -107,15 +109,17 @@ export async function updateAffiliateProduct(productId, merchantId, data) {
   if (data.title !== undefined) product.title = data.title;
   if (data.description !== undefined) product.description = data.description;
   if (data.category !== undefined) product.category = data.category;
-  if (data.originalPrice !== undefined) product.originalPrice = Number(data.originalPrice);
-  if (data.discountPrice !== undefined) product.discountPrice = Number(data.discountPrice);
+  if (data.originalPrice !== undefined) product.originalPrice = Number(data.originalPrice) || 0;
+  if (data.discountPrice !== undefined) product.discountPrice = Number(data.discountPrice) || 0;
+  if (data.discountPercentage !== undefined) product.discountPercentage = Number(data.discountPercentage) || 0;
+  if (data.discountText !== undefined) product.discountText = data.discountText;
   if (data.affiliateUrl !== undefined) product.affiliateUrl = data.affiliateUrl;
   if (data.imageUrl !== undefined) product.imageUrl = data.imageUrl;
   if (data.status !== undefined) product.status = data.status;
   if (data.expiresAt !== undefined)
     product.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
 
-  if (product.originalPrice > 0 && product.discountPrice >= 0) {
+  if (product.originalPrice > 0 && product.discountPrice > 0) {
     const savings = product.originalPrice - product.discountPrice;
     product.discountPercentage = Math.max(
       0,
