@@ -60,10 +60,10 @@ export default function AffiliateProductModal({
         console.error("Failed to fetch merchant profile:", err);
       }
     }
-    if (isOpen) {
+    if (isOpen && !isAdmin) {
       fetchMerchant();
     }
-  }, [isOpen, isEdit]);
+  }, [isOpen, isEdit, isAdmin]);
 
   // Sync pricing mode on initialData change
   useEffect(() => {
@@ -203,17 +203,24 @@ export default function AffiliateProductModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto font-sans">
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-5xl my-auto overflow-hidden text-left flex flex-col max-h-[92vh]">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
+    <div className="fixed inset-y-0 right-0 z-50 flex justify-end font-sans">
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-slate-950/30 backdrop-blur-xs transition-opacity duration-300 cursor-pointer"
+        onClick={onClose}
+      />
+
+      {/* Right Side Embedded Drawer Panel */}
+      <div className="relative w-full max-w-3xl sm:max-w-4xl bg-white border-l border-slate-200/90 shadow-2xl h-full flex flex-col z-10 animate-in slide-in-from-right duration-300">
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 bg-slate-50/90 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 leading-snug">
-                {isEdit ? "Edit Affiliate Product" : "Add Affiliate Product"}
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+                {isEdit ? "Edit Affiliate Product / Deal" : "Add Affiliate Product / Deal"}
               </h2>
               <p className="text-xs text-slate-500 font-normal">
                 Fill details on the left — live preview card updates in real-time on the right.
@@ -225,349 +232,352 @@ export default function AffiliateProductModal({
             type="button"
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+            title="Close Panel"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body - 2 Column Split Layout */}
-        <div className="flex-1 overflow-y-auto p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Form (7 columns) */}
-          <form
-            id="affiliate-form"
-            onSubmit={handleSubmit}
-            className="lg:col-span-7 space-y-4"
-          >
-            {/* Title & Category */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              <div className="sm:col-span-7 space-y-1">
-                <label className="text-xs font-semibold text-slate-700 block">
-                  Product / Deal Title *
+        {/* Drawer Body - 2 Column Split Layout */}
+        <div className="flex-1 overflow-y-auto p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Form (7 columns) */}
+            <form
+              id="affiliate-form"
+              onSubmit={handleSubmit}
+              className="lg:col-span-7 space-y-4"
+            >
+              {/* Title & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div className="sm:col-span-7 space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 block">
+                    Product / Deal Title *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Office Space & Meal Deal or Nike Sneakers"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
+                    required
+                  />
+                </div>
+
+                <div className="sm:col-span-5 space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 block flex items-center justify-between">
+                    <span>Category *</span>
+                    {merchantCategory && !isAdmin && (
+                      <span className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5">
+                        <Lock className="w-3 h-3" /> Locked
+                      </span>
+                    )}
+                  </label>
+
+                  {merchantCategory && !isAdmin ? (
+                    <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/60 text-slate-900 font-semibold text-xs shadow-2xs">
+                      <span className="truncate">{form.category || merchantCategory}</span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0">
+                        <Lock className="w-3 h-3 text-blue-600" /> Locked to Profile
+                      </span>
+                    </div>
+                  ) : (
+                    <select
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm({ ...form, category: e.target.value })
+                      }
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal cursor-pointer"
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Pricing & Offer Mode Tabs (% Off, Deal @ Price, MRP & Sale) */}
+              <div className="bg-blue-50/50 border border-blue-100 p-3.5 rounded-xl space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-bold text-blue-900 flex items-center gap-1">
+                    <IndianRupee className="w-3.5 h-3.5 text-blue-600" />
+                    Pricing & Deal Type
+                  </span>
+
+                  {/* Mode Selector Tabs */}
+                  <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setPricingMode("percent")}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                        pricingMode === "percent"
+                          ? "bg-blue-600 text-white font-bold"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      % Off Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPricingMode("fixed")}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                        pricingMode === "fixed"
+                          ? "bg-blue-600 text-white font-bold"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Deal @ Price
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPricingMode("exact")}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                        pricingMode === "exact"
+                          ? "bg-blue-600 text-white font-bold"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      MRP & Sale Price
+                    </button>
+                  </div>
+                </div>
+
+                {pricingMode === "percent" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-600 block">
+                        Discount Percentage (%) *
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 20"
+                        value={form.discountPercentage || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm({
+                            ...form,
+                            discountPercentage: val,
+                            discountText: val ? `${val}% OFF` : "",
+                          });
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-600 block">
+                        Discount Tag Display
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 20% OFF or FLAT ₹500 OFF"
+                        value={form.discountText || ""}
+                        onChange={(e) =>
+                          setForm({ ...form, discountText: e.target.value })
+                        }
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+                ) : pricingMode === "fixed" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-600 block">
+                        Offer / Deal Price (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 200"
+                        value={form.discountPrice || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm({
+                            ...form,
+                            discountPrice: val,
+                            discountText: val ? `Get Deal @ ₹${val}` : form.discountText,
+                          });
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-600 block">
+                        Deal Tagline / Promotion Text
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Office Space + Meal @ ₹200"
+                        value={form.discountText || ""}
+                        onChange={(e) =>
+                          setForm({ ...form, discountText: e.target.value })
+                        }
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-600 block">
+                        Actual MRP (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 39999"
+                        value={form.originalPrice}
+                        onChange={(e) =>
+                          setForm({ ...form, originalPrice: e.target.value })
+                        }
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-600 block">
+                        Offer Sale Price (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 2999"
+                        value={form.discountPrice}
+                        onChange={(e) =>
+                          setForm({ ...form, discountPrice: e.target.value })
+                        }
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Destination URL */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 block flex items-center gap-1">
+                  <LinkIcon className="w-3.5 h-3.5 text-blue-600" />
+                  Destination Affiliate Link URL *
                 </label>
                 <input
-                  type="text"
-                  placeholder="e.g. Office Space & Meal Deal or Nike Sneakers"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
+                  type="url"
+                  placeholder="https://webitya.com"
+                  value={form.affiliateUrl}
+                  onChange={(e) =>
+                    setForm({ ...form, affiliateUrl: e.target.value })
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
                   required
                 />
               </div>
 
-              <div className="sm:col-span-5 space-y-1">
-                <label className="text-xs font-semibold text-slate-700 block flex items-center justify-between">
-                  <span>Category *</span>
-                  {merchantCategory && (
-                    <span className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5">
-                      <Lock className="w-3 h-3" /> Locked
-                    </span>
-                  )}
+              {/* Product Image */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 block">
+                  Product / Offer Image
                 </label>
 
-                {merchantCategory ? (
-                  <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/60 text-slate-900 font-semibold text-xs shadow-2xs">
-                    <span className="truncate">{form.category || merchantCategory}</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0">
-                      <Lock className="w-3 h-3 text-blue-600" /> Locked to Profile
-                    </span>
-                  </div>
-                ) : (
-                  <select
-                    value={form.category}
-                    onChange={(e) =>
-                      setForm({ ...form, category: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal cursor-pointer"
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-
-            {/* Pricing & Offer Mode Tabs (% Off, Deal @ Price, MRP & Sale) */}
-            <div className="bg-blue-50/50 border border-blue-100 p-3.5 rounded-xl space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="text-xs font-bold text-blue-900 flex items-center gap-1">
-                  <IndianRupee className="w-3.5 h-3.5 text-blue-600" />
-                  Pricing & Deal Type
-                </span>
-
-                {/* Mode Selector Tabs */}
-                <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setPricingMode("percent")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                      pricingMode === "percent"
-                        ? "bg-blue-600 text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    % Off Only
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPricingMode("fixed")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                      pricingMode === "fixed"
-                        ? "bg-blue-600 text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    Deal @ Price
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPricingMode("exact")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                      pricingMode === "exact"
-                        ? "bg-blue-600 text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    MRP & Sale Price
-                  </button>
-                </div>
-              </div>
-
-              {pricingMode === "percent" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Discount Percentage (%) *
-                    </label>
+                <div className="flex items-center gap-3">
+                  <label className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 cursor-pointer transition-colors inline-flex items-center gap-1.5 shrink-0">
+                    {uploadingImage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                    ) : (
+                      <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
+                    )}
+                    <span>Upload Image</span>
                     <input
-                      type="number"
-                      placeholder="e.g. 20"
-                      value={form.discountPercentage || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({
-                          ...form,
-                          discountPercentage: val,
-                          discountText: val ? `${val}% OFF` : "",
-                        });
-                      }}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
                     />
-                  </div>
+                  </label>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Discount Tag Display
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 20% OFF or FLAT ₹500 OFF"
-                      value={form.discountText || ""}
-                      onChange={(e) =>
-                        setForm({ ...form, discountText: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                </div>
-              ) : pricingMode === "fixed" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Offer / Deal Price (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 200"
-                      value={form.discountPrice || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({
-                          ...form,
-                          discountPrice: val,
-                          discountText: val ? `Get Deal @ ₹${val}` : form.discountText,
-                        });
-                      }}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Deal Tagline / Promotion Text
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Office Space + Meal @ ₹200"
-                      value={form.discountText || ""}
-                      onChange={(e) =>
-                        setForm({ ...form, discountText: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Actual MRP (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 39999"
-                      value={form.originalPrice}
-                      onChange={(e) =>
-                        setForm({ ...form, originalPrice: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Offer Sale Price (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 2999"
-                      value={form.discountPrice}
-                      onChange={(e) =>
-                        setForm({ ...form, discountPrice: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Destination URL */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 block flex items-center gap-1">
-                <LinkIcon className="w-3.5 h-3.5 text-blue-600" />
-                Destination Affiliate Link URL *
-              </label>
-              <input
-                type="url"
-                placeholder="https://webitya.com"
-                value={form.affiliateUrl}
-                onChange={(e) =>
-                  setForm({ ...form, affiliateUrl: e.target.value })
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
-                required
-              />
-            </div>
-
-            {/* Product Image */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 block">
-                Product / Offer Image
-              </label>
-
-              <div className="flex items-center gap-3">
-                <label className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 cursor-pointer transition-colors inline-flex items-center gap-1.5 shrink-0">
-                  {uploadingImage ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
-                  ) : (
-                    <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
-                  )}
-                  <span>Upload Image</span>
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={uploadingImage}
+                    type="url"
+                    placeholder="Or paste direct image URL (https://...)"
+                    value={form.imageUrl}
+                    onChange={(e) =>
+                      setForm({ ...form, imageUrl: e.target.value })
+                    }
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-normal"
                   />
-                </label>
+                </div>
+              </div>
 
-                <input
-                  type="url"
-                  placeholder="Or paste direct image URL (https://...)"
-                  value={form.imageUrl}
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 block">
+                  Description / Key Specs (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Key features, service inclusions or offer details..."
+                  value={form.description}
                   onChange={(e) =>
-                    setForm({ ...form, imageUrl: e.target.value })
+                    setForm({ ...form, description: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-normal"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
                 />
               </div>
-            </div>
 
-            {/* Description */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 block">
-                Description / Key Specs (Optional)
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Key features, service inclusions or offer details..."
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
-              />
-            </div>
-
-            {/* Status Select */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="text-xs font-semibold text-slate-700">
-                Product Status
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, status: "active" })}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
-                    form.status === "active"
-                      ? "bg-emerald-600 border-emerald-600 text-white"
-                      : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  Active
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, status: "paused" })}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
-                    form.status === "paused"
-                      ? "bg-amber-500 border-amber-500 text-slate-950"
-                      : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  Paused
-                </button>
+              {/* Status Select */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Product Status
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, status: "active" })}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                      form.status === "active"
+                        ? "bg-emerald-600 border-emerald-600 text-white"
+                        : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, status: "paused" })}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                      form.status === "paused"
+                        ? "bg-amber-500 border-amber-500 text-slate-950"
+                        : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Paused
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
 
-          {/* Right Live Preview Section (5 columns) */}
-          <div className="lg:col-span-5 bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex flex-col justify-between space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                <Eye className="w-4 h-4 text-blue-600" /> Live Product Preview
-              </span>
-              <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                Interactive Preview
-              </span>
-            </div>
+            {/* Right Live Preview Section (5 columns) */}
+            <div className="lg:col-span-5 bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex flex-col justify-between space-y-3 sticky top-0">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                  <Eye className="w-4 h-4 text-blue-600" /> Live Product Preview
+                </span>
+                <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                  Interactive Preview
+                </span>
+              </div>
 
-            <div className="my-auto">
-              <AffiliateProductPreviewCard product={form} isPreview={true} />
-            </div>
+              <div className="my-auto">
+                <AffiliateProductPreviewCard product={form} isPreview={true} />
+              </div>
 
-            <p className="text-xs text-slate-500 text-center font-normal bg-white p-2 rounded-xl border border-slate-200/80">
-              This is an exact preview of how your offer appears on brand pages &amp; homepage.
-            </p>
+              <p className="text-xs text-slate-500 text-center font-normal bg-white p-2 rounded-xl border border-slate-200/80">
+                This is an exact preview of how your offer appears on brand pages &amp; homepage.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-slate-100 bg-slate-50">
+        {/* Drawer Footer Action Bar */}
+        <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-slate-200/80 bg-slate-50/90 shrink-0">
           <button
             type="button"
             onClick={onClose}
@@ -580,7 +590,7 @@ export default function AffiliateProductModal({
             type="submit"
             form="affiliate-form"
             disabled={loading || uploadingImage}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-2 shadow-xs"
           >
             {loading ? (
               <>
@@ -588,7 +598,7 @@ export default function AffiliateProductModal({
                 <span>Saving...</span>
               </>
             ) : (
-              <span>{isEdit ? "Update Product" : "Publish Affiliate Product"}</span>
+              <span>{isEdit ? "Update Affiliate Product" : "Publish Affiliate Product"}</span>
             )}
           </button>
         </div>
