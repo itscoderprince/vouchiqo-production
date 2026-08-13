@@ -6,6 +6,7 @@ import {
   Clock,
   Eye,
   Gift,
+  Image as ImageIcon,
   Info,
   Lock,
   MapPin,
