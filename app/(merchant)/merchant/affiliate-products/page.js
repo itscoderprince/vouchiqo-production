@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
 import {
   Plus,
   Search,
@@ -9,11 +8,8 @@ import {
   MousePointerClick,
   Loader2,
   Sparkles,
-  Power,
-  Tag,
   Filter,
   CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -62,7 +58,7 @@ export default function MerchantAffiliateProductsPage() {
 
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
-    toast.success("Affiliate link copied to clipboard! ✂️");
+    toast.success("Affiliate link copied to clipboard!");
   };
 
   const handleToggleStatus = async (product) => {
@@ -79,7 +75,7 @@ export default function MerchantAffiliateProductsPage() {
         setProducts((prev) =>
           prev.map((p) => (p._id === product._id ? { ...p, status: nextStatus } : p))
         );
-        toast.success(`Product listing set to ${nextStatus.toUpperCase()}`);
+        toast.success(`Product listing set to ${nextStatus}`);
       } else {
         toast.error("Failed to update status.");
       }
@@ -151,19 +147,19 @@ export default function MerchantAffiliateProductsPage() {
 
   return (
     <DashboardLayout title="Affiliate Products" user={{ role: "merchant" }}>
-      <div className="p-3 sm:p-5 lg:p-6 space-y-5 max-w-7xl mx-auto font-sans text-left">
+      <div className="w-full max-w-full space-y-4 font-sans text-left">
         {/* Top Header Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-xl shadow-xs">
+              <div className="p-2 bg-blue-600 text-white rounded-xl">
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Affiliate Products Management
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+                  Affiliate Products
                 </h1>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                <p className="text-xs text-slate-500 font-normal mt-0.5">
                   List deals with custom affiliate links (CashKaro, Bitly, EarnKaro) and track shopper engagement.
                 </p>
               </div>
@@ -173,7 +169,7 @@ export default function MerchantAffiliateProductsPage() {
           <button
             type="button"
             onClick={openAddModal}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Affiliate Product</span>
@@ -181,58 +177,58 @@ export default function MerchantAffiliateProductsPage() {
         </div>
 
         {/* Compact KPI Metrics Header Bar */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-xs font-medium text-slate-500 block">
                 Total Products
               </span>
-              <span className="text-lg font-black text-slate-900 leading-none mt-0.5 block">
+              <span className="text-lg font-bold text-slate-900 leading-none mt-0.5 block">
                 {totalProducts}
               </span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-xs font-medium text-slate-500 block">
                 Active Listings
               </span>
-              <span className="text-lg font-black text-emerald-600 leading-none mt-0.5 block">
+              <span className="text-lg font-bold text-emerald-600 leading-none mt-0.5 block">
                 {activeProducts}
               </span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
               <MousePointerClick className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-xs font-medium text-slate-500 block">
                 Total Clicks
               </span>
-              <span className="text-lg font-black text-purple-600 leading-none mt-0.5 block">
+              <span className="text-lg font-bold text-purple-600 leading-none mt-0.5 block">
                 {totalClicks}
               </span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-xs font-medium text-slate-500 block">
                 Avg Discount
               </span>
-              <span className="text-lg font-black text-amber-600 leading-none mt-0.5 block">
+              <span className="text-lg font-bold text-amber-600 leading-none mt-0.5 block">
                 {avgSavingsPct}% OFF
               </span>
             </div>
@@ -240,16 +236,16 @@ export default function MerchantAffiliateProductsPage() {
         </div>
 
         {/* Search, Category & Status Filter Toolbar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 w-full">
           {/* Search Input */}
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search products or links..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors font-medium"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors font-normal"
             />
           </div>
 
@@ -260,7 +256,7 @@ export default function MerchantAffiliateProductsPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
               >
                 <option value="all">All Categories</option>
                 {CATEGORIES.map((cat) => (
@@ -278,9 +274,9 @@ export default function MerchantAffiliateProductsPage() {
                   key={st}
                   type="button"
                   onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase transition-all cursor-pointer ${
                     statusFilter === st
-                      ? "bg-blue-600 text-white shadow-2xs"
+                      ? "bg-blue-600 text-white"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -295,10 +291,10 @@ export default function MerchantAffiliateProductsPage() {
         {loading ? (
           <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            <p className="text-xs text-slate-500 font-semibold">Loading affiliate products...</p>
+            <p className="text-xs text-slate-500 font-medium">Loading affiliate products...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="py-16 px-4 bg-white border border-slate-200 rounded-3xl text-center space-y-4 shadow-2xs">
+          <div className="py-16 px-4 bg-white border border-slate-200 rounded-2xl text-center space-y-4 w-full">
             <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
               <ShoppingBag className="w-6 h-6" />
             </div>
@@ -308,7 +304,7 @@ export default function MerchantAffiliateProductsPage() {
                   ? "No Matching Affiliate Products"
                   : "No Affiliate Products Listed"}
               </h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-normal">
                 {search || categoryFilter !== "all"
                   ? "Try resetting your search filters or category selection."
                   : "Create custom affiliate products (e.g. CashKaro, Bitly) to earn commissions from shoppers."}
@@ -317,14 +313,14 @@ export default function MerchantAffiliateProductsPage() {
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-extrabold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create First Affiliate Product</span>
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 w-full">
             {filteredProducts.map((p) => (
               <AffiliateProductPreviewCard
                 key={p._id}
