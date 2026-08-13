@@ -8,7 +8,7 @@ import {
   Loader2,
   UploadCloud,
   Eye,
-  DollarSign,
+  IndianRupee,
   Link as LinkIcon,
   Lock,
 } from "lucide-react";
@@ -252,7 +252,7 @@ export default function EditAffiliateProductPage() {
             <div className="bg-blue-50/50 border border-blue-100 p-3.5 rounded-xl space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-blue-900 flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-blue-600" />
+                  <IndianRupee className="w-3.5 h-3.5 text-blue-600" />
                   Pricing & Discount
                 </span>
                 {savingsPercent > 0 && (

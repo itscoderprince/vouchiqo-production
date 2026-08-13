@@ -5,11 +5,8 @@ import {
   Plus,
   Search,
   ShoppingBag,
-  MousePointerClick,
   Loader2,
-  Sparkles,
   Filter,
-  CheckCircle2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -151,19 +148,12 @@ export default function MerchantAffiliateProductsPage() {
         {/* Top Header Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90">
           <div>
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-blue-600 text-white rounded-xl">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
-                  Affiliate Products
-                </h1>
-                <p className="text-xs text-slate-500 font-normal mt-0.5">
-                  List deals with custom affiliate links (CashKaro, Bitly, EarnKaro) and track shopper engagement.
-                </p>
-              </div>
-            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+              Affiliate Products
+            </h1>
+            <p className="text-xs text-slate-500 font-normal mt-0.5">
+              List deals with custom affiliate links (CashKaro, Bitly, EarnKaro) and track shopper engagement.
+            </p>
           </div>
 
           <button
@@ -176,62 +166,42 @@ export default function MerchantAffiliateProductsPage() {
           </button>
         </div>
 
-        {/* Compact KPI Metrics Header Bar */}
+        {/* Clean Metric Stats Cards (without icon badges) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 block">
-                Total Products
-              </span>
-              <span className="text-lg font-bold text-slate-900 leading-none mt-0.5 block">
-                {totalProducts}
-              </span>
-            </div>
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-1">
+            <span className="text-xs font-medium text-slate-500 block">
+              Total Products
+            </span>
+            <span className="text-xl font-bold text-slate-900 leading-none block">
+              {totalProducts}
+            </span>
           </div>
 
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 block">
-                Active Listings
-              </span>
-              <span className="text-lg font-bold text-emerald-600 leading-none mt-0.5 block">
-                {activeProducts}
-              </span>
-            </div>
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-1">
+            <span className="text-xs font-medium text-slate-500 block">
+              Active Listings
+            </span>
+            <span className="text-xl font-bold text-emerald-600 leading-none block">
+              {activeProducts}
+            </span>
           </div>
 
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
-              <MousePointerClick className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 block">
-                Total Clicks
-              </span>
-              <span className="text-lg font-bold text-purple-600 leading-none mt-0.5 block">
-                {totalClicks}
-              </span>
-            </div>
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-1">
+            <span className="text-xs font-medium text-slate-500 block">
+              Total Clicks
+            </span>
+            <span className="text-xl font-bold text-purple-600 leading-none block">
+              {totalClicks}
+            </span>
           </div>
 
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 block">
-                Avg Discount
-              </span>
-              <span className="text-lg font-bold text-amber-600 leading-none mt-0.5 block">
-                {avgSavingsPct}% OFF
-              </span>
-            </div>
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-1">
+            <span className="text-xs font-medium text-slate-500 block">
+              Avg Discount
+            </span>
+            <span className="text-xl font-bold text-amber-600 leading-none block">
+              {avgSavingsPct}% OFF
+            </span>
           </div>
         </div>
 
