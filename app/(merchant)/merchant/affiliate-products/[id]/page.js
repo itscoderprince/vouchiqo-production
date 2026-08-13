@@ -101,8 +101,7 @@ export default function EditAffiliateProductPage() {
     } catch (err) {
       console.error(err);
       toast.error("Error fetching product.");
-    } font-sans
-    finally {
+    } finally {
       setFetching(false);
     }
   }
