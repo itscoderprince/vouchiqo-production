@@ -19,6 +19,7 @@ export default function AffiliateProductModal({
   onClose,
   initialData = null,
   onSuccess,
+  isAdmin = false,
 }) {
   const isEdit = Boolean(initialData?._id);
 
@@ -171,9 +172,8 @@ export default function AffiliateProductModal({
 
     setLoading(true);
     try {
-      const url = isEdit
-        ? `/api/merchant/affiliate-products/${initialData._id}`
-        : "/api/merchant/affiliate-products";
+      const baseUrl = isAdmin ? "/api/admin/affiliate-products" : "/api/merchant/affiliate-products";
+      const url = isEdit ? `${baseUrl}/${initialData._id}` : baseUrl;
       const method = isEdit ? "PUT" : "POST";
 
       const res = await fetch(url, {
