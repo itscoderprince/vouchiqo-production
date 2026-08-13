@@ -6,11 +6,11 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Loader2,
-  ShoppingBag,
   UploadCloud,
   Eye,
   DollarSign,
   Link as LinkIcon,
+  Lock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -26,6 +26,7 @@ export default function EditAffiliateProductPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [merchantCategory, setMerchantCategory] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -37,6 +38,24 @@ export default function EditAffiliateProductPage() {
     description: "",
     status: "active",
   });
+
+  useEffect(() => {
+    async function fetchMerchant() {
+      try {
+        const res = await fetch("/api/merchants/me");
+        if (res.ok) {
+          const json = await res.json();
+          const cat = json.data?.category || json.category;
+          if (cat) {
+            setMerchantCategory(cat);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch merchant profile:", err);
+      }
+    }
+    fetchMerchant();
+  }, []);
 
   useEffect(() => {
     if (id) fetchProduct();
@@ -51,7 +70,7 @@ export default function EditAffiliateProductPage() {
         const p = data.data || data;
         setForm({
           title: p.title || "",
-          category: p.category || "Fashion & Clothing",
+          category: p.category || merchantCategory || "Fashion & Clothing",
           originalPrice: p.originalPrice || "",
           discountPrice: p.discountPrice || "",
           affiliateUrl: p.affiliateUrl || "",
@@ -164,6 +183,8 @@ export default function EditAffiliateProductPage() {
     );
   }
 
+  const activeCategoryDisplay = form.category || merchantCategory || "General Offers";
+
   return (
     <DashboardLayout title="Edit Affiliate Product" user={{ role: "merchant" }}>
       <div className="w-full max-w-full space-y-4 font-sans text-left">
@@ -211,22 +232,19 @@ export default function EditAffiliateProductPage() {
               </div>
 
               <div className="sm:col-span-5 space-y-1">
-                <label className="text-xs font-semibold text-slate-700 block">
-                  Category *
+                <label className="text-xs font-semibold text-slate-700 block flex items-center justify-between">
+                  <span>Category *</span>
+                  <span className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5">
+                    <Lock className="w-3 h-3" /> Locked
+                  </span>
                 </label>
-                <select
-                  value={form.category}
-                  onChange={(e) =>
-                    setForm({ ...form, category: e.target.value })
-                  }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal cursor-pointer"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+
+                <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/60 text-slate-900 font-semibold text-xs shadow-2xs">
+                  <span className="truncate">{activeCategoryDisplay}</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0">
+                    <Lock className="w-3 h-3 text-blue-600" /> Locked to Profile
+                  </span>
+                </div>
               </div>
             </div>
 
