@@ -1,31 +1,21 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import {
-  Plus,
-  Search,
-  ShoppingBag,
-  Loader2,
-  Filter,
-} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Plus, Search, Filter, ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
-
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import AffiliateProductPreviewCard, { CATEGORIES } from "./components/AffiliateProductPreviewCard";
-import AffiliateProductModal from "./components/AffiliateProductModal";
 
 export default function MerchantAffiliateProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -36,12 +26,11 @@ export default function MerchantAffiliateProductsPage() {
     try {
       const query = new URLSearchParams();
       if (statusFilter !== "all") query.set("status", statusFilter);
-      if (search) query.set("search", search);
 
       const res = await fetch(`/api/merchant/affiliate-products?${query.toString()}`);
       if (res.ok) {
-        const data = await res.json();
-        setProducts(data.data || []);
+        const json = await res.json();
+        setProducts(json.data || []);
       } else {
         toast.error("Failed to load affiliate products.");
       }
@@ -105,16 +94,6 @@ export default function MerchantAffiliateProductsPage() {
     }
   };
 
-  const openAddModal = () => {
-    setEditingProduct(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
-  };
-
   // Filtered Products
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -156,17 +135,16 @@ export default function MerchantAffiliateProductsPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openAddModal}
+          <Link
+            href="/merchant/affiliate-products/new"
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Affiliate Product</span>
-          </button>
+          </Link>
         </div>
 
-        {/* Clean Metric Stats Cards (without icon badges) */}
+        {/* Clean Metric Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-1">
             <span className="text-xs font-medium text-slate-500 block">
@@ -257,63 +235,49 @@ export default function MerchantAffiliateProductsPage() {
           </div>
         </div>
 
-        {/* Main Grid / Empty State */}
+        {/* Product Cards Grid - Full Width Responsive Grid */}
         {loading ? (
-          <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            <p className="text-xs text-slate-500 font-medium">Loading affiliate products...</p>
+          <div className="py-20 text-center text-xs font-medium text-slate-500">
+            Loading affiliate products...
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="py-16 px-4 bg-white border border-slate-200 rounded-2xl text-center space-y-4 w-full">
-            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
-              <ShoppingBag className="w-6 h-6" />
-            </div>
+          <div className="py-16 text-center bg-white border border-slate-200/90 rounded-2xl p-6 space-y-3">
+            <ShoppingBag className="w-10 h-10 text-slate-300 mx-auto" />
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900">
-                {search || categoryFilter !== "all"
-                  ? "No Matching Affiliate Products"
-                  : "No Affiliate Products Listed"}
+              <h3 className="text-sm font-bold text-slate-800">
+                No affiliate products found
               </h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-normal">
+              <p className="text-xs text-slate-500 font-normal">
                 {search || categoryFilter !== "all"
-                  ? "Try resetting your search filters or category selection."
-                  : "Create custom affiliate products (e.g. CashKaro, Bitly) to earn commissions from shoppers."}
+                  ? "Try adjusting your search or category filter."
+                  : "Start listing your products and earn commissions on clicks."}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={openAddModal}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors cursor-pointer"
+            <Link
+              href="/merchant/affiliate-products/new"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Create First Affiliate Product</span>
-            </button>
+              <span>Add Your First Product</span>
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 w-full">
-            {filteredProducts.map((p) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4.5 w-full">
+            {filteredProducts.map((product) => (
               <AffiliateProductPreviewCard
-                key={p._id}
-                product={p}
+                key={product._id}
+                product={product}
                 isPreview={false}
                 onCopy={handleCopyLink}
-                onEdit={openEditModal}
+                onEdit={(p) => window.location.assign(`/merchant/affiliate-products/${p._id}`)}
                 onDelete={handleDelete}
                 onToggleStatus={handleToggleStatus}
-                isDeleting={deletingId === p._id}
-                isToggling={togglingId === p._id}
+                isDeleting={deletingId === product._id}
+                isToggling={togglingId === product._id}
               />
             ))}
           </div>
         )}
-
-        {/* Add/Edit Modal with Split View & Live Preview */}
-        <AffiliateProductModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          initialData={editingProduct}
-          onSuccess={fetchProducts}
-        />
       </div>
     </DashboardLayout>
   );
