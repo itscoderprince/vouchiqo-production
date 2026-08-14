@@ -470,12 +470,12 @@ export function AppSidebar({ ...props }) {
               {
                 title: "Marketing Tools",
                 url: "/admin/campaigns/festival-wizard",
-                icon: Sparkles,
+                icon: Zap,
                 subItems: [
                   {
                     title: "Festival Wizard",
                     url: "/admin/campaigns/festival-wizard",
-                    icon: Sparkles,
+                    icon: Zap,
                   },
                   {
                     title: "Email Blast Builder",

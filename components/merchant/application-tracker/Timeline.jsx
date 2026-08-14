@@ -8,7 +8,6 @@ import {
   FileCheck,
   Info,
   ShieldCheck,
-  Sparkles,
   UserCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

@@ -9,7 +9,6 @@ import {
   Trash2,
   MousePointerClick,
   ShoppingBag,
-  Sparkles,
   Power,
   Tag,
 } from "lucide-react";
@@ -139,7 +138,7 @@ export default function AffiliateProductPreviewCard({
           {badgeDiscountText && (
             <div className="absolute top-2.5 right-2.5 z-10">
               <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-md shadow-xs border border-emerald-500 max-w-[160px] truncate">
-                <Sparkles className="w-3 h-3 shrink-0" />
+                <Tag className="w-3 h-3 shrink-0" />
                 {badgeDiscountText}
               </span>
             </div>

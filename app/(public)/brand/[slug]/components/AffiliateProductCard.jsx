@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, ShoppingBag, Sparkles } from "lucide-react";
+import { ExternalLink, ShoppingBag, Tag } from "lucide-react";
 
 export default function AffiliateProductCard({ product }) {
   if (!product) return null;
@@ -82,7 +82,7 @@ export default function AffiliateProductCard({ product }) {
         )}
         {topBadge && (
           <div className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs max-w-[100px] truncate flex items-center gap-0.5">
-            <Sparkles className="w-2.5 h-2.5 shrink-0" />
+            <Tag className="w-2.5 h-2.5 shrink-0" />
             <span>{topBadge}</span>
           </div>
         )}

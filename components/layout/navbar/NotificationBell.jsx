@@ -7,7 +7,7 @@ import {
   Tag,
   Store,
   Clock,
-  Sparkles,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

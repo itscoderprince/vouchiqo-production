@@ -12,13 +12,13 @@ import {
   Gem,
   GraduationCap,
   Hammer,
+  Heart,
   Home,
   Plane,
   Search,
   Shirt,
   ShoppingCart,
   Smartphone,
-  Sparkles,
   Tag,
   Utensils,
 } from "lucide-react";
@@ -50,7 +50,7 @@ const CATEGORY_STYLES = {
     hoverBorder: "group-hover:border-blue-400 group-hover:shadow-blue-500/15",
   },
   beauty: {
-    Icon: Sparkles,
+    Icon: Heart,
     bannerBg: "bg-gradient-to-br from-purple-500/15 via-fuchsia-500/10 to-purple-500/25",
     dotColor: "#9333ea",
     iconBg: "bg-purple-50 text-purple-600 border-purple-200 shadow-purple-500/10",

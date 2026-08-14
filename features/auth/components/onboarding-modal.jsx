@@ -15,7 +15,6 @@ import {
   Shirt,
   ShoppingCart,
   Smartphone,
-  Sparkles,
   User,
   Users,
   UtensilsCrossed,
@@ -58,7 +57,7 @@ const CATEGORIES = [
   {
     key: "beauty",
     label: "Beauty & Wellness",
-    icon: Sparkles,
+    icon: Heart,
     color: "bg-purple-50 text-purple-600 border-purple-100",
   },
   {

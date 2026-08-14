@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, CheckCircle2, Copy, Heart, Share2, SlidersHorizontal, Sparkles, Star, TrendingUp, X } from "lucide-react";
+import { Check, CheckCircle2, Copy, Heart, Share2, SlidersHorizontal, Star, TrendingUp, X } from "lucide-react";
 import Link from "next/link";
 
 function TwitterGreenTick({ className = "w-4.5 h-4.5" }) {

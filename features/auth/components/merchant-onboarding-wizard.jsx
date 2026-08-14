@@ -22,7 +22,6 @@ import {
   MapPin,
   Phone,
   PhoneCall,
-  Sparkles,
   Store,
   Upload,
   User,

@@ -324,7 +324,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                 <div className="p-3 rounded-2xl bg-blue-50/80 border border-blue-200/80 flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 flex items-center justify-center shrink-0">
-                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <Zap className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="min-w-0">
                       <Badge className="bg-blue-100 text-blue-900 border-blue-300 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0">

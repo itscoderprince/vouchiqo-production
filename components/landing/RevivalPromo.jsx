@@ -98,7 +98,7 @@ export function RevivalPromo() {
               {success ? (
                 <div className="bg-white border border-blue-200 rounded-xl p-5 text-center space-y-2.5 shadow-sm font-sans">
                   <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
-                    <Sparkles className="w-5 h-5 fill-current" />
+                    <Zap className="w-5 h-5 fill-current" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900">
                     Revival Request Received!

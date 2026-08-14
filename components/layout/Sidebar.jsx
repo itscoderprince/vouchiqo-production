@@ -17,6 +17,7 @@ import {
   Tag,
   TrendingUp,
   Users,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -41,7 +42,7 @@ export default function Sidebar({ role = "customer" }) {
           { name: "Live Campaign Monitoring", href: "/admin/campaigns/live", icon: TrendingUp },
           { name: "Campaign Analytics", href: "/admin/campaigns/analytics", icon: BarChart2 },
           { name: "Campaign Revenue", href: "/admin/campaigns/revenue", icon: CreditCard },
-          { name: "Festival Package Wizard", href: "/admin/campaigns/festival-wizard", icon: Sparkles },
+          { name: "Festival Package Wizard", href: "/admin/campaigns/festival-wizard", icon: Zap },
           { name: "Email Blast Builder", href: "/admin/campaigns/email-blast-builder", icon: Mail },
           { name: "Push Notification Builder", href: "/admin/campaigns/push-builder", icon: Bell },
           { name: "Merchant Demand Report", href: "/admin/merchant-demand", icon: Building2 },

@@ -68,7 +68,7 @@ export function RevivalHeroSection() {
         {/* Left Side: Stats & Form */}
         <div className="lg:col-span-7 space-y-6 text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-warning/15 border border-brand-warning/30 text-brand-warning text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Zap className="w-3.5 h-3.5" />
             <span>Core Differentiator</span>
           </div>
 
