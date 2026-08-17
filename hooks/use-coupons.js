@@ -28,7 +28,7 @@ export function useMerchantCoupons(merchantId) {
     enabled: !!merchantId,
     queryFn: async () => {
       const json = await apiFetch(
-        `/api/coupons?merchantId=${merchantId}&allDates=true`,
+        `/api/coupons?merchantId=${merchantId}&isMerchantSelf=true&allDates=true`,
       );
       return json.data?.coupons || [];
     },
