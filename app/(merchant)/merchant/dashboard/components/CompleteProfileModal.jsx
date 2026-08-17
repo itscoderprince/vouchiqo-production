@@ -14,6 +14,7 @@ import {
   Sparkles,
   Store,
   X,
+  Zap,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";

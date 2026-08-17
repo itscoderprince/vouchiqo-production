@@ -39,7 +39,7 @@ export default function UserDropdown({
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useUser();
-  const { isLocked, openModal } = useMerchantLock();
+  const { isProfileIncomplete, isLocked, openModal } = useMerchantLock();
 
   if (!user) return null;
 

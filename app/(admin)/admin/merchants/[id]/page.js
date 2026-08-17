@@ -7,6 +7,7 @@ import {
   Building2,
   CreditCard,
   DollarSign,
+  ExternalLink,
   LifeBuoy,
   Loader2,
   Mail,
