@@ -1597,7 +1597,7 @@ export default function NearbyOffers() {
       {/* Main Container: Left Sidebar + Right Map */}
       <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] w-full overflow-y-auto md:overflow-hidden relative scroll-smooth">
         {/* ─── LEFT SIDEBAR (Deals Near You Cards List) ─── */}
-        <div className="w-full md:w-[340px] lg:w-[360px] md:h-full flex flex-col bg-white md:border-r border-slate-200 shrink-0 sticky top-0 md:static z-30 shadow-xs md:shadow-none">
+        <div className="w-full md:w-[340px] lg:w-[360px] md:h-full flex flex-col bg-white md:border-r border-slate-200 shrink-0 sticky top-0 md:static z-50 shadow-xs md:shadow-none">
           {/* Sidebar Top Header (Sticky on Mobile, Static on Desktop) */}
           <div className="p-3 border-b border-slate-100 shrink-0 space-y-2 bg-white">
             {/* Title & Near Me GPS Button Header Row */}
@@ -1832,7 +1832,7 @@ export default function NearbyOffers() {
         </div>
 
         {/* ─── INTERACTIVE MAP CANVAS (On mobile: 260px right after categories; on desktop: full height right column) ─── */}
-        <div className="w-full md:flex-1 h-[250px] sm:h-[290px] md:h-full relative overflow-hidden bg-slate-200 shrink-0 border-b md:border-b-0 border-slate-200">
+        <div className="w-full md:flex-1 h-[250px] sm:h-[290px] md:h-full relative overflow-hidden isolate z-10 bg-slate-200 shrink-0 border-b md:border-b-0 border-slate-200">
           {/* Leaflet DOM element */}
           <div
             ref={mapRef}
@@ -1846,7 +1846,7 @@ export default function NearbyOffers() {
           {leafletLoaded && (
             <div
               ref={layerMenuRef}
-              className="absolute top-3 right-3 z-[400] flex flex-col items-end gap-2 pointer-events-auto"
+              className="absolute top-3 right-3 z-20 flex flex-col items-end gap-2 pointer-events-auto"
             >
               <div className="flex items-start gap-2">
                 {/* Google Maps-Style Layer Selector Card Popup */}
@@ -1961,7 +1961,7 @@ export default function NearbyOffers() {
 
           {/* Separated Recenter Button: Positioned in Bottom-Left of the Map Canvas */}
           {leafletLoaded && selectedDealId && (
-            <div className="absolute bottom-3 left-3 z-[400] pointer-events-auto">
+            <div className="absolute bottom-3 left-3 z-20 pointer-events-auto">
               <button
                 onClick={() => {
                   if (routeLayerRef.current && mapInstanceRef.current) {

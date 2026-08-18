@@ -3,14 +3,14 @@
 import {
   Bell,
   CheckCheck,
-  Trash2,
-  Tag,
+  Sparkles,
   Store,
-  Clock,
-  Zap,
+  Tag,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   Popover,
   PopoverContent,
@@ -33,6 +33,22 @@ function formatRelativeTime(dateString) {
 export const NotificationBell = () => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clearedIds, setClearedIds] = useState([]);
+  const [readIds, setReadIds] = useState([]);
+
+  // Load saved read/cleared notification state from localStorage
+  useEffect(() => {
+    try {
+      const savedRead = JSON.parse(
+        localStorage.getItem("vq_read_notifs") || "[]",
+      );
+      const savedCleared = JSON.parse(
+        localStorage.getItem("vq_cleared_notifs") || "[]",
+      );
+      setReadIds(Array.isArray(savedRead) ? savedRead : []);
+      setClearedIds(Array.isArray(savedCleared) ? savedCleared : []);
+    } catch (_) {}
+  }, []);
 
   // Fetch 100% REAL database activities (Coupons, Merchants, Notifications)
   useEffect(() => {
@@ -42,24 +58,28 @@ export const NotificationBell = () => {
       try {
         setLoading(true);
         const [resCoupons, resMerchants, resNotifs] = await Promise.all([
-          fetch("/api/coupons?limit=5").then((r) => (r.ok ? r.json() : null)),
-          fetch("/api/merchants?limit=5").then((r) => (r.ok ? r.json() : null)),
+          fetch("/api/coupons?limit=8").then((r) => (r.ok ? r.json() : null)),
+          fetch("/api/merchants?limit=8").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/notifications").then((r) => (r.ok ? r.json() : null)),
         ]);
 
         if (isCancelled) return;
 
-        const dbCoupons = resCoupons?.data?.coupons || resCoupons?.coupons || [];
-        const dbMerchants = resMerchants?.data?.merchants || resMerchants?.merchants || [];
-        const dbNotifs = resNotifs?.data?.notifications || resNotifs?.notifications || [];
+        const dbCoupons =
+          resCoupons?.data?.coupons || resCoupons?.coupons || [];
+        const dbMerchants =
+          resMerchants?.data?.merchants || resMerchants?.merchants || [];
+        const dbNotifs =
+          resNotifs?.data?.notifications || resNotifs?.notifications || [];
 
         const realList = [];
 
         // 1. Map real DB notifications if any
         if (Array.isArray(dbNotifs)) {
           dbNotifs.forEach((n) => {
+            const id = `notif_${n._id}`;
             realList.push({
-              id: `notif_${n._id}`,
+              id,
               title: n.title || "Notification Update",
               message: n.message || n.content || "Check out latest offers.",
               time: formatRelativeTime(n.createdAt),
@@ -74,10 +94,11 @@ export const NotificationBell = () => {
         // 2. Map real DB coupons added recently
         if (Array.isArray(dbCoupons)) {
           dbCoupons.forEach((c) => {
+            const id = `coupon_${c._id}`;
             const brandName = c.merchantId?.businessName || "Partner Brand";
             const codeText = c.code ? `Code: ${c.code}` : "Special Offer";
             realList.push({
-              id: `coupon_${c._id}`,
+              id,
               title: `${brandName} Added New Code`,
               message: `${c.title || "Exclusive Offer"}. ${codeText}`,
               time: formatRelativeTime(c.createdAt),
@@ -92,8 +113,9 @@ export const NotificationBell = () => {
         // 3. Map real DB merchants joined recently
         if (Array.isArray(dbMerchants)) {
           dbMerchants.forEach((m) => {
+            const id = `merchant_${m._id}`;
             realList.push({
-              id: `merchant_${m._id}`,
+              id,
               title: "New Partner Store",
               message: `${m.businessName} is now live on Vouchiqo!`,
               time: formatRelativeTime(m.createdAt),
@@ -105,11 +127,15 @@ export const NotificationBell = () => {
           });
         }
 
-        // Sort combined list by newest first and take top 5
+        // Sort strictly newest first (descending timestamp) and take top 6
         realList.sort((a, b) => b.createdAt - a.createdAt);
-        const top5Real = realList.slice(0, 5);
 
-        setActivities(top5Real);
+        // Deduplicate by ID
+        const uniqueList = Array.from(
+          new Map(realList.map((item) => [item.id, item])).values(),
+        ).slice(0, 6);
+
+        setActivities(uniqueList);
       } catch (err) {
         console.error("Error fetching real activity notifications:", err);
       } finally {
@@ -124,20 +150,44 @@ export const NotificationBell = () => {
     };
   }, []);
 
-  const unreadCount = activities.filter((n) => n.unread).length;
+  // Filter out cleared notifications and apply read status
+  const visibleActivities = activities
+    .filter((act) => !clearedIds.includes(act.id))
+    .map((act) => ({
+      ...act,
+      unread: act.unread && !readIds.includes(act.id),
+    }));
+
+  const unreadCount = visibleActivities.filter((n) => n.unread).length;
 
   const markAllRead = () => {
-    setActivities((prev) => prev.map((n) => ({ ...n, unread: false })));
+    const allIds = visibleActivities.map((a) => a.id);
+    const newReadIds = Array.from(new Set([...readIds, ...allIds]));
+    setReadIds(newReadIds);
+    try {
+      localStorage.setItem("vq_read_notifs", JSON.stringify(newReadIds));
+    } catch (_) {}
+    toast.success("All marked as read");
   };
 
   const clearAll = () => {
-    setActivities([]);
+    const allIds = visibleActivities.map((a) => a.id);
+    const newClearedIds = Array.from(new Set([...clearedIds, ...allIds]));
+    setClearedIds(newClearedIds);
+    try {
+      localStorage.setItem("vq_cleared_notifs", JSON.stringify(newClearedIds));
+    } catch (_) {}
+    toast.success("Notifications cleared");
   };
 
   const markAsRead = (id) => {
-    setActivities((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
-    );
+    if (!readIds.includes(id)) {
+      const newReadIds = [...readIds, id];
+      setReadIds(newReadIds);
+      try {
+        localStorage.setItem("vq_read_notifs", JSON.stringify(newReadIds));
+      } catch (_) {}
+    }
   };
 
   const getActivityIcon = (type) => {
@@ -169,68 +219,77 @@ export const NotificationBell = () => {
         </button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[320px] rounded-xl bg-white p-0 border border-slate-200 shadow-2xl z-50 mr-4 flex flex-col overflow-hidden text-left font-sans">
-        {/* Simple Non-Bold Header */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/60 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-800">
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        className="w-[285px] sm:w-[300px] rounded-xl bg-white p-0 border border-slate-200 shadow-2xl z-[600] flex flex-col overflow-hidden text-left font-sans"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/80 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11.5px] font-semibold text-slate-800">
               Recent Activities
             </span>
             {unreadCount > 0 && (
-              <span className="px-2 py-0.5 text-[9px] font-medium bg-blue-50 text-blue-600 rounded-full border border-blue-100">
+              <span className="px-1.5 py-0.2 text-[8.5px] font-bold bg-blue-50 text-blue-600 rounded-full border border-blue-100">
                 {unreadCount} New
               </span>
             )}
           </div>
-          <span className="text-[10px] text-slate-400 font-normal">Top 5</span>
+          <span className="text-[9.5px] text-slate-400 font-medium">
+            {visibleActivities.length} Latest
+          </span>
         </div>
 
-        {/* Scrollable Compact 5 Real Activities List */}
-        <ScrollArea className="max-h-72 w-full flex-grow">
+        {/* Scrollable Activities List with Compact Height */}
+        <ScrollArea className="max-h-[250px] w-full overflow-y-auto">
           {loading ? (
-            <div className="p-6 text-center text-xs font-normal text-slate-400">
+            <div className="p-5 text-center text-[11px] font-normal text-slate-400">
               Loading recent activities...
             </div>
-          ) : activities.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-44 text-center px-4">
-              <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center mb-1.5 border border-slate-100">
-                <Bell className="w-4 h-4 text-slate-400" />
+          ) : visibleActivities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center mb-1.5 border border-slate-100">
+                <Bell className="w-3.5 h-3.5 text-slate-300" />
               </div>
-              <p className="text-xs font-normal text-slate-500">
-                No recent activity updates yet.
+              <p className="text-[11px] font-medium text-slate-600">
+                No new notifications
+              </p>
+              <p className="text-[9.5px] text-slate-400 mt-0.5">
+                You're all caught up with latest deals!
               </p>
             </div>
           ) : (
             <div className="flex flex-col divide-y divide-slate-100">
-              {activities.map((act) => (
+              {visibleActivities.map((act) => (
                 <Link
                   key={act.id}
                   href={act.href || "#"}
                   onClick={() => markAsRead(act.id)}
-                  className={`p-3 flex items-start gap-3 transition-colors cursor-pointer group ${
+                  className={`px-2.5 py-2 flex items-start gap-2.5 transition-colors cursor-pointer group ${
                     act.unread
-                      ? "bg-blue-50/30 hover:bg-blue-50/60"
+                      ? "bg-blue-50/40 hover:bg-blue-50/70"
                       : "hover:bg-slate-50/80"
                   }`}
                 >
                   {/* Activity Type Icon */}
-                  <div className="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 shadow-2xs group-hover:border-blue-300 transition-colors mt-0.5">
+                  <div className="w-6 h-6 rounded-md border border-slate-200 bg-white flex items-center justify-center shrink-0 shadow-2xs group-hover:border-blue-300 transition-colors mt-0.5">
                     {getActivityIcon(act.type)}
                   </div>
 
                   <div className="flex-1 min-w-0 space-y-0.5">
-                    <div className="flex items-center justify-between gap-1.5">
-                      <span className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[11px] font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
                         {act.title}
                       </span>
                       {act.unread && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 font-normal leading-tight line-clamp-2">
+                    <p className="text-[10px] text-slate-600 font-normal leading-snug line-clamp-2">
                       {act.message}
                     </p>
-                    <div className="text-[9.5px] text-slate-400 font-normal pt-0.5">
+                    <div className="text-[9px] text-slate-400 font-normal pt-0.2">
                       {act.time}
                     </div>
                   </div>
@@ -240,26 +299,27 @@ export const NotificationBell = () => {
           )}
         </ScrollArea>
 
-        {/* Footer Actions */}
-        {activities.length > 0 && (
-          <div className="flex items-center justify-end gap-3 px-3.5 py-2 border-t border-slate-100 bg-slate-50/60 shrink-0">
-            <button
-              onClick={markAllRead}
-              type="button"
-              className="text-[10.5px] font-normal text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1 border-0 bg-transparent py-0.5"
-              title="Mark all as read"
-            >
-              <CheckCheck className="w-3 h-3" />
-              <span>Read All</span>
-            </button>
+        {/* Solid Visible Sticky Footer Actions */}
+        {visibleActivities.length > 0 && (
+          <div className="flex items-center justify-between px-3 py-1.5 border-t border-slate-100 bg-slate-50/90 shrink-0 z-10">
             <button
               onClick={clearAll}
               type="button"
-              className="text-[10.5px] font-normal text-slate-400 hover:text-red-500 cursor-pointer flex items-center gap-1 border-0 bg-transparent py-0.5"
-              title="Clear all"
+              className="text-[10px] font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50/60 px-1.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1 border-0 bg-transparent"
+              title="Clear all notifications"
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 className="w-3 h-3 text-slate-400 group-hover:text-red-500" />
               <span>Clear</span>
+            </button>
+
+            <button
+              onClick={markAllRead}
+              type="button"
+              className="text-[10px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1 border-0 bg-transparent"
+              title="Mark all as read"
+            >
+              <CheckCheck className="w-3 h-3 text-blue-600" />
+              <span>Read All</span>
             </button>
           </div>
         )}
