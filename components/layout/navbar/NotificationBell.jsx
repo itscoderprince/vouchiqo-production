@@ -7,6 +7,7 @@ import {
   Store,
   Tag,
   Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -35,6 +36,7 @@ export const NotificationBell = () => {
   const [loading, setLoading] = useState(true);
   const [clearedIds, setClearedIds] = useState([]);
   const [readIds, setReadIds] = useState([]);
+  const [open, setOpen] = useState(false);
 
   // Load saved read/cleared notification state from localStorage
   useEffect(() => {
@@ -206,7 +208,7 @@ export const NotificationBell = () => {
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           className="relative p-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-full transition-colors cursor-pointer bg-transparent border-0 outline-none"
@@ -223,8 +225,9 @@ export const NotificationBell = () => {
 
       <PopoverContent
         align="end"
+        alignOffset={-4}
         sideOffset={8}
-        className="w-[285px] sm:w-[300px] rounded-xl bg-white p-0 border border-slate-200 shadow-2xl z-[600] flex flex-col overflow-hidden text-left font-sans"
+        className="w-[280px] sm:w-[295px] max-w-[calc(100vw-36px)] rounded-xl bg-white p-0 border border-slate-200 shadow-2xl z-[600] flex flex-col overflow-hidden text-left font-sans mr-2 sm:mr-0"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/80 shrink-0">
@@ -238,6 +241,17 @@ export const NotificationBell = () => {
               </span>
             )}
           </div>
+
+          {/* Close Icon Button */}
+          <button
+            onClick={() => setOpen(false)}
+            type="button"
+            className="p-1 -mr-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-md transition-colors cursor-pointer border-0 bg-transparent"
+            title="Close notifications"
+            aria-label="Close"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Scrollable Activities List with Compact Height */}
@@ -264,7 +278,10 @@ export const NotificationBell = () => {
                 <Link
                   key={act.id}
                   href={act.href || "#"}
-                  onClick={() => markAsRead(act.id)}
+                  onClick={() => {
+                    markAsRead(act.id);
+                    setOpen(false);
+                  }}
                   className={`px-2.5 py-2 flex items-start gap-2.5 transition-colors cursor-pointer group ${
                     act.unread
                       ? "bg-blue-50/40 hover:bg-blue-50/70"
