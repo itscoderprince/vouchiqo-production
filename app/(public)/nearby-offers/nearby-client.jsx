@@ -1,56 +1,261 @@
 "use client";
 
+import {
+  Baby,
+  Car,
+  Check,
+  ChevronRight,
+  Compass,
+  Crosshair,
+  Dumbbell,
+  Film,
+  Flame,
+  Gamepad2,
+  Gem,
+  Globe,
+  GraduationCap,
+  Home as HomeIcon,
+  Layers,
+  Map as MapIcon,
+  MapPin,
+  Maximize2,
+  Moon,
+  Mountain,
+  Navigation,
+  Plane,
+  Search,
+  Shirt,
+  ShoppingCart,
+  Tag,
+  Tv,
+  UtensilsCrossed,
+  Wallet,
+  Wrench,
+  X,
+} from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import DirectoryLayout from "@/components/layout/DirectoryLayout";
-import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { useLocation } from "@/hooks/use-location";
-import {
-  ALPHA_LETTERS,
-  POPULAR_MERCHANTS_SIDEBAR,
-} from "@/utils/shared-navigation";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants & Coordinates ──────────────────────────────────────────────────
 
 const CITY_COORDINATES = {
   ranchi: [23.3441, 85.3096],
   jamshedpur: [22.8046, 86.2029],
+  patna: [25.5941, 85.1376],
   arrah: [25.5564, 84.6681],
-  patna: [25.6112, 85.1384],
-  delhi: [28.5494, 77.2515],
+  delhi: [28.6139, 77.209],
   mumbai: [19.076, 72.8777],
   bangalore: [12.9716, 77.5946],
+  hyderabad: [17.385, 78.4867],
+  kolkata: [22.5726, 88.3639],
+  pune: [18.5204, 73.8567],
+  chennai: [13.0827, 80.2707],
+  ahmedabad: [23.0225, 72.5714],
+  jaipur: [26.9124, 75.7873],
+  lucknow: [26.8467, 80.9462],
 };
 
-const CITY_TO_STATE = {
-  ranchi: "Jharkhand",
-  jamshedpur: "Jharkhand",
-  patna: "Bihar",
-  arrah: "Bihar",
-  delhi: "Delhi",
-  mumbai: "Maharashtra",
-  bangalore: "Karnataka",
+const CITY_OPTIONS = [
+  { name: "Ranchi", state: "Jharkhand", coords: [23.3441, 85.3096] },
+  { name: "Jamshedpur", state: "Jharkhand", coords: [22.8046, 86.2029] },
+  { name: "Patna", state: "Bihar", coords: [25.5941, 85.1376] },
+  { name: "Arrah", state: "Bihar", coords: [25.5564, 84.6681] },
+  { name: "Delhi", state: "Delhi", coords: [28.6139, 77.209] },
+  { name: "Mumbai", state: "Maharashtra", coords: [19.076, 72.8777] },
+  { name: "Bangalore", state: "Karnataka", coords: [12.9716, 77.5946] },
+  { name: "Hyderabad", state: "Telangana", coords: [17.385, 78.4867] },
+  { name: "Kolkata", state: "West Bengal", coords: [22.5726, 88.3639] },
+  { name: "Pune", state: "Maharashtra", coords: [18.5204, 73.8567] },
+  { name: "Chennai", state: "Tamil Nadu", coords: [13.0827, 80.2707] },
+  { name: "Ahmedabad", state: "Gujarat", coords: [23.0225, 72.5714] },
+  { name: "Jaipur", state: "Rajasthan", coords: [26.9124, 75.7873] },
+  { name: "Lucknow", state: "Uttar Pradesh", coords: [26.8467, 80.9462] },
+];
+
+// ─── Custom Girl / Face Icon for Beauty Category ─────────────────────────────
+
+const GirlFaceIcon = ({ className, style }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M7.5 10.5c1.5-2 3-2.5 4.5-2.5s3 .5 4.5 2.5" />
+    <path d="M9.5 15c1 .8 2.5 .8 3.5 0" />
+    <circle cx="9" cy="11" r="0.75" fill="currentColor" />
+    <circle cx="15" cy="11" r="0.75" fill="currentColor" />
+  </svg>
+);
+
+// ─── 15 Distinct & Meaningful Categories with Unique Icons ────────────────────
+
+const CATEGORIES = [
+  { key: "all", label: "All", icon: Flame, color: "#2563eb" },
+  { key: "food", label: "Food & Dining", icon: UtensilsCrossed, color: "#ea580c" },
+  { key: "fashion", label: "Fashion", icon: Shirt, color: "#7c3aed" },
+  { key: "electronics", label: "Electronics", icon: Tv, color: "#0284c7" },
+  { key: "fitness", label: "Fitness & Gym", icon: Dumbbell, color: "#059669" },
+  { key: "beauty", label: "Beauty & Spa", icon: GirlFaceIcon, color: "#db2777" },
+  { key: "travel", label: "Travel & Hotels", icon: Plane, color: "#0891b2" },
+  { key: "home", label: "Home & Kitchen", icon: HomeIcon, color: "#d97706" },
+  { key: "grocery", label: "Grocery", icon: ShoppingCart, color: "#16a34a" },
+  { key: "education", label: "Education", icon: GraduationCap, color: "#4f46e5" },
+  { key: "entertainment", label: "Entertainment", icon: Film, color: "#dc2626" },
+  { key: "jewellery", label: "Jewellery", icon: Gem, color: "#b45309" },
+  { key: "automotive", label: "Automotive", icon: Car, color: "#475569" },
+  { key: "finance", label: "Finance", icon: Wallet, color: "#0d9488" },
+  { key: "kids-baby", label: "Kids & Baby", icon: Baby, color: "#e11d48" },
+  { key: "home-improvement", label: "Home Improvement", icon: Wrench, color: "#ca8a04" },
+  { key: "gaming", label: "Gaming", icon: Gamepad2, color: "#6366f1" },
+];
+
+const DISTANCE_PRESETS = [
+  { value: "2", label: "2 km" },
+  { value: "5", label: "5 km" },
+  { value: "10", label: "10 km" },
+  { value: "25", label: "25 km" },
+  { value: "50", label: "50 km" },
+  { value: "999", label: "All" },
+];
+
+const MAP_TILES = {
+  osm: {
+    id: "osm",
+    name: "Street Map",
+    icon: Navigation,
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  },
+  voyager: {
+    id: "voyager",
+    name: "Clean Light",
+    icon: MapIcon,
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+  },
+  satellite: {
+    id: "satellite",
+    name: "Satellite",
+    icon: Globe,
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="https://www.esri.com/">Esri</a>, Earthstar Geographics',
+  },
+  dark: {
+    id: "dark",
+    name: "Dark Night",
+    icon: Moon,
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+  },
+  terrain: {
+    id: "terrain",
+    name: "Terrain",
+    icon: Mountain,
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+  },
 };
 
-const TABS = [
-  { key: "nearest", label: "Near Me" },
-  { key: "city", label: "In My City" },
-  { key: "state", label: "In My State" },
-  { key: "all", label: "All Deals" },
-];
+// ─── Meaningful Inline Vector SVGs for Leaflet Markers & Popups ───────────────
 
-const CATEGORY_OPTIONS = [
-  { value: "all", label: "All Categories" },
-  { value: "food", label: "Food & Dining" },
-  { value: "fashion", label: "Fashion" },
-  { value: "home", label: "Home & Living" },
-  { value: "travel", label: "Travel" },
-  { value: "electronics", label: "Electronics" },
-  { value: "beauty", label: "Beauty" },
-  { value: "fitness", label: "Fitness" },
-];
+const CATEGORY_SVGS = {
+  food: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8Z"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/></svg>`,
+  fashion: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>`,
+  electronics: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>`,
+  fitness: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>`,
+  beauty: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 10.5c1.5-2 3-2.5 4.5-2.5s3 .5 4.5 2.5"/><path d="M9.5 15c1 .8 2.5 .8 3.5 0"/><circle cx="9" cy="11" r="0.75" fill="currentColor"/><circle cx="15" cy="11" r="0.75" fill="currentColor"/></svg>`,
+  travel: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>`,
+  home: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  grocery: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`,
+  education: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-.838L12.83 2.18a2 2 0 0 0-1.66 0L2.6 10.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>`,
+  entertainment: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="2.18" ry="2.18"/><line x1="7" x2="7" y1="2" y2="22"/><line x1="17" x2="17" y1="2" y2="22"/><line x1="2" x2="22" y1="12" y2="12"/><line x1="2" x2="7" y1="7" y2="7"/><line x1="2" x2="7" y1="17" y2="17"/><line x1="17" x2="22" y1="17" y2="17"/><line x1="17" x2="22" y1="7" y2="7"/></svg>`,
+  jewellery: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`,
+  automotive: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`,
+  finance: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>`,
+  "kids-baby": `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></svg>`,
+  "home-improvement": `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
+  gaming: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>`,
+  default: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
+};
+
+// ─── High-Fidelity Realistic Skeleton Components ──────────────────────────
+
+const DealCardSkeleton = () => (
+  <div className="bg-white rounded-lg p-2.5 border border-slate-200 shadow-xs animate-pulse">
+    <div className="flex gap-2.5 items-start">
+      {/* Avatar skeleton */}
+      <div className="w-9 h-9 rounded-lg bg-slate-200 shrink-0" />
+
+      {/* Content skeleton */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        {/* Top row: Brand & distance */}
+        <div className="flex items-center justify-between gap-1">
+          <div className="h-2.5 bg-slate-200 rounded w-24" />
+          <div className="h-3 bg-blue-100/70 rounded-full w-14" />
+        </div>
+        {/* Discount banner */}
+        <div className="h-3.5 bg-slate-200 rounded w-20" />
+        {/* Title */}
+        <div className="h-2.5 bg-slate-100 rounded w-4/5" />
+        {/* Address */}
+        <div className="h-2 bg-slate-100 rounded w-3/5" />
+        {/* Bottom row */}
+        <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+          <div className="h-2 bg-slate-100 rounded w-12" />
+          <div className="h-2.5 bg-blue-100/80 rounded w-14" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const MapSkeleton = () => (
+  <div className="absolute inset-0 z-10 overflow-hidden bg-slate-100 animate-pulse flex items-center justify-center pointer-events-none">
+    {/* Subtle street-like grid pattern */}
+    <div
+      className="absolute inset-0 opacity-[0.18]"
+      style={{
+        backgroundImage:
+          "linear-gradient(#94a3b8 1px, transparent 1px), linear-gradient(90deg, #94a3b8 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+      }}
+    />
+
+    {/* Central Pulsing Radar & Beacon */}
+    <div className="relative flex items-center justify-center z-10">
+      <div className="w-20 h-20 rounded-full bg-blue-400/20 animate-ping absolute" />
+      <div className="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center shadow-md">
+        <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-sm" />
+      </div>
+    </div>
+
+    {/* Floating Action Dock Skeleton (Top-Right) */}
+    <div className="absolute top-3 right-3 flex flex-col items-center gap-1 bg-white/90 p-1 rounded-xl shadow-md border border-slate-200/90 pointer-events-none">
+      <div className="w-7 h-7 rounded-lg bg-blue-100/70" />
+      <div className="h-[1px] w-3.5 bg-slate-200" />
+      <div className="w-7 h-7 rounded-lg bg-slate-200" />
+      <div className="w-7 h-7 rounded-lg bg-slate-200" />
+      <div className="w-7 h-7 rounded-lg bg-slate-200" />
+    </div>
+
+    {/* Bottom Watermark Badge */}
+    <div className="absolute bottom-3 left-3 bg-white/85 px-2 py-1 rounded-md border border-slate-200 shadow-xs flex items-center gap-1.5 pointer-events-none">
+      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+      <span className="text-[10px] font-semibold text-slate-500">
+        Loading Map & Deals…
+      </span>
+    </div>
+  </div>
+);
 
 // ─── Distance helper ──────────────────────────────────────────────────────────
 
@@ -69,285 +274,319 @@ function haversine(lat1, lon1, lat2, lon2) {
   );
 }
 
-// ─── SVG Icons (inline, no dependencies) ─────────────────────────────────────
+function getCategoryTheme(category) {
+  const cat = (category || "").toLowerCase();
+  if (
+    cat.includes("food") ||
+    cat.includes("dining") ||
+    cat.includes("restaurant") ||
+    cat.includes("cafe")
+  ) {
+    return {
+      iconComp: UtensilsCrossed,
+      svg: CATEGORY_SVGS.food,
+      color: "#ea580c",
+      bg: "#fff7ed",
+      border: "#ffedd5",
+    };
+  }
+  if (
+    cat.includes("fashion") ||
+    cat.includes("cloth") ||
+    cat.includes("apparel") ||
+    cat.includes("wear")
+  ) {
+    return {
+      iconComp: Shirt,
+      svg: CATEGORY_SVGS.fashion,
+      color: "#7c3aed",
+      bg: "#f5f3ff",
+      border: "#ede9fe",
+    };
+  }
+  if (
+    cat.includes("elect") ||
+    cat.includes("tech") ||
+    cat.includes("gadget") ||
+    cat.includes("tv") ||
+    cat.includes("mobile") ||
+    cat.includes("appl")
+  ) {
+    return {
+      iconComp: Tv,
+      svg: CATEGORY_SVGS.electronics,
+      color: "#0284c7",
+      bg: "#f0f9ff",
+      border: "#e0f2fe",
+    };
+  }
+  if (
+    cat.includes("fit") ||
+    cat.includes("gym") ||
+    cat.includes("workout") ||
+    cat.includes("health")
+  ) {
+    return {
+      iconComp: Dumbbell,
+      svg: CATEGORY_SVGS.fitness,
+      color: "#059669",
+      bg: "#ecfdf5",
+      border: "#d1fae5",
+    };
+  }
+  if (
+    cat.includes("beauty") ||
+    cat.includes("salon") ||
+    cat.includes("spa") ||
+    cat.includes("cosmetic")
+  ) {
+    return {
+      iconComp: GirlFaceIcon,
+      svg: CATEGORY_SVGS.beauty,
+      color: "#db2777",
+      bg: "#fdf2f8",
+      border: "#fce7f3",
+    };
+  }
+  if (
+    cat.includes("travel") ||
+    cat.includes("hotel") ||
+    cat.includes("flight") ||
+    cat.includes("trip")
+  ) {
+    return {
+      iconComp: Plane,
+      svg: CATEGORY_SVGS.travel,
+      color: "#0891b2",
+      bg: "#ecfeff",
+      border: "#cffafe",
+    };
+  }
+  if (
+    cat.includes("grocer") ||
+    cat.includes("supermarket") ||
+    cat.includes("mart")
+  ) {
+    return {
+      iconComp: ShoppingCart,
+      svg: CATEGORY_SVGS.grocery,
+      color: "#16a34a",
+      bg: "#f0fdf4",
+      border: "#dcfce7",
+    };
+  }
+  if (
+    cat.includes("educat") ||
+    cat.includes("course") ||
+    cat.includes("learn") ||
+    cat.includes("book")
+  ) {
+    return {
+      iconComp: GraduationCap,
+      svg: CATEGORY_SVGS.education,
+      color: "#4f46e5",
+      bg: "#eef2ff",
+      border: "#e0e7ff",
+    };
+  }
+  if (
+    cat.includes("entertain") ||
+    cat.includes("movie") ||
+    cat.includes("cinema") ||
+    cat.includes("show")
+  ) {
+    return {
+      iconComp: Film,
+      svg: CATEGORY_SVGS.entertainment,
+      color: "#dc2626",
+      bg: "#fef2f2",
+      border: "#fee2e2",
+    };
+  }
+  if (
+    cat.includes("jewel") ||
+    cat.includes("gold") ||
+    cat.includes("diamond") ||
+    cat.includes("silver")
+  ) {
+    return {
+      iconComp: Gem,
+      svg: CATEGORY_SVGS.jewellery,
+      color: "#b45309",
+      bg: "#fffbeb",
+      border: "#fef3c7",
+    };
+  }
+  if (
+    cat.includes("auto") ||
+    cat.includes("car") ||
+    cat.includes("bike") ||
+    cat.includes("vehicle")
+  ) {
+    return {
+      iconComp: Car,
+      svg: CATEGORY_SVGS.automotive,
+      color: "#475569",
+      bg: "#f8fafc",
+      border: "#f1f5f9",
+    };
+  }
+  if (
+    cat.includes("finan") ||
+    cat.includes("bank") ||
+    cat.includes("card") ||
+    cat.includes("insur")
+  ) {
+    return {
+      iconComp: Wallet,
+      svg: CATEGORY_SVGS.finance,
+      color: "#0d9488",
+      bg: "#f0fdfa",
+      border: "#ccfbf1",
+    };
+  }
+  if (
+    cat.includes("kid") ||
+    cat.includes("baby") ||
+    cat.includes("toy") ||
+    cat.includes("child")
+  ) {
+    return {
+      iconComp: Baby,
+      svg: CATEGORY_SVGS["kids-baby"],
+      color: "#e11d48",
+      bg: "#fff1f2",
+      border: "#ffe4e6",
+    };
+  }
+  if (
+    cat.includes("improvement") ||
+    cat.includes("repair") ||
+    cat.includes("tool")
+  ) {
+    return {
+      iconComp: Wrench,
+      svg: CATEGORY_SVGS["home-improvement"],
+      color: "#ca8a04",
+      bg: "#fefce8",
+      border: "#fef9c3",
+    };
+  }
+  if (
+    cat.includes("game") ||
+    cat.includes("gaming") ||
+    cat.includes("esport")
+  ) {
+    return {
+      iconComp: Gamepad2,
+      svg: CATEGORY_SVGS.gaming,
+      color: "#6366f1",
+      bg: "#eef2ff",
+      border: "#e0e7ff",
+    };
+  }
+  if (
+    cat.includes("home") ||
+    cat.includes("furn") ||
+    cat.includes("living") ||
+    cat.includes("kitchen")
+  ) {
+    return {
+      iconComp: HomeIcon,
+      svg: CATEGORY_SVGS.home,
+      color: "#d97706",
+      bg: "#fffbeb",
+      border: "#fef3c7",
+    };
+  }
+  return {
+    iconComp: Tag,
+    svg: CATEGORY_SVGS.default,
+    color: "#2563eb",
+    bg: "#eff6ff",
+    border: "#dbeafe",
+  };
+}
 
-const SkeletonCard = () => (
-  <div
-    style={{
-      background: "white",
-      border: "1px solid #eaecf0",
-      borderRadius: "10px",
-      padding: "13px 14px",
-      display: "flex",
-      gap: "12px",
-      boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
-      animation: "pulse 1.5s infinite ease-in-out",
-    }}
-  >
-    <div
-      style={{
-        width: "44px",
-        height: "44px",
-        borderRadius: "8px",
-        background: "#e5e7eb",
-        flexShrink: 0,
-      }}
-    />
-    <div
-      style={{
-        flex: 1,
-        minWidth: 0,
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "60px",
-            height: "10px",
-            background: "#e5e7eb",
-            borderRadius: "4px",
-          }}
-        />
-        <div
-          style={{
-            width: "50px",
-            height: "14px",
-            background: "#eff6ff",
-            borderRadius: "10px",
-          }}
-        />
-      </div>
-      <div
-        style={{
-          width: "100px",
-          height: "16px",
-          background: "#e5e7eb",
-          borderRadius: "4px",
-          margin: "2px 0",
-        }}
-      />
-      <div
-        style={{
-          width: "160px",
-          height: "11px",
-          background: "#e5e7eb",
-          borderRadius: "4px",
-        }}
-      />
-      <div
-        style={{
-          width: "120px",
-          height: "10px",
-          background: "#e5e7eb",
-          borderRadius: "4px",
-          marginTop: "2px",
-        }}
-      />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          paddingTop: "7px",
-          borderTop: "1px solid #f3f4f6",
-          marginTop: "4px",
-        }}
-      >
-        <div
-          style={{
-            width: "60px",
-            height: "12px",
-            background: "#e5e7eb",
-            borderRadius: "4px",
-          }}
-        />
-      </div>
-    </div>
-  </div>
-);
-
-const IconSearch = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.35-4.35" />
-  </svg>
-);
-const IconPin = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-const IconGPS = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="2" y1="12" x2="9" y2="12" />
-    <line x1="15" y1="12" x2="22" y2="12" />
-    <line x1="12" y1="2" x2="12" y2="9" />
-    <line x1="12" y1="15" x2="12" y2="22" />
-    <circle cx="12" cy="12" r="4" />
-  </svg>
-);
-const IconMap = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-    <line x1="9" y1="3" x2="9" y2="18" />
-    <line x1="15" y1="6" x2="15" y2="21" />
-  </svg>
-);
-
-const IconFilter = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="4" y1="6" x2="20" y2="6" />
-    <line x1="8" y1="12" x2="16" y2="12" />
-    <line x1="11" y1="18" x2="13" y2="18" />
-  </svg>
-);
-const IconClose = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-const IconArrow = () => (
-  <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-);
-const IconLoader = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{ animation: "spin 1s linear infinite" }}
-  >
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Map Component ────────────────────────────────────────────────────────
 
 export default function NearbyOffers() {
   const { city: savedCity, setCity: setSavedCity } = useLocation();
-  const [savedState, setSavedState] = useState("Jharkhand");
-  const [savedPincode, setSavedPincode] = useState("");
   const [mapCenter, setMapCenter] = useState([23.3441, 85.3096]);
+  const [userGpsCoords, setUserGpsCoords] = useState(null);
   const [distance, setDistance] = useState("10");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState("distance");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("nearest");
+  const [tileLayerType, setTileLayerType] = useState("osm");
   const [rawCoupons, setRawCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [gpsLoading, setGpsLoading] = useState(false);
-  const [showMap, setShowMap] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
-  const [manualForm, setManualForm] = useState({
-    state: "Jharkhand",
-    city: "Ranchi",
-    area: "",
-  });
+  const [selectedDealId, setSelectedDealId] = useState(null);
+  const [showRadiusCircle, setShowRadiusCircle] = useState(true);
+  const [showLayerMenu, setShowLayerMenu] = useState(false);
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const markersGroupRef = useRef(null);
+  const markersMapRef = useRef({});
+  const cardRefs = useRef({});
+  const categoryScrollRef = useRef(null);
+  const layerMenuRef = useRef(null);
 
-  // Hydrate saved location
+  // Close layer menu on outside click
   useEffect(() => {
-    try {
-      const pin = localStorage.getItem("vouchiqo_pincode") || "";
-      setSavedPincode(pin);
-      const st = localStorage.getItem("vouchiqo_state") || "";
-      if (st) setSavedState(st);
-      else if (savedCity) {
-        const ds = CITY_TO_STATE[savedCity.toLowerCase()];
-        if (ds) setSavedState(ds);
+    function handleClickOutside(event) {
+      if (
+        layerMenuRef.current &&
+        !layerMenuRef.current.contains(event.target)
+      ) {
+        setShowLayerMenu(false);
       }
-      if (savedCity) {
-        const c = CITY_COORDINATES[savedCity.toLowerCase()];
-        if (c) setMapCenter(c);
+    }
+    if (showLayerMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showLayerMenu]);
+
+  // Smoothly scroll and center clicked category button
+  const handleCategoryClick = useCallback((catKey, e) => {
+    setCategoryFilter(catKey);
+    if (e?.currentTarget) {
+      e.currentTarget.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, []);
+
+  // Sync city to coordinates
+  useEffect(() => {
+    if (savedCity) {
+      const match = CITY_COORDINATES[savedCity.toLowerCase()];
+      if (match) {
+        setMapCenter(match);
       }
-    } catch {}
+    }
   }, [savedCity]);
 
-  // Load Leaflet
+  // Invalidate map size on window resize/orientation change
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Load Leaflet CSS & JS
   useEffect(() => {
     if (typeof window !== "undefined" && window.L) {
       setLeafletLoaded(true);
@@ -357,6 +596,7 @@ export default function NearbyOffers() {
     link.rel = "stylesheet";
     link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
     document.head.appendChild(link);
+
     const script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     script.async = true;
@@ -364,1710 +604,1267 @@ export default function NearbyOffers() {
     document.head.appendChild(script);
   }, []);
 
-  useEffect(
-    () => () => {
+  // Cleanup map instance on unmount
+  useEffect(() => {
+    return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
-    },
-    [],
-  );
+    };
+  }, []);
 
-  // Fetch coupons
+  // Fetch verified local coupons from API
   useEffect(() => {
-    async function fetch_() {
+    let isCancelled = false;
+    async function fetchOffers() {
       setLoading(true);
       try {
-        const q = new URLSearchParams({ limit: "60" });
+        const q = new URLSearchParams({ limit: "100" });
         if (savedCity) q.set("city", savedCity);
         const res = await fetch(`/api/coupons?${q}`);
         if (res.ok) {
           const d = await res.json();
-          setRawCoupons(d.data?.coupons || []);
+          if (!isCancelled) {
+            setRawCoupons(d.data?.coupons || []);
+          }
         }
-      } catch {
+      } catch (err) {
+        console.error("Failed to load map offers:", err);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     }
-    fetch_();
+    fetchOffers();
+    return () => {
+      isCancelled = true;
+    };
   }, [savedCity]);
 
-  // Enrich coupons with distance
-  const coupons = useMemo(
-    () =>
-      rawCoupons.map((c) => {
-        const mLoc = c.merchantId?.location;
-        const hasCoords =
-          mLoc?.coordinates?.lat != null && mLoc?.coordinates?.lng != null;
-        let lat = hasCoords ? mLoc.coordinates.lat : null;
-        let lng = hasCoords ? mLoc.coordinates.lng : null;
-        if (lat == null) {
-          const center =
-            CITY_COORDINATES[savedCity?.toLowerCase()] ||
-            CITY_COORDINATES.ranchi;
-          const hash = c._id
-            ? c._id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0)
-            : 0;
-          lat = center[0] + ((hash % 100) / 100 - 0.5) * 0.03;
-          lng = center[1] + (((hash * 13) % 100) / 100 - 0.5) * 0.03;
-        }
-        return {
-          ...c,
-          coords: [lat, lng],
-          distance: haversine(mapCenter[0], mapCenter[1], lat, lng),
-          address: mLoc?.address
-            ? `${mLoc.address}, ${mLoc.city || ""}`
-            : `${c.merchantId?.businessName || "Store"}, ${savedCity || "Ranchi"}`,
-          city: mLoc?.city || savedCity || "Ranchi",
-          state: mLoc?.state || savedState || "Jharkhand",
-        };
-      }),
-    [rawCoupons, mapCenter, savedCity, savedState],
-  );
+  // Enrich coupons with realistic coordinates around current center & distance calculations
+  const enrichedCoupons = useMemo(() => {
+    const center = userGpsCoords || mapCenter;
+    return rawCoupons.map((c) => {
+      const mLoc = c.merchantId?.location;
+      const hasCoords =
+        mLoc?.coordinates?.lat != null && mLoc?.coordinates?.lng != null;
+      let lat = hasCoords ? mLoc.coordinates.lat : null;
+      let lng = hasCoords ? mLoc.coordinates.lng : null;
 
-  // Filter & group
-  const grouped = useMemo(() => {
-    let list = coupons.filter((c) => {
-      if (categoryFilter !== "all" && c.category !== categoryFilter)
+      // Realistic deterministic spread based on unique brand identity so all offers of same brand share exact coordinates
+      if (lat == null || lng == null) {
+        const brandKey = (
+          c.merchantId?._id ||
+          c.merchantId?.businessName ||
+          c.brandName ||
+          "vouchiqo"
+        ).toString();
+        const hash = brandKey
+          .split("")
+          .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+        const angle = ((hash * 47) % 360) * (Math.PI / 180);
+        const radiusOffset = (((hash * 13) % 45) + 5) / 1000; // 0.5 to 5 km offset
+        lat = center[0] + Math.cos(angle) * radiusOffset * 1.1;
+        lng = center[1] + Math.sin(angle) * radiusOffset * 1.3;
+      }
+
+      const dist = haversine(center[0], center[1], lat, lng);
+      const businessName =
+        c.merchantId?.businessName || c.brandName || "Verified Partner";
+      const logo = c.merchantId?.logo || null;
+      const theme = getCategoryTheme(c.category);
+
+      return {
+        ...c,
+        coords: [lat, lng],
+        distance: dist,
+        businessName,
+        logo,
+        theme,
+        address:
+          mLoc?.address ||
+          `${businessName} Store, Main Road, ${savedCity || "Ranchi"}`,
+        city: mLoc?.city || savedCity || "Ranchi",
+      };
+    });
+  }, [rawCoupons, mapCenter, userGpsCoords, savedCity]);
+
+  // Filter deals based on search, category, and radius distance, then deduplicate by UNIQUE BRAND (showing latest recent offer)
+  const filteredDeals = useMemo(() => {
+    const maxDist = parseFloat(distance);
+    const list = enrichedCoupons.filter((c) => {
+      // Category filter
+      if (categoryFilter !== "all") {
+        const cCat = (c.category || "").toLowerCase();
+        if (!cCat.includes(categoryFilter.toLowerCase())) return false;
+      }
+
+      // Distance filter
+      if (maxDist < 900 && c.distance > maxDist) {
         return false;
+      }
+
+      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        if (
-          !c.title?.toLowerCase().includes(q) &&
-          !c.merchantId?.businessName?.toLowerCase().includes(q)
-        )
-          return false;
+        const titleMatch = c.title?.toLowerCase().includes(q);
+        const nameMatch = c.businessName?.toLowerCase().includes(q);
+        const descMatch = c.description?.toLowerCase().includes(q);
+        const catMatch = c.category?.toLowerCase().includes(q);
+        if (!titleMatch && !nameMatch && !descMatch && !catMatch) return false;
       }
+
       return true;
     });
-    list =
-      sortOrder === "distance"
-        ? [...list].sort((a, b) => a.distance - b.distance)
-        : [...list].sort(
-            (a, b) => (b.discountValue || 0) - (a.discountValue || 0),
-          );
-    return {
-      nearest: list.filter((c) => c.distance <= parseFloat(distance)),
-      city: list.filter(
-        (c) => c.city?.toLowerCase() === savedCity?.toLowerCase(),
-      ),
-      state: list.filter(
-        (c) => c.state?.toLowerCase() === savedState?.toLowerCase(),
-      ),
-      all: list,
-    };
-  }, [
-    coupons,
-    distance,
-    categoryFilter,
-    sortOrder,
-    searchQuery,
-    savedCity,
-    savedState,
-  ]);
 
-  const activeList = grouped[activeTab] || [];
+    // Group by unique brand/merchant and select the latest recent offer
+    const brandMap = new Map();
 
-  // Leaflet map rendering
+    list.forEach((deal) => {
+      const brandKey = (
+        deal.merchantId?._id ||
+        deal.businessName ||
+        deal._id
+      )
+        .toString()
+        .trim()
+        .toLowerCase();
+
+      if (!brandMap.has(brandKey)) {
+        brandMap.set(brandKey, {
+          latestDeal: deal,
+          allDeals: [deal],
+        });
+      } else {
+        const existing = brandMap.get(brandKey);
+        existing.allDeals.push(deal);
+
+        const existingTime = new Date(
+          existing.latestDeal.createdAt || existing.latestDeal.updatedAt || 0,
+        ).getTime();
+        const currentTime = new Date(
+          deal.createdAt || deal.updatedAt || 0,
+        ).getTime();
+
+        // Keep the most recent offer
+        if (
+          currentTime > existingTime ||
+          (currentTime === existingTime && deal._id > existing.latestDeal._id)
+        ) {
+          existing.latestDeal = deal;
+        }
+      }
+    });
+
+    const uniqueDeals = Array.from(brandMap.values()).map(
+      ({ latestDeal, allDeals }) => ({
+        ...latestDeal,
+        offersCount: allDeals.length,
+        allDeals,
+      }),
+    );
+
+    // Sort by distance nearest first
+    return uniqueDeals.sort((a, b) => a.distance - b.distance);
+  }, [enrichedCoupons, categoryFilter, distance, searchQuery]);
+
+  // Handle deal card selection
+  const handleSelectDeal = useCallback((deal, shouldFly = true) => {
+    setSelectedDealId(deal._id);
+    if (shouldFly && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(
+        deal.coords,
+        Math.max(mapInstanceRef.current.getZoom(), 14),
+        {
+          duration: 0.8,
+        },
+      );
+      const marker = markersMapRef.current[deal._id];
+      if (marker) {
+        marker.openPopup();
+      }
+    }
+  }, []);
+
+  // Initialize and update Leaflet Map
   useEffect(() => {
     if (
       !leafletLoaded ||
       !mapRef.current ||
       typeof window === "undefined" ||
       !window.L
-    )
+    ) {
       return;
+    }
+
     const L = window.L;
+
+    // Create map if not exists
     if (!mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
         center: mapCenter,
         zoom: 13,
         zoomControl: false,
       });
+
       L.control.zoom({ position: "bottomright" }).addTo(map);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap",
+
+      const activeTileConfig = MAP_TILES[tileLayerType] || MAP_TILES.voyager;
+      const tileLayer = L.tileLayer(activeTileConfig.url, {
+        attribution: activeTileConfig.attribution,
+        maxZoom: 19,
       }).addTo(map);
-      mapInstanceRef.current = map;
+
+      tileLayerRef.current = tileLayer;
       markersGroupRef.current = L.layerGroup().addTo(map);
+      mapInstanceRef.current = map;
     } else {
-      mapInstanceRef.current.setView(mapCenter, 13);
+      mapInstanceRef.current.setView(userGpsCoords || mapCenter, 13);
     }
-    markersGroupRef.current.clearLayers();
-    const pinIcon = L.divIcon({
-      className: "",
-      html: `<div style="width:28px;height:28px;background:#2563eb;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,0.4);display:flex;align-items:center;justify-content:center;"><div style="width:10px;height:10px;background:white;border-radius:50%;"></div></div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
+
+    const map = mapInstanceRef.current;
+
+    // Switch Tile Layer if changed
+    if (tileLayerRef.current) {
+      const activeTileConfig = MAP_TILES[tileLayerType] || MAP_TILES.voyager;
+      tileLayerRef.current.setUrl(activeTileConfig.url);
+    }
+
+    // Clear existing markers
+    if (markersGroupRef.current) {
+      markersGroupRef.current.clearLayers();
+    }
+    markersMapRef.current = {};
+
+    const centerPoint = userGpsCoords || mapCenter;
+
+    // 1. Draw Radius Circle
+    const distNum = parseFloat(distance);
+    if (showRadiusCircle && distNum < 900) {
+      const radiusMeters = distNum * 1000;
+      L.circle(centerPoint, {
+        radius: radiusMeters,
+        color: "#2563eb",
+        weight: 1.5,
+        opacity: 0.65,
+        fillColor: "#3b82f6",
+        fillOpacity: 0.08,
+        dashArray: "6, 6",
+      }).addTo(markersGroupRef.current);
+    }
+
+    // 2. Draw User Center Marker (Pulsing radar)
+    const userIconHtml = `
+      <div class="user-pulse-marker">
+        <div class="pulse-ring"></div>
+        <div class="center-dot">
+          <div class="inner-dot"></div>
+        </div>
+      </div>
+    `;
+    const userDivIcon = L.divIcon({
+      className: "custom-user-marker",
+      html: userIconHtml,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
     });
-    L.marker(mapCenter, { icon: pinIcon }).addTo(markersGroupRef.current);
-    const dealIcon = L.divIcon({
-      className: "",
-      html: `<div style="width:32px;height:32px;background:#2563eb;border:2px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;">🏷️</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-      popupAnchor: [0, -10],
-    });
-    activeList.forEach((c) => {
-      const name = c.merchantId?.businessName || "Store";
-      const disc =
-        c.discountType === "percentage"
-          ? `${c.discountValue}% OFF`
-          : `₹${c.discountValue} OFF`;
-      const m = L.marker(c.coords, { icon: dealIcon }).addTo(
+
+    L.marker(centerPoint, { icon: userDivIcon })
+      .bindPopup(
+        `<div style="font-family:var(--font-inter),sans-serif;font-size:12px;font-weight:700;color:#1e293b;padding:4px 6px;">
+          📍 ${userGpsCoords ? "Your Live GPS Location" : `Center: ${savedCity || "Selected City"}`}
+        </div>`,
+      )
+      .addTo(markersGroupRef.current);
+
+    // 3. Draw Store / Deal Markers with Rich Interactive Cards
+    filteredDeals.forEach((deal) => {
+      const discountText =
+        deal.discountType === "percentage"
+          ? `${deal.discountValue}% OFF`
+          : `₹${deal.discountValue} OFF`;
+
+      const isSelected = selectedDealId === deal._id;
+
+      const markerHtml = `
+        <div class="deal-map-marker ${isSelected ? "marker-selected" : ""}">
+          <div class="marker-pill" style="border-color:${deal.theme.color};">
+            <span class="marker-icon" style="color:${deal.theme.color};">${deal.theme.svg}</span>
+            <span class="marker-label">${discountText}</span>
+          </div>
+          <div class="marker-pin-tip" style="background:${deal.theme.color};"></div>
+        </div>
+      `;
+
+      const markerIcon = L.divIcon({
+        className: "custom-deal-marker",
+        html: markerHtml,
+        iconSize: [96, 38],
+        iconAnchor: [48, 34],
+        popupAnchor: [0, -36],
+      });
+
+      const pinSvg = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:2px;flex-shrink:0;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`;
+      const checkCircleSvg = `<svg viewBox="0 0 20 20" width="13" height="13" fill="#16a34a" style="display:inline-block;vertical-align:-1px;flex-shrink:0;"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
+
+      const popupContent = `
+        <div class="map-popup-card">
+          <div class="popup-header">
+            <div class="popup-avatar" style="background:${deal.theme.bg};border-color:${deal.theme.border};color:${deal.theme.color};">
+              ${deal.theme.svg}
+            </div>
+            <div class="popup-title-box">
+              <div class="popup-brand">
+                <span class="brand-text">${deal.businessName}</span>
+                <span class="verified-check-circle" title="Verified Merchant">${checkCircleSvg}</span>
+                ${
+                  deal.offersCount > 1
+                    ? `<span style="font-size:8px;font-weight:700;color:#2563eb;background:#eff6ff;padding:0.5px 4px;border-radius:3px;border:1px solid #dbeafe;flex-shrink:0;">${deal.offersCount} Deals</span>`
+                    : ""
+                }
+              </div>
+              <div class="popup-dist">${pinSvg}${deal.distance} km away • ${deal.city}</div>
+            </div>
+          </div>
+
+          <div class="popup-body">
+            <div class="popup-discount" style="color:${deal.theme.color};">${discountText}</div>
+            <div class="popup-deal-title">${deal.title}</div>
+            <div class="popup-address">${deal.address}</div>
+          </div>
+
+          <div class="popup-footer">
+            <a href="/deals/${deal._id}" class="popup-btn-claim">
+              Claim Deal →
+            </a>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${deal.coords[0]},${deal.coords[1]}" target="_blank" rel="noopener noreferrer" class="popup-btn-directions" title="Directions">
+              ↗ Directions
+            </a>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker(deal.coords, { icon: markerIcon }).addTo(
         markersGroupRef.current,
       );
-      m.bindPopup(
-        `<div style="font-family:sans-serif;width:180px;padding:8px;"><strong style="font-size:12px;color:#1e3a5f;">${name}</strong><br/><span style="font-size:14px;font-weight:800;color:#2563eb;">${disc}</span><br/><span style="font-size:11px;color:#6b7280;">${c.distance} km away</span><br/><a href="/deals/${c._id}" style="display:block;margin-top:6px;text-align:center;background:#2563eb;color:white;border-radius:6px;padding:4px;font-size:11px;font-weight:700;text-decoration:none;">View Deal</a></div>`,
-      );
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 260,
+        minWidth: 220,
+        className: "vouchiqo-custom-leaflet-popup",
+      });
+
+      marker.on("click", () => {
+        handleSelectDeal(deal, false);
+        const el = cardRefs.current[deal._id];
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+
+      markersMapRef.current[deal._id] = marker;
     });
-  }, [leafletLoaded, mapCenter, activeList]);
 
-  useEffect(() => {
-    if (leafletLoaded && mapInstanceRef.current)
-      setTimeout(() => mapInstanceRef.current?.invalidateSize(), 100);
-  }, [leafletLoaded]);
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+  }, [
+    leafletLoaded,
+    mapCenter,
+    userGpsCoords,
+    filteredDeals,
+    tileLayerType,
+    distance,
+    showRadiusCircle,
+    selectedDealId,
+    savedCity,
+    handleSelectDeal,
+  ]);
 
-  // GPS detect
-  const handleGPS = () => {
+  // Fit all deals in viewport
+  const handleFitBounds = useCallback(() => {
+    if (!mapInstanceRef.current || filteredDeals.length === 0 || !window.L)
+      return;
+    const L = window.L;
+    const bounds = L.latLngBounds(filteredDeals.map((d) => d.coords));
+    if (userGpsCoords) bounds.extend(userGpsCoords);
+    else bounds.extend(mapCenter);
+    mapInstanceRef.current.fitBounds(bounds, {
+      padding: [50, 50],
+      maxZoom: 15,
+    });
+  }, [filteredDeals, userGpsCoords, mapCenter]);
+
+  // GPS Locate me action
+  const handleLocateMe = () => {
     if (!navigator.geolocation) {
-      toast.error("GPS not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
+
     setGpsLoading(true);
-    toast.loading("Detecting your location...", { id: "gps" });
+    const toastId = toast.loading("Detecting your exact GPS location...");
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const coords = [pos.coords.latitude, pos.coords.longitude];
+        setUserGpsCoords(coords);
         setMapCenter(coords);
-        mapInstanceRef.current?.setView(coords, 14);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo(coords, 14, { duration: 1.2 });
+        }
+
         try {
-          const r = await fetch(
+          const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`,
             { headers: { "Accept-Language": "en" } },
           );
-          if (r.ok) {
-            const d = await r.json();
-            const city =
-              d.address?.city || d.address?.town || d.address?.village || null;
-            const state = d.address?.state || null;
-            if (city) {
-              setSavedCity(city);
-              if (state) {
-                setSavedState(state);
-                localStorage.setItem("vouchiqo_state", state);
-              }
-              toast.success(`Location: ${city}`, { id: "gps" });
-            } else toast.success("Location updated!", { id: "gps" });
+          if (res.ok) {
+            const data = await res.json();
+            const detectedCity =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              data.address?.county ||
+              null;
+            if (detectedCity) {
+              setSavedCity(detectedCity);
+              toast.success(`Location set to ${detectedCity}!`, {
+                id: toastId,
+              });
+            } else {
+              toast.success("Live GPS coordinates detected!", { id: toastId });
+            }
           }
         } catch {
-          toast.success("Location synced!", { id: "gps" });
+          toast.success("Live location centered!", { id: toastId });
+        } finally {
+          setGpsLoading(false);
         }
-        setGpsLoading(false);
       },
       (err) => {
         setGpsLoading(false);
-        toast.dismiss("gps");
-        if (err.code === err.PERMISSION_DENIED)
-          toast.error("GPS access denied. Set location manually.");
-        else toast.error("Could not get your location.");
-        setShowLocationModal(true);
+        if (err.code === err.PERMISSION_DENIED) {
+          toast.error(
+            "Location permission denied. Select city from dropdown.",
+            {
+              id: toastId,
+            },
+          );
+        } else {
+          toast.error("Could not fetch GPS location.", { id: toastId });
+        }
       },
-      { timeout: 10000 },
+      { timeout: 10000, enableHighAccuracy: true },
     );
   };
 
-  // Manual location submit
-  const handleManualSubmit = (e) => {
-    e.preventDefault();
-    if (!manualForm.city) return;
-    setSavedCity(manualForm.city);
-    setSavedState(manualForm.state);
-    setSavedPincode(manualForm.area);
-    try {
-      localStorage.setItem("vouchiqo_pincode", manualForm.area);
-      localStorage.setItem("vouchiqo_state", manualForm.state);
-    } catch {}
-    const c = CITY_COORDINATES[manualForm.city.toLowerCase()];
-    if (c) {
-      setMapCenter(c);
-      mapInstanceRef.current?.setView(c, 14);
+  // City change handler
+  const handleCitySelect = (cityName) => {
+    setSavedCity(cityName);
+    setUserGpsCoords(null);
+    const found = CITY_OPTIONS.find(
+      (c) => c.name.toLowerCase() === cityName.toLowerCase(),
+    );
+    if (found) {
+      setMapCenter(found.coords);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo(found.coords, 13, { duration: 1 });
+      }
+      toast.success(`Map centered to ${found.name}`);
     }
-    setShowLocationModal(false);
-    toast.success(`Location set to ${manualForm.city}`);
   };
 
-  const activeFiltersCount = [
-    distance !== "10",
-    categoryFilter !== "all",
-    sortOrder !== "distance",
-  ].filter(Boolean).length;
+  return (
+    <div
+      className="flex flex-col h-screen w-full overflow-hidden bg-slate-100 select-none"
+      style={{ fontFamily: "var(--font-inter), sans-serif" }}
+    >
+      {/* Global & Leaflet Font & Marker Styling */}
+      <style>{`
+        * {
+          font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
 
-  // ─── Styles ─────────────────────────────────────────────────────────────────
-  const s = {
-    page: {
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      background: "#f4f6f9",
-      fontFamily: "'Inter', 'Segoe UI', -apple-system, sans-serif",
-      fontWeight: 400,
-      color: "#374151",
-    },
-    main: {
-      width: "100%",
-      padding: "16px 20px 40px",
-      flex: 1,
-      boxSizing: "border-box",
-    },
+        /* Pulsing GPS user marker */
+        .user-pulse-marker {
+          position: relative;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .pulse-ring {
+          position: absolute;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(37, 99, 235, 0.35);
+          animation: mapPulse 2s infinite ease-out;
+        }
+        .center-dot {
+          width: 18px;
+          height: 18px;
+          background: #2563eb;
+          border: 2.5px solid #ffffff;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2;
+        }
+        .inner-dot {
+          width: 6px;
+          height: 6px;
+          background: #ffffff;
+          border-radius: 50%;
+        }
+        @keyframes mapPulse {
+          0% { transform: scale(0.6); opacity: 0.9; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
 
-    // Header
-    header: {
-      display: "flex",
-      flexWrap: "wrap",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: "10px",
-      marginBottom: "16px",
-      paddingBottom: "14px",
-      borderBottom: "1px solid #e5e7eb",
-    },
-    breadcrumb: {
-      display: "flex",
-      alignItems: "center",
-      gap: "5px",
-      fontSize: "12px",
-      color: "#9ca3af",
-      marginBottom: "5px",
-      fontWeight: 400,
-    },
-    h1: {
-      fontSize: "20px",
-      fontWeight: 600,
-      color: "#111827",
-      margin: "0 0 3px",
-      letterSpacing: "-0.3px",
-    },
-    subtitle: {
-      fontSize: "12.5px",
-      color: "#6b7280",
-      margin: 0,
-      fontWeight: 400,
-      lineHeight: 1.4,
-    },
-    locationBar: {
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      flexWrap: "wrap",
-    },
-    locationPill: {
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      background: "white",
-      border: "1px solid #e5e7eb",
-      borderRadius: "8px",
-      padding: "6px 12px",
-      fontSize: "13px",
-      fontWeight: 500,
-      color: "#1f2937",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-    },
-    changeBtn: {
-      background: "none",
-      border: "none",
-      color: "#2563eb",
-      fontSize: "12px",
-      fontWeight: 500,
-      cursor: "pointer",
-      padding: "0 0 0 8px",
-      borderLeft: "1px solid #e5e7eb",
-    },
-    gpsBtn: (loading) => ({
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      background: loading ? "#f0f4ff" : "#2563eb",
-      color: loading ? "#2563eb" : "white",
-      border: loading ? "1px solid #c7d7fd" : "none",
-      borderRadius: "8px",
-      padding: "7px 13px",
-      fontSize: "13px",
-      fontWeight: 500,
-      cursor: loading ? "not-allowed" : "pointer",
-      opacity: loading ? 0.75 : 1,
-      boxShadow: loading ? "none" : "0 2px 8px rgba(37,99,235,0.28)",
-    }),
-    mapToggle: (active) => ({
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      background: active ? "#2563eb" : "white",
-      color: active ? "white" : "#4b5563",
-      border: `1px solid ${active ? "#2563eb" : "#e5e7eb"}`,
-      borderRadius: "8px",
-      padding: "7px 13px",
-      fontSize: "13px",
-      fontWeight: 500,
-      cursor: "pointer",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-    }),
+        /* Deal Marker */
+        .deal-map-marker {
+          position: relative;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .deal-map-marker:hover, .deal-map-marker.marker-selected {
+          transform: scale(1.12) translateY(-4px);
+          z-index: 1000 !important;
+        }
+        .marker-pill {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          background: #ffffff;
+          border: 2px solid #2563eb;
+          border-radius: 999px;
+          padding: 3px 6.5px;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+          font-weight: 700;
+          font-size: 11px;
+          color: #0f172a;
+          white-space: nowrap;
+        }
+        .marker-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        }
+        .marker-label {
+          letter-spacing: -0.2px;
+          color: #0f172a;
+        }
+        .marker-pin-tip {
+          width: 6px;
+          height: 6px;
+          background: #2563eb;
+          transform: rotate(45deg) translateY(-2.5px);
+          border-radius: 1px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
 
-    // Search & Filter bar
-    searchRow: {
-      display: "flex",
-      gap: "8px",
-      alignItems: "stretch",
-      marginBottom: "10px",
-      flexWrap: "wrap",
-    },
-    searchWrap: { position: "relative", flex: 1, minWidth: "180px" },
-    searchInput: {
-      width: "100%",
-      paddingLeft: "36px",
-      paddingRight: "12px",
-      height: "38px",
-      border: "1px solid #e5e7eb",
-      borderRadius: "8px",
-      fontSize: "13px",
-      fontWeight: 400,
-      background: "white",
-      color: "#111827",
-      outline: "none",
-      boxSizing: "border-box",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-    },
-    searchIcon: {
-      position: "absolute",
-      left: "11px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      color: "#9ca3af",
-      pointerEvents: "none",
-    },
-    filterBtn: (active) => ({
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      background: active ? "#eff6ff" : "white",
-      color: active ? "#2563eb" : "#4b5563",
-      border: `1px solid ${active ? "#bfdbfe" : "#e5e7eb"}`,
-      borderRadius: "8px",
-      padding: "0 13px",
-      height: "38px",
-      fontSize: "13px",
-      fontWeight: 500,
-      cursor: "pointer",
-      whiteSpace: "nowrap",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-    }),
-    badge: {
-      background: "#2563eb",
-      color: "white",
-      borderRadius: "50%",
-      width: "17px",
-      height: "17px",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "10px",
-      fontWeight: 600,
-    },
+        /* Custom Leaflet Popup Card */
+        .vouchiqo-custom-leaflet-popup .leaflet-popup-content-wrapper {
+          padding: 0;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e2e8f0;
+          background: #ffffff;
+        }
+        .vouchiqo-custom-leaflet-popup .leaflet-popup-content {
+          margin: 0;
+          line-height: 1.35;
+          font-family: var(--font-inter), sans-serif !important;
+        }
+        .vouchiqo-custom-leaflet-popup .leaflet-popup-close-button {
+          top: 6px !important;
+          right: 6px !important;
+          color: #94a3b8 !important;
+          font-size: 15px !important;
+          width: 20px !important;
+          height: 20px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          border-radius: 6px !important;
+          transition: all 0.15s !important;
+          padding: 0 !important;
+        }
+        .vouchiqo-custom-leaflet-popup .leaflet-popup-close-button:hover {
+          color: #0f172a !important;
+          background: #f1f5f9 !important;
+        }
+        .vouchiqo-custom-leaflet-popup .leaflet-popup-tip {
+          background: #ffffff;
+        }
+        .map-popup-card {
+          width: 232px;
+          padding: 10px 12px;
+          box-sizing: border-box;
+          color: #0f172a;
+          font-family: var(--font-inter), sans-serif !important;
+        }
+        .popup-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 6px;
+          padding-right: 14px;
+        }
+        .popup-avatar {
+          width: 28px;
+          height: 28px;
+          border-radius: 7px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          border: 1px solid #e2e8f0;
+        }
+        .popup-title-box {
+          flex: 1;
+          min-width: 0;
+        }
+        .popup-brand {
+          display: flex;
+          align-items: center;
+          gap: 3.5px;
+          flex-wrap: wrap;
+        }
+        .popup-brand .brand-text {
+          font-size: 11.5px;
+          font-weight: 600;
+          color: #0f172a;
+          line-height: 1.25;
+        }
+        .verified-check-circle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .popup-dist {
+          font-size: 9.5px;
+          color: #64748b;
+          font-weight: 400;
+          display: flex;
+          align-items: center;
+          margin-top: 1px;
+        }
+        .popup-discount {
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: -0.2px;
+          margin: 2px 0 1px 0;
+          line-height: 1.2;
+        }
+        .popup-deal-title {
+          font-size: 10.5px;
+          font-weight: 500;
+          color: #334155;
+          margin-bottom: 2px;
+          line-height: 1.3;
+        }
+        .popup-address {
+          font-size: 9.5px;
+          font-weight: 400;
+          color: #64748b;
+          margin-bottom: 6px;
+          line-height: 1.35;
+          word-break: break-word;
+        }
+        .popup-footer {
+          display: flex;
+          gap: 5px;
+          align-items: center;
+        }
+        .popup-btn-claim {
+          flex: 1;
+          background: #2563eb;
+          color: #ffffff !important;
+          text-align: center;
+          padding: 5.5px 8px;
+          border-radius: 6px;
+          font-size: 10.5px;
+          font-weight: 700;
+          text-decoration: none;
+          transition: background 0.15s;
+          white-space: nowrap;
+        }
+        .popup-btn-claim:hover {
+          background: #1d4ed8;
+        }
+        .popup-btn-directions {
+          background: #f1f5f9;
+          color: #475569 !important;
+          padding: 5.5px 8px;
+          border-radius: 6px;
+          font-size: 10.5px;
+          font-weight: 700;
+          text-decoration: none;
+          transition: background 0.15s;
+          white-space: nowrap;
+        }
+        .popup-btn-directions:hover {
+          background: #e2e8f0;
+          color: #0f172a !important;
+        }
 
-    // Filter panel
-    filterPanel: {
-      background: "white",
-      border: "1px solid #e5e7eb",
-      borderRadius: "10px",
-      padding: "14px 16px",
-      marginBottom: "10px",
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
-      gap: "12px",
-      boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-    },
-    filterGroup: { display: "flex", flexDirection: "column", gap: "5px" },
-    filterLabel: {
-      fontSize: "10.5px",
-      fontWeight: 500,
-      color: "#9ca3af",
-      textTransform: "uppercase",
-      letterSpacing: "0.05em",
-    },
-    filterSelect: {
-      height: "34px",
-      border: "1px solid #e5e7eb",
-      borderRadius: "7px",
-      padding: "0 8px",
-      fontSize: "13px",
-      fontWeight: 400,
-      background: "white",
-      color: "#374151",
-      cursor: "pointer",
-      outline: "none",
-    },
-    resetBtn: {
-      background: "none",
-      border: "none",
-      color: "#9ca3af",
-      fontSize: "12px",
-      fontWeight: 400,
-      cursor: "pointer",
-      textDecoration: "underline",
-      alignSelf: "flex-end",
-    },
+        /* Compact Leaflet Zoom Controls */
+        .leaflet-control-zoom {
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 6px !important;
+          overflow: hidden;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
+          margin-right: 10px !important;
+          margin-bottom: 10px !important;
+        }
+        .leaflet-control-zoom a {
+          width: 22px !important;
+          height: 22px !important;
+          line-height: 22px !important;
+          font-size: 12px !important;
+          color: #334155 !important;
+          background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background-color: #f1f5f9 !important;
+          color: #2563eb !important;
+        }
+      `}</style>
 
-    // Tabs
-    tabsRow: {
-      display: "flex",
-      gap: "3px",
-      background: "white",
-      border: "1px solid #e5e7eb",
-      borderRadius: "10px",
-      padding: "4px",
-      marginBottom: "16px",
-      overflowX: "auto",
-      boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
-      WebkitOverflowScrolling: "touch",
-      scrollbarWidth: "none",
-    },
-    tab: (active) => ({
-      display: "flex",
-      alignItems: "center",
-      gap: "5px",
-      padding: "7px 16px",
-      borderRadius: "7px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "13px",
-      fontWeight: active ? 600 : 400,
-      whiteSpace: "nowrap",
-      background: active ? "#2563eb" : "transparent",
-      color: active ? "white" : "#6b7280",
-      transition: "all 0.15s",
-      flexShrink: 0,
-    }),
-    tabCount: (active) => ({
-      background: active ? "rgba(255,255,255,0.22)" : "#f3f4f6",
-      color: active ? "white" : "#9ca3af",
-      borderRadius: "20px",
-      padding: "1px 7px",
-      fontSize: "11px",
-      fontWeight: 500,
-    }),
+      {/* Main Global Navbar */}
+      <Navbar />
 
-    // Cards grid
-    grid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-      gap: "12px",
-    },
-    card: {
-      background: "white",
-      border: "1px solid #eaecf0",
-      borderRadius: "10px",
-      padding: "13px 14px",
-      display: "flex",
-      gap: "12px",
-      cursor: "pointer",
-      transition: "box-shadow 0.18s, border-color 0.18s, transform 0.18s",
-      position: "relative",
-      boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
-    },
-    logoBox: {
-      width: "44px",
-      height: "44px",
-      borderRadius: "8px",
-      background: "#f8f9fb",
-      border: "1px solid #e5e7eb",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      overflow: "hidden",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-    },
-    logoText: {
-      width: "100%",
-      height: "100%",
-      background: "#1e3a5f",
-      color: "white",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "16px",
-      fontWeight: 600,
-    },
-    cardBody: { flex: 1, minWidth: 0 },
-    cardTop: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      gap: "6px",
-      marginBottom: "3px",
-    },
-    brandName: {
-      fontSize: "11px",
-      fontWeight: 500,
-      color: "#9ca3af",
-      textTransform: "uppercase",
-      letterSpacing: "0.04em",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
-    distancePill: {
-      background: "#eff6ff",
-      color: "#2563eb",
-      fontSize: "11px",
-      fontWeight: 500,
-      borderRadius: "20px",
-      padding: "2px 8px",
-      whiteSpace: "nowrap",
-      flexShrink: 0,
-    },
-    discount: {
-      fontSize: "17px",
-      fontWeight: 700,
-      color: "#111827",
-      lineHeight: 1.15,
-      marginBottom: "2px",
-    },
-    dealTitle: {
-      fontSize: "12px",
-      color: "#6b7280",
-      fontWeight: 400,
-      marginBottom: "5px",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-      lineHeight: 1.4,
-    },
-    addressRow: {
-      display: "flex",
-      alignItems: "center",
-      gap: "4px",
-      fontSize: "11px",
-      color: "#9ca3af",
-      fontWeight: 400,
-      marginBottom: "7px",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
-    cardFooter: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingTop: "7px",
-      borderTop: "1px solid #f3f4f6",
-    },
-    categoryTag: {
-      background: "#f3f4f6",
-      color: "#9ca3af",
-      fontSize: "11px",
-      fontWeight: 400,
-      borderRadius: "5px",
-      padding: "2px 8px",
-      textTransform: "capitalize",
-    },
-    claimBtn: {
-      display: "flex",
-      alignItems: "center",
-      gap: "3px",
-      color: "#2563eb",
-      fontSize: "12px",
-      fontWeight: 500,
-      textDecoration: "none",
-    },
+      {/* Main Container: Left Sidebar + Right Map */}
+      <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] w-full overflow-y-auto md:overflow-hidden relative scroll-smooth">
+        {/* ─── LEFT SIDEBAR (Deals Near You Cards List) ─── */}
+        <div className="w-full md:w-[340px] lg:w-[360px] md:h-full flex flex-col bg-white md:border-r border-slate-200 shrink-0 sticky top-0 md:static z-30 shadow-xs md:shadow-none">
+          {/* Sidebar Top Header (Sticky on Mobile, Static on Desktop) */}
+          <div className="p-3 border-b border-slate-100 shrink-0 space-y-2 bg-white">
+            {/* Title & Near Me GPS Button Header Row */}
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h1 className="text-[13px] font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
+                  <span>Deals Near You</span>
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded-full border border-blue-100">
+                    {filteredDeals.length}
+                  </span>
+                </h1>
+                <p className="text-[10px] text-gray-500 font-normal">
+                  Find and claim verified offers near you
+                </p>
+              </div>
 
-    // Empty state
-    empty: {
-      background: "white",
-      border: "1px solid #e5e7eb",
-      borderRadius: "12px",
-      padding: "48px 24px",
-      textAlign: "center",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-    },
-    emptyTitle: {
-      fontSize: "15px",
-      fontWeight: 600,
-      color: "#374151",
-      marginBottom: "7px",
-    },
-    emptyText: {
-      fontSize: "13px",
-      color: "#6b7280",
-      fontWeight: 400,
-      marginBottom: "14px",
-      lineHeight: 1.5,
-    },
-    clearBtn: {
-      background: "#2563eb",
-      color: "white",
-      border: "none",
-      borderRadius: "8px",
-      padding: "8px 22px",
-      fontSize: "13px",
-      fontWeight: 500,
-      cursor: "pointer",
-      boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
-    },
+              {/* Near Me GPS Button */}
+              <button
+                onClick={handleLocateMe}
+                disabled={gpsLoading}
+                className={`flex items-center gap-1 text-[10.5px] font-semibold px-2 py-1 rounded-md border transition-all cursor-pointer shrink-0 ${
+                  userGpsCoords
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-xs"
+                    : "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                }`}
+                title="Locate with browser GPS"
+              >
+                <Crosshair
+                  className={`w-3 h-3 ${gpsLoading ? "animate-spin text-blue-600" : ""}`}
+                />
+                <span>
+                  {gpsLoading
+                    ? "Locating..."
+                    : userGpsCoords
+                      ? "GPS Active"
+                      : "Near Me"}
+                </span>
+              </button>
+            </div>
 
-    // Loading
-    loading: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "64px 24px",
-      gap: "10px",
-    },
-    loadingText: { fontSize: "13px", color: "#9ca3af", fontWeight: 400 },
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search stores or deals…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-[11.5px] font-medium text-gray-800 placeholder-gray-400 outline-none transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
 
-    // Modal
-    overlay: {
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.45)",
-      zIndex: 300,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "16px",
-      backdropFilter: "blur(2px)",
-    },
-    modal: {
-      background: "white",
-      borderRadius: "14px",
-      maxWidth: "380px",
-      width: "100%",
-      padding: "22px 24px",
-      boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
-    },
-    modalHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: "18px",
-      paddingBottom: "14px",
-      borderBottom: "1px solid #f3f4f6",
-    },
-    modalTitle: {
-      fontSize: "15px",
-      fontWeight: 600,
-      color: "#111827",
-      display: "flex",
-      alignItems: "center",
-      gap: "7px",
-    },
-    modalField: { marginBottom: "13px" },
-    modalLabel: {
-      display: "block",
-      fontSize: "12px",
-      fontWeight: 500,
-      color: "#4b5563",
-      marginBottom: "5px",
-    },
-    modalSelect: {
-      width: "100%",
-      height: "39px",
-      border: "1px solid #d1d5db",
-      borderRadius: "8px",
-      padding: "0 10px",
-      fontSize: "13px",
-      fontWeight: 400,
-      background: "white",
-      color: "#374151",
-      outline: "none",
-      cursor: "pointer",
-      boxSizing: "border-box",
-    },
-    modalInput: {
-      width: "100%",
-      height: "39px",
-      border: "1px solid #d1d5db",
-      borderRadius: "8px",
-      padding: "0 12px",
-      fontSize: "13px",
-      fontWeight: 400,
-      color: "#374151",
-      outline: "none",
-      boxSizing: "border-box",
-    },
-    modalSubmit: {
-      width: "100%",
-      height: "40px",
-      background: "#2563eb",
-      color: "white",
-      border: "none",
-      borderRadius: "9px",
-      fontSize: "14px",
-      fontWeight: 500,
-      cursor: "pointer",
-      marginTop: "6px",
-      boxShadow: "0 2px 10px rgba(37,99,235,0.3)",
-    },
-    iconBtn: {
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      color: "#9ca3af",
-      display: "flex",
-      padding: "3px",
-    },
+            {/* Radius Distance Presets (Full Width) */}
+            <div className="flex items-center justify-between bg-slate-100 p-0.5 rounded-md border border-slate-200 overflow-x-auto w-full">
+              {DISTANCE_PRESETS.slice(0, 5).map((d) => (
+                <button
+                  key={d.value}
+                  onClick={() => setDistance(d.value)}
+                  className={`flex-1 text-center py-0.5 text-[9.5px] font-semibold rounded transition-all cursor-pointer ${
+                    distance === d.value
+                      ? "bg-white text-blue-600 shadow-xs font-bold"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
 
-    // Map layout — fills exactly screen height below navbar, no global scroll
-    mapLayout: {
-      display: "flex",
-      flexDirection: "row",
-      height: "calc(100vh - 64px)",
-      overflow: "hidden",
-      background: "#f4f6f9",
-    },
-    mapSidebar: {
-      width: "400px",
-      flexShrink: 0,
-      display: "flex",
-      flexDirection: "column",
-      background: "white",
-      borderRight: "1px solid #e5e7eb",
-      overflow: "hidden",
-      boxShadow: "2px 0 8px rgba(0,0,0,0.06)",
-    },
-    mapSidebarHeader: {
-      padding: "13px 14px",
-      borderBottom: "1px solid #f3f4f6",
-      flexShrink: 0,
-    },
-    mapSidebarList: {
-      flex: 1,
-      overflowY: "auto",
-      padding: "10px",
-      scrollbarWidth: "thin",
-    },
-    mapPanel: {
-      flex: 1,
-      position: "relative",
-      padding: "12px",
-      boxSizing: "border-box",
-    },
-  };
+            {/* Category Filter Pills with Auto-Centering Shift */}
+            <div
+              ref={categoryScrollRef}
+              className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none pt-0.5 scroll-smooth w-full px-0.5"
+            >
+              {CATEGORIES.map((cat) => {
+                const active = categoryFilter === cat.key;
+                const IconComponent = cat.icon;
+                return (
+                  <button
+                    key={cat.key}
+                    onClick={(e) => handleCategoryClick(cat.key, e)}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
+                      active
+                        ? "bg-gray-900 text-white border-gray-900 font-bold shadow-xs"
+                        : "bg-slate-50 hover:bg-slate-100 text-gray-700 border-slate-200"
+                    }`}
+                  >
+                    <IconComponent
+                      className={`w-3 h-3 shrink-0 ${active ? "text-white" : ""}`}
+                      style={{ color: active ? "#ffffff" : cat.color }}
+                    />
+                    <span>{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-  // ─── Coupon Card ──────────────────────────────────────────────────────────────
-  const renderCard = (coupon) => {
-    const name = coupon.merchantId?.businessName || "Local Store";
-    const disc =
-      coupon.discountType === "percentage"
-        ? `${coupon.discountValue}% OFF`
-        : `₹${coupon.discountValue} OFF`;
-    return (
-      <div
-        key={coupon._id}
-        style={s.card}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = "0 6px 24px rgba(37,99,235,0.13)";
-          e.currentTarget.style.borderColor = "#c7d7fd";
-          e.currentTarget.style.transform = "translateY(-1px)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = "0 1px 6px rgba(0,0,0,0.07)";
-          e.currentTarget.style.borderColor = "#eaecf0";
-          e.currentTarget.style.transform = "none";
-        }}
-        onClick={() => {
-          setMapCenter(coupon.coords);
-          mapInstanceRef.current?.setView(coupon.coords, 16);
-        }}
-      >
-        {/* Logo */}
-        <div style={s.logoBox}>
-          {coupon.merchantId?.logo ? (
-            <img
-              src={coupon.merchantId.logo}
-              alt={name}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : (
-            <div style={s.logoText}>{name[0]?.toUpperCase()}</div>
+          {/* Deals Cards List for Desktop */}
+          <div className="hidden md:flex flex-1 overflow-y-auto p-2.5 space-y-2 scrollbar-thin bg-slate-50/50 flex-col">
+            {loading ? (
+              <div className="space-y-2 p-1">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <DealCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filteredDeals.length === 0 ? (
+              <div className="p-6 text-center space-y-1.5 text-gray-400">
+                <div className="w-10 h-10 rounded-full bg-slate-100 text-gray-400 flex items-center justify-center mx-auto text-lg">
+                  <Search className="w-5 h-5 text-gray-400" />
+                </div>
+                <p className="text-xs font-bold text-gray-700">
+                  No deals match your search
+                </p>
+                <p className="text-[10.5px] text-gray-500">
+                  Expand your radius or clear active filters.
+                </p>
+                <button
+                  onClick={() => {
+                    setCategoryFilter("all");
+                    setDistance("50");
+                    setSearchQuery("");
+                  }}
+                  className="mt-1.5 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+                >
+                  Reset filters
+                </button>
+              </div>
+            ) : (
+              filteredDeals.map((deal) => {
+                const isSelected = selectedDealId === deal._id;
+                const discountText =
+                  deal.discountType === "percentage"
+                    ? `${deal.discountValue}% OFF`
+                    : `₹${deal.discountValue} OFF`;
+
+                const CategoryIcon = deal.theme.iconComp;
+
+                return (
+                  <div
+                    key={deal._id}
+                    ref={(el) => {
+                      cardRefs.current[deal._id] = el;
+                    }}
+                    onClick={() => handleSelectDeal(deal, true)}
+                    className={`bg-white rounded-lg p-2.5 border transition-all cursor-pointer shadow-xs hover:shadow-sm relative group ${
+                      isSelected
+                        ? "border-blue-600 ring-1.5 ring-blue-100 bg-blue-50/15"
+                        : "border-slate-200 hover:border-blue-300"
+                    }`}
+                  >
+                    <div className="flex gap-2.5 items-start">
+                      {/* Store Avatar / Icon */}
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border overflow-hidden"
+                        style={{
+                          background: deal.logo ? "#ffffff" : deal.theme.bg,
+                          borderColor: deal.theme.border,
+                        }}
+                      >
+                        {deal.logo ? (
+                          <img
+                            src={deal.logo}
+                            alt={deal.businessName}
+                            className="w-full h-full object-contain p-0.5"
+                          />
+                        ) : (
+                          <CategoryIcon
+                            className="w-4 h-4"
+                            style={{ color: deal.theme.color }}
+                          />
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Top Line: Brand & Distance */}
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <h2 className="text-[10.5px] font-bold text-gray-900 uppercase tracking-wider truncate">
+                              {deal.businessName}
+                            </h2>
+                            {deal.offersCount > 1 && (
+                              <span className="text-[8px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1 py-0.2 rounded-full shrink-0">
+                                {deal.offersCount} Deals
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[9.5px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.2 rounded-full shrink-0">
+                            {deal.distance} km away
+                          </span>
+                        </div>
+
+                        {/* Discount Banner */}
+                        <div
+                          className="text-[13px] font-bold tracking-tight leading-none my-0.5"
+                          style={{ color: deal.theme.color }}
+                        >
+                          {discountText}
+                        </div>
+
+                        {/* Title */}
+                        <p className="text-[11px] font-medium text-gray-700 line-clamp-1">
+                          {deal.title}
+                        </p>
+
+                        {/* Address */}
+                        <div className="flex items-center gap-1 text-[10px] text-gray-400 font-normal mt-0.5 truncate">
+                          <MapPin className="w-2.5 h-2.5 text-gray-400 shrink-0" />
+                          <span className="truncate">{deal.address}</span>
+                        </div>
+
+                        {/* Bottom Actions */}
+                        <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100">
+                          <span className="text-[8.5px] font-medium text-gray-400 uppercase tracking-wider">
+                            {deal.category || "Verified Deal"}
+                          </span>
+                          <Link
+                            href={`/deals/${deal._id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
+                          >
+                            <span>Get Deal</span>
+                            <ChevronRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* ─── INTERACTIVE MAP CANVAS (On mobile: 260px right after categories; on desktop: full height right column) ─── */}
+        <div className="w-full md:flex-1 h-[250px] sm:h-[290px] md:h-full relative overflow-hidden bg-slate-200 shrink-0 border-b md:border-b-0 border-slate-200">
+          {/* Leaflet DOM element */}
+          <div
+            ref={mapRef}
+            className={`w-full h-full z-0 ${!leafletLoaded ? "opacity-0" : "opacity-100 transition-opacity duration-300"}`}
+          />
+
+          {/* Map Skeleton Placeholder while Leaflet / tiles load */}
+          {!leafletLoaded && <MapSkeleton />}
+
+          {/* Map Top-Right Floating Controls (Google Maps-Style Vertical Icon Dock) */}
+          {leafletLoaded && (
+            <div
+              ref={layerMenuRef}
+              className="absolute top-3 right-3 z-[400] flex items-start gap-2 pointer-events-auto"
+            >
+              {/* Google Maps-Style Layer Selector Card Popup */}
+              {showLayerMenu && (
+                <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-200 p-1.5 w-36 animate-in fade-in zoom-in-95 duration-150 space-y-0.5 font-sans">
+                  <div className="flex items-center border-b border-slate-100 pb-1 px-0.5">
+                    <span className="text-[10.5px] font-semibold text-gray-900 tracking-tight flex items-center gap-1">
+                      <Layers className="w-3 h-3 text-blue-600" />
+                      <span>Map View</span>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-0.5 pt-0.5">
+                    {Object.values(MAP_TILES).map((tile) => {
+                      const isSelected = tileLayerType === tile.id;
+                      const TileIcon = tile.icon;
+                      return (
+                        <button
+                          key={tile.id}
+                          onClick={() => {
+                            setTileLayerType(tile.id);
+                            setShowLayerMenu(false);
+                            toast.success(`Switched to ${tile.name} view`);
+                          }}
+                          className={`w-full flex items-center justify-between px-1.5 py-1 rounded-md transition-colors cursor-pointer border text-left font-sans ${
+                            isSelected
+                              ? "bg-blue-50/90 border-blue-500 shadow-xs text-blue-600 font-semibold"
+                              : "bg-slate-50/60 hover:bg-slate-100/90 hover:text-blue-600 border-slate-200/60 text-gray-700 font-medium"
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-white text-gray-600 shadow-xs border border-slate-200"
+                              }`}
+                            >
+                              <TileIcon className="w-3 h-3" />
+                            </div>
+                            <span className="text-[10.5px] tracking-tight">
+                              {tile.name}
+                            </span>
+                          </div>
+
+                          {isSelected && (
+                            <div className="w-3 h-3 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                              <Check className="w-1.5 h-1.5 stroke-[3]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Ultra-Compact Vertical Icon-Only Action Buttons Dock */}
+              <div className="flex flex-col items-center gap-0.5 bg-white/95 backdrop-blur-md p-0.5 rounded-lg shadow-md border border-slate-200">
+                {/* Layers Button */}
+                <button
+                  onClick={() => setShowLayerMenu((prev) => !prev)}
+                  className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                    showLayerMenu
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                  }`}
+                  title="Map Views & Layers"
+                  aria-label="Map Views"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                </button>
+
+                <div className="h-[1px] w-3 bg-slate-200 my-0.2" />
+
+                {/* Fit Bounds Button */}
+                <button
+                  onClick={handleFitBounds}
+                  className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-all cursor-pointer"
+                  title="Fit All Deals on Screen"
+                  aria-label="Fit All Deals"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </button>
+
+                {/* GPS Locate Me Button */}
+                <button
+                  onClick={handleLocateMe}
+                  disabled={gpsLoading}
+                  className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                    userGpsCoords
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                  }`}
+                  title="Locate with Live GPS"
+                  aria-label="Live GPS"
+                >
+                  <Crosshair
+                    className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin text-blue-600" : ""}`}
+                  />
+                </button>
+
+                {/* Toggle Distance Radius Circle */}
+                <button
+                  onClick={() => setShowRadiusCircle((prev) => !prev)}
+                  className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                    showRadiusCircle
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                  }`}
+                  title={
+                    showRadiusCircle
+                      ? "Hide Search Radius Circle"
+                      : "Show Search Radius Circle"
+                  }
+                  aria-label="Radius Circle"
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Body */}
-        <div style={s.cardBody}>
-          <div style={s.cardTop}>
-            <span style={s.brandName}>{name}</span>
-            <span style={s.distancePill}>{coupon.distance} km away</span>
-          </div>
-          <div style={s.discount}>{disc}</div>
-          <div style={s.dealTitle}>{coupon.title}</div>
-          <div style={s.addressRow}>
-            <IconPin />
-            <span
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {coupon.address}
-            </span>
-          </div>
-          <div style={{ ...s.cardFooter, justifyContent: "flex-end" }}>
-            <Link href={`/deals/${coupon._id}`} style={s.claimBtn}>
-              Get Deal <IconArrow />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // ─── Location Modal ───────────────────────────────────────────────────────────
-  const locationModal = (
-    <div
-      style={s.overlay}
-      onClick={(e) =>
-        e.target === e.currentTarget && setShowLocationModal(false)
-      }
-    >
-      <form onSubmit={handleManualSubmit} style={s.modal}>
-        <div style={s.modalHeader}>
-          <div style={s.modalTitle}>
-            <IconPin /> Set Your Location
-          </div>
-          <button
-            type="button"
-            style={s.iconBtn}
-            onClick={() => setShowLocationModal(false)}
-          >
-            <IconClose />
-          </button>
-        </div>
-
-        <div style={s.modalField}>
-          <label style={s.modalLabel}>State</label>
-          <select
-            style={s.modalSelect}
-            value={manualForm.state}
-            onChange={(e) =>
-              setManualForm({ ...manualForm, state: e.target.value })
-            }
-          >
-            <option value="Jharkhand">Jharkhand</option>
-            <option value="Bihar">Bihar</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Maharashtra">Maharashtra</option>
-            <option value="Karnataka">Karnataka</option>
-          </select>
-        </div>
-
-        <div style={s.modalField}>
-          <label style={s.modalLabel}>City *</label>
-          <select
-            style={s.modalSelect}
-            value={manualForm.city}
-            onChange={(e) =>
-              setManualForm({ ...manualForm, city: e.target.value })
-            }
-            required
-          >
-            <option value="Ranchi">Ranchi</option>
-            <option value="Jamshedpur">Jamshedpur</option>
-            <option value="Patna">Patna</option>
-            <option value="Arrah">Arrah</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Bangalore">Bangalore</option>
-          </select>
-        </div>
-
-        <div style={s.modalField}>
-          <label style={s.modalLabel}>
-            Area or Pincode{" "}
-            <span style={{ fontWeight: 400, color: "#9ca3af" }}>
-              (optional)
-            </span>
-          </label>
-          <input
-            style={s.modalInput}
-            placeholder="e.g. Lalpur or 834001"
-            value={manualForm.area}
-            onChange={(e) =>
-              setManualForm({ ...manualForm, area: e.target.value })
-            }
-          />
-        </div>
-
-        <button type="submit" style={s.modalSubmit}>
-          Find Deals Near Me
-        </button>
-      </form>
-    </div>
-  );
-
-  // ─── Filter panel ─────────────────────────────────────────────────────────────
-  const filterPanel = showFilters && (
-    <div style={{ ...s.filterPanel, marginBottom: "12px" }}>
-      <div style={s.filterGroup}>
-        <label style={s.filterLabel}>Distance</label>
-        <select
-          style={s.filterSelect}
-          value={distance}
-          onChange={(e) => setDistance(e.target.value)}
-        >
-          <option value="2">Within 2 km</option>
-          <option value="5">Within 5 km</option>
-          <option value="10">Within 10 km</option>
-          <option value="25">Within 25 km</option>
-        </select>
-      </div>
-      <div style={s.filterGroup}>
-        <label style={s.filterLabel}>Category</label>
-        <select
-          style={s.filterSelect}
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          {CATEGORY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div style={s.filterGroup}>
-        <label style={s.filterLabel}>Sort By</label>
-        <select
-          style={s.filterSelect}
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-        >
-          <option value="distance">Nearest First</option>
-          <option value="discount">Highest Discount</option>
-        </select>
-      </div>
-      <div style={{ ...s.filterGroup, justifyContent: "flex-end" }}>
-        <button
-          type="button"
-          style={s.resetBtn}
-          onClick={() => {
-            setCategoryFilter("all");
-            setDistance("10");
-            setSortOrder("distance");
-            setSearchQuery("");
-            setShowFilters(false);
-          }}
-        >
-          Reset all
-        </button>
-      </div>
-    </div>
-  );
-
-  // ─── Tabs ────────────────────────────────────────────────────────────────────
-  const tabsRow = (
-    <div style={s.tabsRow}>
-      {TABS.map((t) => (
-        <button
-          key={t.key}
-          style={s.tab(activeTab === t.key)}
-          onClick={() => setActiveTab(t.key)}
-        >
-          {t.label}
-          <span style={s.tabCount(activeTab === t.key)}>
-            {grouped[t.key]?.length || 0}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-
-  // ─── Content area ─────────────────────────────────────────────────────────────
-  const contentArea = loading ? (
-    <div style={s.loading}>
-      <IconLoader />
-      <span style={s.loadingText}>Looking for deals near you…</span>
-    </div>
-  ) : activeList.length === 0 ? (
-    <div style={s.empty}>
-      <div style={s.emptyTitle}>No deals found here</div>
-      <div style={s.emptyText}>
-        Try widening your distance or removing category filters to see more
-        offers.
-      </div>
-      <button
-        style={s.clearBtn}
-        onClick={() => {
-          setCategoryFilter("all");
-          setDistance("25");
-          setSortOrder("distance");
-          setSearchQuery("");
-        }}
-      >
-        Show all nearby deals
-      </button>
-    </div>
-  ) : (
-    <div style={s.grid}>{activeList.map(renderCard)}</div>
-  );
-
-  const [viewMode, setViewMode] = useState("directory"); // 'directory' or 'map'
-  const [citySearch, setCitySearch] = useState("");
-  const [activeCityLetter, setActiveCityLetter] = useState("all");
-  const [cityGridCols, setCityGridCols] = useState(4);
-  const [showMoreAboutCities, setShowMoreAboutCities] = useState(false);
-  const [showAllSidebarMerchants, setShowAllSidebarMerchants] = useState(false);
-
-  const CITIES_LIST = [
-    {
-      name: "Delhi",
-      slug: "delhi",
-      coupons: 51,
-      offers: 90,
-      svg: `<path d="M12 2L4 7v10l8 5 8-5V7l-8-5z M12 6v6 M8 9h8" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Hyderabad",
-      slug: "hyderabad",
-      coupons: 111,
-      offers: 107,
-      svg: `<path d="M6 22V8l6-4 6 4v14 M10 14h4 M10 18h4" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Bangalore",
-      slug: "bangalore",
-      coupons: 85,
-      offers: 104,
-      svg: `<path d="M3 21h18 M6 18V6l6-3 6 3v12" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Mumbai",
-      slug: "mumbai",
-      coupons: 56,
-      offers: 102,
-      svg: `<path d="M4 21h16 M7 17V4l5-2 5 2v13" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Ranchi",
-      slug: "ranchi",
-      coupons: 42,
-      offers: 88,
-      svg: `<path d="M5 20h14 M8 16V9l4-3 4 3v7" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Jamshedpur",
-      slug: "jamshedpur",
-      coupons: 38,
-      offers: 74,
-      svg: `<path d="M4 19h16 M7 15V8l5-3 5 3v7" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Patna",
-      slug: "patna",
-      coupons: 64,
-      offers: 92,
-      svg: `<path d="M6 20h12 M9 16V7l3-2 3 2v9" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Arrah",
-      slug: "arrah",
-      coupons: 22,
-      offers: 45,
-      svg: `<path d="M5 19h14 M8 15V9l4-3 4 3v6" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Pune",
-      slug: "pune",
-      coupons: 78,
-      offers: 112,
-      svg: `<path d="M4 20h16 M7 16V6l5-2 5 2v10" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Chennai",
-      slug: "chennai",
-      coupons: 69,
-      offers: 98,
-      svg: `<path d="M5 21h14 M8 17V7l4-3 4 3v10" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Kolkata",
-      slug: "kolkata",
-      coupons: 92,
-      offers: 130,
-      svg: `<path d="M4 20h16 M7 16V5l5-2 5 2v11" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Ahmedabad",
-      slug: "ahmedabad",
-      coupons: 54,
-      offers: 86,
-      svg: `<path d="M6 19h12 M9 15V8l3-3 3 3v7" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Jaipur",
-      slug: "jaipur",
-      coupons: 47,
-      offers: 79,
-      svg: `<path d="M5 20h14 M8 16V7l4-2 4 2v9" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Chandigarh",
-      slug: "chandigarh",
-      coupons: 33,
-      offers: 61,
-      svg: `<path d="M6 19h12 M9 15V9l3-2 3 2v6" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Lucknow",
-      slug: "lucknow",
-      coupons: 58,
-      offers: 94,
-      svg: `<path d="M4 21h16 M7 17V6l5-3 5 3v11" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Surat",
-      slug: "surat",
-      coupons: 41,
-      offers: 73,
-      svg: `<path d="M5 20h14 M8 16V8l4-2 4 2v8" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Kochi",
-      slug: "kochi",
-      coupons: 36,
-      offers: 68,
-      svg: `<path d="M6 19h12 M9 15V9l3-3 3 3v6" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Indore",
-      slug: "indore",
-      coupons: 44,
-      offers: 81,
-      svg: `<path d="M5 20h14 M8 16V8l4-3 4 3v8" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Bhopal",
-      slug: "bhopal",
-      coupons: 29,
-      offers: 53,
-      svg: `<path d="M6 19h12 M9 15V9l3-2 3 2v6" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Nagpur",
-      slug: "nagpur",
-      coupons: 31,
-      offers: 57,
-      svg: `<path d="M5 20h14 M8 16V8l4-2 4 2v8" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-    {
-      name: "Visakhapatnam",
-      slug: "visakhapatnam",
-      coupons: 27,
-      offers: 49,
-      svg: `<path d="M6 19h12 M9 15V9l3-2 3 2v6" stroke="#2563eb" stroke-width="1.5" fill="none"/>`,
-    },
-  ];
-
-  const POPULAR_CITIES_FOUR = CITIES_LIST.slice(0, 4);
-
-  const filteredCities = useMemo(() => {
-    let list = CITIES_LIST;
-    if (activeCityLetter !== "all") {
-      list = list.filter((c) =>
-        c.name.toUpperCase().startsWith(activeCityLetter),
-      );
-    }
-    if (citySearch.trim()) {
-      list = list.filter((c) =>
-        c.name.toLowerCase().includes(citySearch.toLowerCase()),
-      );
-    }
-    return list;
-  }, [activeCityLetter, citySearch]);
-
-  const visibleSidebarMerchants = showAllSidebarMerchants
-    ? POPULAR_MERCHANTS_SIDEBAR
-    : POPULAR_MERCHANTS_SIDEBAR.slice(0, 6);
-
-  // ─── Main render ──────────────────────────────────────────────────────────────
-  return (
-    <div style={s.page}>
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
-        .sidebar-item-hover:hover { background: #f8fafc !important; color: #2563eb !important; }
-        .sidebar-link-item:hover { color: #2563eb !important; }
-        .brand-card-hover:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important; border-color: #2563eb !important; transform: translateY(-1px); }
-        .grid-btn-hover:hover { background: #f8fafc !important; color: #2563eb !important; border-color: #2563eb !important; }
-        @media (max-width: 900px) {
-          .stores-grid-layout { grid-template-columns: 1fr !important; padding: 12px !important; gap: 16px !important; }
-        }
-        @media (max-width: 640px) {
-          .all-stores-responsive-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-        }
-      `}</style>
-      <Navbar />
-
-      {viewMode === "directory" ? (
-        <DirectoryLayout
-          activeKey="Cities Deals"
-          title="Cities"
-          icon={IconPin}
-          stat1={{ count: 21, label: "Total Cities", shortLabel: "Cities" }}
-          stat2={{ count: "2,157", label: "Total Verified Offers" }}
-          aboutTitle="About Cities"
-          aboutText="Every city has its own vibe, and so do its deals. Vouchiqo brings you exclusive offers that cater to your city's tastes and needs."
-          actionElement={
-            <button
-              onClick={() => setViewMode("map")}
-              className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-bold border border-blue-200 transition-colors flex items-center gap-1.5"
-            >
-              <IconMap /> Interactive Map
-            </button>
-          }
-        >
-          {/* Popular Cities */}
-          <section
-            style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              padding: "16px 20px 20px",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 16,
-                fontWeight: 800,
-                color: "#000000",
-                marginBottom: 16,
-                letterSpacing: "-0.2px",
-              }}
-            >
-              Popular Cities
-            </h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                gap: 12,
-              }}
-            >
-              {POPULAR_CITIES_FOUR.map((c) => (
-                <div
-                  key={c.name}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    background: "#ffffff",
-                    padding: "16px 12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 10,
-                    cursor: "pointer",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                  }}
-                  className="brand-card-hover"
-                  onClick={() => {
-                    setSavedCity(c.name);
-                    setViewMode("map");
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: "50%",
-                      background: "#eff6ff",
-                      border: "1px solid #dbeafe",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyCenter: "center",
-                      padding: 12,
-                    }}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="36"
-                      height="36"
-                      dangerouslySetInnerHTML={{ __html: c.svg }}
-                    />
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <p
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 800,
-                        color: "#000000",
-                        margin: "0 0 3px 0",
-                      }}
-                    >
-                      {c.name}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 11,
-                        color: "#6b7280",
-                        fontWeight: 600,
-                        margin: 0,
-                      }}
-                    >
-                      {c.coupons + c.offers} Active Offers
-                    </p>
-                  </div>
-                </div>
+        {/* ─── Deals Cards List for Mobile (rendered in natural scroll flow below map) ─── */}
+        <div className="flex md:hidden flex-col p-2.5 space-y-2 bg-slate-50/50 min-h-0">
+          {loading ? (
+            <div className="space-y-2 p-1">
+              {[1, 2, 3, 4].map((i) => (
+                <DealCardSkeleton key={`m-skel-${i}`} />
               ))}
             </div>
-          </section>
-
-          {/* All Cities */}
-          <section
-            style={{
-              background: "#ffffff",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              padding: "16px 20px 20px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: "#000000",
-                  margin: 0,
-                  letterSpacing: "-0.2px",
-                }}
-              >
-                All Cities
-              </h2>
-              <div style={{ display: "flex", gap: 4 }}>
-                {[3, 4, 5].map((cols) => (
-                  <button
-                    key={cols}
-                    onClick={() => setCityGridCols(cols)}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 4,
-                      border: "1px solid #e5e7eb",
-                      background: cityGridCols === cols ? "#2563eb" : "#ffffff",
-                      color: cityGridCols === cols ? "#ffffff" : "#4b5563",
-                      cursor: "pointer",
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {cols}
-                  </button>
-                ))}
+          ) : filteredDeals.length === 0 ? (
+            <div className="p-6 text-center space-y-1.5 text-gray-400">
+              <div className="w-10 h-10 rounded-full bg-slate-100 text-gray-400 flex items-center justify-center mx-auto text-lg">
+                <Search className="w-5 h-5 text-gray-400" />
               </div>
+              <p className="text-xs font-bold text-gray-700">
+                No deals match your search
+              </p>
+              <p className="text-[10.5px] text-gray-500">
+                Expand your radius or clear active filters.
+              </p>
+              <button
+                onClick={() => {
+                  setCategoryFilter("all");
+                  setDistance("50");
+                  setSearchQuery("");
+                }}
+                className="mt-1.5 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+              >
+                Reset filters
+              </button>
             </div>
+          ) : (
+            filteredDeals.map((deal) => {
+              const isSelected = selectedDealId === deal._id;
+              const discountText =
+                deal.discountType === "percentage"
+                  ? `${deal.discountValue}% OFF`
+                  : `₹${deal.discountValue} OFF`;
 
-            {/* Alpha + Search */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 12,
-                marginBottom: 16,
-                paddingBottom: 14,
-                borderBottom: "1px solid #f3f4f6",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 3,
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                <button
-                  onClick={() => setActiveCityLetter("all")}
-                  style={{
-                    padding: "3px 8px",
-                    borderRadius: 4,
-                    border: "1px solid",
-                    borderColor:
-                      activeCityLetter === "all" ? "#2563eb" : "#e5e7eb",
-                    background:
-                      activeCityLetter === "all" ? "#2563eb" : "transparent",
-                    color: activeCityLetter === "all" ? "#ffffff" : "#4b5563",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  All
-                </button>
-                {ALPHA_LETTERS.map((letter) => (
-                  <button
-                    key={letter}
-                    onClick={() =>
-                      setActiveCityLetter(
-                        activeCityLetter === letter ? "all" : letter,
-                      )
-                    }
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 4,
-                      border: "1px solid",
-                      borderColor:
-                        activeCityLetter === letter ? "#2563eb" : "#e5e7eb",
-                      background:
-                        activeCityLetter === letter ? "#2563eb" : "transparent",
-                      color:
-                        activeCityLetter === letter ? "#ffffff" : "#1f2937",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {letter}
-                  </button>
-                ))}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 4,
-                  padding: "5px 10px",
-                  background: "#ffffff",
-                  minWidth: 200,
-                }}
-              >
-                <IconSearch />
-                <input
-                  placeholder="Search by cities name"
-                  value={citySearch}
-                  onChange={(e) => setCitySearch(e.target.value)}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    fontSize: 12,
-                    color: "#000000",
-                    outline: "none",
-                    width: "100%",
-                  }}
-                />
-              </div>
-            </div>
+              const CategoryIcon = deal.theme.iconComp;
 
-            {/* City Cards Grid */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${cityGridCols}, 1fr)`,
-                gap: 12,
-              }}
-              className="all-stores-responsive-grid"
-            >
-              {filteredCities.map((c) => (
+              return (
                 <div
-                  key={c.name}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    background: "#ffffff",
-                    padding: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    items: "center",
-                    textAlign: "center",
-                    gap: 8,
-                    cursor: "pointer",
-                  }}
-                  className="brand-card-hover"
-                  onClick={() => {
-                    setSavedCity(c.name);
-                    setViewMode("map");
-                  }}
+                  key={`m-${deal._id}`}
+                  onClick={() => handleSelectDeal(deal, true)}
+                  className={`bg-white rounded-lg p-2.5 border transition-all cursor-pointer shadow-xs hover:shadow-sm relative group ${
+                    isSelected
+                      ? "border-blue-600 ring-1.5 ring-blue-100 bg-blue-50/15"
+                      : "border-slate-200 hover:border-blue-300"
+                  }`}
                 >
-                  <div
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: "50%",
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto",
-                      padding: 8,
-                    }}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                      dangerouslySetInnerHTML={{ __html: c.svg }}
-                    />
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "#000000",
-                      margin: 0,
-                    }}
-                  >
-                    {c.name}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: "#2563eb",
-                      fontWeight: 600,
-                      margin: 0,
-                    }}
-                  >
-                    {c.coupons + c.offers} Active Offers
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        </DirectoryLayout>
-      ) : (
-        /* ── INTERACTIVE MAP VIEW ── */
-        <>
-          <div className="p-3 bg-white border-b border-slate-200 flex justify-between items-center px-6">
-            <span className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <IconPin /> Interactive Deals Map — {savedCity || "All Cities"}
-            </span>
-            <button
-              onClick={() => setViewMode("directory")}
-              className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition-colors"
-            >
-              Back to Cities Directory
-            </button>
-          </div>
-          <div style={s.mapLayout}>
-            <div style={s.mapSidebar}>
-              <div style={s.mapSidebarHeader}>
-                <div style={{ marginBottom: "10px" }}>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: "#111827",
-                    }}
-                  >
-                    Deals Near You
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#9ca3af",
-                      marginTop: "2px",
-                    }}
-                  >
-                    Browse offers on the map
-                  </div>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "#9ca3af",
-                    }}
-                  >
-                    <IconSearch />
-                  </span>
-                  <input
-                    style={{ ...s.searchInput, paddingLeft: "34px" }}
-                    placeholder="Search stores or deals…"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div style={s.mapSidebarList}>
-                {loading ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                    }}
-                  >
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <SkeletonCard key={i} />
-                    ))}
-                  </div>
-                ) : grouped.all.length === 0 ? (
-                  <div
-                    style={{
-                      padding: "24px",
-                      textAlign: "center",
-                      color: "#6b7280",
-                      fontSize: "13px",
-                    }}
-                  >
-                    No deals match your filters
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                    }}
-                  >
-                    {grouped.all.map(renderCard)}
-                  </div>
-                )}
-              </div>
-            </div>
+                  <div className="flex gap-2.5 items-start">
+                    {/* Store Avatar / Icon */}
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border overflow-hidden"
+                      style={{
+                        background: deal.logo ? "#ffffff" : deal.theme.bg,
+                        borderColor: deal.theme.border,
+                      }}
+                    >
+                      {deal.logo ? (
+                        <img
+                          src={deal.logo}
+                          alt={deal.businessName}
+                          className="w-full h-full object-contain p-0.5"
+                        />
+                      ) : (
+                        <CategoryIcon
+                          className="w-4 h-4"
+                          style={{ color: deal.theme.color }}
+                        />
+                      )}
+                    </div>
 
-            <div style={s.mapPanel}>
-              <div
-                ref={mapRef}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "10px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                }}
-              />
-            </div>
-          </div>
-          <Footer />
-        </>
-      )}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Top Line: Brand & Distance */}
+                      <div className="flex items-center justify-between gap-1 mb-0.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h2 className="text-[10.5px] font-bold text-gray-900 uppercase tracking-wider truncate">
+                            {deal.businessName}
+                          </h2>
+                          {deal.offersCount > 1 && (
+                            <span className="text-[8px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1 py-0.2 rounded-full shrink-0">
+                              {deal.offersCount} Deals
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[9.5px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.2 rounded-full shrink-0">
+                          {deal.distance} km away
+                        </span>
+                      </div>
 
-      {/* Location Modal */}
-      {showLocationModal && locationModal}
+                      {/* Discount Banner */}
+                      <div
+                        className="text-[13px] font-bold tracking-tight leading-none my-0.5"
+                        style={{ color: deal.theme.color }}
+                      >
+                        {discountText}
+                      </div>
+
+                      {/* Title */}
+                      <p className="text-[11px] font-medium text-gray-700 line-clamp-1">
+                        {deal.title}
+                      </p>
+
+                      {/* Address */}
+                      <div className="flex items-center gap-1 text-[10px] text-gray-400 font-normal mt-0.5 truncate">
+                        <MapPin className="w-2.5 h-2.5 text-gray-400 shrink-0" />
+                        <span className="truncate">{deal.address}</span>
+                      </div>
+
+                      {/* Bottom Actions */}
+                      <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100">
+                        <span className="text-[8.5px] font-medium text-gray-400 uppercase tracking-wider">
+                          {deal.category || "Verified Deal"}
+                        </span>
+                        <Link
+                          href={`/deals/${deal._id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
+                        >
+                          <span>Get Deal</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
     </div>
   );
 }
