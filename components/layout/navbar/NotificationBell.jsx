@@ -57,9 +57,8 @@ export const NotificationBell = () => {
     async function fetchRealActivities() {
       try {
         setLoading(true);
-        const [resCoupons, resMerchants, resNotifs] = await Promise.all([
-          fetch("/api/coupons?limit=8").then((r) => (r.ok ? r.json() : null)),
-          fetch("/api/merchants?limit=8").then((r) => (r.ok ? r.json() : null)),
+        const [resCoupons, resNotifs] = await Promise.all([
+          fetch("/api/coupons?limit=30").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/notifications").then((r) => (r.ok ? r.json() : null)),
         ]);
 
@@ -67,8 +66,6 @@ export const NotificationBell = () => {
 
         const dbCoupons =
           resCoupons?.data?.coupons || resCoupons?.coupons || [];
-        const dbMerchants =
-          resMerchants?.data?.merchants || resMerchants?.merchants || [];
         const dbNotifs =
           resNotifs?.data?.notifications || resNotifs?.notifications || [];
 
@@ -91,14 +88,36 @@ export const NotificationBell = () => {
           });
         }
 
-        // 2. Map real DB coupons added recently
+        // 2. Extract both New Partner Brands and New Codes from real coupons data
         if (Array.isArray(dbCoupons)) {
+          const seenMerchants = new Set();
+
           dbCoupons.forEach((c) => {
-            const id = `coupon_${c._id}`;
-            const brandName = c.merchantId?.businessName || "Partner Brand";
-            const codeText = c.code ? `Code: ${c.code}` : "Special Offer";
+            const m = c.merchantId;
+            const brandName = m?.businessName || c.brandName || "Partner Brand";
+            const mId = m?._id || m?.id || c._id;
+
+            // Add brand listing if not yet added
+            if (m && mId && !seenMerchants.has(String(mId))) {
+              seenMerchants.add(String(mId));
+              realList.push({
+                id: `merchant_${mId}`,
+                title: "New Partner Store Listed",
+                message: `${brandName} is now live on Vouchiqo!`,
+                time: formatRelativeTime(m.createdAt || c.createdAt),
+                createdAt: new Date(
+                  m.createdAt || c.createdAt || Date.now(),
+                ).getTime(),
+                type: "brand",
+                unread: true,
+                href: m.slug ? `/brand/${m.slug}` : `/deals/${c._id}`,
+              });
+            }
+
+            // Add coupon code update
+            const codeText = c.code ? `Code: ${c.code}` : "Exclusive Offer";
             realList.push({
-              id,
+              id: `coupon_${c._id}`,
               title: `${brandName} Added New Code`,
               message: `${c.title || "Exclusive Offer"}. ${codeText}`,
               time: formatRelativeTime(c.createdAt),
@@ -110,30 +129,13 @@ export const NotificationBell = () => {
           });
         }
 
-        // 3. Map real DB merchants joined recently
-        if (Array.isArray(dbMerchants)) {
-          dbMerchants.forEach((m) => {
-            const id = `merchant_${m._id}`;
-            realList.push({
-              id,
-              title: "New Partner Store",
-              message: `${m.businessName} is now live on Vouchiqo!`,
-              time: formatRelativeTime(m.createdAt),
-              createdAt: new Date(m.createdAt || Date.now()).getTime(),
-              type: "brand",
-              unread: false,
-              href: `/brand/${m.slug}`,
-            });
-          });
-        }
-
-        // Sort strictly newest first (descending timestamp) and take top 6
+        // Sort strictly newest first (descending timestamp) and take top 7
         realList.sort((a, b) => b.createdAt - a.createdAt);
 
         // Deduplicate by ID
         const uniqueList = Array.from(
           new Map(realList.map((item) => [item.id, item])).values(),
-        ).slice(0, 6);
+        ).slice(0, 7);
 
         setActivities(uniqueList);
       } catch (err) {
@@ -236,9 +238,6 @@ export const NotificationBell = () => {
               </span>
             )}
           </div>
-          <span className="text-[9.5px] text-slate-400 font-medium">
-            {visibleActivities.length} Latest
-          </span>
         </div>
 
         {/* Scrollable Activities List with Compact Height */}
