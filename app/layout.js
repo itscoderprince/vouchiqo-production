@@ -19,7 +19,7 @@ export const metadata = {
     "Vouchiqo is a trusted offer marketplace and merchant growth platform offering 100% verified deals and analytics.",
   verification: {
     other: {
-      "verify-admitad": "aff374ca3e",
+      "verify-admitad": "af406b1286",
     },
   },
 };
