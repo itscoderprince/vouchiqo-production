@@ -75,6 +75,23 @@ const CITY_OPTIONS = [
   { name: "Lucknow", state: "Uttar Pradesh", coords: [26.8467, 80.9462] },
 ];
 
+// ─── Distance Calculation (Haversine Formula) ───────────────────────────────
+
+function haversine(lat1, lon1, lat2, lon2) {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return 1.0;
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return parseFloat((R * c).toFixed(1));
+}
+
 // ─── Custom Girl / Face Icon for Beauty Category ─────────────────────────────
 
 const GirlFaceIcon = ({ className, style }) => (
@@ -257,22 +274,7 @@ const MapSkeleton = () => (
   </div>
 );
 
-// ─── Distance helper ──────────────────────────────────────────────────────────
 
-function haversine(lat1, lon1, lat2, lon2) {
-  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return 0;
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
-  return parseFloat(
-    (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1),
-  );
-}
 
 function getCategoryTheme(category) {
   const cat = (category || "").toLowerCase();
@@ -508,6 +510,29 @@ function getCategoryTheme(category) {
   };
 }
 
+function GoogleIcon({ className = "w-3 h-3" }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} style={{ flexShrink: 0 }}>
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </svg>
+  );
+}
+
 // ─── Main Map Component ────────────────────────────────────────────────────────
 
 export default function NearbyOffers() {
@@ -525,6 +550,7 @@ export default function NearbyOffers() {
   const [selectedDealId, setSelectedDealId] = useState(null);
   const [showRadiusCircle, setShowRadiusCircle] = useState(true);
   const [showLayerMenu, setShowLayerMenu] = useState(false);
+  const [activeRouteInfo, setActiveRouteInfo] = useState(null);
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -534,6 +560,8 @@ export default function NearbyOffers() {
   const cardRefs = useRef({});
   const categoryScrollRef = useRef(null);
   const layerMenuRef = useRef(null);
+  const routeLayerRef = useRef(null);
+  const currentRoutingIdRef = useRef(0);
 
   // Close layer menu on outside click
   useEffect(() => {
@@ -614,15 +642,15 @@ export default function NearbyOffers() {
     };
   }, []);
 
-  // Fetch verified local coupons from API
+  // Fetch verified local coupons from API (autofetch all active offers without boundary restrictions)
   useEffect(() => {
     let isCancelled = false;
     async function fetchOffers() {
       setLoading(true);
       try {
-        const q = new URLSearchParams({ limit: "100" });
-        if (savedCity) q.set("city", savedCity);
-        const res = await fetch(`/api/coupons?${q}`);
+        const res = await fetch(
+          "/api/coupons?limit=250&allDates=true&includeAllBrands=true",
+        );
         if (res.ok) {
           const d = await res.json();
           if (!isCancelled) {
@@ -639,7 +667,7 @@ export default function NearbyOffers() {
     return () => {
       isCancelled = true;
     };
-  }, [savedCity]);
+  }, []);
 
   // Enrich coupons with realistic coordinates around current center & distance calculations
   const enrichedCoupons = useMemo(() => {
@@ -689,9 +717,8 @@ export default function NearbyOffers() {
     });
   }, [rawCoupons, mapCenter, userGpsCoords, savedCity]);
 
-  // Filter deals based on search, category, and radius distance, then deduplicate by UNIQUE BRAND (showing latest recent offer)
+  // Filter deals based on search & category, deduplicate by UNIQUE BRAND, and sort NEARBY FIRST
   const filteredDeals = useMemo(() => {
-    const maxDist = parseFloat(distance);
     const list = enrichedCoupons.filter((c) => {
       // Category filter
       if (categoryFilter !== "all") {
@@ -699,19 +726,30 @@ export default function NearbyOffers() {
         if (!cCat.includes(categoryFilter.toLowerCase())) return false;
       }
 
-      // Distance filter
-      if (maxDist < 900 && c.distance > maxDist) {
-        return false;
-      }
-
-      // Search query
+      // Comprehensive multi-token search across all brand, merchant, deal, and address fields
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const titleMatch = c.title?.toLowerCase().includes(q);
-        const nameMatch = c.businessName?.toLowerCase().includes(q);
-        const descMatch = c.description?.toLowerCase().includes(q);
-        const catMatch = c.category?.toLowerCase().includes(q);
-        if (!titleMatch && !nameMatch && !descMatch && !catMatch) return false;
+        const q = searchQuery.toLowerCase().trim();
+        const terms = q.split(/\s+/).filter(Boolean);
+        const searchable = [
+          c.businessName,
+          c.brandName,
+          c.title,
+          c.description,
+          c.category,
+          c.address,
+          c.city,
+          c.code,
+          c.merchantId?.slug,
+          c.merchantId?.businessName,
+          c.merchantId?.category,
+          c.merchantId?.address,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        const matches = terms.every((t) => searchable.includes(t));
+        if (!matches) return false;
       }
 
       return true;
@@ -723,6 +761,7 @@ export default function NearbyOffers() {
     list.forEach((deal) => {
       const brandKey = (
         deal.merchantId?._id ||
+        deal.merchantId?.businessName ||
         deal.businessName ||
         deal._id
       )
@@ -764,26 +803,161 @@ export default function NearbyOffers() {
       }),
     );
 
-    // Sort by distance nearest first
+    // Always sort nearby first (ascending distance)
     return uniqueDeals.sort((a, b) => a.distance - b.distance);
-  }, [enrichedCoupons, categoryFilter, distance, searchQuery]);
+  }, [enrichedCoupons, categoryFilter, searchQuery]);
 
-  // Handle deal card selection
-  const handleSelectDeal = useCallback((deal, shouldFly = true) => {
-    setSelectedDealId(deal._id);
-    if (shouldFly && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo(
-        deal.coords,
-        Math.max(mapInstanceRef.current.getZoom(), 14),
-        {
-          duration: 0.8,
-        },
-      );
-      const marker = markersMapRef.current[deal._id];
-      if (marker) {
-        marker.openPopup();
+  // Handle deal selection & draw shortest orange route from user location to brand
+  const handleSelectDeal = useCallback(
+    async (deal, shouldFly = true) => {
+      if (!deal) return;
+      setSelectedDealId(deal._id);
+
+      // Increment request ID to cancel/ignore any previous in-flight route fetches
+      const currentReqId = ++currentRoutingIdRef.current;
+
+      // Immediately remove any active route layer on the map
+      if (routeLayerRef.current && mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(routeLayerRef.current);
+        routeLayerRef.current = null;
       }
+      setActiveRouteInfo(null);
+
+      if (!mapInstanceRef.current || !window.L) return;
+      const L = window.L;
+
+      const start = userGpsCoords || mapCenter;
+      const end = deal.coords;
+
+      if (!start || !end) return;
+
+      const drawOrangeRoute = (coords, distKm, durMin) => {
+        // If a newer deal selection was triggered while fetching, ignore this stale route
+        if (currentReqId !== currentRoutingIdRef.current) return;
+        if (!mapInstanceRef.current) return;
+
+        // Ensure any previous route layer is cleaned up
+        if (routeLayerRef.current) {
+          mapInstanceRef.current.removeLayer(routeLayerRef.current);
+          routeLayerRef.current = null;
+        }
+
+        // Route casing / road glow for high depth
+        const casing = L.polyline(coords, {
+          color: "#9a3412",
+          weight: 7,
+          opacity: 0.75,
+          lineCap: "round",
+          lineJoin: "round",
+        });
+
+        // Vibrant Orange Shortest Path
+        const orangeLine = L.polyline(coords, {
+          color: "#ea580c",
+          weight: 4.5,
+          opacity: 0.98,
+          lineCap: "round",
+          lineJoin: "round",
+        });
+
+        const routeGroup = L.featureGroup([casing, orangeLine]).addTo(
+          mapInstanceRef.current,
+        );
+        routeLayerRef.current = routeGroup;
+
+        setActiveRouteInfo({
+          distanceKm: distKm,
+          durationMin: durMin,
+          startCoords: start,
+          endCoords: end,
+          businessName: deal.businessName,
+          address: deal.address,
+          dealId: deal._id,
+        });
+
+        if (shouldFly) {
+          const bounds = routeGroup.getBounds();
+          if (bounds.isValid()) {
+            mapInstanceRef.current.fitBounds(bounds, {
+              padding: [50, 50],
+              maxZoom: 15,
+              animate: true,
+              duration: 0.8,
+            });
+          }
+        }
+
+        const marker = markersMapRef.current[deal._id];
+        if (marker) {
+          setTimeout(() => marker.openPopup(), 200);
+        }
+      };
+
+      // Fetch shortest direct turn-by-turn road route from OSRM
+      try {
+        const startLng = start[1];
+        const startLat = start[0];
+        const endLng = end[1];
+        const endLat = end[0];
+
+        // Query driving alternatives and street network in parallel to find the true shortest path
+        const drivingReq = fetch(
+          `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&alternatives=3&continue_straight=false`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+
+        const streetReq = fetch(
+          `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+
+        const [drivingData, streetData] = await Promise.all([
+          drivingReq,
+          streetReq,
+        ]);
+
+        // If user selected another brand while network call was pending, abort immediately
+        if (currentReqId !== currentRoutingIdRef.current) return;
+
+        const candidateRoutes = [];
+        if (drivingData?.routes) candidateRoutes.push(...drivingData.routes);
+        if (streetData?.routes) candidateRoutes.push(...streetData.routes);
+
+        if (candidateRoutes.length > 0) {
+          // Sort by physical distance ascending (shortest path first)
+          candidateRoutes.sort((a, b) => a.distance - b.distance);
+          const best = candidateRoutes[0];
+
+          if (best?.geometry?.coordinates) {
+            const latLngs = best.geometry.coordinates.map((c) => [c[1], c[0]]);
+            const distKm = (best.distance / 1000).toFixed(1);
+            const durMin = Math.max(1, Math.round(Number(distKm) * 2.5));
+            drawOrangeRoute(latLngs, distKm, durMin);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("OSRM shortest routing fallback:", err);
+      }
+
+      if (currentReqId !== currentRoutingIdRef.current) return;
+
+      // Direct fallback polyline with calculated distance
+      const fallbackDist = deal.distance ? deal.distance.toFixed(1) : "2.0";
+      const fallbackMin = Math.max(2, Math.round(Number(fallbackDist) * 3));
+      drawOrangeRoute([start, end], fallbackDist, fallbackMin);
+    },
+    [mapCenter, userGpsCoords],
+  );
+
+  const handleClearRoute = useCallback(() => {
+    if (routeLayerRef.current && mapInstanceRef.current) {
+      mapInstanceRef.current.removeLayer(routeLayerRef.current);
+      routeLayerRef.current = null;
     }
+    setActiveRouteInfo(null);
   }, []);
 
   // Initialize and update Leaflet Map
@@ -799,10 +973,27 @@ export default function NearbyOffers() {
 
     const L = window.L;
 
+    // Validate center point coordinates
+    const rawCenter = userGpsCoords || mapCenter;
+    const centerPoint =
+      Array.isArray(rawCenter) &&
+      typeof rawCenter[0] === "number" &&
+      typeof rawCenter[1] === "number" &&
+      !Number.isNaN(rawCenter[0]) &&
+      !Number.isNaN(rawCenter[1])
+        ? [rawCenter[0], rawCenter[1]]
+        : [23.3441, 85.3096];
+
     // Create map if not exists
     if (!mapInstanceRef.current) {
+      if (mapRef.current._leaflet_id) {
+        try {
+          mapRef.current._leaflet_id = null;
+        } catch (_) {}
+      }
+
       const map = L.map(mapRef.current, {
-        center: mapCenter,
+        center: centerPoint,
         zoom: 13,
         zoomControl: false,
       });
@@ -819,10 +1010,16 @@ export default function NearbyOffers() {
       markersGroupRef.current = L.layerGroup().addTo(map);
       mapInstanceRef.current = map;
     } else {
-      mapInstanceRef.current.setView(userGpsCoords || mapCenter, 13);
+      try {
+        mapInstanceRef.current.setView(
+          centerPoint,
+          mapInstanceRef.current.getZoom() || 13,
+        );
+      } catch (_) {}
     }
 
     const map = mapInstanceRef.current;
+    if (!map) return;
 
     // Switch Tile Layer if changed
     if (tileLayerRef.current) {
@@ -833,52 +1030,68 @@ export default function NearbyOffers() {
     // Clear existing markers
     if (markersGroupRef.current) {
       markersGroupRef.current.clearLayers();
+    } else {
+      markersGroupRef.current = L.layerGroup().addTo(map);
     }
     markersMapRef.current = {};
 
-    const centerPoint = userGpsCoords || mapCenter;
-
     // 1. Draw Radius Circle
     const distNum = parseFloat(distance);
-    if (showRadiusCircle && distNum < 900) {
+    if (showRadiusCircle && !Number.isNaN(distNum) && distNum < 900) {
       const radiusMeters = distNum * 1000;
-      L.circle(centerPoint, {
-        radius: radiusMeters,
-        color: "#2563eb",
-        weight: 1.5,
-        opacity: 0.65,
-        fillColor: "#3b82f6",
-        fillOpacity: 0.08,
-        dashArray: "6, 6",
-      }).addTo(markersGroupRef.current);
+      try {
+        L.circle(centerPoint, {
+          radius: radiusMeters,
+          color: "#2563eb",
+          weight: 1.5,
+          opacity: 0.65,
+          fillColor: "#3b82f6",
+          fillOpacity: 0.08,
+          dashArray: "6, 6",
+        }).addTo(markersGroupRef.current);
+      } catch (e) {
+        console.warn("Leaflet circle render skipped:", e);
+      }
     }
 
     // 2. Draw User Center Marker (Pulsing radar)
-    const userIconHtml = `
-      <div class="user-pulse-marker">
-        <div class="pulse-ring"></div>
-        <div class="center-dot">
-          <div class="inner-dot"></div>
+    try {
+      const userIconHtml = `
+        <div class="user-pulse-marker">
+          <div class="pulse-ring"></div>
+          <div class="center-dot">
+            <div class="inner-dot"></div>
+          </div>
         </div>
-      </div>
-    `;
-    const userDivIcon = L.divIcon({
-      className: "custom-user-marker",
-      html: userIconHtml,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18],
-    });
+      `;
+      const userDivIcon = L.divIcon({
+        className: "custom-user-marker",
+        html: userIconHtml,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+      });
 
-    L.marker(centerPoint, { icon: userDivIcon })
-      .bindPopup(
-        `<div style="font-family:var(--font-inter),sans-serif;font-size:12px;font-weight:700;color:#1e293b;padding:4px 6px;">
-          📍 ${userGpsCoords ? "Your Live GPS Location" : `Center: ${savedCity || "Selected City"}`}
-        </div>`,
-      )
-      .addTo(markersGroupRef.current);
+      L.marker(centerPoint, { icon: userDivIcon })
+        .bindPopup(
+          `<div style="font-family:var(--font-inter),sans-serif;font-size:12px;font-weight:700;color:#1e293b;padding:4px 6px;">
+            📍 ${userGpsCoords ? "Your Live GPS Location" : `Center: ${savedCity || "Selected City"}`}
+          </div>`,
+        )
+        .addTo(markersGroupRef.current);
+    } catch (e) {
+      console.warn("Leaflet user marker render skipped:", e);
+    }
 
     // 3. Draw Store / Deal Markers with Rich Interactive Cards
     filteredDeals.forEach((deal) => {
+      if (
+        !deal.coords ||
+        !Array.isArray(deal.coords) ||
+        Number.isNaN(deal.coords[0]) ||
+        Number.isNaN(deal.coords[1])
+      ) {
+        return;
+      }
       const discountText =
         deal.discountType === "percentage"
           ? `${deal.discountValue}% OFF`
@@ -906,6 +1119,7 @@ export default function NearbyOffers() {
 
       const pinSvg = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:2px;flex-shrink:0;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`;
       const checkCircleSvg = `<svg viewBox="0 0 20 20" width="13" height="13" fill="#16a34a" style="display:inline-block;vertical-align:-1px;flex-shrink:0;"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
+      const googleIconSvg = `<svg viewBox="0 0 24 24" width="11" height="11" style="display:inline-block;vertical-align:-1px;margin-right:3px;flex-shrink:0;"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>`;
 
       const popupContent = `
         <div class="map-popup-card">
@@ -937,8 +1151,8 @@ export default function NearbyOffers() {
             <a href="/deals/${deal._id}" class="popup-btn-claim">
               Claim Deal →
             </a>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${deal.coords[0]},${deal.coords[1]}" target="_blank" rel="noopener noreferrer" class="popup-btn-directions" title="Directions">
-              ↗ Directions
+            <a href="https://www.google.com/maps/dir/?api=1&origin=${centerPoint[0]},${centerPoint[1]}&destination=${deal.coords[0]},${deal.coords[1]}&travelmode=driving" target="_blank" rel="noopener noreferrer" class="popup-btn-directions" title="Open Turn-by-Turn Navigation in Google Maps">
+              ${googleIconSvg}<span>Directions</span>
             </a>
           </div>
         </div>
@@ -955,7 +1169,7 @@ export default function NearbyOffers() {
       });
 
       marker.on("click", () => {
-        handleSelectDeal(deal, false);
+        handleSelectDeal(deal, true);
         const el = cardRefs.current[deal._id];
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1287,15 +1501,16 @@ export default function NearbyOffers() {
           display: flex;
           gap: 5px;
           align-items: center;
+          margin-top: 4px;
         }
         .popup-btn-claim {
           flex: 1;
           background: #2563eb;
           color: #ffffff !important;
           text-align: center;
-          padding: 5.5px 8px;
+          padding: 4.5px 7px;
           border-radius: 6px;
-          font-size: 10.5px;
+          font-size: 10px;
           font-weight: 700;
           text-decoration: none;
           transition: background 0.15s;
@@ -1305,18 +1520,23 @@ export default function NearbyOffers() {
           background: #1d4ed8;
         }
         .popup-btn-directions {
-          background: #f1f5f9;
-          color: #475569 !important;
-          padding: 5.5px 8px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #334155 !important;
+          padding: 4.5px 7px;
           border-radius: 6px;
-          font-size: 10.5px;
+          font-size: 10px;
           font-weight: 700;
           text-decoration: none;
-          transition: background 0.15s;
+          transition: all 0.15s;
           white-space: nowrap;
         }
         .popup-btn-directions:hover {
-          background: #e2e8f0;
+          background: #f1f5f9;
+          border-color: #cbd5e1;
           color: #0f172a !important;
         }
 
@@ -1340,6 +1560,17 @@ export default function NearbyOffers() {
         .leaflet-control-zoom a:hover {
           background-color: #f1f5f9 !important;
           color: #2563eb !important;
+        }
+
+        /* Cross-Browser Scrollbar Hiding */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none !important;
+          width: 0px !important;
+          height: 0px !important;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
         }
       `}</style>
 
@@ -1392,45 +1623,28 @@ export default function NearbyOffers() {
 
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search stores or deals…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-[11.5px] font-medium text-gray-800 placeholder-gray-400 outline-none transition-all"
+                className="w-full bg-slate-50/70 border border-slate-300 focus:border-blue-600 focus:bg-white focus:ring-1 focus:ring-blue-100 rounded-md pl-8 pr-7 py-1.5 text-[12px] font-medium text-gray-800 placeholder-gray-400 outline-none transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
               )}
             </div>
 
-            {/* Radius Distance Presets (Full Width) */}
-            <div className="flex items-center justify-between bg-slate-100 p-0.5 rounded-md border border-slate-200 overflow-x-auto w-full">
-              {DISTANCE_PRESETS.slice(0, 5).map((d) => (
-                <button
-                  key={d.value}
-                  onClick={() => setDistance(d.value)}
-                  className={`flex-1 text-center py-0.5 text-[9.5px] font-semibold rounded transition-all cursor-pointer ${
-                    distance === d.value
-                      ? "bg-white text-blue-600 shadow-xs font-bold"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Category Filter Pills with Auto-Centering Shift */}
+            {/* Category Filter Pills with Auto-Centering Shift (Hidden Scrollbar) */}
             <div
               ref={categoryScrollRef}
-              className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none pt-0.5 scroll-smooth w-full px-0.5"
+              className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth w-full px-0.5 py-0.5"
             >
               {CATEGORIES.map((cat) => {
                 const active = categoryFilter === cat.key;
@@ -1473,17 +1687,16 @@ export default function NearbyOffers() {
                   No deals match your search
                 </p>
                 <p className="text-[10.5px] text-gray-500">
-                  Expand your radius or clear active filters.
+                  Try searching for another brand or clear your search.
                 </p>
                 <button
                   onClick={() => {
                     setCategoryFilter("all");
-                    setDistance("50");
                     setSearchQuery("");
                   }}
                   className="mt-1.5 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
                 >
-                  Reset filters
+                  Reset search
                 </button>
               </div>
             ) : (
@@ -1572,9 +1785,17 @@ export default function NearbyOffers() {
 
                         {/* Bottom Actions */}
                         <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100">
-                          <span className="text-[8.5px] font-medium text-gray-400 uppercase tracking-wider">
-                            {deal.category || "Verified Deal"}
-                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectDeal(deal, true);
+                            }}
+                            className="text-[10px] font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50/70 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                            title="Show Route and Directions"
+                          >
+                            <GoogleIcon className="w-2.5 h-2.5" />
+                            <span>Directions</span>
+                          </button>
                           <Link
                             href={`/deals/${deal._id}`}
                             onClick={(e) => e.stopPropagation()}
@@ -1667,7 +1888,7 @@ export default function NearbyOffers() {
 
               {/* Ultra-Compact Vertical Icon-Only Action Buttons Dock */}
               <div className="flex flex-col items-center gap-0.5 bg-white/95 backdrop-blur-md p-0.5 rounded-lg shadow-md border border-slate-200">
-                {/* Layers Button */}
+                {/* 1st: Layers Button */}
                 <button
                   onClick={() => setShowLayerMenu((prev) => !prev)}
                   className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
@@ -1683,7 +1904,7 @@ export default function NearbyOffers() {
 
                 <div className="h-[1px] w-3 bg-slate-200 my-0.2" />
 
-                {/* Fit Bounds Button */}
+                {/* 2nd: Fit Bounds Button */}
                 <button
                   onClick={handleFitBounds}
                   className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-all cursor-pointer"
@@ -1693,7 +1914,7 @@ export default function NearbyOffers() {
                   <Maximize2 className="w-3.5 h-3.5" />
                 </button>
 
-                {/* GPS Locate Me Button */}
+                {/* 3rd: GPS Locate Me Button */}
                 <button
                   onClick={handleLocateMe}
                   disabled={gpsLoading}
@@ -1710,7 +1931,7 @@ export default function NearbyOffers() {
                   />
                 </button>
 
-                {/* Toggle Distance Radius Circle */}
+                {/* 4th: Toggle Distance Radius Circle */}
                 <button
                   onClick={() => setShowRadiusCircle((prev) => !prev)}
                   className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
@@ -1726,6 +1947,41 @@ export default function NearbyOffers() {
                   aria-label="Radius Circle"
                 >
                   <Compass className="w-3.5 h-3.5" />
+                </button>
+
+                {/* 5th: Re-Center / Recent Route button in Vibrant Orange */}
+                <button
+                  onClick={() => {
+                    if (routeLayerRef.current && mapInstanceRef.current) {
+                      const bounds = routeLayerRef.current.getBounds();
+                      if (bounds.isValid()) {
+                        mapInstanceRef.current.fitBounds(bounds, {
+                          padding: [45, 45],
+                          maxZoom: 15,
+                          animate: true,
+                          duration: 0.8,
+                        });
+                        return;
+                      }
+                    }
+                    if (selectedDealId) {
+                      const deal = filteredDeals.find(
+                        (d) => d._id === selectedDealId,
+                      );
+                      if (deal && mapInstanceRef.current) {
+                        mapInstanceRef.current.flyTo(deal.coords, 14, {
+                          duration: 0.8,
+                        });
+                        return;
+                      }
+                    }
+                    handleFitBounds();
+                  }}
+                  className="w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer text-orange-600 hover:bg-orange-100 bg-orange-50/80 border border-orange-200"
+                  title="Re-Center on Recent Route / Store"
+                  aria-label="Re-Center Route"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-orange-600" />
                 </button>
               </div>
             </div>
@@ -1749,17 +2005,16 @@ export default function NearbyOffers() {
                 No deals match your search
               </p>
               <p className="text-[10.5px] text-gray-500">
-                Expand your radius or clear active filters.
+                Try searching for another brand or clear your search.
               </p>
               <button
                 onClick={() => {
                   setCategoryFilter("all");
-                  setDistance("50");
                   setSearchQuery("");
                 }}
                 className="mt-1.5 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
               >
-                Reset filters
+                Reset search
               </button>
             </div>
           ) : (
@@ -1845,9 +2100,17 @@ export default function NearbyOffers() {
 
                       {/* Bottom Actions */}
                       <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100">
-                        <span className="text-[8.5px] font-medium text-gray-400 uppercase tracking-wider">
-                          {deal.category || "Verified Deal"}
-                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectDeal(deal, true);
+                          }}
+                          className="text-[10px] font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50/70 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title="Show Route and Directions"
+                        >
+                          <GoogleIcon className="w-2.5 h-2.5" />
+                          <span>Directions</span>
+                        </button>
                         <Link
                           href={`/deals/${deal._id}`}
                           onClick={(e) => e.stopPropagation()}

@@ -495,9 +495,17 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                 <div className="pt-2">
                   <a
                     href={coupon.merchantId.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={autoClaim}
+                    onClick={() => {
+                      const mId =
+                        typeof coupon.merchantId === "object"
+                          ? coupon.merchantId?._id
+                          : coupon.merchantId;
+                      track("merchant_website_click", {
+                        couponId: coupon._id,
+                        merchantId: mId,
+                        source: "deal_page",
+                      });
+                    }}
                     className="inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-blue hover:underline transition-colors"
                   >
                     <span>Go To {merchantName} Website</span>
@@ -748,9 +756,17 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               >
                 <a
                   href={coupon.merchantId.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={autoClaim}
+                  onClick={() => {
+                    const mId =
+                      typeof coupon.merchantId === "object"
+                        ? coupon.merchantId?._id
+                        : coupon.merchantId;
+                    track("merchant_website_click", {
+                      couponId: coupon._id,
+                      merchantId: mId,
+                      source: "modal",
+                    });
+                  }}
                 >
                   <span>Visit {merchantName} Website</span>
                   <ExternalLink className="w-4 h-4" />

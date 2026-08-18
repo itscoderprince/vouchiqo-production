@@ -166,7 +166,51 @@ export async function getCouponById(couponId) {
     return demoMap[couponId];
   }
 
-  // 3. Dynamic Mock Fallback for mock coupon string IDs or generated hex IDs (e.g. 6a7c312d4be3aa2adfb964ab for brand 'maa')
+  // 3. Support merchant-level store deals (m_deal_{merchantId})
+  if (typeof couponId === "string" && couponId.startsWith("m_deal_")) {
+    const rawMId = couponId.replace("m_deal_", "");
+    let mDoc = null;
+    if (mongoose.isValidObjectId(rawMId)) {
+      mDoc = await Merchant.findById(rawMId).lean();
+    }
+    if (!mDoc) {
+      mDoc = await Merchant.findOne({ slug: rawMId }).lean();
+    }
+    if (mDoc) {
+      const expDate = new Date();
+      expDate.setDate(expDate.getDate() + 30);
+      return {
+        _id: couponId,
+        merchantId: mDoc,
+        category: mDoc.category || "food",
+        title: `Exclusive In-Store Offers at ${mDoc.businessName}`,
+        description:
+          mDoc.description ||
+          `Claim verified in-store and online savings at ${mDoc.businessName}.`,
+        code: `${(mDoc.businessName || "DEAL")
+          .replace(/[^a-zA-Z]/g, "")
+          .substring(0, 4)
+          .toUpperCase()}VIP`,
+        discountValue: 20,
+        discountType: "percentage",
+        expiresAt: expDate,
+        status: "active",
+        isVerified: true,
+        minOrderValue: 0,
+        maxCap: 1000,
+        validHours: "10:00 AM – 09:00 PM",
+        redemptionMethod: "Show Vouchiqo Smart Code at counter",
+        termsAndConditions:
+          "Applicable on verified purchases at participating store counters.",
+        location: mDoc.location || {
+          address: mDoc.address,
+          city: "Ranchi",
+        },
+      };
+    }
+  }
+
+  // 4. Dynamic Mock Fallback for mock coupon string IDs or generated hex IDs (e.g. 6a7c312d4be3aa2adfb964ab for brand 'maa')
   let slug = "maa";
   let isExpired = false;
   let couponIndex = 1;
@@ -294,9 +338,13 @@ export async function listCoupons(searchParams) {
 
   // Public active deals must be verified and unexpired (unless queried by merchant)
   if (filter.status === COUPON_STATUS.ACTIVE && !isMerchantSelfQuery) {
-    filter.isVerified = true;
+    filter.isVerified = { $ne: false };
     if (!searchParams.get("allDates")) {
-      filter.expiresAt = { $gt: new Date() };
+      filter.$or = [
+        { expiresAt: { $gt: new Date() } },
+        { expiresAt: null },
+        { expiryDate: { $gt: new Date() } },
+      ];
     }
   }
 
@@ -330,13 +378,64 @@ export async function listCoupons(searchParams) {
 
   const [coupons, total] = await Promise.all([
     Coupon.find(filter)
-      .populate("merchantId", "businessName slug logo location")
+      .populate("merchantId", "businessName slug logo location category address")
       .sort(sort)
       .skip(skip)
       .limit(limit)
       .lean(),
     Coupon.countDocuments(filter),
   ]);
+
+  if (searchParams.get("includeAllBrands") === "true") {
+    const allMerchants = await Merchant.find({
+      $or: [
+        { status: "approved" },
+        { status: "active" },
+        { applicationStatus: "approved" },
+        { isVerified: true },
+        { status: { $ne: "rejected" } },
+      ],
+    }).lean();
+
+    const existingMerchantIds = new Set(
+      coupons
+        .map((c) =>
+          c.merchantId?._id
+            ? c.merchantId._id.toString()
+            : c.merchantId
+              ? c.merchantId.toString()
+              : null,
+        )
+        .filter(Boolean),
+    );
+
+    const extraMerchantDeals = allMerchants
+      .filter((m) => !existingMerchantIds.has(m._id.toString()))
+      .map((m) => ({
+        _id: `m_deal_${m._id}`,
+        title: `Exclusive In-Store Offers at ${m.businessName}`,
+        description:
+          m.description ||
+          `Claim verified in-store and online savings at ${m.businessName}.`,
+        code: `${(m.businessName || "DEAL")
+          .replace(/[^a-zA-Z]/g, "")
+          .substring(0, 4)
+          .toUpperCase()}VIP`,
+        discountType: "percentage",
+        discountValue: 20,
+        category: m.category || "food",
+        status: "active",
+        isVerified: true,
+        merchantId: m,
+        createdAt: m.createdAt || new Date(),
+        location: m.location || {
+          address: m.address,
+          city: "Ranchi",
+        },
+      }));
+
+    coupons.push(...extraMerchantDeals);
+  }
 
   return { coupons, meta: buildMeta(total, page, limit) };
 }
