@@ -16,6 +16,7 @@ import {
   GraduationCap,
   Home as HomeIcon,
   Layers,
+  LocateFixed,
   Map as MapIcon,
   MapPin,
   Maximize2,
@@ -1054,10 +1055,11 @@ export default function NearbyOffers() {
       }
     }
 
-    // 2. Draw User Center Marker (Pulsing radar)
+    // 2. Draw User Center Marker (Pulsing & Blinking Radar Beacon)
     try {
       const userIconHtml = `
         <div class="user-pulse-marker">
+          <div class="pulse-ring-outer"></div>
           <div class="pulse-ring"></div>
           <div class="center-dot">
             <div class="inner-dot"></div>
@@ -1067,11 +1069,11 @@ export default function NearbyOffers() {
       const userDivIcon = L.divIcon({
         className: "custom-user-marker",
         html: userIconHtml,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
       });
 
-      L.marker(centerPoint, { icon: userDivIcon })
+      L.marker(centerPoint, { icon: userDivIcon, zIndexOffset: 2000 })
         .bindPopup(
           `<div style="font-family:var(--font-inter),sans-serif;font-size:12px;font-weight:700;color:#1e293b;padding:4px 6px;">
             📍 ${userGpsCoords ? "Your Live GPS Location" : `Center: ${savedCity || "Selected City"}`}
@@ -1300,44 +1302,59 @@ export default function NearbyOffers() {
           font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         }
 
-        /* Pulsing GPS user marker */
+        /* Pulsing & Blinking GPS user marker */
         .user-pulse-marker {
           position: relative;
-          width: 36px;
-          height: 36px;
+          width: 44px;
+          height: 44px;
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+        .pulse-ring-outer {
+          position: absolute;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(37, 99, 235, 0.3);
+          animation: mapPulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
         }
         .pulse-ring {
           position: absolute;
-          width: 36px;
-          height: 36px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
-          background: rgba(37, 99, 235, 0.35);
-          animation: mapPulse 2s infinite ease-out;
+          background: rgba(59, 130, 246, 0.45);
+          animation: mapPulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1) 0.6s;
         }
         .center-dot {
-          width: 18px;
-          height: 18px;
+          width: 20px;
+          height: 20px;
           background: #2563eb;
-          border: 2.5px solid #ffffff;
+          border: 3px solid #ffffff;
           border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+          box-shadow: 0 0 16px rgba(37, 99, 235, 0.8), 0 3px 10px rgba(0, 0, 0, 0.35);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 2;
+          z-index: 3;
+          animation: dotBlink 1.6s infinite ease-in-out;
         }
         .inner-dot {
-          width: 6px;
-          height: 6px;
+          width: 7px;
+          height: 7px;
           background: #ffffff;
           border-radius: 50%;
+          box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
         }
         @keyframes mapPulse {
-          0% { transform: scale(0.6); opacity: 0.9; }
-          100% { transform: scale(2.2); opacity: 0; }
+          0% { transform: scale(0.35); opacity: 0.95; }
+          50% { opacity: 0.5; }
+          100% { transform: scale(2.3); opacity: 0; }
+        }
+        @keyframes dotBlink {
+          0%, 100% { transform: scale(1); filter: brightness(1); }
+          50% { transform: scale(1.18); filter: brightness(1.25); box-shadow: 0 0 20px rgba(37, 99, 235, 0.95), 0 4px 12px rgba(0, 0, 0, 0.4); }
         }
 
         /* Deal Marker */
@@ -1829,161 +1846,158 @@ export default function NearbyOffers() {
           {leafletLoaded && (
             <div
               ref={layerMenuRef}
-              className="absolute top-3 right-3 z-[400] flex items-start gap-2 pointer-events-auto"
+              className="absolute top-3 right-3 z-[400] flex flex-col items-end gap-2 pointer-events-auto"
             >
-              {/* Google Maps-Style Layer Selector Card Popup */}
-              {showLayerMenu && (
-                <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-200 p-1.5 w-36 animate-in fade-in zoom-in-95 duration-150 space-y-0.5 font-sans">
-                  <div className="flex items-center border-b border-slate-100 pb-1 px-0.5">
-                    <span className="text-[10.5px] font-semibold text-gray-900 tracking-tight flex items-center gap-1">
-                      <Layers className="w-3 h-3 text-blue-600" />
-                      <span>Map View</span>
-                    </span>
-                  </div>
+              <div className="flex items-start gap-2">
+                {/* Google Maps-Style Layer Selector Card Popup */}
+                {showLayerMenu && (
+                  <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-200 p-1.5 w-36 animate-in fade-in zoom-in-95 duration-150 space-y-0.5 font-sans">
+                    <div className="flex items-center border-b border-slate-100 pb-1 px-0.5">
+                      <span className="text-[10.5px] font-semibold text-gray-900 tracking-tight flex items-center gap-1">
+                        <Layers className="w-3 h-3 text-blue-600" />
+                        <span>Map View</span>
+                      </span>
+                    </div>
 
-                  <div className="grid grid-cols-1 gap-0.5 pt-0.5">
-                    {Object.values(MAP_TILES).map((tile) => {
-                      const isSelected = tileLayerType === tile.id;
-                      const TileIcon = tile.icon;
-                      return (
-                        <button
-                          key={tile.id}
-                          onClick={() => {
-                            setTileLayerType(tile.id);
-                            setShowLayerMenu(false);
-                            toast.success(`Switched to ${tile.name} view`);
-                          }}
-                          className={`w-full flex items-center justify-between px-1.5 py-1 rounded-md transition-colors cursor-pointer border text-left font-sans ${
-                            isSelected
-                              ? "bg-blue-50/90 border-blue-500 shadow-xs text-blue-600 font-semibold"
-                              : "bg-slate-50/60 hover:bg-slate-100/90 hover:text-blue-600 border-slate-200/60 text-gray-700 font-medium"
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <div
-                              className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${
-                                isSelected
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-white text-gray-600 shadow-xs border border-slate-200"
-                              }`}
-                            >
-                              <TileIcon className="w-3 h-3" />
-                            </div>
-                            <span className="text-[10.5px] tracking-tight">
-                              {tile.name}
+                    <div className="grid grid-cols-1 gap-0.5 pt-0.5">
+                      {Object.values(MAP_TILES).map((tile) => {
+                        const IconComponent = tile.icon;
+                        const isCurrent = tileLayerType === tile.id;
+                        return (
+                          <button
+                            key={tile.id}
+                            onClick={() => {
+                              setTileLayerType(tile.id);
+                              setShowLayerMenu(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md text-[11px] font-medium transition-all text-left cursor-pointer ${
+                              isCurrent
+                                ? "bg-blue-50 text-blue-700 font-semibold border border-blue-200"
+                                : "text-gray-700 hover:bg-slate-50 hover:text-gray-900 border border-transparent"
+                            }`}
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <IconComponent
+                                className={`w-3.5 h-3.5 ${isCurrent ? "text-blue-600" : "text-slate-500"}`}
+                              />
+                              <span>{tile.name}</span>
                             </span>
-                          </div>
-
-                          {isSelected && (
-                            <div className="w-3 h-3 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                              <Check className="w-1.5 h-1.5 stroke-[3]" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
+                            {isCurrent && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+                )}
+
+                {/* Ultra-Compact Vertical 4-Icon Action Buttons Dock */}
+                <div className="flex flex-col items-center gap-0.5 bg-white/95 backdrop-blur-md p-0.5 rounded-lg shadow-md border border-slate-200">
+                  {/* 1st: Layers Button */}
+                  <button
+                    onClick={() => setShowLayerMenu((prev) => !prev)}
+                    className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                      showLayerMenu
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                    }`}
+                    title="Map Views & Layers"
+                    aria-label="Map Views"
+                  >
+                    <Layers className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className="h-[1px] w-3 bg-slate-200 my-0.2" />
+
+                  {/* 2nd: Fit Bounds Button */}
+                  <button
+                    onClick={handleFitBounds}
+                    className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-all cursor-pointer"
+                    title="Fit All Deals on Screen"
+                    aria-label="Fit All Deals"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* 3rd: GPS Locate Me Button */}
+                  <button
+                    onClick={handleLocateMe}
+                    disabled={gpsLoading}
+                    className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                      userGpsCoords
+                        ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                        : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                    }`}
+                    title="Locate with Live GPS"
+                    aria-label="Live GPS"
+                  >
+                    <Crosshair
+                      className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin text-blue-600" : ""}`}
+                    />
+                  </button>
+
+                  {/* 4th: Toggle Distance Radius Circle */}
+                  <button
+                    onClick={() => setShowRadiusCircle((prev) => !prev)}
+                    className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                      showRadiusCircle
+                        ? "text-blue-600 bg-blue-50"
+                        : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                    }`}
+                    title={
+                      showRadiusCircle
+                        ? "Hide Search Radius Circle"
+                        : "Show Search Radius Circle"
+                    }
+                    aria-label="Radius Circle"
+                  >
+                    <Compass className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-              )}
-
-              {/* Ultra-Compact Vertical Icon-Only Action Buttons Dock */}
-              <div className="flex flex-col items-center gap-0.5 bg-white/95 backdrop-blur-md p-0.5 rounded-lg shadow-md border border-slate-200">
-                {/* 1st: Layers Button */}
-                <button
-                  onClick={() => setShowLayerMenu((prev) => !prev)}
-                  className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
-                    showLayerMenu
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
-                  }`}
-                  title="Map Views & Layers"
-                  aria-label="Map Views"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                </button>
-
-                <div className="h-[1px] w-3 bg-slate-200 my-0.2" />
-
-                {/* 2nd: Fit Bounds Button */}
-                <button
-                  onClick={handleFitBounds}
-                  className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-all cursor-pointer"
-                  title="Fit All Deals on Screen"
-                  aria-label="Fit All Deals"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                </button>
-
-                {/* 3rd: GPS Locate Me Button */}
-                <button
-                  onClick={handleLocateMe}
-                  disabled={gpsLoading}
-                  className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
-                    userGpsCoords
-                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
-                  }`}
-                  title="Locate with Live GPS"
-                  aria-label="Live GPS"
-                >
-                  <Crosshair
-                    className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin text-blue-600" : ""}`}
-                  />
-                </button>
-
-                {/* 4th: Toggle Distance Radius Circle */}
-                <button
-                  onClick={() => setShowRadiusCircle((prev) => !prev)}
-                  className={`w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer ${
-                    showRadiusCircle
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                  }`}
-                  title={
-                    showRadiusCircle
-                      ? "Hide Search Radius Circle"
-                      : "Show Search Radius Circle"
-                  }
-                  aria-label="Radius Circle"
-                >
-                  <Compass className="w-3.5 h-3.5" />
-                </button>
-
-                {/* 5th: Re-Center / Recent Route button in Vibrant Orange */}
-                <button
-                  onClick={() => {
-                    if (routeLayerRef.current && mapInstanceRef.current) {
-                      const bounds = routeLayerRef.current.getBounds();
-                      if (bounds.isValid()) {
-                        mapInstanceRef.current.fitBounds(bounds, {
-                          padding: [45, 45],
-                          maxZoom: 15,
-                          animate: true,
-                          duration: 0.8,
-                        });
-                        return;
-                      }
-                    }
-                    if (selectedDealId) {
-                      const deal = filteredDeals.find(
-                        (d) => d._id === selectedDealId,
-                      );
-                      if (deal && mapInstanceRef.current) {
-                        mapInstanceRef.current.flyTo(deal.coords, 14, {
-                          duration: 0.8,
-                        });
-                        return;
-                      }
-                    }
-                    handleFitBounds();
-                  }}
-                  className="w-6.5 h-6.5 rounded-md flex items-center justify-center transition-all cursor-pointer text-orange-600 hover:bg-orange-100 bg-orange-50/80 border border-orange-200"
-                  title="Re-Center on Recent Route / Store"
-                  aria-label="Re-Center Route"
-                >
-                  <Navigation className="w-3.5 h-3.5 text-orange-600" />
-                </button>
               </div>
+            </div>
+          )}
+
+          {/* Separated Recenter Button: Positioned in Bottom-Left of the Map Canvas */}
+          {leafletLoaded && selectedDealId && (
+            <div className="absolute bottom-3 left-3 z-[400] pointer-events-auto">
+              <button
+                onClick={() => {
+                  if (routeLayerRef.current && mapInstanceRef.current) {
+                    const bounds = routeLayerRef.current.getBounds();
+                    if (bounds.isValid()) {
+                      mapInstanceRef.current.fitBounds(bounds, {
+                        padding: [45, 45],
+                        maxZoom: 15,
+                        animate: true,
+                        duration: 0.8,
+                      });
+                      return;
+                    }
+                  }
+                  if (selectedDealId) {
+                    const deal = filteredDeals.find(
+                      (d) => d._id === selectedDealId,
+                    );
+                    if (deal && mapInstanceRef.current) {
+                      mapInstanceRef.current.flyTo(deal.coords, 14, {
+                        duration: 0.8,
+                      });
+                      return;
+                    }
+                  }
+                  handleFitBounds();
+                }}
+                className="flex flex-col items-center justify-center gap-0.5 bg-white/95 backdrop-blur-md hover:bg-orange-50/90 text-orange-600 px-2.5 py-1.5 rounded-lg shadow-md border border-orange-200 hover:border-orange-300 transition-all cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-200 group"
+                title="Re-Center Map on Selected Store / Route"
+                aria-label="Recenter"
+              >
+                <LocateFixed className="w-4.5 h-4.5 text-orange-600 stroke-[2.3] group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] font-extrabold text-orange-600 tracking-tight leading-none">
+                  Recenter
+                </span>
+              </button>
             </div>
           )}
         </div>
