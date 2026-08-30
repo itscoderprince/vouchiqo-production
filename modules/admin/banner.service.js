@@ -136,3 +136,22 @@ export async function deleteBanner(id) {
   await invalidateBannersCache();
   return result;
 }
+
+/**
+ * Bulk reorder banners by an array of banner IDs (from 1st/top to last).
+ * Updates priority values so that 1st banner has the highest priority.
+ * Invalidates redis cache.
+ */
+export async function reorderBanners(orderedIds) {
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) return { count: 0 };
+  const total = orderedIds.length;
+  const bulkOps = orderedIds.map((id, index) => ({
+    updateOne: {
+      filter: { _id: id },
+      update: { $set: { priority: (total - index) * 10 } },
+    },
+  }));
+  await PromoBanner.bulkWrite(bulkOps);
+  await invalidateBannersCache();
+  return { count: orderedIds.length };
+}

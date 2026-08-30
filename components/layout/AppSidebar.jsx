@@ -483,8 +483,8 @@ export function AppSidebar({ ...props }) {
                     icon: Mail,
                   },
                   {
-                    title: "Push Builder",
-                    url: "/admin/campaigns/push-builder",
+                    title: "Push Notifications",
+                    url: "/admin/push-notifications",
                     icon: Bell,
                   },
                 ],

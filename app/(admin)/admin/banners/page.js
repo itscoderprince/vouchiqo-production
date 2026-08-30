@@ -1,19 +1,22 @@
 "use client";
 
 import {
-  ImageIcon,
-  Palette,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpToLine,
+  Check,
+  GripVertical,
   Pencil,
   Plus,
   RefreshCw,
-  Sliders,
+  Search,
   Trash2,
   Upload,
   X,
+  Sliders,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import DataTable from "@/components/shared/data/DataTable";
 import StatusBadge from "@/components/shared/data/StatusBadge";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Badge } from "@/components/ui/badge";
@@ -323,14 +326,142 @@ export default function BannerManagement() {
   };
 
   const currentSlotConfig = SLOTS.find((s) => s.id === activeTab) || SLOTS[0];
-  const filteredBanners = banners.filter((b) => {
-    if (!currentSlotConfig) return true;
-    const bSlot = b.slot || "hero";
-    return (
-      currentSlotConfig.aliases.includes(bSlot) ||
-      (activeTab === "hero" && (bSlot === "left-hero" || bSlot === "hero"))
-    );
-  });
+  
+  // Filter by slot and sort by priority descending
+  const filteredBanners = useMemo(() => {
+    return banners
+      .filter((b) => {
+        if (!currentSlotConfig) return true;
+        const bSlot = b.slot || "hero";
+        return (
+          currentSlotConfig.aliases.includes(bSlot) ||
+          (activeTab === "hero" && (bSlot === "left-hero" || bSlot === "hero"))
+        );
+      })
+      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+  }, [banners, currentSlotConfig, activeTab]);
+
+  const [draggedBannerId, setDraggedBannerId] = useState(null);
+  const [dragOverBannerId, setDragOverBannerId] = useState(null);
+  const [reordering, setReordering] = useState(false);
+  const [searchTableQuery, setSearchTableQuery] = useState("");
+  const [editingPriorityId, setEditingPriorityId] = useState(null);
+  const [priorityInputVal, setPriorityInputVal] = useState("");
+
+  const syncReorderedList = async (reorderedSubset) => {
+    try {
+      setReordering(true);
+      const total = reorderedSubset.length;
+      const updatedSubset = reorderedSubset.map((b, idx) => ({
+        ...b,
+        priority: (total - idx) * 10,
+      }));
+
+      // Optimistic update
+      setBanners((prev) => {
+        const otherBanners = prev.filter(
+          (b) => !reorderedSubset.some((r) => r._id === b._id),
+        );
+        return [...updatedSubset, ...otherBanners];
+      });
+
+      const bannerIds = reorderedSubset.map((b) => b._id);
+      const res = await fetch("/api/admin/banners/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bannerIds }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showSuccess("Banner order updated & synced to homepage!");
+      } else {
+        showError(json.error || "Failed to update banner order.");
+        fetchBanners();
+      }
+    } catch (err) {
+      showError("Error saving banner order.");
+      fetchBanners();
+    } finally {
+      setReordering(false);
+    }
+  };
+
+  const handleMoveToTop = async (bannerId) => {
+    const list = [...filteredBanners];
+    const index = list.findIndex((b) => b._id === bannerId);
+    if (index <= 0) return;
+    const [moved] = list.splice(index, 1);
+    list.unshift(moved);
+    await syncReorderedList(list);
+  };
+
+  const handleMoveStep = async (bannerId, delta) => {
+    const list = [...filteredBanners];
+    const index = list.findIndex((b) => b._id === bannerId);
+    if (index === -1) return;
+    const targetIndex = index + delta;
+    if (targetIndex < 0 || targetIndex >= list.length) return;
+    const [moved] = list.splice(index, 1);
+    list.splice(targetIndex, 0, moved);
+    await syncReorderedList(list);
+  };
+
+  const handleDragStart = (e, id) => {
+    setDraggedBannerId(id);
+    e.dataTransfer.setData("text/plain", id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, id) => {
+    e.preventDefault();
+    if (dragOverBannerId !== id) {
+      setDragOverBannerId(id);
+    }
+  };
+
+  const handleDrop = async (e, targetId) => {
+    e.preventDefault();
+    const sourceId = draggedBannerId || e.dataTransfer.getData("text/plain");
+    setDraggedBannerId(null);
+    setDragOverBannerId(null);
+    if (!sourceId || sourceId === targetId) return;
+
+    const list = [...filteredBanners];
+    const fromIndex = list.findIndex((b) => b._id === sourceId);
+    const toIndex = list.findIndex((b) => b._id === targetId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    await syncReorderedList(list);
+  };
+
+  const handleSavePriority = async (bannerId) => {
+    const num = Number(priorityInputVal);
+    if (Number.isNaN(num)) {
+      setEditingPriorityId(null);
+      return;
+    }
+    setEditingPriorityId(null);
+    try {
+      const res = await fetch("/api/admin/banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: bannerId, priority: num }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showSuccess("Priority updated!");
+        setBanners((prev) =>
+          prev.map((b) => (b._id === bannerId ? { ...b, priority: num } : b)),
+        );
+      } else {
+        showError(json.error || "Failed to update priority.");
+      }
+    } catch (err) {
+      showError("Failed to update priority.");
+    }
+  };
 
   const getSlotCount = (slotId) => {
     const cfg = SLOTS.find((s) => s.id === slotId);
@@ -344,188 +475,19 @@ export default function BannerManagement() {
     }).length;
   };
 
-  const rawColumns = [
-    {
-      key: "title",
-      header: "Banner Preview & Details",
-      sortable: true,
-      cell: (r) => (
-        <div className="flex items-center gap-2.5 py-0.5">
-          {r.image ? (
-            <img
-              src={r.image}
-              alt={r.title || "Banner"}
-              className="w-12 h-7.5 object-cover rounded-md border border-slate-200 shadow-2xs shrink-0"
-            />
-          ) : (
-            <div className="w-12 h-7.5 bg-slate-100 rounded-md flex items-center justify-center text-slate-400 text-[10px] shrink-0 border border-slate-200">
-              No Image
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <span className="font-semibold text-slate-800 text-xs truncate block leading-tight">
-              {r.title || (
-                <span className="text-slate-400 font-normal italic">
-                  Pure Image Banner (No Text Overlay)
-                </span>
-              )}
-            </span>
-            <span className="text-[10px] text-slate-500 font-medium truncate block leading-tight">
-              {r.subtitle || (r.link && r.link !== "#" ? r.link : "No Destination Link")}
-            </span>
-          </div>
-        </div>
-      ),
-    },
-    ...(activeTab === "hero"
-      ? [
-          {
-            key: "logo",
-            header: "Brand Logo",
-            align: "center",
-            cell: (r) => (
-              <div className="flex justify-center">
-                {r.logo ? (
-                  <img
-                    src={r.logo}
-                    alt="Logo"
-                    className="w-5 h-5 object-contain rounded border border-slate-200 p-0.5 bg-white shadow-2xs"
-                  />
-                ) : (
-                  <span className="text-[10px] text-slate-400">—</span>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
-    ...(activeTab !== "popup"
-      ? [
-          {
-            key: "styling",
-            header: "Custom Colors",
-            align: "center",
-            cell: (r) => (
-              <div className="flex items-center justify-center gap-1.5">
-                <div
-                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
-                  style={{ backgroundColor: r.buttonBgColor || "#f59e0b" }}
-                  title={`Button BG: ${r.buttonBgColor || "#f59e0b"}`}
-                />
-                <div
-                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
-                  style={{ backgroundColor: r.subtitleColor || "#fbbf24" }}
-                  title={`Subtitle Color: ${r.subtitleColor || "#fbbf24"}`}
-                />
-                <span className="text-[9px] font-bold uppercase text-slate-600 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">
-                  {r.textPosition || "left"}
-                </span>
-              </div>
-            ),
-          },
-          {
-            key: "buttonText",
-            header: "Button CTA",
-            align: "center",
-            cell: (r) => (
-              <div className="flex justify-center">
-                {r.buttonText ? (
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs"
-                    style={{
-                      backgroundColor: r.buttonBgColor || "#f59e0b",
-                      color: r.buttonTextColor || "#0f172a",
-                    }}
-                  >
-                    {r.buttonText}
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-slate-400">—</span>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
-    {
-      key: "priority",
-      header: "Priority",
-      sortable: true,
-      align: "center",
-      cell: (r) => (
-        <span className="inline-flex items-center justify-center text-[11px] font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
-          {r.priority ?? 0}
-        </span>
-      ),
-    },
-    {
-      key: "isPaid",
-      header: "Type",
-      align: "center",
-      cell: (r) => (
-        <div className="flex justify-center items-center gap-1.5">
-          <Switch
-            size="sm"
-            checked={Boolean(r.isPaid)}
-            onCheckedChange={() => handleToggleSponsored(r._id, r.isPaid)}
-            aria-label="Toggle Sponsored placement"
-          />
-          {r.isPaid ? (
-            <span className="text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.2 rounded-full">
-              Sponsored
-            </span>
-          ) : (
-            <span className="text-[9px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.2 rounded-full">
-              Standard
-            </span>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      align: "center",
-      cell: (r) => (
-        <div className="flex justify-center items-center gap-1.5">
-          <StatusBadge status={r.status} size="sm" />
-        </div>
-      ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      align: "center",
-      cell: (r) => (
-        <div className="flex items-center justify-center gap-1">
-          <Switch
-            size="sm"
-            checked={r.status === "active"}
-            onCheckedChange={() => handleToggleStatus(r._id, r.status)}
-            aria-label="Toggle active status"
-          />
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleStartEdit(r)}
-            className="h-6 w-6 p-0 text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded cursor-pointer flex items-center justify-center shrink-0 transition-all shadow-2xs"
-            title="Edit Banner"
-          >
-            <Pencil className="w-3 h-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleDeleteBanner(r)}
-            className="h-6 w-6 p-0 text-rose-600 bg-rose-50 border-rose-200 hover:bg-rose-100 rounded cursor-pointer flex items-center justify-center shrink-0 transition-all shadow-2xs"
-            title="Delete Banner"
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const displayedBanners = useMemo(() => {
+    if (!searchTableQuery.trim()) return filteredBanners;
+    const q = searchTableQuery.toLowerCase();
+    return filteredBanners.filter(
+      (b) =>
+        (b.title && b.title.toLowerCase().includes(q)) ||
+        (b.subtitle && b.subtitle.toLowerCase().includes(q)) ||
+        (b.link && b.link.toLowerCase().includes(q)) ||
+        (b.buttonText && b.buttonText.toLowerCase().includes(q)),
+    );
+  }, [filteredBanners, searchTableQuery]);
+
+
 
   return (
     <DashboardLayout
@@ -999,18 +961,366 @@ export default function BannerManagement() {
           </form>
         </Card>
 
-        {/* Data Table Card */}
-        <Card className={`border ${currentSlotConfig.cardBorder} shadow-2xs rounded-xl bg-white p-3 text-left`}>
-          <DataTable
-            columns={rawColumns}
-            data={filteredBanners}
-            loading={loading}
-            searchable={true}
-            searchPlaceholder={`Search ${currentSlotConfig?.label} banners...`}
-            searchKeys={["title", "subtitle", "link", "buttonText"]}
-            defaultPageSize={10}
-            emptyState={`No promotional banners configured for ${currentSlotConfig?.label}.`}
-          />
+        {/* Data Table Card with Drag-and-Drop & Quick Move Reordering */}
+        <Card className={`border ${currentSlotConfig.cardBorder} shadow-2xs rounded-xl bg-white p-3.5 text-left`}>
+          {/* Table Header Controls: Search & Reorder Tip */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder={`Search ${currentSlotConfig?.label} banners...`}
+                value={searchTableQuery}
+                onChange={(e) => setSearchTableQuery(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all"
+              />
+              {searchTableQuery && (
+                <button
+                  onClick={() => setSearchTableQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                {displayedBanners.length} results
+              </span>
+              <span className="text-[10.5px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 hidden md:inline-flex items-center gap-1">
+                <GripVertical className="w-3 h-3 text-blue-500" />
+                <span>Drag rows or use 1-Click Top to reorder</span>
+              </span>
+              {reordering && (
+                <span className="text-[10.5px] text-amber-600 font-semibold flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>Syncing order...</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Drag & Drop Table Container */}
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="py-2.5 px-3 text-center w-28">Order & Move</th>
+                  <th className="py-2.5 px-3">Banner Preview & Details</th>
+                  {activeTab === "hero" && (
+                    <th className="py-2.5 px-2 text-center w-16">Brand Logo</th>
+                  )}
+                  {activeTab !== "popup" && (
+                    <>
+                      <th className="py-2.5 px-2 text-center w-28">Custom Colors</th>
+                      <th className="py-2.5 px-2 text-center w-24">Button CTA</th>
+                    </>
+                  )}
+                  <th className="py-2.5 px-2 text-center w-20">Priority</th>
+                  <th className="py-2.5 px-2 text-center w-24">Type</th>
+                  <th className="py-2.5 px-2 text-center w-20">Status</th>
+                  <th className="py-2.5 px-3 text-center w-28">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                {loading ? (
+                  <tr>
+                    <td colSpan={10} className="py-10 text-center text-slate-400 text-xs">
+                      <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                      Loading promotional banners...
+                    </td>
+                  </tr>
+                ) : displayedBanners.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-10 text-center text-slate-400 text-xs">
+                      No promotional banners found for {currentSlotConfig?.label}.
+                    </td>
+                  </tr>
+                ) : (
+                  displayedBanners.map((r, index) => {
+                    const isDragging = draggedBannerId === r._id;
+                    const isOver = dragOverBannerId === r._id;
+                    const isTop = index === 0;
+                    const isBottom = index === displayedBanners.length - 1;
+
+                    return (
+                      <tr
+                        key={r._id}
+                        draggable={!searchTableQuery}
+                        onDragStart={(e) => handleDragStart(e, r._id)}
+                        onDragOver={(e) => handleDragOver(e, r._id)}
+                        onDrop={(e) => handleDrop(e, r._id)}
+                        onDragEnd={() => {
+                          setDraggedBannerId(null);
+                          setDragOverBannerId(null);
+                        }}
+                        className={`transition-all duration-150 ${
+                          isDragging
+                            ? "opacity-30 bg-blue-50"
+                            : isOver
+                              ? "bg-blue-50/80 ring-2 ring-blue-500 ring-inset"
+                              : index % 2 === 0
+                                ? "bg-white hover:bg-slate-50/80"
+                                : "bg-slate-50/30 hover:bg-slate-50/80"
+                        }`}
+                      >
+                        {/* 1. Order & Reorder Controls */}
+                        <td className="py-2.5 px-3 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            {/* Drag Handle */}
+                            <span
+                              className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-blue-600 p-0.5 rounded transition-colors"
+                              title="Drag to reorder slide position"
+                            >
+                              <GripVertical className="w-4 h-4" />
+                            </span>
+
+                            {/* Rank Badge */}
+                            <span
+                              className={`text-[10.5px] font-extrabold px-1.5 py-0.2 rounded-md border shrink-0 ${
+                                isTop
+                                  ? "bg-amber-100 text-amber-900 border-amber-300 shadow-2xs font-black"
+                                  : index === 1
+                                    ? "bg-blue-100 text-blue-900 border-blue-300"
+                                    : "bg-slate-100 text-slate-700 border-slate-200"
+                              }`}
+                              title={`Display Rank #${index + 1}`}
+                            >
+                              #{index + 1}
+                            </span>
+
+                            {/* 1-Click Move to Top Button */}
+                            {!isTop && (
+                              <button
+                                onClick={() => handleMoveToTop(r._id)}
+                                type="button"
+                                className="p-1 text-amber-600 hover:bg-amber-50 hover:text-amber-700 rounded transition-colors cursor-pointer border border-transparent hover:border-amber-200"
+                                title="Move to Top (#1 Position)"
+                              >
+                                <ArrowUpToLine className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {/* Step Move Up/Down Buttons */}
+                            <div className="flex flex-col gap-0.5">
+                              <button
+                                onClick={() => handleMoveStep(r._id, -1)}
+                                disabled={isTop}
+                                type="button"
+                                className={`p-0.5 rounded transition-colors ${
+                                  isTop
+                                    ? "text-slate-200 cursor-not-allowed"
+                                    : "text-slate-500 hover:text-blue-600 hover:bg-blue-50 cursor-pointer"
+                                }`}
+                                title="Move Up 1 slot"
+                              >
+                                <ArrowUp className="w-2.5 h-2.5" />
+                              </button>
+                              <button
+                                onClick={() => handleMoveStep(r._id, 1)}
+                                disabled={isBottom}
+                                type="button"
+                                className={`p-0.5 rounded transition-colors ${
+                                  isBottom
+                                    ? "text-slate-200 cursor-not-allowed"
+                                    : "text-slate-500 hover:text-blue-600 hover:bg-blue-50 cursor-pointer"
+                                }`}
+                                title="Move Down 1 slot"
+                              >
+                                <ArrowDown className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 2. Banner Preview & Details */}
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-2.5">
+                            {r.image ? (
+                              <img
+                                src={r.image}
+                                alt={r.title || "Banner"}
+                                className="w-14 h-8 object-cover rounded-md border border-slate-200 shadow-2xs shrink-0"
+                              />
+                            ) : (
+                              <div className="w-14 h-8 bg-slate-100 rounded-md flex items-center justify-center text-slate-400 text-[10px] shrink-0 border border-slate-200">
+                                No Image
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <span className="font-bold text-slate-800 text-xs truncate block leading-tight">
+                                {r.title || (
+                                  <span className="text-slate-400 font-normal italic">
+                                    Pure Image Banner (No Text Overlay)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-medium truncate block leading-tight mt-0.5">
+                                {r.subtitle || (r.link && r.link !== "#" ? r.link : "No Destination Link")}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 3. Brand Logo */}
+                        {activeTab === "hero" && (
+                          <td className="py-2.5 px-2 text-center">
+                            <div className="flex justify-center">
+                              {r.logo ? (
+                                <img
+                                  src={r.logo}
+                                  alt="Logo"
+                                  className="w-5 h-5 object-contain rounded border border-slate-200 p-0.5 bg-white shadow-2xs"
+                                />
+                              ) : (
+                                <span className="text-[10px] text-slate-400">—</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
+
+                        {/* 4. Custom Colors */}
+                        {activeTab !== "popup" && (
+                          <>
+                            <td className="py-2.5 px-2 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <div
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
+                                  style={{ backgroundColor: r.buttonBgColor || "#f59e0b" }}
+                                  title={`Button BG: ${r.buttonBgColor || "#f59e0b"}`}
+                                />
+                                <div
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
+                                  style={{ backgroundColor: r.subtitleColor || "#fbbf24" }}
+                                  title={`Subtitle: ${r.subtitleColor || "#fbbf24"}`}
+                                />
+                                <span className="text-[9px] font-bold uppercase text-slate-600 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">
+                                  {r.textPosition || "left"}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* 5. Button CTA */}
+                            <td className="py-2.5 px-2 text-center">
+                              <div className="flex justify-center">
+                                {r.buttonText ? (
+                                  <span
+                                    className="text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs max-w-[90px] truncate block"
+                                    style={{
+                                      backgroundColor: r.buttonBgColor || "#f59e0b",
+                                      color: r.buttonTextColor || "#0f172a",
+                                    }}
+                                  >
+                                    {r.buttonText}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-slate-400">—</span>
+                                )}
+                              </div>
+                            </td>
+                          </>
+                        )}
+
+                        {/* 6. Priority with Inline Quick-Edit */}
+                        <td className="py-2.5 px-2 text-center">
+                          {editingPriorityId === r._id ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <input
+                                type="number"
+                                autoFocus
+                                value={priorityInputVal}
+                                onChange={(e) => setPriorityInputVal(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") handleSavePriority(r._id);
+                                  if (e.key === "Escape") setEditingPriorityId(null);
+                                }}
+                                onBlur={() => handleSavePriority(r._id)}
+                                className="w-12 text-center text-xs font-bold border border-blue-500 rounded py-0.5 outline-none bg-white shadow-2xs"
+                              />
+                              <button
+                                onClick={() => handleSavePriority(r._id)}
+                                className="p-0.5 text-emerald-600 hover:bg-emerald-50 rounded"
+                              >
+                                <Check className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setEditingPriorityId(r._id);
+                                setPriorityInputVal(String(r.priority ?? 0));
+                              }}
+                              className="inline-flex items-center justify-center text-[11px] font-extrabold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                              title="Click to edit priority number"
+                            >
+                              {r.priority ?? 0}
+                            </button>
+                          )}
+                        </td>
+
+                        {/* 7. Placement Type Toggle */}
+                        <td className="py-2.5 px-2 text-center">
+                          <div className="flex justify-center items-center gap-1.5">
+                            <Switch
+                              size="sm"
+                              checked={Boolean(r.isPaid)}
+                              onCheckedChange={() => handleToggleSponsored(r._id, r.isPaid)}
+                              aria-label="Toggle Sponsored placement"
+                            />
+                            {r.isPaid ? (
+                              <span className="text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.2 rounded-full">
+                                Sponsored
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.2 rounded-full">
+                                Standard
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 8. Status */}
+                        <td className="py-2.5 px-2 text-center">
+                          <StatusBadge status={r.status} size="sm" />
+                        </td>
+
+                        {/* 9. Actions */}
+                        <td className="py-2.5 px-3 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Switch
+                              size="sm"
+                              checked={r.status === "active"}
+                              onCheckedChange={() => handleToggleStatus(r._id, r.status)}
+                              aria-label="Toggle active status"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStartEdit(r)}
+                              className="h-6 w-6 p-0 text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded cursor-pointer flex items-center justify-center shrink-0 transition-all shadow-2xs"
+                              title="Edit Banner"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteBanner(r)}
+                              className="h-6 w-6 p-0 text-rose-600 bg-rose-50 border-rose-200 hover:bg-rose-100 rounded cursor-pointer flex items-center justify-center shrink-0 transition-all shadow-2xs"
+                              title="Delete Banner"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </div>
 

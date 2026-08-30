@@ -2,6 +2,7 @@ import { Geist, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import QueryProvider from "@/components/shared/QueryProvider";
+import PushNotificationPrompt from "@/components/shared/PushNotificationPrompt";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
       >
         <QueryProvider>
           {children}
+          <PushNotificationPrompt />
           <Toaster
             position="bottom-right"
             toastOptions={{

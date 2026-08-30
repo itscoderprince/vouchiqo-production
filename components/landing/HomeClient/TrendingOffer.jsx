@@ -33,7 +33,10 @@ export const TrendingOffer = ({ banners: initialBanners = [] }) => {
     const dbTrending = (banners || []).filter(
       (b) => b.slot === "trending" || b.slot === "trending-offer",
     );
-    return dbTrending.map((b, idx) => ({ id: b._id || idx, ...b }));
+    const sorted = [...dbTrending].sort(
+      (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
+    );
+    return sorted.map((b, idx) => ({ id: b._id || idx, ...b }));
   }, [banners]);
 
   const total = slides.length;

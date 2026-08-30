@@ -51,7 +51,11 @@ export function HeroSection({ banners: initialBanners = [] }) {
         b.slot === "top" ||
         !b.slot,
     );
-    return dbBanners.map((b, idx) => ({ id: b._id || idx, ...b }));
+    // Sort strictly by priority descending (highest priority first)
+    const sorted = [...dbBanners].sort(
+      (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
+    );
+    return sorted.map((b, idx) => ({ id: b._id || idx, ...b }));
   }, [banners]);
 
   useEffect(() => {

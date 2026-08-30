@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, LogOut, Search, User } from "lucide-react";
+import { Bell, BellOff, ChevronDown, LogOut, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -10,6 +10,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import UserDropdown from "./UserDropdown";
 
 export default function Topbar({ title = "Dashboard", user: propUser = null }) {
@@ -19,6 +20,16 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
   const [mounted, setMounted] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
+
+  // Push notification toggle inside the notification dropdown
+  const {
+    isSupported: pushSupported,
+    permission: pushPermission,
+    isSubscribed: pushSubscribed,
+    loading: pushLoading,
+    requestPermission: enablePush,
+    unsubscribe: disablePush,
+  } = usePushNotifications({ userId: authUser?.id });
 
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifs, setLoadingNotifs] = useState(true);
@@ -189,6 +200,43 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
                   )}
                 </div>
                 <div className="max-h-60 overflow-y-auto">
+                  {/* Push notification toggle */}
+                  {pushSupported && (
+                    <div className="px-3.5 py-2 border-b border-slate-100 dark:border-zinc-850 flex items-center justify-between gap-2">
+                      <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                        {pushSubscribed ? (
+                          <Bell className="w-2.5 h-2.5 text-blue-600" />
+                        ) : (
+                          <BellOff className="w-2.5 h-2.5" />
+                        )}
+                        Push alerts
+                      </span>
+                      {pushPermission === "denied" ? (
+                        <span className="text-[9px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                          Blocked in browser
+                        </span>
+                      ) : pushSubscribed ? (
+                        <button
+                          type="button"
+                          onClick={disablePush}
+                          disabled={pushLoading}
+                          className="text-[9px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {pushLoading ? "..." : "Active · Turn off"}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={enablePush}
+                          disabled={pushLoading}
+                          className="text-[9px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {pushLoading ? "..." : "Enable"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {notifications.length > 0 ? (
                     notifications.map((notif) => (
                       <div
