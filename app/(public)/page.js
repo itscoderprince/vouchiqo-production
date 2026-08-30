@@ -34,13 +34,7 @@ export default async function Home() {
   let popularMerchants = [];
   try {
     const rawMerchants = await Merchant.find({
-      $or: [
-        { status: "approved" },
-        { status: "active" },
-        { applicationStatus: "approved" },
-        { isVerified: true },
-        { status: { $ne: "rejected" } },
-      ],
+      status: "approved",
     })
       .select(
         "businessName slug logo banner totalCoupons totalRedemptions followerCount applicationStatus isVerified status",

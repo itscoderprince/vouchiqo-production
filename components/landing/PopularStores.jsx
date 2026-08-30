@@ -24,6 +24,7 @@ export default function PopularStores({ merchants = [] }) {
     href: `/brand/${m.slug}`,
     coupons: m.totalCoupons || 0,
     banner: m.banner,
+    isVerified: m.isVerified ?? (m.status === "approved"),
     totalOffers: (m.totalCoupons || 0) + (m.totalRedemptions || 0),
   }));
 
@@ -218,6 +219,7 @@ export default function PopularStores({ merchants = [] }) {
                         banner={store.banner}
                         href={store.href}
                         coupons={store.coupons}
+                        isVerified={store.isVerified}
                       />
                     ))}
                   </div>

@@ -50,13 +50,7 @@ export default async function CampaignsPage() {
   let trendingMerchants = [];
   try {
     const rawMerchants = await Merchant.find({
-      $or: [
-        { status: "approved" },
-        { status: "active" },
-        { applicationStatus: "approved" },
-        { isVerified: true },
-        { status: { $ne: "rejected" } },
-      ],
+      status: "approved",
     })
       .select(
         "businessName slug logo banner totalCoupons totalRedemptions followerCount isVerified category",

@@ -19,13 +19,7 @@ export default async function BrandsPage() {
 
   // Find all approved/active merchants
   const dbMerchants = await Merchant.find({
-    $or: [
-      { status: "approved" },
-      { status: "active" },
-      { applicationStatus: "approved" },
-      { isVerified: true },
-      { status: { $ne: "rejected" } },
-    ],
+    status: "approved",
   })
     .select("businessName slug logo banner shopImage category isVerified status")
     .sort({ businessName: 1 })

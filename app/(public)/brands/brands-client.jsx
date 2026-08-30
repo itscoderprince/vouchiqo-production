@@ -85,6 +85,7 @@ export default function BrandsClient({ brands = [] }) {
                   (brand.totalCoupons || 0) +
                   (brand.totalAffiliateProducts || 0)
                 }
+                isVerified={brand.isVerified ?? (brand.status === "approved")}
               />
             ))}
           </div>

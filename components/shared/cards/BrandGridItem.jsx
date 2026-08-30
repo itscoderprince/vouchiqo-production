@@ -10,6 +10,7 @@ export default function BrandGridItem({
   banner,
   href,
   coupons = 12,
+  isVerified = true,
 }) {
   const [imgError, setImgError] = useState(false);
 
@@ -47,10 +48,12 @@ export default function BrandGridItem({
         )}
 
         {/* Verified Badge (Flush in Bottom Right Corner of Banner Image) */}
-        <div className="absolute bottom-0 right-0 bg-emerald-600 text-white text-[7px] sm:text-[7.5px] font-normal px-1.5 py-0.5 rounded-tl-[3px] flex items-center gap-0.5 z-10 shadow-2xs">
-          <CheckCircle2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white stroke-[2] shrink-0" />
-          <span>Verified</span>
-        </div>
+        {isVerified && (
+          <div className="absolute bottom-0 right-0 bg-emerald-600 text-white text-[7px] sm:text-[7.5px] font-normal px-1.5 py-0.5 rounded-tl-[3px] flex items-center gap-0.5 z-10 shadow-2xs">
+            <CheckCircle2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white stroke-[2] shrink-0" />
+            <span>Verified</span>
+          </div>
+        )}
       </div>
 
       {/* Center Floating Brand Logo Badge */}

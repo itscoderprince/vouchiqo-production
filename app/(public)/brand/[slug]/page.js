@@ -346,7 +346,7 @@ export default async function BrandPage({ params }) {
     // Fetch the merchant — full fields needed for brand page
     merchant = await Merchant.findOne({
       slug: { $regex: new RegExp(`^${slug.toLowerCase()}$`, "i") },
-      status: { $ne: "rejected" },
+      status: "approved",
     }).lean();
 
     if (!merchant) {
@@ -452,14 +452,9 @@ export default async function BrandPage({ params }) {
   try {
     const isRealId = merchant._id && /^[0-9a-fA-F]{24}$/.test(merchant._id.toString());
     const relatedQuery = {
-      $or: [
-        { category: merchant.category },
-        { status: "approved" },
-        { status: "active" },
-        { isVerified: true },
-      ],
+      category: merchant.category,
+      status: "approved",
       ...(isRealId ? { _id: { $ne: merchant._id } } : {}),
-      status: { $ne: "rejected" },
     };
     // Only select public-safe fields — never expose PAN, GSTIN, bank details, authId
     const rawRelated = await Merchant.find(relatedQuery)
