@@ -404,13 +404,13 @@ export function HeroSection({ banners: initialBanners = [] }) {
 
       {/* Synchronized Responsive Brands Bar Below (Visible on Mobile & Desktop, supporting 50+ logos) */}
       {slides.some((s) => s.logo || s.name || s.title) && (
-        <div className="relative group/thumb flex w-full mt-2 sm:mt-2.5 select-none text-left items-center">
+        <div className="relative group/thumb flex w-full mt-2 sm:mt-2.5 select-none text-left items-center overflow-hidden">
           {/* Scroll Left Button for Thumbnails (Shown on overflow/hover) */}
           {slides.length > 4 && (
             <button
               type="button"
               onClick={() => scrollThumbBar("left")}
-              className="hidden sm:flex absolute left-0 z-10 -translate-x-2 items-center justify-center w-6 h-6 rounded-full bg-white border border-slate-200 shadow-md text-slate-700 hover:text-blue-600 hover:border-blue-400 transition-all opacity-0 group-hover/thumb:opacity-100 cursor-pointer"
+              className="hidden sm:flex absolute left-1 z-10 items-center justify-center w-6 h-6 rounded-full bg-white border border-slate-200 shadow-md text-slate-700 hover:text-blue-600 hover:border-blue-400 transition-all opacity-0 group-hover/thumb:opacity-100 cursor-pointer"
               aria-label="Scroll logos left"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -459,7 +459,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
             <button
               type="button"
               onClick={() => scrollThumbBar("right")}
-              className="hidden sm:flex absolute right-0 z-10 translate-x-2 items-center justify-center w-6 h-6 rounded-full bg-white border border-slate-200 shadow-md text-slate-700 hover:text-blue-600 hover:border-blue-400 transition-all opacity-0 group-hover/thumb:opacity-100 cursor-pointer"
+              className="hidden sm:flex absolute right-1 z-10 items-center justify-center w-6 h-6 rounded-full bg-white border border-slate-200 shadow-md text-slate-700 hover:text-blue-600 hover:border-blue-400 transition-all opacity-0 group-hover/thumb:opacity-100 cursor-pointer"
               aria-label="Scroll logos right"
             >
               <ChevronRight className="w-3.5 h-3.5" />

@@ -3,6 +3,8 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import QueryProvider from "@/components/shared/QueryProvider";
 import PushNotificationPrompt from "@/components/shared/PushNotificationPrompt";
+import PublicMobileBottomNav from "@/components/layout/PublicMobileBottomNav";
+import GoogleOneTapPrompt from "@/components/shared/GoogleOneTapPrompt";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,12 +36,14 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body
-        className="min-h-full flex flex-col bg-brand-surface text-brand-text"
+        className="min-h-full flex flex-col bg-brand-surface text-brand-text w-full pb-16 md:pb-0"
         suppressHydrationWarning
       >
         <QueryProvider>
           {children}
+          <GoogleOneTapPrompt />
           <PushNotificationPrompt />
+          <PublicMobileBottomNav />
           <Toaster
             position="bottom-right"
             toastOptions={{

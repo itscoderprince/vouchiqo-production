@@ -203,6 +203,13 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+  position: relative;
+}
+
 body {
   background-color: var(--brand-surface);
   color: var(--brand-text);

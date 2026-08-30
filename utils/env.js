@@ -47,9 +47,10 @@ const envSchema = z.object({
     .default("Vouchiqo Merchant <merchant@vouchiqo.com>"),
   EMAIL_DEV_RECIPIENT: z.string().optional().default("vouchiqo@gmail.com"),
 
-  // Google OAuth (Optional in local dev)
+  // Google OAuth & One Tap
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().optional(),
 
   // Firebase Web Push (optional — required only when push notifications are enabled)
   NEXT_PUBLIC_FIREBASE_API_KEY: z.string().optional(),

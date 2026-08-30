@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
 import { redis } from "@/lib/redis";
 import { getPromoBanners } from "@/modules/admin/banner.service";
+import { getPublicAffiliateProducts } from "@/modules/affiliate-product/affiliate-product.service";
 import {
   getFeaturedCoupons,
   listCoupons,
@@ -61,6 +62,15 @@ export default async function Home() {
     console.error("Error fetching promotional banners:", err);
   }
 
+  // 3.8. Fetch active affiliate products
+  let affiliateProducts = [];
+  try {
+    const rawProducts = await getPublicAffiliateProducts();
+    affiliateProducts = JSON.parse(JSON.stringify(rawProducts || []));
+  } catch (err) {
+    console.error("Error fetching affiliate products:", err);
+  }
+
   // 4. Render the client-side component shell with hydrated database props
   return (
     <>
@@ -69,6 +79,7 @@ export default async function Home() {
         latestCoupons={latestCoupons}
         popularMerchants={popularMerchants}
         banners={banners}
+        affiliateProducts={affiliateProducts}
       />
     </>
   );

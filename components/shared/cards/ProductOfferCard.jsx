@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { ExternalLink, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function ProductOfferCard({ product }) {
@@ -14,225 +14,155 @@ export default function ProductOfferCard({ product }) {
     return () => media.removeEventListener("change", listener);
   }, []);
 
+  if (!product) return null;
+
   const {
+    _id,
     title,
-    originalPrice,
-    discountPrice,
+    originalPrice = 0,
+    discountPrice = 0,
+    discountPercentage = 0,
     discountText,
-    merchantName,
-    merchantLogo,
+    merchantName = "Partner Store",
+    merchantLogo = "/placeholder-brand.png",
     productImage,
-    href = "/deals",
+    imageUrl,
+    affiliateUrl,
+    href,
   } = product;
 
+  const coverImage =
+    imageUrl ||
+    productImage ||
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
+
+  const numOrig = typeof originalPrice === "number" ? originalPrice : (Number(originalPrice) || 0);
+  const numDisc = typeof discountPrice === "number" ? discountPrice : (Number(discountPrice) || 0);
+  const savings = numOrig > 0 && numDisc > 0 ? Math.max(0, numOrig - numDisc) : 0;
+  const computedPercent = numOrig > 0 && numDisc > 0 ? Math.round((savings / numOrig) * 100) : (discountPercentage || 0);
+
+  const badgeText =
+    discountText ||
+    (computedPercent > 0 ? `${computedPercent}% OFF` : (numDisc > 0 ? `₹${numDisc}` : "SPECIAL DEAL"));
+
+  const destinationUrl = affiliateUrl || href || `/deals`;
+
+  const handleClick = (e) => {
+    if (_id) {
+      try {
+        const payload = JSON.stringify({ action: "click", productId: _id });
+        if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: "application/json" });
+          navigator.sendBeacon("/api/affiliate-products", blob);
+        } else {
+          fetch("/api/affiliate-products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: true,
+          }).catch(() => {});
+        }
+      } catch {}
+    }
+
+    if (affiliateUrl && affiliateUrl.startsWith("http")) {
+      e.preventDefault();
+      window.open(affiliateUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
-    <Link
-      href={href}
-      className="dotd-card group relative rounded-md no-underline cursor-pointer"
+    <a
+      href={destinationUrl}
+      onClick={handleClick}
+      target={affiliateUrl?.startsWith("http") ? "_blank" : "_self"}
+      rel="noopener noreferrer"
+      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200/90 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(15,23,42,0.12)] hover:border-blue-500 transition-all duration-300 select-none text-left overflow-hidden h-full"
     >
-      {/* ===== LAYER 1: PRODUCT IMAGE BANNER ===== */}
-      <div
-        className="dotd-card__banner absolute top-0 left-0 w-full bg-cover bg-center rounded-md"
-        style={{ height: "100%", backgroundImage: `url(${productImage})` }}
-        role="img"
-        aria-label={title}
-      />
-
-      {/* ===== DISCOUNT BADGE — top-right corner ===== */}
-      <div
-        className="dotd-card__badge absolute top-3 right-3 z-10"
-        style={{
-          background: "linear-gradient(135deg, #EA384D 0%, #c0202f 100%)",
-          color: "#fff",
-          fontSize: isMobile ? "9px" : "11px",
-          fontWeight: 900,
-          padding: isMobile ? "3px 8px" : "4px 10px",
-          borderRadius: "999px",
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          boxShadow: "0 3px 10px rgba(234,56,77,0.45)",
-        }}
-      >
-        {discountText}
-      </div>
-
-      {/* ===== LAYER 2: WHITE CONTENT OVERLAY ===== */}
-      <div
-        className={`dotd-card__box absolute bottom-0 left-0 w-full bg-white rounded-b-md rounded-tl-[6px] ${
-          isMobile ? "px-3.5 pt-6 pb-3.5" : "px-5 pt-8 pb-5"
-        }`}
-      >
-        {/* ===== LAYER 3: MERCHANT LOGO — straddles image/box ===== */}
-        <div
-          className="dotd-card__logo-wrap absolute flex items-center justify-center bg-white"
-          style={{
-            width: isMobile ? "36px" : "56px",
-            height: isMobile ? "36px" : "56px",
-            borderRadius: "50%",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.08)",
-            top: isMobile ? "-18px" : "-36px",
-            left: isMobile ? "12px" : "20px",
-            zIndex: 3,
-            border: "1px solid #f1f5f9",
+      {/* ===== 16:9 Image Header ===== */}
+      <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 shrink-0">
+        <img
+          src={coverImage}
+          alt={title || "Affiliate product"}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none"
+          draggable={false}
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
           }}
-        >
-          <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
-            <img
-              src={merchantLogo}
-              alt={merchantName}
-              className={
-                isMobile
-                  ? "w-6 h-6 object-contain p-0.5"
-                  : "w-10 h-10 object-contain p-0.5"
-              }
-              onError={(e) => {
-                e.currentTarget.src =
-                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234685E8' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-              }}
-            />
-          </div>
-        </div>
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
 
-        {/* Price badge */}
-        <div className="mb-1.5">
-          <p className="dotd-card__price text-left text-[14px] md:text-[18px] font-extrabold tracking-wide text-[#3E80DD] leading-tight">
-            ₹{discountPrice.toLocaleString("en-IN")}{" "}
-            <span
-              style={{
-                fontSize: isMobile ? "10px" : "13px",
-                color: "#94a3b8",
-                textDecoration: "line-through",
-                fontWeight: 500,
-              }}
-            >
-              ₹{originalPrice.toLocaleString("en-IN")}
-            </span>
-          </p>
-        </div>
-
-        {/* Product title */}
-        <div className="dotd-card__desc-wrap mb-3 pb-2">
-          <p className="dotd-card__desc text-left text-[12px] md:text-[14px] text-[#2D3748] leading-snug font-medium line-clamp-2">
-            {title}
-          </p>
-        </div>
-
-        {/* Mobile-only Grab Offer button (matches desktop button styling) */}
-        <div className="dotd-card__grab md:hidden mt-2">
-          <span
-            className="block w-full rounded-md py-1.5 text-center text-[11px] font-bold uppercase tracking-wider text-white hover:brightness-110 transition-all cursor-pointer"
+        {/* Top-Right Compact Badge */}
+        {badgeText && (
+          <div
+            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 font-bold text-[8px] sm:text-[9.5px] uppercase tracking-wide text-white px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs"
             style={{
-              backgroundColor: "#3E80DD",
-              boxShadow: "0 2px 8px rgba(62,128,221,0.3)",
+              background: "linear-gradient(135deg, #EA384D 0%, #c0202f 100%)",
             }}
           >
-            Grab Offer →
-          </span>
-        </div>
-
-        {/* Desktop-only CTA — revealed on hover */}
-        <div className="dotd-card__extra hidden md:block">
-          <div className="dotd-card__cta mt-2">
-            <button
-              type="button"
-              aria-label="Buy Now"
-              className="dotd-card__cta-btn w-full rounded-md py-2 text-center text-[12px] font-bold uppercase tracking-wider text-white hover:brightness-110 transition-all"
-              style={{
-                backgroundColor: "#3E80DD",
-                boxShadow: "0 2px 8px rgba(62,128,221,0.3)",
-              }}
-            >
-              Grab Offer →
-            </button>
+            {badgeText}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ===== CARD STYLES ===== */}
-      <style>{`
-        .dotd-card {
-          --anim-duration: 500ms;
-          --anim-ease-v4: cubic-bezier(0.4, 0, 0.2, 1);
-          --logo-lift: 42px;
-          position: relative;
-          border: 1px solid rgba(226, 232, 240, 0.8);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-          transition: box-shadow 300ms ease, border-color 300ms ease;
-          display: block;
-          overflow: hidden;
-          height: 260px;
-        }
-        @media (min-width: 768px) {
-          .dotd-card { height: 340px; }
-        }
+      {/* ===== Content Box with Responsive Depth ===== */}
+      <div className="relative flex-1 flex flex-col justify-between bg-white px-2.5 sm:px-3.5 pt-4 sm:pt-5 pb-2.5 sm:pb-3">
+        {/* Floating Merchant Circular Logo */}
+        <div
+          className="absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-sm p-0.5"
+          style={{
+            width: isMobile ? "28px" : "34px",
+            height: isMobile ? "28px" : "34px",
+            top: isMobile ? "-14px" : "-17px",
+            left: isMobile ? "10px" : "12px",
+            zIndex: 10,
+          }}
+        >
+          <img
+            src={merchantLogo}
+            alt={merchantName}
+            className="w-full h-full object-contain rounded-full select-none pointer-events-none"
+            onError={(e) => {
+              e.currentTarget.src =
+                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234685E8' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
+            }}
+          />
+        </div>
 
-        .dotd-card:hover {
-          border-color: rgba(62, 128, 221, 0.35);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.09);
-        }
+        {/* Details */}
+        <div>
+          {/* Price Row */}
+          <div className="mb-0.5 sm:mb-1">
+            <p className="text-left text-xs sm:text-[14px] font-extrabold tracking-tight text-[#3E80DD] leading-tight">
+              ₹{numDisc > 0 ? numDisc.toLocaleString("en-IN") : "Best Offer"}{" "}
+              {numOrig > numDisc && numOrig > 0 && (
+                <span className="text-[9px] sm:text-[11px] text-slate-400 font-medium line-through ml-1">
+                  ₹{numOrig.toLocaleString("en-IN")}
+                </span>
+              )}
+            </p>
+          </div>
 
-        /* Z-index stack */
-        .dotd-card__banner { z-index: 1; }
-        .dotd-card__box    { z-index: 2; }
-        .dotd-card__logo-wrap { z-index: 3; }
-        .dotd-card__badge  { z-index: 4; }
+          {/* Product Title */}
+          <div className="mb-1.5 sm:mb-2">
+            <p className="text-left text-[10.5px] sm:text-xs text-slate-800 leading-snug font-bold line-clamp-2">
+              {title}
+            </p>
+          </div>
+        </div>
 
-        /* Banner image — lifts on hover */
-        .dotd-card__banner {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          transition: transform var(--anim-duration) var(--anim-ease-v4);
-        }
-        .dotd-card:hover .dotd-card__banner {
-          transform: translateY(calc(-1 * var(--logo-lift)));
-        }
-
-        /* Logo — shadow deepens on hover */
-        .dotd-card__logo-wrap {
-          transition: box-shadow var(--anim-duration) var(--anim-ease-v4);
-        }
-        .dotd-card:hover .dotd-card__logo-wrap {
-          box-shadow: 4px 8px 16px 0px rgba(0,0,0,0.12);
-        }
-
-        /* White box */
-        .dotd-card__box {
-          position: absolute;
-          bottom: 0; left: 0;
-          width: 100%;
-          transform: translateY(0);
-          transition: transform var(--anim-duration) var(--anim-ease-v4);
-        }
-        @media (max-width: 767px) {
-          .dotd-card:hover .dotd-card__box {
-            transform: translateY(0);
-          }
-        }
-        @media (min-width: 768px) {
-          .dotd-card__box { transform: translateY(60px); }
-          .dotd-card:hover .dotd-card__box { transform: translateY(0) !important; }
-        }
-
-        /* Extra desktop section */
-        .dotd-card__extra { display: none; }
-        @media (min-width: 768px) {
-          .dotd-card__extra { display: block; }
-        }
-
-        /* Dashed divider on hover */
-        .dotd-card__desc-wrap {
-          border-bottom: 2px dashed transparent;
-          transition: border-color var(--anim-duration) var(--anim-ease-v4);
-        }
-        .dotd-card:hover .dotd-card__desc-wrap {
-          border-color: #D0D7E2 !important;
-        }
-
-        .dotd-card__cta-btn {
-          transition: background-color 200ms ease;
-        }
-      `}</style>
-    </Link>
+        {/* Action Button */}
+        <div className="mt-auto pt-0.5">
+          <span
+            className="block w-full rounded-md py-1 sm:py-1.5 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white transition-all shadow-xs group-hover:brightness-95 flex items-center justify-center gap-1"
+            style={{ backgroundColor: "#3E80DD" }}
+          >
+            <span>Grab Offer</span>
+            <ExternalLink className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+          </span>
+        </div>
+      </div>
+    </a>
   );
 }

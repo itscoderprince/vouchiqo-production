@@ -124,30 +124,11 @@ export default function PopularStores({ merchants = [] }) {
 
   return (
     <section className="g-pop-store w-full select-none text-left overflow-hidden">
-      {/* Custom Section Header with Embla Controls */}
+      {/* Custom Section Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg md:text-2xl font-bold text-brand-text font-heading">
           Popular Stores
         </h2>
-        <div className="flex items-center gap-2 md:gap-4">
-          <EmblaCarouselControls
-            totalSlides={totalSlides}
-            selectedIndex={selectedIndex}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onDotClick={setSelectedIndex}
-            className="flex"
-          />
-          <Link
-            href="/deals"
-            className="text-brand-blue text-xs font-semibold hover:underline flex items-center gap-1 transition-colors shrink-0"
-          >
-            <span>View All</span>
-            <div className="bg-brand-blue/5 rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
-              <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-brand-blue" />
-            </div>
-          </Link>
-        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 mt-6 items-stretch">

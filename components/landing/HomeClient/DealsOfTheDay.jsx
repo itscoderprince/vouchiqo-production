@@ -2,13 +2,36 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ProductOfferCard from "@/components/shared/cards/ProductOfferCard";
 import { TODAY_PRODUCT_DEALS } from "./constants";
 
-export const DealsOfTheDay = () => {
+export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
+  const [products, setProducts] = useState(affiliateProducts || []);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Sync state if SSR affiliateProducts changes
+  useEffect(() => {
+    if (affiliateProducts && affiliateProducts.length > 0) {
+      setProducts(affiliateProducts);
+    }
+  }, [affiliateProducts]);
+
+  // Client-side fetch fallback if SSR didn't return any
+  useEffect(() => {
+    if (!affiliateProducts || affiliateProducts.length === 0) {
+      fetch("/api/affiliate-products")
+        .then((res) => res.json())
+        .then((json) => {
+          const list = json?.data || json;
+          if (Array.isArray(list) && list.length > 0) {
+            setProducts(list);
+          }
+        })
+        .catch((err) => console.error("Failed to load affiliate products:", err));
+    }
+  }, [affiliateProducts]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -18,8 +41,28 @@ export const DealsOfTheDay = () => {
     return () => media.removeEventListener("change", listener);
   }, []);
 
+  // Format products list
+  const displayItems = useMemo(() => {
+    if (products && products.length > 0) {
+      return products.map((p) => ({
+        _id: p._id,
+        title: typeof p.title === "string" ? p.title : p.title?.title || "Special Deal",
+        originalPrice: p.originalPrice || 0,
+        discountPrice: p.discountPrice || 0,
+        discountPercentage: p.discountPercentage || 0,
+        discountText: p.discountText || (p.discountPercentage ? `${p.discountPercentage}% OFF` : null),
+        merchantName: p.merchantId?.businessName || p.merchantName || "Partner Brand",
+        merchantLogo: p.merchantId?.logo || p.merchantLogo || "/placeholder-brand.png",
+        productImage: p.imageUrl || p.productImage,
+        imageUrl: p.imageUrl,
+        affiliateUrl: p.affiliateUrl || p.href,
+      }));
+    }
+    return TODAY_PRODUCT_DEALS;
+  }, [products]);
+
   const itemsPerPage = isMobile ? 2 : 4;
-  const totalSlides = Math.ceil(TODAY_PRODUCT_DEALS.length / itemsPerPage);
+  const totalSlides = Math.ceil(displayItems.length / itemsPerPage);
 
   // Auto-scroll loop every 5 seconds
   useEffect(() => {
@@ -33,7 +76,7 @@ export const DealsOfTheDay = () => {
   const slides = [];
   for (let i = 0; i < totalSlides; i++) {
     slides.push(
-      TODAY_PRODUCT_DEALS.slice(i * itemsPerPage, (i + 1) * itemsPerPage),
+      displayItems.slice(i * itemsPerPage, (i + 1) * itemsPerPage),
     );
   }
 
@@ -85,12 +128,14 @@ export const DealsOfTheDay = () => {
     isDragging.current = false;
   };
 
+  if (displayItems.length === 0) return null;
+
   return (
     <section className="text-left w-full overflow-hidden select-none px-4 md:px-0 pb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base md:text-2xl font-bold text-brand-text">
-          Popular Brand Offers Near You
+        <h2 className="text-base md:text-2xl font-bold text-brand-text font-heading">
+          Affiliate Products
         </h2>
         <Link
           href="/deals"
@@ -101,13 +146,13 @@ export const DealsOfTheDay = () => {
       </div>
 
       {/* Slider Viewport Container */}
-      <div className="relative w-full px-1 pb-4">
-        {/* Left Chevron at corner */}
+      <div className="relative w-full pb-2">
+        {/* Left Chevron */}
         {totalSlides > 1 && (
           <button
             type="button"
             onClick={handlePrev}
-            className="absolute -left-3 md:-left-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-gray-50 text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+            className="hidden md:flex absolute left-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200 shadow-md items-center justify-center hover:bg-white text-slate-600 hover:text-blue-600 transition-all cursor-pointer"
             aria-label="Previous Slide"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -116,24 +161,24 @@ export const DealsOfTheDay = () => {
 
         {/* Viewport */}
         <div
-          className="vouchiqo-carousel-viewport w-full overflow-hidden cursor-grab active:cursor-grabbing py-2"
+          className="w-full overflow-hidden cursor-grab active:cursor-grabbing py-2"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
         >
           <div
-            className="vouchiqo-carousel-container w-full flex transition-transform duration-500 ease-in-out"
+            className="w-full flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${selectedIndex * 100}%)` }}
           >
             {slides.map((slideItems, slideIdx) => (
               <div
                 key={slideIdx}
-                className="vouchiqo-carousel-slide w-full flex-shrink-0"
+                className="w-full flex-shrink-0"
               >
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5 items-stretch">
                   {slideItems.map((product, idx) => (
-                    <ProductOfferCard key={idx} product={product} />
+                    <ProductOfferCard key={product._id || idx} product={product} />
                   ))}
                 </div>
               </div>
@@ -141,12 +186,12 @@ export const DealsOfTheDay = () => {
           </div>
         </div>
 
-        {/* Right Chevron at corner */}
+        {/* Right Chevron */}
         {totalSlides > 1 && (
           <button
             type="button"
             onClick={handleNext}
-            className="absolute -right-3 md:-right-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-gray-50 text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+            className="hidden md:flex absolute right-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200 shadow-md items-center justify-center hover:bg-white text-slate-600 hover:text-blue-600 transition-all cursor-pointer"
             aria-label="Next Slide"
           >
             <ChevronRight className="w-5 h-5" />
@@ -158,3 +203,4 @@ export const DealsOfTheDay = () => {
 };
 
 export default DealsOfTheDay;
+

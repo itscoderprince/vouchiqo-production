@@ -9,9 +9,6 @@ const ConfirmationModal = dynamicImport(() => import("@/components/shared/modals
   ssr: false,
 });
 
-const HowItWorks = dynamicImport(() =>
-  import("../HowItWorks").then((mod) => mod.HowItWorks),
-);
 const Testimonials = dynamicImport(() =>
   import("../Testimonials").then((mod) => mod.Testimonials),
 );
@@ -35,7 +32,6 @@ import { useSession } from "@/lib/auth-client";
 import { HeroSection } from "../HeroSection";
 import PopularOffers from "../PopularOffers";
 import PopularStores from "../PopularStores";
-import { DUMMY_TAB_COUPONS } from "./constants";
 import DealsOfTheDay from "./DealsOfTheDay";
 import InterestBanner from "./InterestBanner";
 import InterestSheet from "./InterestSheet";
@@ -44,7 +40,6 @@ import PopupBannerModal from "./PopupBannerModal";
 // Component page sections
 import LeadingTaglineBar from "./LeadingTaglineBar";
 import NewsletterSubscription from "./NewsletterSubscription";
-import TodayTopCoupons from "./TodayTopCoupons";
 import TrendingOffer from "./TrendingOffer";
 
 export function HomeClient({
@@ -52,6 +47,7 @@ export function HomeClient({
   latestCoupons = [],
   popularMerchants = [],
   banners = [],
+  affiliateProducts = [],
 }) {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -75,9 +71,6 @@ export function HomeClient({
 
   // Interest banner state
   const [showInterestBanner, setShowInterestBanner] = useState(false);
-
-  // Today's Top Coupons filtering state
-  const [couponTab, setCouponTab] = useState("most-used");
 
   // Mount logic
   useEffect(() => {
@@ -124,180 +117,8 @@ export function HomeClient({
     }
   };
 
-  // Filter today's top coupons tab
-  const filteredTabCoupons = useMemo(() => {
-    const allCoupons = [...initialCoupons, ...latestCoupons];
-
-    // Deduplicate by ID
-    const uniqueCoupons = [];
-    const seenIds = new Set();
-    for (const c of allCoupons) {
-      if (!seenIds.has(c._id)) {
-        seenIds.add(c._id);
-        uniqueCoupons.push(c);
-      }
-    }
-
-    if (couponTab === "most-used") {
-      return uniqueCoupons.slice(0, 12);
-    }
-
-    const dbFiltered = uniqueCoupons
-      .filter((c) => {
-        const category = c.category?.toLowerCase() || "";
-        const title = c.title?.toLowerCase() || "";
-
-        switch (couponTab) {
-          case "travel":
-            return (
-              category.includes("travel") ||
-              category.includes("hotel") ||
-              category.includes("hospitality")
-            );
-          case "fashion":
-            return (
-              category.includes("fashion") ||
-              category.includes("clothing") ||
-              category.includes("apparel") ||
-              title.includes("fashion")
-            );
-          case "food":
-            return (
-              category.includes("food") ||
-              category.includes("dining") ||
-              title.includes("food") ||
-              title.includes("pizza")
-            );
-          case "electronics":
-            return (
-              category.includes("electronics") ||
-              category.includes("gadget") ||
-              title.includes("laptop") ||
-              title.includes("soundbar")
-            );
-          case "beauty":
-            return (
-              category.includes("beauty") ||
-              category.includes("wellness") ||
-              category.includes("skincare")
-            );
-          case "home":
-            return (
-              category.includes("home") ||
-              category.includes("living") ||
-              category.includes("furniture")
-            );
-          case "home-improvement":
-            return (
-              category.includes("home-improvement") ||
-              category.includes("improvement") ||
-              category.includes("tiles") ||
-              category.includes("hardware")
-            );
-          case "fitness":
-            return (
-              category.includes("fitness") ||
-              category.includes("health") ||
-              category.includes("healthcare") ||
-              category.includes("gym")
-            );
-          case "education":
-            return (
-              category.includes("education") ||
-              category.includes("course") ||
-              category.includes("coaching") ||
-              category.includes("learning")
-            );
-          case "kids-baby":
-            return (
-              category.includes("kids") ||
-              category.includes("baby") ||
-              category.includes("toy")
-            );
-          case "jewellery":
-            return (
-              category.includes("jewel") ||
-              category.includes("accessories") ||
-              category.includes("watch")
-            );
-          case "automotive":
-            return (
-              category.includes("automotive") ||
-              category.includes("car") ||
-              category.includes("auto") ||
-              category.includes("service")
-            );
-          case "entertainment":
-            return (
-              category.includes("entertainment") ||
-              category.includes("game") ||
-              category.includes("gaming") ||
-              category.includes("show")
-            );
-          case "grocery":
-            return (
-              category.includes("grocery") ||
-              category.includes("essential") ||
-              category.includes("food")
-            );
-          case "finance":
-            return (
-              category.includes("finance") ||
-              category.includes("insurance") ||
-              category.includes("loan") ||
-              category.includes("bank")
-            );
-          default:
-            return true;
-        }
-      })
-      .slice(0, 12);
-
-    const isRanchi =
-      city?.toLowerCase() === "ranchi" || city?.toLowerCase() === "jharkhand";
-    let result =
-      dbFiltered.length > 0 ? dbFiltered : DUMMY_TAB_COUPONS[couponTab] || [];
-
-    // 1. Tag elevated/local coupons
-    result = result.map((coupon) => {
-      const isHomeImprovement =
-        coupon.category === "home-improvement" || coupon.category === "home";
-      const isMarbella =
-        coupon.merchantId?.businessName?.toLowerCase().includes("marbella") ||
-        coupon.title?.toLowerCase().includes("marbella");
-      const isLocalMerchant =
-        coupon.merchantId?.city?.toLowerCase() === "ranchi" ||
-        coupon.merchantId?.city?.toLowerCase() === "jharkhand" ||
-        isMarbella;
-
-      return {
-        ...coupon,
-        isLocal: isLocalMerchant || (isRanchi && isHomeImprovement),
-      };
-    });
-
-    // 2. Sort/Reorder:
-    // Priority A: if isRanchi is true, elevate coupons where isLocal is true
-    // Priority B: if user has savedInterests, elevate coupons whose category is in savedInterests
-    result = [...result].sort((a, b) => {
-      if (isRanchi) {
-        if (a.isLocal && !b.isLocal) return -1;
-        if (!a.isLocal && b.isLocal) return 1;
-      }
-
-      const aHasInterest = savedInterests?.includes(a.category);
-      const bHasInterest = savedInterests?.includes(b.category);
-      if (aHasInterest && !bHasInterest) return -1;
-      if (!aHasInterest && bHasInterest) return 1;
-
-      return 0;
-    });
-
-    return result;
-  }, [couponTab, initialCoupons, latestCoupons, city, savedInterests]);
-
   return (
-    <div className="min-h-screen flex flex-col bg-brand-surface text-brand-text">
+    <div className="min-h-screen flex flex-col bg-brand-surface text-brand-text w-full">
       {/* Sticky Navbar */}
       <Navbar />
 
@@ -325,23 +146,15 @@ export function HomeClient({
       </main>
 
       {/* Full-bleed Edge-to-Edge Sections */}
-      <HowItWorks coupons={initialCoupons} />
       <RevivalPromo />
 
       {/* Main Container */}
       <main className="w-full px-1 md:px-8 py-2 space-y-12">
-        {/* 10. Today's Top Coupons & Offers */}
-        <TodayTopCoupons
-          couponTab={couponTab}
-          setCouponTab={setCouponTab}
-          filteredTabCoupons={filteredTabCoupons}
-        />
-
         {/* 11. Trending Offer Banner */}
         <TrendingOffer banners={banners} />
 
-        {/* 12. Deals of the Day (Product retail grid) */}
-        <DealsOfTheDay />
+        {/* 12. Deals of the Day / Affiliate Products */}
+        <DealsOfTheDay affiliateProducts={affiliateProducts} />
 
         {/* 20. Latest Articles carousel */}
         <LatestArticles />

@@ -9,7 +9,7 @@ import UserMenu from "./UserMenu";
 const NOTIFICATION_COUNT = 2;
 
 export const Navbar = () => (
-  <header className="w-full bg-white font-sans border-b border-slate-200/90 shadow-md shadow-slate-900/10 sticky top-0 z-40">
+  <header className="w-full bg-white font-sans border-b border-slate-200/90 shadow-md shadow-slate-900/5 sticky top-0 z-50">
     <PromoBanner />
     <div className="w-full px-4 py-3 flex items-center justify-between gap-4">
       {/* Left: Logo */}

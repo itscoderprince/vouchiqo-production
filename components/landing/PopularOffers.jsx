@@ -68,10 +68,10 @@ function PopularOfferCard({ coupon }) {
   return (
     <Link
       href={`/deals/${coupon._id}`}
-      className="po-card group relative rounded-xl no-underline cursor-pointer block border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(15,23,42,0.12)] hover:border-blue-500 transition-all duration-300 select-none text-left overflow-hidden"
+      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(15,23,42,0.12)] hover:border-blue-500 transition-all duration-300 select-none text-left overflow-hidden h-full"
     >
-      {/* LAYER 1: Full Background Banner Image */}
-      <div className="po-card__banner absolute top-0 left-0 w-full h-full rounded-xl overflow-hidden bg-slate-100">
+      {/* 1920x1080 (16:9) Aspect Ratio Image Header */}
+      <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 shrink-0">
         <img
           src={coverImage}
           alt={coupon.title || "Offer"}
@@ -82,27 +82,27 @@ function PopularOfferCard({ coupon }) {
               "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop";
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
       </div>
 
-      {/* LAYER 2: White Content Box at Bottom */}
-      <div className="po-card__box absolute bottom-0 left-0 w-full bg-white rounded-b-xl rounded-tl-[6px] px-3.5 pt-6 pb-3 sm:px-4 sm:pt-7 sm:pb-3.5">
-        {/* LAYER 3: Circular Logo straddling top edge */}
+      {/* Content Box with Dynamic Depth */}
+      <div className="relative flex-1 flex flex-col justify-between bg-white px-3 sm:px-4 pt-5 sm:pt-6 pb-3 sm:pb-3.5">
+        {/* Floating Merchant Circular Logo */}
         <div
-          className="po-card__logo-wrap absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-md"
+          className="absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-md p-0.5"
           style={{
-            width: "40px",
-            height: "40px",
-            top: "-22px",
+            width: "38px",
+            height: "38px",
+            top: "-19px",
             left: "14px",
-            zIndex: 3,
+            zIndex: 10,
           }}
         >
           <img
             src={logoUrl}
             referrerPolicy="no-referrer"
             alt={merchantName}
-            className="w-7 h-7 object-contain p-0.5 rounded-full select-none pointer-events-none"
+            className="w-full h-full object-contain rounded-full select-none pointer-events-none"
             onError={(e) => {
               e.currentTarget.src =
                 "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234685E8' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
@@ -110,32 +110,36 @@ function PopularOfferCard({ coupon }) {
           />
         </div>
 
-        {/* Discount Title */}
-        <div className="mb-0.5">
-          <p className="po-card__title text-left text-[13px] sm:text-[15px] font-extrabold uppercase tracking-tight text-[#3E80DD] leading-tight">
-            {isExclusive ? "VOUCHIQO EXCLUSIVE" : discountFormatted}
-          </p>
+        {/* Details Area */}
+        <div>
+          {/* Discount Title */}
+          <div className="mb-0.5">
+            <p className="text-left text-[12px] sm:text-[14px] font-extrabold uppercase tracking-tight text-[#3E80DD] leading-tight">
+              {isExclusive ? "VOUCHIQO EXCLUSIVE" : discountFormatted}
+            </p>
+          </div>
+
+          {/* Coupon Description / Title */}
+          <div className="mb-2">
+            <p className="text-left text-[11px] sm:text-[12.5px] text-slate-800 leading-snug font-bold line-clamp-2">
+              {coupon.title}
+            </p>
+          </div>
         </div>
 
-        {/* Coupon Description / Title */}
-        <div className="po-card__desc-wrap mb-2 pb-1.5">
-          <p className="po-card__desc text-left text-[11px] sm:text-[12.5px] text-slate-800 leading-snug font-bold line-clamp-2">
-            {coupon.title}
-          </p>
-        </div>
+        {/* Action Button Area */}
+        <div className="mt-auto pt-1">
+          {/* Mobile "GRAB NOW" */}
+          <div className="sm:hidden">
+            <span className="text-left text-[10px] font-black uppercase tracking-wider text-[#3E80DD]">
+              GRAB NOW &rarr;
+            </span>
+          </div>
 
-        {/* "GRAB NOW" text link for small screens */}
-        <div className="po-card__grab sm:hidden mt-1">
-          <span className="text-left text-[10px] font-black uppercase tracking-wider text-[#3E80DD]">
-            GRAB NOW &rarr;
-          </span>
-        </div>
-
-        {/* Hover Claim Now button (Desktop) */}
-        <div className="po-card__extra hidden sm:block">
-          <div className="po-card__redeem mt-1.5">
+          {/* Desktop Claim Button */}
+          <div className="hidden sm:block">
             <span
-              className="po-card__redeem-btn block w-full rounded-md py-1.5 text-center text-[11px] font-bold uppercase tracking-wider text-white transition-all shadow-xs"
+              className="block w-full rounded-md py-1.5 text-center text-[11px] font-bold uppercase tracking-wider text-white transition-all shadow-xs group-hover:brightness-95"
               style={{ backgroundColor: "#3E80DD" }}
             >
               Claim now
@@ -143,53 +147,6 @@ function PopularOfferCard({ coupon }) {
           </div>
         </div>
       </div>
-
-      <style>{`
-        .po-card {
-          --anim-duration: 400ms;
-          --anim-ease-v4: cubic-bezier(0.4, 0, 0.2, 1);
-          --logo-lift: 36px;
-          position: relative;
-          height: 195px;
-        }
-        @media (min-width: 768px) {
-          .po-card {
-            height: 270px;
-          }
-        }
-
-        .po-card__banner { z-index: 1; }
-        .po-card__box { z-index: 2; }
-        .po-card__logo-wrap { z-index: 3; }
-
-        .po-card__banner {
-          transition: transform var(--anim-duration) var(--anim-ease-v4);
-        }
-        .po-card:hover .po-card__banner {
-          transform: translateY(calc(-1 * var(--logo-lift)));
-        }
-
-        .po-card__box {
-          transform: translateY(0);
-          transition: transform var(--anim-duration) var(--anim-ease-v4);
-        }
-        @media (min-width: 768px) {
-          .po-card__box {
-            transform: translateY(46px);
-          }
-          .po-card:hover .po-card__box {
-            transform: translateY(0) !important;
-          }
-        }
-
-        .po-card__desc-wrap {
-          border-bottom: 2px dashed transparent;
-          transition: border-color var(--anim-duration) var(--anim-ease-v4);
-        }
-        .po-card:hover .po-card__desc-wrap {
-          border-color: #cbd5e1 !important;
-        }
-      `}</style>
     </Link>
   );
 }
@@ -338,30 +295,11 @@ export default function PopularOffers({ coupons = [] }) {
 
   return (
     <section className="g-sub-banner text-left w-full select-none relative">
-      {/* Custom Section Header with Carousel Controls */}
+      {/* Custom Section Header */}
       <div className="flex justify-between items-center mb-5 sm:mb-6">
         <h2 className="text-lg md:text-2xl font-bold text-brand-text font-heading">
           Popular Offers of the Day
         </h2>
-        <div className="flex items-center gap-2 md:gap-4">
-          <EmblaCarouselControls
-            totalSlides={totalSlides}
-            selectedIndex={selectedIndex}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onDotClick={setSelectedIndex}
-            className="flex"
-          />
-          <Link
-            href="/deals"
-            className="text-brand-blue text-xs font-semibold hover:underline flex items-center gap-1 transition-colors shrink-0"
-          >
-            <span>View All</span>
-            <div className="bg-brand-blue/5 rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
-              <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-brand-blue" />
-            </div>
-          </Link>
-        </div>
       </div>
 
       {/* Carousel viewport & slides */}
@@ -403,7 +341,7 @@ export default function PopularOffers({ coupons = [] }) {
                 className="w-full flex-shrink-0 min-w-full"
               >
                 {/* Single Row: 2 columns on mobile, 4 columns on desktop */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 items-stretch">
                   {slideItems.map((coupon) => (
                     <PopularOfferCard key={coupon._id} coupon={coupon} />
                   ))}
