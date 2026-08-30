@@ -63,7 +63,7 @@ export default function AffiliateProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-row items-center gap-2.5 sm:gap-3.5 justify-between shadow-2xs hover:shadow-md hover:border-blue-500/80 transition-all duration-200 text-left font-sans group">
+    <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-row items-center gap-2.5 sm:gap-3.5 justify-between shadow-2xs hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] transition-all duration-200 text-left font-sans group">
       {/* Product Image & Badge */}
       <div className="relative w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 rounded-lg sm:rounded-xl overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center">
         {imageUrl ? (

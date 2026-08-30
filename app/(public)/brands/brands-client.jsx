@@ -39,10 +39,10 @@ export default function BrandsClient({ brands = [] }) {
 
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
-            <h1 className="text-[13.5px] sm:text-[15px] font-normal text-slate-800 tracking-normal">
+            <h1 className="text-[13.5px] sm:text-[15px] font-medium text-[#F72853] tracking-normal">
               All Partner Brands &amp; Stores
             </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-normal bg-blue-50 text-blue-700 border border-blue-200/60">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-normal bg-rose-50 text-[#F72853] border border-rose-200/60">
               {filteredBrands.length} Brands
             </span>
           </div>

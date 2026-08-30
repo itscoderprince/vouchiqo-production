@@ -68,7 +68,7 @@ function PopularOfferCard({ coupon }) {
   return (
     <Link
       href={`/deals/${coupon._id}`}
-      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(15,23,42,0.12)] hover:border-blue-500 transition-all duration-300 select-none text-left overflow-hidden h-full"
+      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200/90 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] transition-all duration-300 select-none text-left overflow-hidden h-full"
     >
       {/* 1920x1080 (16:9) Aspect Ratio Image Header */}
       <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 shrink-0">
@@ -89,7 +89,7 @@ function PopularOfferCard({ coupon }) {
       <div className="relative flex-1 flex flex-col justify-between bg-white px-3 sm:px-4 pt-5 sm:pt-6 pb-3 sm:pb-3.5">
         {/* Floating Merchant Circular Logo */}
         <div
-          className="absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-md p-0.5"
+          className="absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-md p-0.5 group-hover:border-[#F72853]/40 transition-colors"
           style={{
             width: "38px",
             height: "38px",
@@ -105,7 +105,7 @@ function PopularOfferCard({ coupon }) {
             className="w-full h-full object-contain rounded-full select-none pointer-events-none"
             onError={(e) => {
               e.currentTarget.src =
-                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234685E8' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
+                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23F72853' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
             }}
           />
         </div>
@@ -114,14 +114,14 @@ function PopularOfferCard({ coupon }) {
         <div>
           {/* Discount Title */}
           <div className="mb-0.5">
-            <p className="text-left text-[12px] sm:text-[14px] font-extrabold uppercase tracking-tight text-[#3E80DD] leading-tight">
+            <p className="text-left text-[11.5px] sm:text-[13px] font-medium uppercase tracking-tight text-[#F72853] leading-tight">
               {isExclusive ? "VOUCHIQO EXCLUSIVE" : discountFormatted}
             </p>
           </div>
 
           {/* Coupon Description / Title */}
-          <div className="mb-2">
-            <p className="text-left text-[11px] sm:text-[12.5px] text-slate-800 leading-snug font-bold line-clamp-2">
+          <div className="mb-1.5 sm:mb-2">
+            <p className="text-left text-[11px] sm:text-xs text-slate-800 group-hover:text-[#F72853] transition-colors leading-snug font-normal line-clamp-2">
               {coupon.title}
             </p>
           </div>
@@ -131,7 +131,7 @@ function PopularOfferCard({ coupon }) {
         <div className="mt-auto pt-1">
           {/* Mobile "GRAB NOW" */}
           <div className="sm:hidden">
-            <span className="text-left text-[10px] font-black uppercase tracking-wider text-[#3E80DD]">
+            <span className="text-left text-[10px] font-medium uppercase tracking-wider text-[#F72853]">
               GRAB NOW &rarr;
             </span>
           </div>
@@ -139,7 +139,7 @@ function PopularOfferCard({ coupon }) {
           {/* Desktop Claim Button */}
           <div className="hidden sm:block">
             <span
-              className="block w-full rounded-md py-1.5 text-center text-[11px] font-bold uppercase tracking-wider text-white transition-all shadow-xs group-hover:brightness-95"
+              className="block w-full rounded-md py-1 text-center text-[11px] font-normal uppercase tracking-wider text-white transition-all shadow-2xs group-hover:brightness-95"
               style={{ backgroundColor: "#3E80DD" }}
             >
               Claim now
@@ -296,8 +296,8 @@ export default function PopularOffers({ coupons = [] }) {
   return (
     <section className="g-sub-banner text-left w-full select-none relative">
       {/* Custom Section Header */}
-      <div className="flex justify-between items-center mb-5 sm:mb-6">
-        <h2 className="text-lg md:text-2xl font-bold text-brand-text font-heading">
+      <div className="flex justify-between items-center mb-3.5 sm:mb-4">
+        <h2 className="text-base sm:text-lg md:text-xl font-medium text-[#F72853] tracking-tight">
           Popular Offers of the Day
         </h2>
       </div>

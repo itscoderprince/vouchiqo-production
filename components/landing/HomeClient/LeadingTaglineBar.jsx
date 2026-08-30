@@ -26,7 +26,7 @@ export const LeadingTaglineBar = () => (
 
         {/* Center tagline */}
         <h1
-          className="text-center font-bold text-xs sm:text-sm text-brand-navy whitespace-normal sm:whitespace-nowrap shrink-0 leading-relaxed uppercase tracking-wider"
+          className="text-center font-medium text-xs sm:text-[13px] text-slate-800 whitespace-normal sm:whitespace-nowrap shrink-0 leading-relaxed uppercase tracking-wider"
           style={{
             fontFamily: '"Nunito Sans", sans-serif',
           }}

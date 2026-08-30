@@ -91,7 +91,7 @@ export default function CouponCard({
     : null;
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-200 shadow-2xs hover:shadow-md hover:border-blue-300 font-sans text-left">
+    <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-200 shadow-2xs hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] font-sans text-left group">
       {/* Main card row */}
       <div className="flex flex-row items-stretch">
         {/* Discount badge column */}

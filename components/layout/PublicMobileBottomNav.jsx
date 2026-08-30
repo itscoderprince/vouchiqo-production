@@ -60,20 +60,20 @@ export default function PublicMobileBottomNav() {
             prefetch={true}
             className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-lg transition-colors focus:outline-none active:scale-95 ${
               isActive
-                ? "text-black font-bold"
-                : "text-slate-400 hover:text-slate-700"
+                ? "text-[#F72853] font-medium"
+                : "text-slate-400 hover:text-slate-700 font-normal"
             }`}
           >
             <div className="flex items-center justify-center w-7 h-7">
               <Icon
                 className={`w-5 h-5 transition-transform duration-200 ${
-                  isActive ? "stroke-[2.6] text-black scale-105" : "stroke-[1.8] text-slate-400"
+                  isActive ? "stroke-[2.2] text-[#F72853] scale-105" : "stroke-[1.6] text-slate-400"
                 }`}
               />
             </div>
             <span
               className={`text-[10px] tracking-tight mt-0.5 ${
-                isActive ? "font-bold text-black" : "font-medium text-slate-400"
+                isActive ? "font-medium text-[#F72853]" : "font-normal text-slate-400"
               }`}
             >
               {item.label}

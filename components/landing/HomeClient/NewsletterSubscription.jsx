@@ -8,10 +8,10 @@ export const NewsletterSubscription = () => {
           <Mail className="w-5 h-5" />
         </div>
         <div>
-          <h3 className="font-semibold text-slate-800 text-sm leading-tight">
+          <h3 className="font-medium text-slate-800 text-sm leading-tight">
             Subscribe to Best Offers
           </h3>
-          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+          <p className="text-[11px] text-slate-500 mt-0.5 font-normal">
             Get the latest &amp; verified offer alerts directly in your inbox.
           </p>
         </div>
@@ -20,11 +20,11 @@ export const NewsletterSubscription = () => {
         <input
           type="email"
           placeholder="Enter your email address"
-          className="w-full px-3.5 py-2 border border-slate-200 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs text-slate-700 font-medium placeholder:text-slate-400/80 shadow-xs"
+          className="w-full px-3.5 py-1.5 border border-slate-200 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs text-slate-700 font-normal placeholder:text-slate-400/80 shadow-2xs"
         />
         <button
           type="button"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer border-0 shadow-sm hover:shadow"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-normal whitespace-nowrap transition-colors cursor-pointer border-0 shadow-2xs"
         >
           Subscribe
         </button>

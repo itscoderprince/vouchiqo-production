@@ -83,357 +83,190 @@ function ArticleCard({ article }) {
   return (
     <Link
       href={article.href}
-      className="art-card group flex-shrink-0 no-underline cursor-pointer"
-      style={{ width: "100%" }}
+      className="art-card group block no-underline cursor-pointer select-none h-full"
     >
-      <div
-        className="art-card__inner flex flex-col rounded-2xl overflow-hidden bg-white"
-        style={{
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-          transition:
-            "transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease",
-          height: "100%",
-        }}
-      >
+      <div className="art-card__inner flex flex-col rounded-2xl overflow-hidden bg-white border border-slate-200/90 hover:border-[#F72853] transition-all duration-300 hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] shadow-2xs h-full">
         {/* Cover image */}
-        <div
-          style={{
-            height: "150px",
-            overflow: "hidden",
-            flexShrink: 0,
-            position: "relative",
-          }}
-        >
+        <div className="h-[140px] sm:h-[150px] overflow-hidden shrink-0 relative bg-slate-100">
           <img
             src={article.image}
             alt={article.title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "transform 0.5s ease",
-            }}
-            className="art-card__img"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
+            loading="lazy"
           />
-          {/* Category pill (unified brand blue color) */}
-          <span
-            className="bg-brand-blue"
-            style={{
-              position: "absolute",
-              top: "12px",
-              left: "12px",
-              color: "#fff",
-              fontSize: "10px",
-              fontWeight: 700,
-              padding: "3px 10px",
-              borderRadius: "999px",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
+          {/* Category pill */}
+          <span className="absolute top-2.5 left-2.5 bg-rose-50 text-[#F72853] border border-rose-200/80 text-[9px] sm:text-[9.5px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
             {article.category}
           </span>
         </div>
 
         {/* Content */}
-        <div className="flex flex-col gap-2 p-4 flex-1">
-          <h3
-            className="line-clamp-2"
-            style={{
-              fontSize: "13.5px",
-              fontWeight: 700,
-              color: "#0f172a",
-              lineHeight: 1.45,
-              margin: 0,
-            }}
-          >
+        <div className="flex flex-col gap-1.5 p-3.5 flex-1 text-left">
+          <h3 className="line-clamp-2 text-xs sm:text-[12.5px] font-medium text-slate-800 group-hover:text-[#F72853] transition-colors leading-snug">
             {article.title}
           </h3>
-          <p
-            className="line-clamp-2"
-            style={{
-              fontSize: "12px",
-              color: "#64748b",
-              lineHeight: 1.6,
-              margin: 0,
-              flex: 1,
-            }}
-          >
+          <p className="line-clamp-2 text-[11px] text-slate-500 font-normal leading-relaxed">
             {article.excerpt}
           </p>
 
           {/* Meta row */}
-          <div
-            className="flex items-center gap-3 mt-auto pt-3"
-            style={{ borderTop: "1px solid #f1f5f9" }}
-          >
-            <span
-              className="flex items-center gap-1"
-              style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 600 }}
-            >
-              <Clock style={{ width: "11px", height: "11px" }} />
+          <div className="flex items-center gap-2 mt-auto pt-2.5 border-t border-slate-100 text-[10.5px] sm:text-[11px] text-slate-400 font-normal">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3 text-slate-400" />
               {article.readTime}
             </span>
-            <span
-              style={{
-                width: "3px",
-                height: "3px",
-                borderRadius: "50%",
-                background: "#cbd5e1",
-              }}
-            />
-            <span
-              style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 600 }}
-            >
-              {article.date}
-            </span>
-            <span
-              className="ml-auto flex items-center gap-1 text-brand-blue"
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-              }}
-            >
+            <span>•</span>
+            <span>{article.date}</span>
+            <span className="ml-auto font-medium text-[#F72853] group-hover:translate-x-0.5 transition-transform">
               Read →
             </span>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .art-card__inner:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 16px 36px rgba(0,0,0,0.11) !important;
-        }
-        .art-card:hover .art-card__img {
-          transform: scale(1.06);
-        }
-      `}</style>
     </Link>
   );
 }
 
 export function LatestArticles() {
-  const trackRef = useRef(null);
-  const [current, setCurrent] = useState(0);
-  const [cardWidth, setCardWidth] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(4);
+  const scrollRef = useRef(null);
+  const isPaused = useRef(false);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftStart = useRef(0);
 
-  const total = ARTICLES.length;
-  const maxIndex = Math.max(0, total - Math.ceil(visibleCount));
+  // Triple the items so there is an uninterrupted loop
+  const displayArticles = [...ARTICLES, ...ARTICLES, ...ARTICLES];
 
-  // Measure card width on mount & resize
   useEffect(() => {
-    function measure() {
-      if (trackRef.current) {
-        const width = window.innerWidth;
-        let visible = 4;
-        if (width < 640) {
-          visible = 1.15; // Peek next card
-        } else if (width < 1024) {
-          visible = 2.2;
-        }
-        setVisibleCount(visible);
+    const el = scrollRef.current;
+    if (!el) return;
 
-        const gap = 20;
-        const containerW = trackRef.current.parentElement.offsetWidth;
-        setCardWidth((containerW - gap * (Math.ceil(visible) - 1)) / visible);
+    let animId;
+    const speed = 0.75; // Smooth slow gliding pace
+
+    const tick = () => {
+      if (!isPaused.current && !isDragging.current && el) {
+        el.scrollLeft += speed;
+        // When we pass one third of the scrollable content, seamlessly wrap back
+        const singleSetWidth = el.scrollWidth / 3;
+        if (el.scrollLeft >= singleSetWidth * 2) {
+          el.scrollLeft -= singleSetWidth;
+        } else if (el.scrollLeft <= 0) {
+          el.scrollLeft += singleSetWidth;
+        }
       }
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
-  // Auto-slide every 3.5s
-  useEffect(() => {
-    if (maxIndex <= 0) return;
-    const id = setInterval(() => {
-      setCurrent((prev) => (prev >= maxIndex ? 0 : prev + 1));
-    }, 3500);
-    return () => clearInterval(id);
-  }, [maxIndex]);
-
-  const goPrev = () => setCurrent((p) => (p <= 0 ? maxIndex : p - 1));
-  const goNext = () => setCurrent((p) => (p >= maxIndex ? 0 : p + 1));
-
-  // Touch & drag gestures
-  const dragStart = useRef(0);
-  const isDragging = useRef(false);
-
-  const handleTouchStart = (e) => {
-    dragStart.current = e.touches[0].clientX;
-    isDragging.current = true;
+  const handlePrev = () => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({ left: -320, behavior: "smooth" });
   };
 
-  const handleTouchEnd = (e) => {
-    if (!isDragging.current) return;
-    const dragEnd = e.changedTouches[0].clientX;
-    const diff = dragStart.current - dragEnd;
-    if (diff > 50) {
-      goNext();
-    } else if (diff < -50) {
-      goPrev();
-    }
-    isDragging.current = false;
+  const handleNext = () => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({ left: 320, behavior: "smooth" });
   };
 
+  // Mouse drag support
   const handleMouseDown = (e) => {
-    dragStart.current = e.clientX;
     isDragging.current = true;
+    isPaused.current = true;
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeftStart.current = scrollRef.current.scrollLeft;
   };
 
-  const handleMouseUp = (e) => {
-    if (!isDragging.current) return;
-    const dragEnd = e.clientX;
-    const diff = dragStart.current - dragEnd;
-    if (diff > 50) {
-      goNext();
-    } else if (diff < -50) {
-      goPrev();
-    }
+  const handleMouseMove = (e) => {
+    if (!isDragging.current || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.2;
+    scrollRef.current.scrollLeft = scrollLeftStart.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
     isDragging.current = false;
+    isPaused.current = false;
   };
-
-  const gap = 20;
-  const offset = current * (cardWidth + gap);
 
   return (
-    <section className="text-left w-full overflow-hidden select-none px-4 md:px-0">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <section className="text-left w-full overflow-hidden select-none pb-2">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-3.5 sm:mb-4">
         <div>
-          <h2
-            className="font-bold leading-tight"
-            style={{ fontSize: "clamp(18px,2.5vw,22px)", color: "#0f172a" }}
-          >
+          <h2 className="font-medium leading-tight text-[#F72853] text-base sm:text-lg md:text-xl tracking-tight">
             Latest Articles &amp; Guides
           </h2>
-          <p
-            style={{
-              fontSize: "11px",
-              color: "#64748b",
-              fontWeight: 500,
-              margin: "2px 0 0",
-            }}
-          >
+          <p className="text-[11px] text-slate-500 font-normal mt-0.5">
             Tips, deals breakdowns &amp; shopping guides
           </p>
         </div>
 
-        {/* Nav arrows */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Nav Controls */}
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={goPrev}
+            onClick={handlePrev}
             aria-label="Previous"
-            className="art-nav-btn"
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              border: "1.5px solid #e2e8f0",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 hover:text-[#F72853] text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs"
           >
-            <ChevronLeft
-              style={{ width: "18px", height: "18px", color: "#334155" }}
-            />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             type="button"
-            onClick={goNext}
+            onClick={handleNext}
             aria-label="Next"
-            className="art-nav-btn"
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              border: "1.5px solid #e2e8f0",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 hover:text-[#F72853] text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs"
           >
-            <ChevronRight
-              style={{ width: "18px", height: "18px", color: "#334155" }}
-            />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Slider track */}
+      {/* Infinite Scrolling Viewport */}
       <div
-        className="cursor-grab active:cursor-grabbing"
-        style={{ overflow: "hidden" }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
+        className="relative w-full overflow-hidden py-1"
+        onMouseEnter={() => {
+          isPaused.current = true;
+        }}
+        onMouseLeave={handleMouseUpOrLeave}
       >
+        {/* Soft edge gradient masks */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-[#f8fafc] via-[#f8fafc]/80 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-[#f8fafc] via-[#f8fafc]/80 to-transparent z-10" />
+
         <div
-          ref={trackRef}
+          ref={scrollRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          onTouchStart={() => {
+            isPaused.current = true;
+          }}
+          onTouchEnd={() => {
+            isPaused.current = false;
+          }}
+          className="flex gap-3.5 sm:gap-4.5 overflow-x-auto no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing"
           style={{
-            display: "flex",
-            gap: `${gap}px`,
-            transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1)",
-            transform: `translateX(-${offset}px)`,
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
           }}
         >
-          {ARTICLES.map((article) => (
+          {displayArticles.map((article, idx) => (
             <div
-              key={article.id}
-              style={{
-                width: cardWidth > 0 ? `${cardWidth}px` : "calc(25% - 15px)",
-                flexShrink: 0,
-              }}
+              key={`${article.id}-${idx}`}
+              className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0"
             >
               <ArticleCard article={article} />
             </div>
           ))}
         </div>
       </div>
-
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-2 mt-6">
-        {Array.from({ length: maxIndex + 1 }).map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => setCurrent(i)}
-            aria-label={`Go to slide ${i + 1}`}
-            style={{
-              width: i === current ? "20px" : "7px",
-              height: "7px",
-              borderRadius: "999px",
-              background: i === current ? "#2563eb" : "#cbd5e1",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-              padding: 0,
-            }}
-          />
-        ))}
-      </div>
-
-      <style>{`
-        .art-nav-btn:hover {
-          background: #f8fafc !important;
-          border-color: #94a3b8 !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.10) !important;
-        }
-      `}</style>
     </section>
   );
 }

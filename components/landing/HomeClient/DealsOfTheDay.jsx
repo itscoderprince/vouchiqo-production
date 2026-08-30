@@ -131,15 +131,15 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
   if (displayItems.length === 0) return null;
 
   return (
-    <section className="text-left w-full overflow-hidden select-none px-4 md:px-0 pb-4">
+    <section className="text-left w-full overflow-hidden select-none pb-2">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base md:text-2xl font-bold text-brand-text font-heading">
+      <div className="flex items-center justify-between mb-3.5 sm:mb-4">
+        <h2 className="text-base sm:text-lg md:text-xl font-medium text-[#F72853] tracking-tight">
           Affiliate Products
         </h2>
         <Link
           href="/deals"
-          className="text-xs md:text-sm font-semibold text-brand-blue hover:underline transition-all"
+          className="text-xs font-normal text-[#F72853] hover:underline transition-all"
         >
           View All →
         </Link>

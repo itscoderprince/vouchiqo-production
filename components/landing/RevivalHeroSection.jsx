@@ -80,8 +80,8 @@ export function RevivalHeroSection() {
           </h2>
 
           <p className="text-sm md:text-base text-slate-300 max-w-xl font-medium leading-relaxed">
-            Don't let an expired offer stop your checkout. Tell us the brand
-            and the offer code you tried, and we will work with the merchant to
+            Don't let an expired offer stop your checkout. Tell us the brand and
+            the offer code you tried, and we will work with the merchant to
             revive it for you.
           </p>
 
@@ -123,7 +123,7 @@ export function RevivalHeroSection() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Hostinger"
+                  placeholder="e.g., Ajmal Perfumes, Bewakoof"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                   className="w-full h-10 px-3 text-xs bg-white/5 border border-white/10 rounded-md text-white placeholder-slate-500 focus:outline-none focus:border-brand-warning transition-colors"

@@ -87,7 +87,7 @@ export const TrendingOffer = ({ banners: initialBanners = [] }) => {
   return (
     <section className="text-left w-full select-none">
       {/* Heading */}
-      <h2 className="text-base md:text-xl font-bold text-brand-text mb-3">
+      <h2 className="text-base sm:text-lg md:text-xl font-medium text-[#F72853] tracking-tight mb-3 sm:mb-3.5">
         Trending Offer
       </h2>
 

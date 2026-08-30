@@ -641,9 +641,9 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
           {/* Related Coupons Sidebar (Right) with soft colorful accents */}
           <div className="lg:col-span-4 space-y-4">
             <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 text-left">
-              <h2 className="text-xs sm:text-[13px] font-medium text-slate-800 uppercase tracking-wider mb-3.5 pb-2 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-xs sm:text-[13px] font-medium text-[#F72853] uppercase tracking-wider mb-3.5 pb-2 border-b border-slate-100 flex items-center justify-between">
                 <span>Vouchiqo Related Offers</span>
-                <span className="text-[10px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/60">
+                <span className="text-[10px] font-normal text-[#F72853] bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60">
                   {relatedCoupons.length} Deals
                 </span>
               </h2>
@@ -663,24 +663,24 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                       <Link
                         key={c._id}
                         href={`/deals/${c._id}`}
-                        className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:border-blue-200 hover:bg-gradient-to-r hover:from-blue-50/40 hover:to-indigo-50/20 transition-all duration-200 group"
+                        className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:border-[#F72853] hover:bg-gradient-to-r hover:from-rose-50/40 hover:to-pink-50/20 transition-all duration-200 group"
                       >
-                        <div className="w-11 h-11 rounded-lg border border-slate-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs group-hover:border-blue-200 transition-colors">
+                        <div className="w-11 h-11 rounded-lg border border-slate-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs group-hover:border-[#F72853]/40 transition-colors">
                           <img
                             src={cLogo}
                             alt={cBrand}
                             className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                             onError={(e) => {
                               e.target.src =
-                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233e80dd' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
+                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23F72853' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
                             }}
                           />
                         </div>
                         <div className="space-y-0.5 flex-1 min-w-0">
-                          <span className="text-[9.5px] sm:text-[10px] font-medium text-blue-700 bg-blue-50/80 border border-blue-200/50 px-1.5 py-0.2 rounded uppercase tracking-wider inline-block">
+                          <span className="text-[9.5px] sm:text-[10px] font-medium text-[#F72853] bg-rose-50 border border-rose-200/60 px-1.5 py-0.2 rounded uppercase tracking-wider inline-block">
                             {cDiscount}
                           </span>
-                          <h4 className="text-xs font-normal text-slate-700 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                          <h4 className="text-xs font-normal text-slate-700 line-clamp-1 group-hover:text-[#F72853] transition-colors">
                             {c.title}
                           </h4>
                         </div>

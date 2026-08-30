@@ -14,7 +14,7 @@ export default function ExpiredCoupons({
 
   return (
     <div className="space-y-3 pt-4">
-      <h3 className="text-sm font-extrabold text-[#4b5563] uppercase tracking-wider text-left">
+      <h3 className="text-xs sm:text-[13px] font-medium text-[#F72853] uppercase tracking-wider text-left">
         Expired Offers
       </h3>
       <div className="space-y-2">

@@ -137,7 +137,7 @@ export function HomeClient({
       <LeadingTaglineBar />
 
       {/* Main Container */}
-      <main className="w-full px-1 md:px-8 py-2 space-y-12">
+      <main className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
         {/* 8. Popular Offers of the Day */}
         <PopularOffers coupons={initialCoupons} />
 
@@ -149,7 +149,7 @@ export function HomeClient({
       <RevivalPromo />
 
       {/* Main Container */}
-      <main className="w-full px-1 md:px-8 py-2 space-y-12">
+      <main className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
         {/* 11. Trending Offer Banner */}
         <TrendingOffer banners={banners} />
 
@@ -161,7 +161,7 @@ export function HomeClient({
       </main>
 
       {/* 23. FAQ Section — full width on mobile */}
-      <div className="w-full max-w-7xl mx-auto px-0 md:px-8 py-6 mb-4">
+      <div className="w-full px-2.5 sm:px-4 md:px-5 py-4 mb-2">
         <FaqSection />
       </div>
 

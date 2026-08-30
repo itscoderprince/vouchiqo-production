@@ -101,7 +101,7 @@ export default function ProductOfferCard({ product }) {
       onClick={handleClick}
       target={affiliateUrl?.startsWith("http") ? "_blank" : "_self"}
       rel="noopener noreferrer"
-      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200/90 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(15,23,42,0.12)] hover:border-blue-500 transition-all duration-300 select-none text-left overflow-hidden h-full"
+      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200/90 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] transition-all duration-300 select-none text-left overflow-hidden h-full"
     >
       {/* ===== 16:9 Image Header ===== */}
       <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 shrink-0">
@@ -119,26 +119,21 @@ export default function ProductOfferCard({ product }) {
 
         {/* Top-Right Compact Badge */}
         {badgeText && (
-          <div
-            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 font-bold text-[8px] sm:text-[9.5px] uppercase tracking-wide text-white px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs"
-            style={{
-              background: "linear-gradient(135deg, #EA384D 0%, #c0202f 100%)",
-            }}
-          >
+          <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 font-normal text-[8px] sm:text-[9px] uppercase tracking-wide text-white px-1.5 sm:px-2 py-0.5 rounded-md shadow-2xs bg-gradient-to-r from-rose-500 to-[#F72853]">
             {badgeText}
           </div>
         )}
       </div>
 
       {/* ===== Content Box with Responsive Depth ===== */}
-      <div className="relative flex-1 flex flex-col justify-between bg-white px-2.5 sm:px-3.5 pt-4 sm:pt-5 pb-2.5 sm:pb-3">
+      <div className="relative flex-1 flex flex-col justify-between bg-white px-2.5 sm:px-3.5 pt-3.5 sm:pt-4 pb-2 sm:pb-2.5">
         {/* Floating Merchant Circular Logo */}
         <div
-          className="absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-sm p-0.5"
+          className="absolute flex items-center justify-center bg-white rounded-full border border-slate-100 shadow-2xs p-0.5 group-hover:border-[#F72853]/40 transition-colors"
           style={{
-            width: isMobile ? "28px" : "34px",
-            height: isMobile ? "28px" : "34px",
-            top: isMobile ? "-14px" : "-17px",
+            width: isMobile ? "28px" : "32px",
+            height: isMobile ? "28px" : "32px",
+            top: isMobile ? "-14px" : "-16px",
             left: isMobile ? "10px" : "12px",
             zIndex: 10,
           }}
@@ -156,11 +151,11 @@ export default function ProductOfferCard({ product }) {
         {/* Details */}
         <div>
           {/* Price Row */}
-          <div className="mb-0.5 sm:mb-1">
-            <p className="text-left text-xs sm:text-[13.5px] font-semibold tracking-tight text-[#3E80DD] leading-tight">
+          <div className="mb-0.5">
+            <p className="text-left text-xs sm:text-[13px] font-medium tracking-tight text-[#F72853] leading-tight">
               ₹{numDisc > 0 ? numDisc.toLocaleString("en-IN") : "Best Offer"}{" "}
               {numOrig > numDisc && numOrig > 0 && (
-                <span className="text-[9px] sm:text-[11px] text-slate-400 font-normal line-through ml-1">
+                <span className="text-[9px] sm:text-[10.5px] text-slate-400 font-normal line-through ml-1">
                   ₹{numOrig.toLocaleString("en-IN")}
                 </span>
               )}
@@ -168,8 +163,8 @@ export default function ProductOfferCard({ product }) {
           </div>
 
           {/* Product Title */}
-          <div className="mb-1.5 sm:mb-2">
-            <p className="text-left text-[10.5px] sm:text-xs text-slate-800 leading-snug font-medium line-clamp-2">
+          <div className="mb-1.5">
+            <p className="text-left text-[10.5px] sm:text-xs text-slate-800 group-hover:text-[#F72853] transition-colors leading-snug font-normal line-clamp-2">
               {title}
             </p>
           </div>
@@ -178,7 +173,7 @@ export default function ProductOfferCard({ product }) {
         {/* Action Button */}
         <div className="mt-auto pt-0.5">
           <span
-            className="block w-full rounded-md py-1 sm:py-1.5 text-center text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-white transition-all shadow-xs group-hover:brightness-95 flex items-center justify-center gap-1"
+            className="block w-full rounded-md py-1 text-center text-[10px] sm:text-[10.5px] font-normal uppercase tracking-wider text-white transition-all shadow-2xs group-hover:brightness-95 flex items-center justify-center gap-1"
             style={{ backgroundColor: "#3E80DD" }}
           >
             <span>Grab Offer</span>

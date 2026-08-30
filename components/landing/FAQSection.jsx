@@ -32,9 +32,9 @@ function FaqItem({ faq, index, isMobile }) {
       >
         <span
           style={{
-            fontSize: isMobile ? "12.5px" : "13.5px",
-            fontWeight: 700,
-            color: "#191F2E",
+            fontSize: isMobile ? "12px" : "13px",
+            fontWeight: 500,
+            color: "#1e293b",
             lineHeight: 1.4,
           }}
         >
@@ -42,9 +42,9 @@ function FaqItem({ faq, index, isMobile }) {
         </span>
         <ChevronDown
           style={{
-            width: isMobile ? "16px" : "18px",
-            height: isMobile ? "16px" : "18px",
-            color: "#4685E8",
+            width: isMobile ? "15px" : "16px",
+            height: isMobile ? "15px" : "16px",
+            color: "#F72853",
             flexShrink: 0,
             transition: "transform 0.3s ease",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
@@ -62,8 +62,8 @@ function FaqItem({ faq, index, isMobile }) {
       >
         <p
           style={{
-            fontSize: isMobile ? "11.5px" : "12.5px",
-            color: "#475569",
+            fontSize: isMobile ? "11px" : "12px",
+            color: "#64748b",
             lineHeight: 1.6,
             paddingLeft: isMobile ? "14px" : "20px",
             paddingRight: isMobile ? "14px" : "20px",
@@ -71,6 +71,7 @@ function FaqItem({ faq, index, isMobile }) {
             paddingTop: "10px",
             margin: 0,
             borderTop: "1px solid #f1f5f9",
+            fontWeight: 400,
           }}
         >
           {faq.a}
@@ -98,8 +99,7 @@ export function FaqSection() {
   return (
     <section className="w-full text-center animate-fade-in-up stagger-1 px-0 md:px-0">
       <h2
-        className="font-bold tracking-tight mb-4 md:mb-8 px-4 md:px-0"
-        style={{ fontSize: "clamp(18px,2.5vw,26px)", color: "#191F2E" }}
+        className="font-medium tracking-tight mb-3 sm:mb-4 px-4 md:px-0 text-[#F72853] text-base sm:text-lg md:text-xl"
       >
         Frequently Asked Questions
       </h2>

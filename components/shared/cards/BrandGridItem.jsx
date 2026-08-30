@@ -21,7 +21,7 @@ export default function BrandGridItem({
   return (
     <Link
       href={href || "#"}
-      className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white shadow-[0_2px_6px_rgba(15,23,42,0.06)] hover:shadow-[0_6px_16px_rgba(15,23,42,0.12)] hover:border-blue-600 transition-all duration-200 overflow-hidden select-none text-center w-full h-[108px] sm:h-[132px]"
+      className="group relative flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-[0_2px_6px_rgba(15,23,42,0.06)] hover:shadow-[0_6px_16px_rgba(247,40,83,0.14)] hover:border-[#F72853] transition-all duration-200 overflow-hidden select-none text-center w-full h-[108px] sm:h-[132px]"
       style={{ textDecoration: "none" }}
     >
       {/* Top Background Banner (Mobile: 46% height for sleek wide rectangle, Desktop: 52% height) */}
@@ -40,14 +40,14 @@ export default function BrandGridItem({
 
         {/* Coupons Count Badge (Top Right) */}
         {coupons > 0 && (
-          <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-slate-900/90 text-white text-[8.5px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded border border-slate-700 shadow-xs flex items-center gap-0.5 z-10 backdrop-blur-xs">
+          <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-slate-900/90 text-white text-[8px] sm:text-[8.5px] font-normal px-1.5 py-0.5 rounded border border-slate-700/80 shadow-2xs flex items-center gap-0.5 z-10 backdrop-blur-xs">
             <Ticket className="w-2.5 h-2.5 text-blue-400" />
             <span>{coupons}</span>
           </div>
         )}
 
         {/* Verified Badge (Flush in Bottom Right Corner of Banner Image) */}
-        <div className="absolute bottom-0 right-0 bg-emerald-600 text-white text-[7px] sm:text-[8px] font-medium px-1.5 py-0.5 rounded-tl-[3px] flex items-center gap-0.5 z-10 shadow-2xs">
+        <div className="absolute bottom-0 right-0 bg-emerald-600 text-white text-[7px] sm:text-[7.5px] font-normal px-1.5 py-0.5 rounded-tl-[3px] flex items-center gap-0.5 z-10 shadow-2xs">
           <CheckCircle2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white stroke-[2] shrink-0" />
           <span>Verified</span>
         </div>
@@ -55,7 +55,7 @@ export default function BrandGridItem({
 
       {/* Center Floating Brand Logo Badge */}
       <div className="absolute top-[46%] sm:top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white border border-slate-200 p-0.5 sm:p-1 flex items-center justify-center shadow-[0_2px_6px_rgba(15,23,42,0.12)] group-hover:border-blue-600 group-hover:shadow-[0_4px_12px_rgba(15,23,42,0.18)] transition-all duration-200">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white border border-slate-200 p-0.5 sm:p-1 flex items-center justify-center shadow-2xs group-hover:border-[#F72853] transition-all duration-200">
           {!imgError && logo ? (
             <img
               src={logo}
@@ -64,7 +64,7 @@ export default function BrandGridItem({
               onError={() => setImgError(true)}
             />
           ) : (
-            <span className="text-[9px] sm:text-[10px] font-black text-blue-600 uppercase tracking-tight">
+            <span className="text-[9px] sm:text-[10px] font-medium text-[#F72853] uppercase tracking-tight">
               {name ? name.slice(0, 2) : "VT"}
             </span>
           )}
@@ -72,8 +72,8 @@ export default function BrandGridItem({
       </div>
 
       {/* Bottom Brand Name Details */}
-      <div className="pt-4 sm:pt-5 pb-1.5 sm:pb-2 px-1 flex flex-col items-center justify-center flex-1 bg-white text-center">
-        <span className="text-[11px] sm:text-[12.5px] font-bold text-slate-800 group-hover:text-blue-700 line-clamp-1 max-w-full tracking-tight px-1">
+      <div className="pt-3.5 sm:pt-4 pb-1.5 px-1 flex flex-col items-center justify-center flex-1 bg-white text-center">
+        <span className="text-[10.5px] sm:text-[11.5px] font-normal text-slate-800 group-hover:text-[#F72853] line-clamp-1 max-w-full tracking-tight px-1 transition-colors">
           {name}
         </span>
       </div>

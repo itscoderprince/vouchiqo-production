@@ -125,18 +125,18 @@ export default function PopularStores({ merchants = [] }) {
   return (
     <section className="g-pop-store w-full select-none text-left overflow-hidden">
       {/* Custom Section Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg md:text-2xl font-bold text-brand-text font-heading">
+      <div className="flex justify-between items-center mb-3.5 sm:mb-4">
+        <h2 className="text-base sm:text-lg md:text-xl font-medium text-[#F72853] tracking-tight">
           Popular Stores
         </h2>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 mt-6 items-stretch">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mt-3 sm:mt-4 items-stretch">
         {/* ── Store of the Month Card ── */}
         <div className="w-full lg:w-1/4 shrink-0 flex flex-col h-auto lg:h-[432px]">
           <Link
             href={somHref}
-            className="flex-1 relative flex flex-col justify-between no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] group transition-all duration-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)] hover:border-blue-600 h-full"
+            className="flex-1 relative flex flex-col justify-between no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200/90 bg-white shadow-2xs group transition-all duration-200 hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] h-full"
           >
             {/* Background photo + scrim */}
             <div
@@ -150,7 +150,7 @@ export default function PopularStores({ merchants = [] }) {
               {/* Top Title & Logo Box */}
               <div className="flex md:flex-col items-center md:items-start justify-between gap-3">
                 {/* Logo Box */}
-                <div className="w-28 h-16 md:w-full md:h-24 bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-center shrink-0 shadow-sm group-hover:border-blue-500 transition-colors">
+                <div className="w-24 h-14 md:w-full md:h-20 bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-[#F72853]/40 transition-colors">
                   <img
                     src={somLogo}
                     alt="Store Logo"
@@ -160,26 +160,26 @@ export default function PopularStores({ merchants = [] }) {
 
                 {/* Title Text */}
                 <div className="text-right md:text-left flex-1 min-w-0">
-                  <span className="inline-block px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-extrabold bg-blue-600 text-white tracking-wider uppercase mb-1 shadow-2xs">
+                  <span className="inline-block px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10px] font-medium bg-rose-50 text-[#F72853] border border-[#F72853]/30 tracking-wider uppercase mb-1 shadow-2xs">
                     Most Popular
                   </span>
-                  <h3 className="text-[16px] sm:text-[20px] font-bold text-slate-900 leading-tight tracking-tight">
+                  <h3 className="text-sm sm:text-base font-medium text-slate-900 group-hover:text-[#F72853] transition-colors leading-tight tracking-tight">
                     Store Of The Month
                   </h3>
                 </div>
               </div>
 
               {/* Bottom Stats Bar with Dotted Divider */}
-              <div className="mt-4 p-3 bg-blue-50/80 rounded-xl border border-blue-100 grid grid-cols-2 text-center divide-x divide-dashed divide-blue-200">
+              <div className="mt-3.5 p-2.5 bg-rose-50/40 rounded-xl border border-rose-100 grid grid-cols-2 text-center divide-x divide-dashed divide-rose-200">
                 <div className="flex items-center justify-center gap-1.5 px-2">
-                  <Tag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span className="text-[12px] sm:text-[13px] font-bold text-slate-800 whitespace-nowrap">
+                  <Tag className="w-3.5 h-3.5 text-[#F72853] shrink-0" />
+                  <span className="text-[11px] sm:text-xs font-normal text-slate-800 whitespace-nowrap">
                     {somCoupons} Offers
                   </span>
                 </div>
                 <div className="flex items-center justify-center gap-1.5 px-2">
-                  <Percent className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span className="text-[12px] sm:text-[13px] font-bold text-slate-800 whitespace-nowrap">
+                  <Percent className="w-3.5 h-3.5 text-[#F72853] shrink-0" />
+                  <span className="text-[11px] sm:text-xs font-normal text-slate-800 whitespace-nowrap">
                     {somOffers} Offers
                   </span>
                 </div>
