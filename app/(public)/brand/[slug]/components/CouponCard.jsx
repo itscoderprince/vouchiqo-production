@@ -91,12 +91,12 @@ export default function CouponCard({
     : null;
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden transition-all duration-200 shadow-xs hover:shadow-md hover:border-blue-300 font-sans text-left">
+    <div className="bg-white border border-slate-200/80 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-200 shadow-2xs hover:shadow-md hover:border-blue-300 font-sans text-left">
       {/* Main card row */}
-      <div className="flex flex-col sm:flex-row items-stretch">
+      <div className="flex flex-row items-stretch">
         {/* Discount badge column */}
         <div
-          className="sm:w-[115px] flex-shrink-0 flex flex-col items-center justify-center py-5 px-3 text-center"
+          className="w-[75px] sm:w-[115px] flex-shrink-0 flex flex-col items-center justify-center py-3 sm:py-5 px-1.5 sm:px-3 text-center"
           style={{
             background: hasCode
               ? "linear-gradient(160deg, #1d4ed8, #2563eb)"
@@ -105,25 +105,25 @@ export default function CouponCard({
         >
           {mainDiscountBadge ? (
             <>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-blue-200 mb-0.5">
+              <span className="text-[8.5px] sm:text-[9px] font-medium uppercase tracking-widest text-blue-200 mb-0.5">
                 {topSaveLabel}
               </span>
-              <span className="text-xl sm:text-2xl font-black text-white leading-none uppercase truncate max-w-full">
+              <span className="text-lg sm:text-2xl font-semibold text-white leading-none uppercase truncate max-w-full">
                 {mainDiscountBadge}
               </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider text-white/70 mt-1">
+              <span className="text-[8px] sm:text-[9px] font-normal uppercase tracking-wider text-white/70 mt-0.5 sm:mt-1">
                 {bottomTag}
               </span>
             </>
           ) : (
             <>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-blue-200 mb-0.5">
+              <span className="text-[8.5px] sm:text-[9px] font-medium uppercase tracking-widest text-blue-200 mb-0.5">
                 {hasCode ? "Code" : "Deal"}
               </span>
-              <span className="text-base font-bold text-white leading-none">
+              <span className="text-sm sm:text-base font-medium text-white leading-none">
                 {hasCode ? "PROMO" : "OFFER"}
               </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider bg-white/15 px-1.5 py-0.5 rounded mt-1.5 text-white/80">
+              <span className="text-[8px] sm:text-[9px] font-normal uppercase tracking-wider bg-white/15 px-1.5 py-0.5 rounded mt-1 text-white/80">
                 Active
               </span>
             </>
@@ -131,32 +131,32 @@ export default function CouponCard({
         </div>
 
         {/* Content column */}
-        <div className="flex-1 p-4 flex flex-col justify-between gap-3 text-left">
+        <div className="flex-1 p-2.5 sm:p-4 flex flex-col justify-between gap-2 sm:gap-3 text-left min-w-0">
           <div className="space-y-1.5">
             {/* Badges row */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-bold">
+              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-normal">
                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                 100% Verified
               </span>
-              <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+              <span className="text-[11px] text-slate-400 font-normal flex items-center gap-1">
                 <Users className="w-3 h-3 text-slate-400" /> Community Tested
               </span>
               {expiryLabel && (
-                <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
+                <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
                   {expiryLabel}
                 </span>
               )}
             </div>
 
             {/* Title / Headline */}
-            <h3 className="text-[15px] font-bold text-slate-900 leading-snug">
+            <h3 className="text-[14px] sm:text-[15px] font-medium text-slate-800 leading-snug">
               {coupon.title || coupon.headline}
             </h3>
 
             {/* Description */}
             {(coupon.description || coupon.shortDescription) && (
-              <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 font-medium">
+              <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 font-normal">
                 {coupon.description || coupon.shortDescription}
               </p>
             )}
@@ -201,7 +201,7 @@ export default function CouponCard({
             {hasCode ? (
               <div>
                 {copiedCouponId === coupon._id ? (
-                  <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-3 py-1.5 rounded-lg shadow-2xs">
+                  <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-[11px] sm:text-xs font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-2xs">
                     <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
                     Code Copied!
                   </span>
@@ -209,7 +209,7 @@ export default function CouponCard({
                   <button
                     onClick={() => handleCopyCode(coupon.code, coupon._id)}
                     type="button"
-                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold px-4 py-1.5 rounded-xl border-0 cursor-pointer transition-colors shadow-sm shadow-blue-500/20"
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-[11px] sm:text-xs font-medium px-3 sm:px-4 py-1.5 rounded-lg sm:rounded-xl border-0 cursor-pointer transition-colors shadow-2xs"
                   >
                     Get Code
                   </button>
@@ -219,10 +219,10 @@ export default function CouponCard({
               <button
                 onClick={() => handleCopyCode("", coupon._id)}
                 type="button"
-                className="bg-slate-900 hover:bg-slate-800 active:bg-black text-white text-xs font-bold px-4 py-1.5 rounded-xl border-0 cursor-pointer transition-colors flex items-center gap-1.5 shadow-sm"
+                className="bg-slate-900 hover:bg-slate-800 active:bg-black text-white text-[11px] sm:text-xs font-medium px-3 sm:px-4 py-1.5 rounded-lg sm:rounded-xl border-0 cursor-pointer transition-colors flex items-center gap-1 sm:gap-1.5 shadow-2xs"
               >
-                Get In-Store Deal
-                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Get Deal</span>
+                <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             )}
           </div>
@@ -231,7 +231,7 @@ export default function CouponCard({
 
       {/* Expanded details in depth */}
       {isExpanded && (
-        <div className="bg-slate-50/90 border-t border-slate-200/80 px-5 py-4 text-left space-y-3 font-sans">
+        <div className="bg-slate-50/90 border-t border-slate-200/80 px-3.5 sm:px-5 py-3 sm:py-4 text-left space-y-2.5 font-sans">
           <div className="space-y-1">
             <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
               Terms &amp; Redemption Conditions

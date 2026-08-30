@@ -64,24 +64,24 @@ export default function BrandStats({ coupons, merchant }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-sans">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-left font-sans">
       {stats.map((s) => {
         const IconComp = s.Icon;
         return (
           <div
             key={s.label}
-            className="bg-white/95 border border-slate-200/80 rounded-2xl p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all hover:border-blue-300 flex items-center justify-between"
+            className="bg-white border border-slate-200/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-2xs hover:shadow-md transition-all hover:border-blue-300 flex items-center justify-between"
           >
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[9.5px] sm:text-[10px] font-normal text-slate-400 uppercase tracking-wider block">
                 {s.label}
               </span>
-              <span className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 block capitalize truncate max-w-[110px]">
+              <span className="text-xs sm:text-[13.5px] font-medium text-slate-800 mt-0.5 block capitalize truncate max-w-[100px] sm:max-w-[110px]">
                 {s.value}
               </span>
             </div>
-            <div className={`w-8.5 h-8.5 rounded-xl ${s.bgColor} flex items-center justify-center shrink-0`}>
-              <IconComp className={`w-4 h-4 ${s.iconColor}`} />
+            <div className={`w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl ${s.bgColor} flex items-center justify-center shrink-0`}>
+              <IconComp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${s.iconColor}`} />
             </div>
           </div>
         );

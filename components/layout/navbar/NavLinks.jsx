@@ -18,13 +18,13 @@ const NavLink = ({ href, icon: Icon, label, isActive }) => (
     prefetch={true}
     className={`flex items-center gap-1.5 text-[14px] transition-colors whitespace-nowrap py-1 px-1.5 rounded-md ${
       isActive
-        ? "text-slate-950 font-bold"
-        : "text-slate-600 hover:text-slate-950 font-medium"
+        ? "text-slate-950 font-normal"
+        : "text-slate-600 hover:text-slate-950 font-normal"
     }`}
   >
     <Icon
       className={`h-[18px] w-[18px] shrink-0 transition-transform ${
-        isActive ? "stroke-[2.4] text-slate-950" : "stroke-[1.6] text-slate-500"
+        isActive ? "stroke-[1.8] text-slate-950" : "stroke-[1.6] text-slate-500"
       }`}
     />
     <span>{label}</span>

@@ -81,9 +81,9 @@ export default function BrandHeader({
   return (
     <>
       {/* Breadcrumb */}
-      <div className="w-full bg-white border-b border-slate-100 font-sans">
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-          <ol className="flex items-center gap-1.5 text-xs text-slate-500 overflow-x-auto whitespace-nowrap scrollbar-none font-medium">
+      <div className="w-full bg-white border-b border-slate-200/90 font-sans">
+        <div className="w-full px-2.5 sm:px-4 md:px-5 py-2">
+          <ol className="flex items-center gap-1.5 text-[10.5px] sm:text-[11px] text-slate-500 font-normal overflow-x-auto whitespace-nowrap scrollbar-none">
             <li>
               <Link
                 href="/"
@@ -102,7 +102,7 @@ export default function BrandHeader({
               </Link>
             </li>
             <span className="text-slate-300">/</span>
-            <li className="text-slate-900 font-bold truncate max-w-[200px]">
+            <li className="text-slate-800 font-normal truncate max-w-[200px]">
               {merchant.businessName}
             </li>
           </ol>
@@ -116,7 +116,7 @@ export default function BrandHeader({
           type="button"
           onClick={handleShareClick}
           title="Share brand deals"
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-slate-800 text-xs font-extrabold shadow-md border border-white/60 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-slate-800 text-xs font-normal shadow-md border border-white/60 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
         >
           <Share2 className="w-3.5 h-3.5 text-blue-600" />
           <span className="hidden sm:inline">Share</span>
@@ -124,14 +124,14 @@ export default function BrandHeader({
 
         {merchant.banner ? (
           <>
-            {/* Ambient Blurred Backdrop to fill edges seamlessly */}
+            {/* Ambient Blurred Backdrop */}
             <img
               src={merchant.banner}
               alt=""
               aria-hidden="true"
               className="absolute inset-0 w-full h-full object-cover object-center blur-xl opacity-40 scale-110 pointer-events-none"
             />
-            {/* Centered Sharp Banner Image (Y-center & X-center) */}
+            {/* Centered Sharp Banner Image */}
             <img
               src={merchant.banner}
               alt={`${merchant.businessName} banner`}
@@ -156,20 +156,15 @@ export default function BrandHeader({
       </div>
 
       {/* Brand Identity Section */}
-      <section className="w-full bg-white border-b border-slate-200/80 shadow-xs font-sans">
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full bg-white border-b border-slate-200/90 shadow-2xs font-sans">
+        <div className="w-full px-2.5 sm:px-4 md:px-5">
           {/* Logo + Info row */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 sm:gap-3 relative">
             {/* Left: Logo + Brand Name */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-end">
+            <div className="flex flex-row gap-3 sm:gap-4 items-end">
               {/* Logo — overlaps banner */}
               <div
-                className="relative z-10 rounded-2xl flex-shrink-0 flex items-center justify-center bg-white shadow-[0_6px_22px_rgba(15,23,42,0.12)] border-3 border-white overflow-hidden"
-                style={{
-                  width: 104,
-                  height: 104,
-                  marginTop: -52,
-                }}
+                className="relative z-10 rounded-xl sm:rounded-2xl flex-shrink-0 flex items-center justify-center bg-white shadow-md border-2 sm:border-3 border-white overflow-hidden w-[76px] h-[76px] sm:w-[92px] sm:h-[92px] md:w-[104px] md:h-[104px] -mt-9 sm:-mt-11 md:-mt-[52px]"
               >
                 {merchant.logo && !logoFailed ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -180,84 +175,63 @@ export default function BrandHeader({
                     onError={() => setLogoFailed(true)}
                   />
                 ) : (
-                  <span className="font-black text-3xl text-blue-600 uppercase">
+                  <span className="font-medium text-xl sm:text-2xl text-blue-600 uppercase">
                     {merchant.businessName?.[0]}
                   </span>
                 )}
               </div>
 
               {/* Brand name + badges */}
-              <div className="pt-2 sm:pt-4 space-y-1.5 pb-4 text-left font-sans">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <div className="pt-1 space-y-0.5 pb-1.5 text-left font-sans min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <h1 className="text-[14.5px] sm:text-base md:text-[17px] font-normal text-slate-800 tracking-normal truncate">
                     {merchant.businessName}
                   </h1>
 
                   {/* Verified badge */}
                   {merchant.isVerified !== false && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-100/90 px-2.5 py-0.5 rounded-full border border-slate-200/80 shadow-2xs">
+                    <span className="inline-flex items-center gap-0.5 text-[9.5px] sm:text-[10px] font-normal text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-full border border-slate-200/80 shrink-0">
                       <span>Verified</span>
-                      <TwitterGreenTick className="w-4 h-4 text-emerald-500" />
+                      <TwitterGreenTick className="w-3 h-3 text-emerald-500" />
                     </span>
                   )}
 
                   {/* Growth Partner badge */}
                   {merchant.plan ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/80 capitalize shadow-2xs">
+                    <span className="inline-flex items-center gap-1 text-[9.5px] sm:text-[10px] font-normal text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/80 capitalize shrink-0">
                       <span>{merchant.plan} Partner</span>
-                      <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+                      <TrendingUp className="w-3 h-3 text-purple-600" />
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/80 shadow-2xs">
+                    <span className="inline-flex items-center gap-1 text-[9.5px] sm:text-[10px] font-normal text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/80 shrink-0">
                       <span>Growth Partner</span>
-                      <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+                      <TrendingUp className="w-3 h-3 text-purple-600" />
                     </span>
                   )}
                 </div>
 
-                <p className="text-xs sm:text-[13px] text-slate-500 font-medium">
+                <p className="text-[10.5px] sm:text-[11.5px] text-slate-500 font-normal">
                   {coupons.length} active deals · validated on{" "}
-                  <span className="text-slate-800 font-bold">{todayStr}</span>
+                  <span className="text-slate-800 font-normal">{todayStr}</span>
                 </p>
-
-                {/* Mobile rating indicator */}
-                <div className="flex sm:hidden items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-medium">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
-                  <span className="font-bold text-slate-800">{ratingVal.toFixed(1)}/5</span>
-                  <span className="text-slate-300">|</span>
-                  <span>{votesCount} Users</span>
-                  <span className="text-slate-300">|</span>
-                  <button
-                    type="button"
-                    onClick={handleRate}
-                    disabled={isRated}
-                    className="text-blue-600 font-bold hover:underline border-0 bg-transparent p-0 cursor-pointer text-[11px]"
-                  >
-                    {isRated ? "Rated" : "Rate Now"}
-                  </button>
-                </div>
               </div>
             </div>
 
-            {/* Right: Actions (Rating, Follow, Share, Existing User Toggle) */}
-            <div
-              className={`${
-                showMobileFilters ? "flex" : "hidden"
-              } sm:flex flex-wrap items-center gap-2.5 pb-4 w-full sm:w-auto mt-3 sm:mt-0 font-sans`}
-            >
+            {/* Right: Actions (Rating, Follow, Share, Existing User Toggle) in smooth horizontal scroll on mobile */}
+            <div className="flex items-center gap-1.5 sm:gap-2 pb-2 w-full sm:w-auto overflow-x-auto scrollbar-none font-sans -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
               {/* Star rating pill button */}
               <button
                 onClick={handleRate}
                 type="button"
                 disabled={isRated}
                 title={isRated ? "Rating submitted" : "Click to rate this merchant"}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-200 bg-amber-50/80 hover:bg-amber-100 transition-all text-xs font-bold text-amber-900 shadow-xs cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-200 bg-amber-50/80 hover:bg-amber-100 transition-all text-[10.5px] sm:text-[11px] font-normal text-amber-900 shadow-2xs shrink-0 cursor-pointer active:scale-95"
               >
                 <div className="flex items-center gap-0.5 text-amber-400">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-3.5 h-3.5 ${
+                      className={`w-3 h-3 ${
                         i < Math.floor(ratingVal)
                           ? "fill-amber-400 text-amber-400"
                           : "text-amber-200 fill-amber-100"
@@ -265,10 +239,10 @@ export default function BrandHeader({
                     />
                   ))}
                 </div>
-                <span className="text-amber-900 font-extrabold">
+                <span className="text-amber-900 font-medium">
                   {ratingVal.toFixed(1)}
                 </span>
-                <span className="text-amber-700/80 font-medium text-[11px]">
+                <span className="text-amber-700/80 font-normal text-[10px]">
                   ({votesCount})
                 </span>
               </button>
@@ -277,19 +251,19 @@ export default function BrandHeader({
               <button
                 onClick={handleFollow}
                 type="button"
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10.5px] sm:text-[11px] font-normal transition-all shadow-2xs shrink-0 cursor-pointer active:scale-95 ${
                   isFollowing
                     ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
                     : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >
                 <Heart
-                  className={`w-3.5 h-3.5 transition-colors ${
+                  className={`w-3 h-3 transition-colors ${
                     isFollowing ? "fill-rose-500 text-rose-500" : "text-slate-500"
                   }`}
                 />
                 <span>{isFollowing ? "Following" : "Follow"}</span>
-                <span className="text-[11px] opacity-70 font-semibold">
+                <span className="text-[10px] opacity-70 font-normal">
                   ({followers})
                 </span>
               </button>
@@ -298,28 +272,28 @@ export default function BrandHeader({
               <button
                 onClick={handleShareClick}
                 type="button"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-xs transition-all cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[10.5px] sm:text-[11px] font-normal text-slate-700 shadow-2xs shrink-0 transition-all cursor-pointer active:scale-95"
               >
-                <Share2 className="w-3.5 h-3.5 text-blue-600" />
+                <Share2 className="w-3 h-3 text-blue-600" />
                 <span>Share</span>
               </button>
 
               {/* Existing User toggle pill */}
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 shadow-xs">
-                <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 shadow-2xs shrink-0">
+                <span className="text-[10.5px] sm:text-[11px] font-normal text-slate-700 whitespace-nowrap">
                   Existing User
                 </span>
                 <button
                   type="button"
                   onClick={() => setExistingUser((prev) => !prev)}
                   aria-label="Toggle Existing User Deals"
-                  className={`relative inline-flex h-4.5 w-8 flex-shrink-0 cursor-pointer rounded-full border-1 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  className={`relative inline-flex h-4 w-7 flex-shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                     existingUser ? "bg-blue-600" : "bg-slate-300"
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
-                      existingUser ? "translate-x-3.5" : "translate-x-0"
+                    className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-2xs ring-0 transition duration-200 ease-in-out ${
+                      existingUser ? "translate-x-3" : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -328,41 +302,27 @@ export default function BrandHeader({
           </div>
 
           {/* Tabs Row Container */}
-          <div className="flex items-center justify-between gap-3 mt-3 pb-3 font-sans">
+          <div className="flex items-center justify-between gap-2 mt-1.5 pb-2 font-sans overflow-x-auto scrollbar-none -mx-1 px-1 sm:mx-0 sm:px-0">
             {/* Capsule Tabs */}
-            <div className="flex bg-slate-100/90 p-1 rounded-2xl gap-1 overflow-x-auto scrollbar-none flex-grow max-w-md border border-slate-200/60 shadow-inner">
+            <div className="flex bg-slate-100/90 p-0.5 rounded-lg gap-1 overflow-x-auto scrollbar-none flex-grow max-w-md border border-slate-200/60">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   type="button"
-                  className={`flex-grow py-1.5 px-3.5 text-xs font-bold whitespace-nowrap transition-all border-0 cursor-pointer rounded-xl text-center ${
+                  className={`flex-grow py-1 px-2.5 text-[11px] sm:text-xs font-normal whitespace-nowrap transition-all border-0 cursor-pointer rounded-md text-center ${
                     activeTab === tab.id
-                      ? "bg-white text-blue-600 shadow-sm border border-slate-200/60 font-black"
+                      ? "bg-white text-blue-700 shadow-2xs border border-slate-200/70"
                       : "bg-transparent text-slate-500 hover:text-slate-900"
                   }`}
                 >
                   {tab.label}{" "}
-                  <span className="text-[10px] opacity-70 font-semibold">
+                  <span className="text-[10px] opacity-70 font-normal">
                     ({tab.count})
                   </span>
                 </button>
               ))}
             </div>
-
-            {/* Mobile Filter Toggle Button */}
-            <button
-              onClick={() => setShowMobileFilters((prev) => !prev)}
-              type="button"
-              className={`flex sm:hidden items-center justify-center w-9 h-9 rounded-full shadow-xs border border-slate-200 cursor-pointer flex-shrink-0 transition-all active:scale-95 ${
-                showMobileFilters
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-slate-50 text-slate-700 hover:bg-slate-100"
-              }`}
-              title="Toggle Filters"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </section>

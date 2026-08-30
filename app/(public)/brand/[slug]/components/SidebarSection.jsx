@@ -28,11 +28,11 @@ export default function SidebarSection({
   return (
     <div className="lg:col-span-4 space-y-4 text-left" style={fontStyle}>
       {/* About store */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 pb-3 border-b border-gray-50 mb-3">
+      <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs">
+        <h3 className="text-[10.5px] font-medium uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100 mb-2.5">
           About {merchant.businessName}
         </h3>
-        <p className="text-[13px] text-slate-600 leading-relaxed font-normal">
+        <p className="text-[12.5px] text-slate-600 leading-relaxed font-normal">
           {(() => {
             const text = merchant.longDescription || merchant.description;
             if (text && text.trim().length > 20 && !text.includes("sfsf")) {
@@ -46,7 +46,7 @@ export default function SidebarSection({
             href={merchant.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+            className="mt-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-normal text-blue-600 hover:text-blue-700 hover:underline transition-colors"
           >
             Visit official website
             <ExternalLink className="w-3 h-3" />
@@ -55,13 +55,13 @@ export default function SidebarSection({
       </div>
 
       {/* Operating Hours */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-        <div className="flex justify-between items-center pb-3 border-b border-gray-50 mb-3">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
+      <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100 mb-2.5">
+          <h3 className="text-[10.5px] font-medium uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
             Operating Hours
           </h3>
-          <span className={`text-[11px] font-medium ${openStatus.color}`}>
+          <span className={`text-[10.5px] font-normal ${openStatus.color}`}>
             ● {openStatus.label}
           </span>
         </div>
@@ -74,9 +74,9 @@ export default function SidebarSection({
               return (
                 <div
                   key={day}
-                  className="flex justify-between text-[12px] text-gray-500 font-normal"
+                  className="flex justify-between text-[11.5px] text-slate-500 font-normal"
                 >
-                  <span className="capitalize font-medium text-gray-700">
+                  <span className="capitalize font-normal text-slate-700">
                     {day}
                   </span>
                   <span>
@@ -86,7 +86,7 @@ export default function SidebarSection({
               );
             })
           ) : (
-            <p className="text-[12px] text-gray-400 font-normal">
+            <p className="text-[11.5px] text-slate-400 font-normal">
               Hours not specified
             </p>
           )}
@@ -94,8 +94,8 @@ export default function SidebarSection({
       </div>
 
       {/* Store Location */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 pb-3 border-b border-gray-50 mb-3">
+      <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs">
+        <h3 className="text-[10.5px] font-medium uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100 mb-2.5">
           Location
         </h3>
         <div className="relative h-40 w-full rounded-lg overflow-hidden border border-gray-100 bg-gray-50 mb-3">

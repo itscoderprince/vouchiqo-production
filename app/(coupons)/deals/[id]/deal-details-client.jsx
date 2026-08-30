@@ -51,11 +51,11 @@ function CountdownTimer({ expiresAt }) {
   }, [expiresAt]);
 
   return (
-    <div className="pt-2 flex items-center justify-center">
-      <div className="inline-flex items-center gap-2 bg-slate-100/90 border border-slate-200/80 text-slate-700 px-4 py-2 rounded-full text-xs font-bold shadow-2xs select-none">
-        <Clock className="w-3.5 h-3.5 text-amber-500" />
-        <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Offer Expires In:</span>
-        <span className="font-mono font-black text-slate-800 tracking-wider">
+    <div className="pt-1 flex items-center justify-center">
+      <div className="inline-flex items-center gap-1.5 bg-slate-100/90 border border-slate-200/80 text-slate-700 px-3 py-1 rounded-full text-xs font-normal shadow-2xs select-none">
+        <Clock className="w-3 h-3 text-amber-500" />
+        <span className="text-[10px] sm:text-[10.5px] text-slate-500 font-normal uppercase tracking-wider">Offer Expires In:</span>
+        <span className="font-mono font-medium text-slate-800 text-[11px] sm:text-xs">
           {timeLeft.days}d : {String(timeLeft.hours).padStart(2, "0")}h : {String(timeLeft.minutes).padStart(2, "0")}m : {String(timeLeft.seconds).padStart(2, "0")}s
         </span>
       </div>
@@ -287,33 +287,33 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F9FB] text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#F7F9FB] text-slate-800 font-sans">
       <Navbar />
 
-      <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
+      <main className="w-full px-2.5 sm:px-4 md:px-5 py-3 sm:py-5 flex-grow space-y-3 sm:space-y-4">
         {/* Navigation Action Row */}
-        <div className="flex justify-between items-center select-none">
+        <div className="flex justify-between items-center select-none bg-white border border-slate-200/90 rounded-xl px-3 py-2 shadow-2xs">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-xs font-bold text-brand-blue hover:underline bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all hover:bg-slate-50"
+            className="flex items-center gap-1.5 text-xs font-normal text-slate-700 hover:text-blue-600 cursor-pointer transition-colors bg-transparent border-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Go Back</span>
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Save Offer Toggle Action */}
             <button
               type="button"
               onClick={handleToggleSave}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full border shadow-sm cursor-pointer transition-all ${
+              className={`flex items-center gap-1.5 text-xs font-normal px-3 py-1 rounded-lg border shadow-2xs cursor-pointer transition-all ${
                 isSaved
-                  ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700"
+                  ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
                   : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-white" : ""}`} />
+              <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
               <span>{isSaved ? "Saved" : "Save Offer"}</span>
             </button>
 
@@ -322,13 +322,13 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               <button
                 type="button"
                 onClick={handleShare}
-                className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
+                className="flex items-center gap-1.5 text-xs font-normal text-slate-700 bg-white hover:bg-slate-50 px-3 py-1 rounded-lg border border-slate-200 shadow-2xs cursor-pointer transition-all"
               >
+                <Share2 className="w-3.5 h-3.5 text-blue-600" />
                 <span>Share</span>
-                <Share2 className="w-3.5 h-3.5" />
               </button>
               {showShareTooltip && (
-                <span className="absolute bottom-full right-0 mb-2 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-md whitespace-nowrap animate-fade-in">
+                <span className="absolute bottom-full right-0 mb-1.5 bg-slate-900 text-white text-[10px] font-normal px-2.5 py-0.5 rounded shadow-md whitespace-nowrap animate-fade-in">
                   Link Copied!
                 </span>
               )}
@@ -337,30 +337,30 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
         </div>
 
         {/* 2-Column Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
           {/* Main Coupon Card (Left) */}
-          <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 shadow-md overflow-hidden">
-            {/* Header section: label, title, and logo */}
-            <div className="p-6 md:p-8 flex justify-between items-start gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-900/[0.02] to-blue-50/20">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="inline-block bg-brand-blue text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+          <div className="lg:col-span-8 bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+            {/* Header section: label, title, and logo with soft colorful gradient */}
+            <div className="p-3.5 sm:p-6 flex justify-between items-start gap-2.5 sm:gap-3 border-b border-slate-100 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-purple-50/50">
+              <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="inline-block bg-blue-100/90 text-blue-700 border border-blue-200 text-[9.5px] sm:text-[10px] font-normal px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
                     {discountFormatted}
                   </span>
-                  <span className="inline-block bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
+                  <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200/60 text-[9.5px] sm:text-[10px] font-normal px-2 sm:px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                     {coupon.code ? "PROMO CODE" : "VERIFIED SALE"}
                   </span>
                 </div>
-                <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-snug tracking-tight">
+                <h1 className="text-[14.5px] sm:text-lg md:text-xl font-normal text-slate-800 leading-snug tracking-normal">
                   {coupon.code ? (
                     <>
                       {"Use Code & Get "}
-                      <span className="text-brand-blue">{discountFormatted}</span>
+                      <span className="text-blue-600 font-medium">{discountFormatted}</span>
                       {" on "}
                       {coupon.merchantId?.slug ? (
                         <Link
                           href={`/brand/${coupon.merchantId.slug}`}
-                          className="text-brand-blue hover:underline cursor-pointer"
+                          className="text-blue-600 hover:underline cursor-pointer font-medium"
                         >
                           {merchantName}
                         </Link>
@@ -376,7 +376,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               {coupon.merchantId?.slug ? (
                 <Link
                   href={`/brand/${coupon.merchantId.slug}`}
-                  className="w-16 h-16 rounded-2xl border border-slate-200 bg-white flex items-center justify-center p-1.5 overflow-hidden shrink-0 shadow-sm hover:border-brand-blue transition-colors cursor-pointer"
+                  className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl border border-blue-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs hover:border-blue-400 transition-colors cursor-pointer"
                 >
                   <img
                     src={logoUrl}
@@ -389,7 +389,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                   />
                 </Link>
               ) : (
-                <div className="w-16 h-16 rounded-2xl border border-slate-200 bg-white flex items-center justify-center p-1.5 overflow-hidden shrink-0 shadow-sm">
+                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl border border-blue-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs">
                   <img
                     src={logoUrl}
                     alt={merchantName}
@@ -403,32 +403,32 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               )}
             </div>
 
-            {/* Coupon Box Container */}
-            <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/40 text-center space-y-6">
-              <div className="space-y-1.5">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+            {/* Coupon Box Container with soft background */}
+            <div className="p-3.5 sm:p-6 border-b border-slate-100 bg-gradient-to-b from-slate-50/50 via-blue-50/20 to-indigo-50/30 text-center space-y-3.5 sm:space-y-4">
+              <div className="space-y-1">
+                <p className="text-[11px] sm:text-xs text-slate-500 font-normal uppercase tracking-wider">
                   {coupon.code
                     ? "Your Promo Code is Ready Below"
                     : "Your Offer Has Been Activated On The Website Already"}
                 </p>
               </div>
 
-              {/* Dotted coupon box */}
-              <div className="max-w-md mx-auto select-all space-y-3">
+              {/* Dotted coupon box with soft shadow */}
+              <div className="max-w-md mx-auto select-all space-y-2.5">
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className={`w-full border-2 border-dashed rounded-2xl py-5 px-6 relative cursor-pointer transition-all duration-300 ${
+                  className={`w-full border-2 border-dashed rounded-xl py-3 sm:py-3.5 px-3 sm:px-4 relative cursor-pointer transition-all duration-300 shadow-[0_4px_16px_rgba(59,130,246,0.06)] active:scale-[0.99] ${
                     copiedCode
-                      ? "border-brand-success bg-brand-success/5"
-                      : "border-brand-blue/40 bg-white hover:bg-slate-50 hover:border-brand-blue"
+                      ? "border-emerald-500 bg-emerald-50/60"
+                      : "border-blue-300/90 bg-white hover:bg-blue-50/40 hover:border-blue-500"
                   }`}
                 >
-                  <span className="font-mono text-2xl font-black tracking-[0.2em] text-slate-800 uppercase pl-3">
+                  <span className="font-mono text-lg sm:text-2xl font-medium tracking-[0.14em] sm:tracking-[0.18em] text-slate-800 uppercase pl-1 sm:pl-2">
                     {coupon.code ? coupon.code : "OFFER ACTIVATED"}
                   </span>
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 text-white rounded-xl opacity-0 hover:opacity-100 transition-opacity">
-                    <span className="font-bold flex items-center gap-2 text-xs">
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 text-white rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                    <span className="font-normal flex items-center gap-1.5 text-xs">
                       {copiedCode ? "Copied!" : "Click to Copy Code"}
                     </span>
                   </div>
@@ -438,20 +438,20 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                 <CountdownTimer expiresAt={coupon.expiresAt} />
               </div>
 
-              {/* Unique In-Store Claim Card */}
+              {/* Unique In-Store Claim Card with soft emerald tint */}
               {isLoggedIn ? (
                 uniqueClaimCode ? (
-                  <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-2xl p-5 text-left shadow-sm space-y-3">
+                  <div className="max-w-md mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/30 border border-emerald-200/80 rounded-xl p-3.5 text-left shadow-2xs space-y-2.5">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest">
+                      <span className="text-[9.5px] sm:text-[10px] font-medium text-emerald-800 uppercase tracking-wider">
                         Unique In-Store Claim Code
                       </span>
-                      <span className="text-[10px] bg-green-50 text-green-700 px-2.5 py-0.5 rounded-full font-bold">
+                      <span className="text-[9.5px] sm:text-[10px] bg-emerald-100/80 text-emerald-800 px-2 py-0.5 rounded-full font-normal border border-emerald-200">
                         Ready to Present
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 select-all">
-                      <span className="font-mono text-base font-black tracking-wider text-slate-800 uppercase">
+                    <div className="flex items-center justify-between gap-2.5 bg-white border border-emerald-100 rounded-lg px-3 py-2 select-all shadow-2xs">
+                      <span className="font-mono text-sm sm:text-base font-semibold tracking-wider text-emerald-900 uppercase">
                         {uniqueClaimCode}
                       </span>
                       <button
@@ -460,30 +460,30 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                           toast.success("Claim code copied!");
                         }}
                         type="button"
-                        className="text-xs text-brand-blue font-bold hover:underline cursor-pointer border-0 bg-transparent"
+                        className="text-xs text-emerald-700 font-medium hover:underline cursor-pointer border-0 bg-transparent"
                       >
                         Copy
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                    <p className="text-[9.5px] sm:text-[10px] text-slate-500 font-normal leading-relaxed">
                       Present this code at the physical counter. The merchant
                       can verify your claim and customer details using this
                       code.
                     </p>
                   </div>
                 ) : (
-                  <div className="text-center text-xs text-slate-400 font-semibold py-2">
+                  <div className="text-center text-xs text-slate-400 font-normal py-2">
                     Generating unique in-store claim code...
                   </div>
                 )
               ) : (
-                <div className="max-w-md mx-auto bg-slate-50 border border-slate-200 border-dashed rounded-2xl p-4 text-center">
-                  <p className="text-xs text-slate-500 font-bold mb-2">
+                <div className="max-w-md mx-auto bg-blue-50/40 border border-blue-200/80 border-dashed rounded-xl p-3 text-center space-y-1.5">
+                  <p className="text-xs text-slate-600 font-normal">
                     Want to redeem in-store?
                   </p>
                   <Link
                     href={`/login?callbackUrl=/deals/${coupon._id}`}
-                    className="inline-block bg-brand-blue text-white text-[11px] font-black px-4 py-2 rounded-xl hover:bg-blue-600 transition-colors cursor-pointer"
+                    className="inline-block bg-blue-600 text-white text-[11px] font-normal px-3.5 py-1.5 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer shadow-2xs"
                   >
                     Login to Generate In-Store Code
                   </Link>
@@ -492,7 +492,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
 
               {/* Redirect link OR In-Store Details */}
               {coupon.merchantId?.website ? (
-                <div className="pt-2">
+                <div className="pt-1">
                   <a
                     href={coupon.merchantId.website}
                     onClick={() => {
@@ -506,25 +506,25 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                         source: "deal_page",
                       });
                     }}
-                    className="inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-blue hover:underline transition-colors"
+                    className="inline-flex items-center gap-1 text-xs sm:text-[13px] font-medium text-blue-600 hover:underline transition-colors"
                   >
                     <span>Go To {merchantName} Website</span>
-                    <ExternalLink className="w-4 h-4 text-brand-blue" />
+                    <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
                   </a>
                 </div>
               ) : (
-                <div className="pt-4 border-t border-slate-100/80">
-                  <div className="max-w-md mx-auto bg-slate-50 border border-slate-200/60 rounded-xl p-4 text-left space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                      <span className="text-lg">📍</span>
+                <div className="pt-3 border-t border-slate-100/80">
+                  <div className="max-w-md mx-auto bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-left space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                      <span>📍</span>
                       <span>Physical Store Counter Location</span>
                     </div>
                     {coupon.merchantId?.location ? (
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold text-slate-800">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-medium text-slate-800">
                           {coupon.merchantId.businessName}
                         </p>
-                        <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                        <p className="text-[10.5px] text-slate-500 font-normal leading-relaxed">
                           {[
                             coupon.merchantId.location.address,
                             coupon.merchantId.location.city,
@@ -534,14 +534,14 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                             .filter(Boolean)
                             .join(", ")}
                         </p>
-                        <div className="pt-2">
+                        <div className="pt-1">
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                               `${coupon.merchantId.businessName} ${coupon.merchantId.location.address || ""} ${coupon.merchantId.location.city || ""} ${coupon.merchantId.location.pincode || ""}`,
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-black text-brand-blue hover:underline"
+                            className="inline-flex items-center gap-1 text-[10.5px] font-normal text-blue-600 hover:underline"
                           >
                             <span>Open in Google Maps</span>
                             <ExternalLink className="w-3 h-3" />
@@ -549,7 +549,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-[11px] text-slate-400 font-semibold italic">
+                      <p className="text-[10.5px] text-slate-400 font-normal italic">
                         No physical location or website details available for
                         this store partner.
                       </p>
@@ -559,34 +559,32 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               )}
 
               {/* Status Tags */}
-              <ul className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs font-semibold text-slate-500 border-t border-slate-100">
-                <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-success fill-brand-success/10" />
+              <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 pt-3 text-xs font-normal text-slate-500 border-t border-slate-100">
+                <li className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Verified</span>
                 </li>
-                <li className="flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-slate-400" />
+                <li className="flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-purple-500" />
                   <span>Existing User</span>
                 </li>
-                <li className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-slate-400" />
+                <li className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
                   <span>Valid Till: {formattedExpiry}</span>
                 </li>
               </ul>
             </div>
 
-
-
             {/* T&C Section */}
-            <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/20 text-left">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-4">
-                T&amp;C's
+            <div className="p-4 sm:p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50/70 via-blue-50/15 to-slate-50/70 text-left">
+              <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 uppercase tracking-wider mb-2.5">
+                T&amp;C&apos;s
               </h3>
-              <ul className="text-xs text-slate-500 space-y-3 list-disc pl-5 leading-relaxed font-semibold">
+              <ul className="text-xs text-slate-500 space-y-2 list-disc pl-4 leading-relaxed font-normal">
                 <li>
                   Get{" "}
-                  <span className="text-brand-blue">{discountFormatted}</span>{" "}
-                  on your <span className="text-slate-800">{coupon.title}</span>
+                  <span className="text-blue-600 font-medium">{discountFormatted}</span>{" "}
+                  on your <span className="text-slate-700">{coupon.title}</span>
                 </li>
                 <li>
                   Applicable on active categories and selected items on
@@ -594,7 +592,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                 </li>
                 <li>
                   Learn from verified partner stores and save with Vouchiqo
-                  promo codes.
+                  promo offers.
                 </li>
                 <li>
                   Cannot be combined with other running vouchers or promotions.
@@ -607,47 +605,50 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
             </div>
 
             {/* Feedback / Voting */}
-            <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white text-left">
-              <span className="text-xs text-slate-500 font-bold">
-                Did the coupon work?
+            <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white text-left">
+              <span className="text-xs text-slate-500 font-normal">
+                Did the offer work?
               </span>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setUserVote("yes")}
-                  className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-xs font-normal transition-all cursor-pointer ${
                     userVote === "yes"
-                      ? "bg-brand-success/15 border-brand-success text-brand-success"
-                      : "border-slate-200 hover:bg-slate-50 text-slate-500 bg-white"
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-600 bg-white"
                   }`}
                 >
-                  <ThumbsUp className="w-3.5 h-3.5" />
+                  <ThumbsUp className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Yes</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setUserVote("no")}
-                  className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-xs font-normal transition-all cursor-pointer ${
                     userVote === "no"
-                      ? "bg-brand-error/15 border-brand-error text-brand-error"
-                      : "border-slate-200 hover:bg-slate-50 text-slate-500 bg-white"
+                      ? "bg-rose-50 border-rose-300 text-rose-700"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-600 bg-white"
                   }`}
                 >
-                  <ThumbsDown className="w-3.5 h-3.5" />
+                  <ThumbsDown className="w-3.5 h-3.5 text-rose-600" />
                   <span>No</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Related Coupons Sidebar (Right) */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 text-left">
-              <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-6 pb-2 border-b-2 border-brand-blue/30 w-fit">
-                Vouchiqo Related Coupons
+          {/* Related Coupons Sidebar (Right) with soft colorful accents */}
+          <div className="lg:col-span-4 space-y-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 text-left">
+              <h2 className="text-xs sm:text-[13px] font-medium text-slate-800 uppercase tracking-wider mb-3.5 pb-2 border-b border-slate-100 flex items-center justify-between">
+                <span>Vouchiqo Related Offers</span>
+                <span className="text-[10px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/60">
+                  {relatedCoupons.length} Deals
+                </span>
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-2.5">
                 {relatedCoupons.length > 0 ? (
                   relatedCoupons.map((c) => {
                     const cDiscount =
@@ -662,9 +663,9 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                       <Link
                         key={c._id}
                         href={`/deals/${c._id}`}
-                        className="flex gap-4 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all duration-300 group"
+                        className="flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 hover:border-blue-200 hover:bg-gradient-to-r hover:from-blue-50/40 hover:to-indigo-50/20 transition-all duration-200 group"
                       >
-                        <div className="w-14 h-14 rounded-lg border border-slate-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-sm">
+                        <div className="w-11 h-11 rounded-lg border border-slate-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs group-hover:border-blue-200 transition-colors">
                           <img
                             src={cLogo}
                             alt={cBrand}
@@ -675,11 +676,11 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                             }}
                           />
                         </div>
-                        <div className="space-y-1 flex-1 min-w-0">
-                          <span className="text-[10px] font-black text-brand-blue uppercase tracking-wider block">
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <span className="text-[9.5px] sm:text-[10px] font-medium text-blue-700 bg-blue-50/80 border border-blue-200/50 px-1.5 py-0.2 rounded uppercase tracking-wider inline-block">
                             {cDiscount}
                           </span>
-                          <h4 className="text-xs font-bold text-slate-700 line-clamp-2 leading-relaxed group-hover:text-brand-blue transition-colors">
+                          <h4 className="text-xs font-normal text-slate-700 line-clamp-1 group-hover:text-blue-600 transition-colors">
                             {c.title}
                           </h4>
                         </div>
@@ -687,8 +688,8 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                     );
                   })
                 ) : (
-                  <p className="text-xs font-semibold text-slate-400">
-                    No related coupons found.
+                  <p className="text-xs font-normal text-slate-400">
+                    No related offers found.
                   </p>
                 )}
               </div>

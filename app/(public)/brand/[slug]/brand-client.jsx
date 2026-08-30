@@ -207,8 +207,8 @@ export default function BrandClient({
       />
 
       {/* Main content area - full width */}
-      <main className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <main className="w-full px-2.5 sm:px-4 md:px-5 py-4 sm:py-6 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
           {/* Left: Coupons & Affiliate Products (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {/* Stats row */}
@@ -218,9 +218,9 @@ export default function BrandClient({
             {(activeTab === "all" || activeTab === "affiliate") && affiliateProducts.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-extrabold uppercase tracking-widest text-blue-600 flex items-center gap-1.5">
+                  <h3 className="text-xs sm:text-[13px] font-medium uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                     <span>Affiliate Products</span>
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px]">
+                    <span className="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-full text-[10px] font-normal">
                       {affiliateProducts.length}
                     </span>
                   </h3>

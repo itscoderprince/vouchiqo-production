@@ -23,13 +23,37 @@ export default function ProductOfferCard({ product }) {
     discountPrice = 0,
     discountPercentage = 0,
     discountText,
-    merchantName = "Partner Store",
-    merchantLogo = "/placeholder-brand.png",
+    merchantName: rawMerchantName,
+    merchantLogo: rawMerchantLogo,
+    merchantId,
+    merchant,
     productImage,
     imageUrl,
     affiliateUrl,
     href,
   } = product;
+
+  const merchantObj =
+    typeof merchantId === "object" && merchantId !== null
+      ? merchantId
+      : typeof merchant === "object" && merchant !== null
+        ? merchant
+        : {};
+
+  const merchantName =
+    rawMerchantName ||
+    product.merchantName ||
+    merchantObj.businessName ||
+    merchantObj.name ||
+    "Partner Store";
+
+  const merchantLogo =
+    rawMerchantLogo ||
+    product.merchantLogo ||
+    merchantObj.logo ||
+    (merchantName && merchantName !== "Partner Store"
+      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(merchantName)}&background=08214d&color=ffffff&size=64&bold=true`
+      : "/navbarlogovouchiqo.webp");
 
   const coverImage =
     imageUrl ||
@@ -124,8 +148,7 @@ export default function ProductOfferCard({ product }) {
             alt={merchantName}
             className="w-full h-full object-contain rounded-full select-none pointer-events-none"
             onError={(e) => {
-              e.currentTarget.src =
-                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234685E8' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(merchantName)}&background=08214d&color=ffffff&size=64&bold=true`;
             }}
           />
         </div>
@@ -134,10 +157,10 @@ export default function ProductOfferCard({ product }) {
         <div>
           {/* Price Row */}
           <div className="mb-0.5 sm:mb-1">
-            <p className="text-left text-xs sm:text-[14px] font-extrabold tracking-tight text-[#3E80DD] leading-tight">
+            <p className="text-left text-xs sm:text-[13.5px] font-semibold tracking-tight text-[#3E80DD] leading-tight">
               ₹{numDisc > 0 ? numDisc.toLocaleString("en-IN") : "Best Offer"}{" "}
               {numOrig > numDisc && numOrig > 0 && (
-                <span className="text-[9px] sm:text-[11px] text-slate-400 font-medium line-through ml-1">
+                <span className="text-[9px] sm:text-[11px] text-slate-400 font-normal line-through ml-1">
                   ₹{numOrig.toLocaleString("en-IN")}
                 </span>
               )}
@@ -146,7 +169,7 @@ export default function ProductOfferCard({ product }) {
 
           {/* Product Title */}
           <div className="mb-1.5 sm:mb-2">
-            <p className="text-left text-[10.5px] sm:text-xs text-slate-800 leading-snug font-bold line-clamp-2">
+            <p className="text-left text-[10.5px] sm:text-xs text-slate-800 leading-snug font-medium line-clamp-2">
               {title}
             </p>
           </div>
@@ -155,11 +178,11 @@ export default function ProductOfferCard({ product }) {
         {/* Action Button */}
         <div className="mt-auto pt-0.5">
           <span
-            className="block w-full rounded-md py-1 sm:py-1.5 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white transition-all shadow-xs group-hover:brightness-95 flex items-center justify-center gap-1"
+            className="block w-full rounded-md py-1 sm:py-1.5 text-center text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-white transition-all shadow-xs group-hover:brightness-95 flex items-center justify-center gap-1"
             style={{ backgroundColor: "#3E80DD" }}
           >
             <span>Grab Offer</span>
-            <ExternalLink className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+            <ExternalLink className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2]" />
           </span>
         </div>
       </div>
