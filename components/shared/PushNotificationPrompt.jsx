@@ -22,6 +22,13 @@ export default function PushNotificationPrompt() {
     usePushNotifications();
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (typeof Notification !== "undefined") {
+      if (Notification.permission === "granted" || Notification.permission === "denied") {
+        setVisible(false);
+        return;
+      }
+    }
     if (!isSupported) return;
     if (permission === "granted" || permission === "denied") return;
     if (isSubscribed) return;
@@ -50,8 +57,32 @@ export default function PushNotificationPrompt() {
   };
 
   const handleAllow = async () => {
-    const granted = await requestPermission();
-    if (granted || Notification.permission !== "default") {
+    try {
+      if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+        toast("Notifications are blocked in your browser settings. Please enable them in site settings.", {
+          icon: "🔒",
+          duration: 5000,
+        });
+        setVisible(false);
+        try {
+          localStorage.setItem(
+            DISMISS_KEY,
+            String(Date.now() + SNOOZE_DAYS * 24 * 60 * 60 * 1000),
+          );
+        } catch {}
+        return;
+      }
+
+      const granted = await requestPermission();
+      setVisible(false);
+      try {
+        localStorage.setItem(
+          DISMISS_KEY,
+          String(Date.now() + (granted ? 365 : SNOOZE_DAYS) * 24 * 60 * 60 * 1000),
+        );
+      } catch {}
+    } catch (err) {
+      console.error("[Push Prompt Error]:", err);
       setVisible(false);
     }
   };
