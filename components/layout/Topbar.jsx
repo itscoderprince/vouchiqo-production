@@ -265,7 +265,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
         </div>
 
         {/* Vertical divider */}
-        <div className="h-5 w-px bg-brand-border"></div>
+        <div className="h-5 w-px bg-slate-200"></div>
 
         {/* Profile Dropdown Container */}
         <UserDropdown user={user} />
