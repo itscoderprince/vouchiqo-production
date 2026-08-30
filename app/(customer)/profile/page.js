@@ -4,13 +4,13 @@ import {
   AlertTriangle,
   Bookmark,
   History,
+  IndianRupee,
   MapPin,
-  PiggyBank,
   Settings,
   Wallet,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 // Layout & Global Components
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -100,6 +100,10 @@ function ProfileContent() {
   // Selected Saved coupon modal state
   const [selectedSavedCoupon, setSelectedSavedCoupon] = useState(null);
 
+  // Tab button element refs for auto-centering scroll
+  const tabRefs = useRef({});
+  const tabsContainerRef = useRef(null);
+
   // ── Merchant Guard ──────────────────────────────────────────────────────────
   // If a merchant lands on this customer profile page (e.g. via stale link or
   // cached session redirect), immediately send them to their own dashboard.
@@ -139,13 +143,36 @@ function ProfileContent() {
     }
   }, [tabParam]);
 
-  // Sync activeTab to URL search params
+  // Smoothly center the active tab in the horizontally scrollable bar
+  useEffect(() => {
+    if (activeTab && tabRefs.current[activeTab]) {
+      const timer = setTimeout(() => {
+        tabRefs.current[activeTab]?.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab]);
+
+  // Sync activeTab to URL search params & scroll into view
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     if (typeof window !== "undefined") {
       const url = new URL(window.location);
       url.searchParams.set("tab", tabName);
       window.history.pushState({}, "", url);
+    }
+
+    const btn = tabRefs.current[tabName];
+    if (btn) {
+      btn.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
     }
   };
 
@@ -398,7 +425,7 @@ function ProfileContent() {
   }
 
   const PROFILE_TABS = [
-    { id: "savings", label: "Savings Hub", icon: PiggyBank },
+    { id: "savings", label: "Savings Hub", icon: IndianRupee },
     { id: "saved", label: "Saved Deals", icon: Bookmark },
     { id: "wallet", label: "Cashback Wallet", icon: Wallet },
     { id: "activity", label: "Activity", icon: History },
@@ -419,15 +446,21 @@ function ProfileContent() {
       <ConfettiOverlay active={triggerConfetti} />
 
       {/* Horizontal Nav Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 border-b border-slate-200/80 mb-3 sm:mb-4 select-none">
+      <div
+        ref={tabsContainerRef}
+        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-1 border-b border-slate-200/80 mb-3 sm:mb-4 select-none px-0.5"
+      >
         {PROFILE_TABS.map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
           return (
             <button
               key={t.id}
+              ref={(el) => {
+                if (el) tabRefs.current[t.id] = el;
+              }}
               onClick={() => handleTabChange(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all whitespace-nowrap cursor-pointer border ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all whitespace-nowrap cursor-pointer border shrink-0 ${
                 isActive
                   ? "bg-rose-50 text-[#F72853] border-rose-200 font-medium shadow-2xs"
                   : "bg-white text-slate-600 border-transparent hover:bg-slate-50 hover:text-slate-900 font-normal"

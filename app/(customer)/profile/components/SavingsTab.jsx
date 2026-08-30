@@ -4,9 +4,9 @@ import {
   Award,
   Check,
   Download,
+  IndianRupee,
   Lock,
   Percent,
-  PiggyBank,
   Search,
   Share2,
   TrendingUp,
@@ -160,7 +160,7 @@ export default function SavingsTab({
           title="Saved This Month"
           value={`₹${(Number(savingsData?.kpis?.totalSavedMonth) || 0).toLocaleString("en-IN")}`}
           change={savingsData?.kpis?.savingsRate || 12.5}
-          icon={PiggyBank}
+          icon={IndianRupee}
           variant="emerald"
         />
         <KPICard

@@ -4,10 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bookmark,
   History,
-  PiggyBank,
+  IndianRupee,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   Ticket,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -206,7 +205,7 @@ export default function CustomerDashboard() {
         <div className="bg-gradient-to-r from-rose-50/80 via-pink-50/40 to-white border border-rose-200/70 p-4 sm:p-5 rounded-xl sm:rounded-2xl relative overflow-hidden shadow-2xs">
           <div className="relative z-10 space-y-1">
             <div className="flex items-center gap-1.5 text-xs text-[#F72853] font-medium">
-              <Sparkles className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5" />
               <span>Customer Savings Hub</span>
             </div>
             <h2 className="text-base sm:text-lg font-medium text-slate-800 tracking-tight">
@@ -225,7 +224,7 @@ export default function CustomerDashboard() {
             value={totalSavedValue}
             change={savingsData?.kpis?.savingsRate || 12.5}
             isPositive={true}
-            icon={PiggyBank}
+            icon={IndianRupee}
             variant="emerald"
           />
           <KPICard

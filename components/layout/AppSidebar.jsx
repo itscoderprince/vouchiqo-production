@@ -13,13 +13,13 @@ import {
   HelpCircle,
   History,
   Home,
+  IndianRupee,
   Layers,
   LayoutDashboard,
   Link as LinkIcon,
   Mail,
   MapPin,
   Megaphone,
-  PiggyBank,
   PlusCircle,
   Percent,
   Settings,
@@ -670,7 +670,7 @@ export function AppSidebar({ ...props }) {
               {
                 title: "My Savings",
                 url: "/profile?tab=savings",
-                icon: PiggyBank,
+                icon: IndianRupee,
               },
               {
                 title: "Saved Deals",
@@ -719,26 +719,29 @@ export function AppSidebar({ ...props }) {
       className="bg-white text-slate-900 border-r border-slate-200 shadow-sm font-sans"
       {...props}
     >
-      <SidebarHeader className="h-16 flex items-center justify-between border-b border-slate-200 bg-white px-3.5 py-0">
+      <SidebarHeader className="!flex-row !gap-0 h-16 flex items-center justify-between border-b border-slate-100 bg-white px-3.5 py-0 shrink-0">
         <div
           className={`flex items-center gap-2.5 flex-1 min-w-0 ${isCollapsed ? "justify-center" : ""}`}
         >
-          <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-[#F72853] font-medium text-sm shadow-2xs overflow-hidden border border-rose-100">
+          {/* Logo in Left */}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-[#F72853] font-medium text-sm shadow-2xs overflow-hidden border border-rose-200/80">
             <Image
               src="/favicon.ico"
               alt="Vouchiqo Logo"
-              width={20}
-              height={20}
-              className="w-5 h-5 object-contain"
+              width={22}
+              height={22}
+              className="w-5.5 h-5.5 object-contain"
             />
           </div>
+
+          {/* User Name & Customer Badge in Middle */}
           {!isCollapsed && (
             <div className="flex flex-col text-left leading-tight min-w-0 flex-1">
-              <span className="text-sm font-medium tracking-tight truncate text-slate-800">
+              <span className="text-[13.5px] font-medium tracking-tight truncate text-slate-800">
                 {role === "admin" ? "Super Admin" : user.name}
               </span>
               <div className="flex items-center gap-1 mt-0.5">
-                <Badge className="bg-rose-50 text-[#F72853] border-rose-200/70 text-[8.5px] font-normal px-1.5 py-0 shadow-none">
+                <span className="bg-rose-50 text-[#F72853] border border-rose-200/70 text-[8.5px] font-normal px-2 py-0.2 rounded-full inline-block">
                   {merchantPlan
                     ? (PLAN_LABELS[merchantPlan] ?? merchantPlan.toUpperCase())
                     : role === "admin"
@@ -746,22 +749,22 @@ export function AppSidebar({ ...props }) {
                       : role === "merchant"
                         ? "MERCHANT PARTNER"
                         : "CUSTOMER"}
-                </Badge>
+                </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Mobile Drawer Close Button */}
+        {/* Close Button in Right */}
         {isMobile && (
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => setOpenMobile(false)}
-            className="w-7 h-7 rounded-lg text-slate-500 hover:text-[#F72853] hover:bg-rose-50/80 transition-colors shrink-0 cursor-pointer border border-slate-200/80 shadow-2xs ml-1"
+            className="w-8 h-8 rounded-lg text-slate-500 hover:text-[#F72853] hover:bg-rose-50/80 transition-colors shrink-0 cursor-pointer border border-slate-200/80 shadow-2xs ml-1.5"
             aria-label="Close drawer"
           >
-            <X className="w-4 h-4 stroke-[1.8]" />
+            <X className="w-4 h-4 stroke-[2]" />
           </Button>
         )}
       </SidebarHeader>
