@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import { signOut, useSession } from "@/lib/auth-client";
 import { useLenis } from "@/components/shared/SmoothScrollProvider";
@@ -29,9 +30,14 @@ const MOBILE_NAV_LINKS = [
 
 export const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
   const lenis = useLenis();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Robust background scroll lock and Lenis stop/start when drawer is open
   useEffect(() => {
@@ -88,33 +94,24 @@ export const MobileMenu = () => {
     }
   };
 
-  return (
-    <div className="md:hidden relative">
-      {/* Burger Toggle Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="p-1.5 text-gray-700 hover:text-gray-900 transition cursor-pointer bg-transparent border-0"
-        aria-label="Open mobile menu"
-      >
-        <Menu className="h-6 w-6" />
-      </button>
-
+  const drawerContent = (
+    <>
       {/* Backdrop Blur Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 animate-fade-in"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99990] animate-fade-in"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Full-Width Mobile Drawer */}
+      {/* Full-Width Mobile Drawer Portaled to Body */}
       {isOpen && (
         <div
           data-lenis-prevent="true"
-          className="fixed inset-0 w-full h-full bg-white shadow-2xl z-[60] flex flex-col animate-slide-in-right overflow-y-auto"
+          className="fixed inset-0 w-full h-[100dvh] bg-white shadow-2xl z-[99999] flex flex-col animate-slide-in-right overflow-y-auto isolate"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
             {/* Logo left */}
             <Logo />
             {/* Close button right */}
@@ -128,7 +125,7 @@ export const MobileMenu = () => {
           </div>
 
           {/* Location Selector (Fetched and selected inline) */}
-          <div className="bg-slate-50/20">
+          <div className="bg-slate-50/40">
             <LocationSelector
               inDrawer={true}
               onMobileSelect={() => setIsOpen(false)}
@@ -136,14 +133,14 @@ export const MobileMenu = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="flex-1 py-2 flex flex-col">
+          <div className="flex-1 py-2 flex flex-col bg-white">
             {MOBILE_NAV_LINKS.map(({ href, icon: Icon, label }) => (
               <Link
                 key={href}
                 href={href}
                 prefetch={true}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-5 py-3.5 text-[14px] font-semibold text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] active:bg-[#dbeafe] transition-all border-b border-slate-100/50"
+                className="flex items-center gap-3 px-5 py-3.5 text-[14px] font-normal text-slate-700 hover:bg-rose-50/60 hover:text-[#F72853] active:bg-rose-100/60 transition-all border-b border-slate-100/50"
               >
                 <Icon className="h-4.5 w-4.5 stroke-[1.8] text-slate-400 shrink-0" />
                 <span>{label}</span>
@@ -152,7 +149,7 @@ export const MobileMenu = () => {
           </div>
 
           {/* User Sign In / Profile Section */}
-          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+          <div className="p-4 border-t border-slate-100 bg-slate-50/60 mt-auto">
             {session ? (
               <div className="space-y-3.5">
                 {/* Profile menu links for mobile */}
@@ -164,9 +161,9 @@ export const MobileMenu = () => {
                         : "/profile"
                     }
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-center gap-1.5 px-2 py-2 text-[12px] font-semibold text-blue-600 bg-blue-50/50 border border-blue-100/50 rounded-lg hover:bg-blue-100/40 transition-all"
+                    className="flex items-center justify-center gap-1.5 px-2 py-2 text-[12px] font-medium text-[#F72853] bg-rose-50/60 border border-rose-100 rounded-lg hover:bg-rose-100/50 transition-all"
                   >
-                    <User className="h-4 w-4 text-blue-500 shrink-0" />
+                    <User className="h-4 w-4 text-[#F72853] shrink-0" />
                     <span>My Profile</span>
                   </Link>
                   <Link
@@ -176,38 +173,37 @@ export const MobileMenu = () => {
                         : "/customer/claimed"
                     }
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-center gap-1.5 px-2 py-2 text-[12px] font-semibold text-blue-600 bg-blue-50/50 border border-blue-100/50 rounded-lg hover:bg-blue-100/40 transition-all"
+                    className="flex items-center justify-center gap-1.5 px-2 py-2 text-[12px] font-medium text-[#F72853] bg-rose-50/60 border border-rose-100 rounded-lg hover:bg-rose-100/50 transition-all"
                   >
-                    <Ticket className="h-4 w-4 text-blue-500 shrink-0" />
+                    <Ticket className="h-4 w-4 text-[#F72853] shrink-0" />
                     <span>My Offers</span>
                   </Link>
                 </div>
 
                 <div className="flex items-center gap-3 px-2">
                   {session.user.image ? (
-                    // biome-ignore lint/performance/noImgElement: user avatar img
                     <img
                       src={session.user.image}
                       alt={session.user.name}
                       className="h-8 w-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 font-bold text-xs flex items-center justify-center uppercase">
+                    <div className="h-8 w-8 rounded-full bg-rose-100 text-[#F72853] font-medium text-xs flex items-center justify-center uppercase">
                       {session.user.name?.slice(0, 2).toUpperCase() || "U"}
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-slate-800 truncate leading-none">
+                    <p className="text-[13px] font-medium text-slate-800 truncate leading-none">
                       {session.user.name}
                     </p>
-                    <p className="text-[10px] text-slate-400 truncate mt-1">
+                    <p className="text-[10px] text-slate-400 truncate mt-1 font-normal">
                       {session.user.email}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-red-50 text-red-600 hover:bg-red-100 text-[12px] font-bold rounded-lg transition-colors border-0 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-red-50 text-red-600 hover:bg-red-100 text-[12px] font-medium rounded-lg transition-colors border-0 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out
@@ -217,7 +213,7 @@ export const MobileMenu = () => {
               <Link
                 href="/login"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#2563eb] text-white hover:bg-[#1d4ed8] text-[13px] font-semibold rounded-lg transition-all shadow-sm"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#F72853] text-white hover:bg-[#df1c44] text-[13px] font-medium rounded-lg transition-all shadow-sm"
               >
                 <User className="h-4 w-4" />
                 Login
@@ -226,6 +222,24 @@ export const MobileMenu = () => {
           </div>
         </div>
       )}
+    </>
+  );
+
+  return (
+    <div className="md:hidden relative">
+      {/* Burger Toggle Button */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="p-1.5 text-gray-700 hover:text-gray-900 transition cursor-pointer bg-transparent border-0"
+        aria-label="Open mobile menu"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+
+      {/* Render drawer via Portal to escape all local stacking contexts */}
+      {mounted && typeof document !== "undefined"
+        ? createPortal(drawerContent, document.body)
+        : null}
     </div>
   );
 };

@@ -118,21 +118,46 @@ const GirlFaceIcon = ({ className, style }) => (
 
 const CATEGORIES = [
   { key: "all", label: "All", icon: Flame, color: "#2563eb" },
-  { key: "food", label: "Food & Dining", icon: UtensilsCrossed, color: "#ea580c" },
+  {
+    key: "food",
+    label: "Food & Dining",
+    icon: UtensilsCrossed,
+    color: "#ea580c",
+  },
   { key: "fashion", label: "Fashion", icon: Shirt, color: "#7c3aed" },
   { key: "electronics", label: "Electronics", icon: Tv, color: "#0284c7" },
   { key: "fitness", label: "Fitness & Gym", icon: Dumbbell, color: "#059669" },
-  { key: "beauty", label: "Beauty & Spa", icon: GirlFaceIcon, color: "#db2777" },
+  {
+    key: "beauty",
+    label: "Beauty & Spa",
+    icon: GirlFaceIcon,
+    color: "#db2777",
+  },
   { key: "travel", label: "Travel & Hotels", icon: Plane, color: "#0891b2" },
   { key: "home", label: "Home & Kitchen", icon: HomeIcon, color: "#d97706" },
   { key: "grocery", label: "Grocery", icon: ShoppingCart, color: "#16a34a" },
-  { key: "education", label: "Education", icon: GraduationCap, color: "#4f46e5" },
-  { key: "entertainment", label: "Entertainment", icon: Film, color: "#dc2626" },
+  {
+    key: "education",
+    label: "Education",
+    icon: GraduationCap,
+    color: "#4f46e5",
+  },
+  {
+    key: "entertainment",
+    label: "Entertainment",
+    icon: Film,
+    color: "#dc2626",
+  },
   { key: "jewellery", label: "Jewellery", icon: Gem, color: "#b45309" },
   { key: "automotive", label: "Automotive", icon: Car, color: "#475569" },
   { key: "finance", label: "Finance", icon: Wallet, color: "#0d9488" },
   { key: "kids-baby", label: "Kids & Baby", icon: Baby, color: "#e11d48" },
-  { key: "home-improvement", label: "Home Improvement", icon: Wrench, color: "#ca8a04" },
+  {
+    key: "home-improvement",
+    label: "Home Improvement",
+    icon: Wrench,
+    color: "#ca8a04",
+  },
   { key: "gaming", label: "Gaming", icon: Gamepad2, color: "#6366f1" },
 ];
 
@@ -151,28 +176,32 @@ const MAP_TILES = {
     name: "Street Map",
     icon: Navigation,
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   },
   voyager: {
     id: "voyager",
     name: "Clean Light",
     icon: MapIcon,
     url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    attribution:
+      '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
   },
   satellite: {
     id: "satellite",
     name: "Satellite",
     icon: Globe,
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution: '&copy; <a href="https://www.esri.com/">Esri</a>, Earthstar Geographics',
+    attribution:
+      '&copy; <a href="https://www.esri.com/">Esri</a>, Earthstar Geographics',
   },
   dark: {
     id: "dark",
     name: "Dark Night",
     icon: Moon,
     url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    attribution:
+      '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
   },
   terrain: {
     id: "terrain",
@@ -274,8 +303,6 @@ const MapSkeleton = () => (
     </div>
   </div>
 );
-
-
 
 function getCategoryTheme(category) {
   const cat = (category || "").toLowerCase();
@@ -1597,7 +1624,7 @@ export default function NearbyOffers() {
       {/* Main Container: Left Sidebar + Right Map */}
       <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] w-full overflow-y-auto md:overflow-hidden relative scroll-smooth">
         {/* ─── LEFT SIDEBAR (Deals Near You Cards List) ─── */}
-        <div className="w-full md:w-[340px] lg:w-[360px] md:h-full flex flex-col bg-white md:border-r border-slate-200 shrink-0 sticky top-0 md:static z-50 shadow-xs md:shadow-none">
+        <div className="w-full md:w-[340px] lg:w-[360px] md:h-full flex flex-col bg-white md:border-r border-slate-200 shrink-0 sticky top-0 md:static z-20 shadow-xs md:shadow-none">
           {/* Sidebar Top Header (Sticky on Mobile, Static on Desktop) */}
           <div className="p-3 border-b border-slate-100 shrink-0 space-y-2 bg-white">
             {/* Title & Near Me GPS Button Header Row */}
