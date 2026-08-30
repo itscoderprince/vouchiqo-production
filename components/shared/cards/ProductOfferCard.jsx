@@ -173,8 +173,7 @@ export default function ProductOfferCard({ product }) {
         {/* Action Button */}
         <div className="mt-auto pt-0.5">
           <span
-            className="block w-full rounded-md py-1 text-center text-[10px] sm:text-[10.5px] font-normal uppercase tracking-wider text-white transition-all shadow-2xs group-hover:brightness-95 flex items-center justify-center gap-1"
-            style={{ backgroundColor: "#3E80DD" }}
+            className="block w-full rounded-md py-1 text-center text-[10px] sm:text-[10.5px] font-medium uppercase tracking-wider text-white transition-all shadow-2xs group-hover:brightness-95 flex items-center justify-center gap-1 bg-[#F72853] hover:bg-[#e01e47]"
           >
             <span>Grab Offer</span>
             <ExternalLink className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2]" />

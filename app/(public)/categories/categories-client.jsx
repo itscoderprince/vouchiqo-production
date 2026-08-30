@@ -63,11 +63,11 @@ export default function CategoriesClient({
   }, [categories, searchQuery]);
 
   return (
-    <div className="w-full bg-[#f8fafc] text-slate-900 font-sans min-h-screen pb-12">
+    <div className="w-full bg-[#f8fafc] text-slate-900 font-sans min-h-screen pb-12 select-none">
       {/* ── 1. COMPACT HEADER BAR ── */}
       <div className="bg-white border-b border-slate-200/90 px-3 sm:px-4 md:px-5 py-2">
         <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-normal mb-0.5">
-          <Link href="/" className="hover:text-blue-600 transition-colors">
+          <Link href="/" className="hover:text-[#F72853] transition-colors">
             Home
           </Link>
           <span>/</span>
@@ -76,10 +76,10 @@ export default function CategoriesClient({
 
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
-            <h1 className="text-sm sm:text-[15px] font-semibold text-slate-800 tracking-normal">
+            <h1 className="text-sm sm:text-[15px] font-medium text-[#F72853] tracking-normal">
               Explore Categories
             </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-50 text-[#F72853] border border-rose-200/60 shadow-2xs">
               {totalCategories} Categories
             </span>
           </div>
@@ -92,13 +92,13 @@ export default function CategoriesClient({
               placeholder="Search category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#F72853] transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -121,7 +121,7 @@ export default function CategoriesClient({
                 <Link
                   key={cat.slug}
                   href={`/category/${cat.slug}`}
-                  className="group relative flex flex-col bg-white border border-slate-200/80 rounded-lg sm:rounded-xl overflow-hidden shadow-2xs hover:shadow-xs hover:border-slate-300 active:scale-[0.98] transition-all duration-200 no-underline text-left cursor-pointer select-none"
+                  className="group relative flex flex-col bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs hover:shadow-[0_6px_16px_rgba(247,40,83,0.12)] hover:border-[#F72853] active:scale-[0.98] transition-all duration-200 no-underline text-left cursor-pointer select-none"
                 >
                   {/* Category Photographic Banner Header */}
                   <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 shrink-0">
@@ -139,7 +139,7 @@ export default function CategoriesClient({
 
                     {/* Bottom overlay title over image */}
                     <div className="absolute bottom-1.5 left-2 right-2">
-                      <p className="text-[11.5px] sm:text-[13px] font-bold text-white leading-tight drop-shadow-xs truncate">
+                      <p className="text-[11.5px] sm:text-[13px] font-medium text-white leading-tight drop-shadow-xs truncate">
                         {cat.title}
                       </p>
                     </div>
@@ -148,17 +148,17 @@ export default function CategoriesClient({
                   {/* Body & Actions */}
                   <div className="p-2 sm:p-2.5 flex flex-col justify-between flex-1 gap-1.5 sm:gap-2 bg-white">
                     {cat.description && (
-                      <p className="text-[9.5px] sm:text-[10.5px] text-slate-500 line-clamp-1 leading-tight">
+                      <p className="text-[9.5px] sm:text-[10.5px] text-slate-500 line-clamp-1 leading-tight font-normal">
                         {cat.description}
                       </p>
                     )}
 
                     {/* Offer count badge & link */}
                     <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[9.5px] sm:text-[10.5px]">
-                      <span className="font-semibold text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded border border-blue-200/60 truncate max-w-[72%] sm:max-w-none">
+                      <span className="font-medium text-[#F72853] bg-rose-50/90 px-1.5 py-0.5 rounded border border-rose-200/60 truncate max-w-[72%] sm:max-w-none shadow-2xs">
                         {offerCountLabel}
                       </span>
-                      <span className="text-slate-400 group-hover:text-blue-600 font-semibold flex items-center shrink-0 transition-colors">
+                      <span className="text-slate-400 group-hover:text-[#F72853] font-medium flex items-center shrink-0 transition-colors">
                         View <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </span>
                     </div>
@@ -168,18 +168,18 @@ export default function CategoriesClient({
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-2 max-w-md mx-auto my-8">
+          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-2 max-w-md mx-auto my-8 shadow-2xs">
             <Layers className="w-8 h-8 text-slate-400 mx-auto" />
-            <h3 className="text-sm font-semibold text-slate-800">
+            <h3 className="text-sm font-medium text-slate-800">
               No categories found
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 font-normal">
               No category matched &quot;{searchQuery}&quot;. Try searching another keyword.
             </p>
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-all"
+              className="px-3 py-1 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium rounded-lg transition-all cursor-pointer shadow-2xs"
             >
               Clear Search
             </button>
