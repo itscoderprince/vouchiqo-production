@@ -186,16 +186,16 @@ export function NavMain({ groups, isMerchant = false }) {
                     : "bg-transparent hover:bg-rose-50/70 text-slate-700 hover:text-[#F72853] font-normal border border-transparent hover:border-rose-200/60 rounded-xl transition-all";
 
                   const parentIconClass = isParentActive
-                    ? "!text-white"
-                    : "text-slate-500 group-hover:text-[#F72853] transition-colors";
+                    ? "text-white"
+                    : "text-inherit";
 
                   const parentTextClass = isParentActive
-                    ? "!text-white font-medium"
-                    : "text-slate-700 font-normal group-hover:text-[#F72853] transition-colors";
+                    ? "text-white font-medium"
+                    : "text-inherit font-normal";
 
                   const chevronClass = isParentActive
                     ? "text-white"
-                    : "text-slate-400 group-hover:text-[#F72853] transition-colors";
+                    : "text-inherit";
 
                   return (
                     <SidebarMenuItem
@@ -280,15 +280,15 @@ export function NavMain({ groups, isMerchant = false }) {
 
                             const subBtnClass = isSubActive
                               ? "!bg-[#F72853] !text-white font-medium shadow-xs rounded-lg"
-                              : "!bg-slate-50/70 hover:!bg-rose-50/60 !text-slate-600 hover:!text-[#F72853] font-normal border border-slate-200/50 rounded-lg shadow-2xs";
+                              : "bg-transparent hover:bg-rose-50/70 text-slate-600 hover:text-[#F72853] font-normal border border-transparent hover:border-rose-200/50 rounded-lg transition-all";
 
                             const subIconClass = isSubActive
                               ? "!text-white"
-                              : "!text-slate-500 hover:!text-[#F72853]";
+                              : "text-inherit";
 
                             const subTextClass = isSubActive
                               ? "!text-white font-medium"
-                              : "!text-slate-600 font-normal";
+                              : "text-inherit font-normal";
 
                             return (
                               <SidebarMenuSubItem key={sub.title}>
@@ -304,7 +304,7 @@ export function NavMain({ groups, isMerchant = false }) {
                                   >
                                     {SubIcon && (
                                       <SubIcon
-                                        className={`h-3.5 w-3.5 shrink-0 ${subIconClass}`}
+                                        className={`h-3.5 w-3.5 shrink-0 transition-colors ${subIconClass}`}
                                       />
                                     )}
                                     <span className={`text-xs ${subTextClass}`}>
@@ -333,11 +333,11 @@ export function NavMain({ groups, isMerchant = false }) {
 
                 const singleIconClass = isParentActive
                   ? "!text-white"
-                  : "text-slate-500 group-hover:text-[#F72853] transition-colors";
+                  : "text-inherit";
 
                 const singleTextClass = isParentActive
                   ? "!text-white font-medium"
-                  : "text-slate-700 font-normal group-hover:text-[#F72853] transition-colors";
+                  : "text-inherit font-normal";
 
                 const URL_TOUR_MAP = {
                   "/merchant/dashboard": "tour-dashboard-overview",
@@ -365,7 +365,7 @@ export function NavMain({ groups, isMerchant = false }) {
                       asChild
                       isActive={false}
                       tooltip={isCollapsed ? item.title : undefined}
-                      className={`h-8.5 py-1 px-2.5 text-xs transition-all cursor-pointer group ${singleBtnClass}`}
+                      className={`h-8.5 py-1 px-2.5 text-xs transition-all cursor-pointer ${singleBtnClass}`}
                     >
                       <Link
                         href={item.url}
