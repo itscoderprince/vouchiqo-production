@@ -57,7 +57,7 @@ export default function ClaimedCoupons() {
         <div className="flex justify-between items-center border-b border-slate-100 pb-3">
           <h2 className="text-xs sm:text-[13.5px] font-medium text-slate-800 tracking-tight flex items-center gap-1.5">
             <Ticket className="w-4 h-4 text-[#F72853]" />
-            <span>Coupon Claims &amp; Redeemed History</span>
+            <span>Offer Claims &amp; Redeemed History</span>
           </h2>
           <span className="text-[10px] sm:text-[10.5px] text-[#F72853] font-normal bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
             {redemptions.length} Claimed

@@ -15,19 +15,19 @@ export default function ActivityTab() {
             desc: "Viewed showroom deals in Home Improvement category.",
           },
           {
-            message: "Claimed Burger House BOGOFRIES coupon code",
+            message: "Claimed Burger House BOGOFRIES offer code",
             time: "1 day ago",
             desc: "Redeemed 'Buy One Get One Free Fries' voucher code BURGER30.",
           },
           {
-            message: "Saved StyleZone Summer collection coupon",
+            message: "Saved StyleZone Summer collection offer",
             time: "2 days ago",
             desc: "Bookmarked '20% off Summer Collection' for in-store purchase.",
           },
           {
-            message: "Voted to revive Zomato Premier coupon",
+            message: "Voted to revive Zomato Premier offer",
             time: "3 days ago",
-            desc: "Submitted an Expired Coupon Revival request for 50% discount codes.",
+            desc: "Submitted an Expired Offer Revival request for 50% discount codes.",
           },
           {
             message: "Completed profile preferences settings",

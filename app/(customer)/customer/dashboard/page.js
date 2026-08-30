@@ -229,7 +229,7 @@ export default function CustomerDashboard() {
           />
           <KPICard
             title="Active Claims"
-            value={`${activeClaimsCount} Coupons`}
+            value={`${activeClaimsCount} Offers`}
             change={0.0}
             isPositive={true}
             icon={Ticket}
@@ -237,7 +237,7 @@ export default function CustomerDashboard() {
           />
           <KPICard
             title="Saved Items"
-            value={`${savedItemsCount} Coupons`}
+            value={`${savedItemsCount} Offers`}
             change={0.0}
             isPositive={true}
             icon={Bookmark}
@@ -255,9 +255,9 @@ export default function CustomerDashboard() {
 
         {/* Core Dashboard Details */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-5">
-          {/* Left Column: Claimed and Saved Coupons */}
+          {/* Left Column: Claimed and Saved Offers */}
           <div className="lg:col-span-2 space-y-3.5 sm:space-y-4">
-            {/* Claimed Coupons list */}
+            {/* Claimed Offers list */}
             <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight flex items-center gap-1.5">
@@ -278,12 +278,12 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="text-center py-6 text-xs text-slate-400 flex flex-col items-center justify-center space-y-1.5 select-none min-h-[100px]">
                   <Ticket className="w-5 h-5 text-slate-300" />
-                  <span>No recently claimed coupons</span>
+                  <span>No recently claimed offers</span>
                 </div>
               )}
             </div>
 
-            {/* Saved Coupons list */}
+            {/* Saved Offers list */}
             <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight flex items-center gap-1.5">
@@ -304,7 +304,7 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="text-center py-6 text-xs text-slate-400 flex flex-col items-center justify-center space-y-1.5 select-none min-h-[100px]">
                   <Bookmark className="w-5 h-5 text-slate-300" />
-                  <span>No saved deals yet</span>
+                  <span>No saved offers yet</span>
                 </div>
               )}
             </div>

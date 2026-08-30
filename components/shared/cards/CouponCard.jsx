@@ -96,19 +96,19 @@ export default function CouponCard({
       >
         {/* Merchant Brand Info */}
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-md bg-blue-50 border border-blue-100 flex items-center justify-center font-bold text-[11px] text-blue-600">
+          <div className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center font-medium text-[11px] text-[#F72853]">
             {mName ? mName[0].toUpperCase() : "M"}
           </div>
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">
+          <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider truncate">
             {mName}
           </span>
         </div>
 
         {/* Discount Value */}
-        <h3 className="text-lg font-bold text-slate-800 mb-0.5 group-hover:text-blue-600 transition-colors">
+        <h3 className="text-lg font-medium text-slate-800 mb-0.5 group-hover:text-[#F72853] transition-colors">
           {discountFormatted}
         </h3>
-        <p className="text-xs font-medium text-slate-700 mb-1.5 leading-snug line-clamp-1">
+        <p className="text-xs font-normal text-slate-700 mb-1.5 leading-snug line-clamp-1">
           {displayTitle}
         </p>
         <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
@@ -118,20 +118,20 @@ export default function CouponCard({
 
       {/* Ticket Cutout Divider */}
       <div className="relative w-full my-0.5">
-        <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-50 border border-slate-100 z-10" />
-        <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-50 border border-slate-100 z-10" />
+        <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white border border-slate-100 z-10" />
+        <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white border border-slate-100 z-10" />
         <div className="border-t border-dashed border-slate-200 w-full" />
       </div>
 
       {/* Bottom Section */}
       <div className="p-3.5 bg-slate-50/50">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full select-none">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-normal text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full select-none border border-emerald-200/60">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             <span>Active Today</span>
           </span>
           {isExpiringSoon && (
-            <span className="text-[10px] font-medium text-red-500 flex items-center gap-1 select-none">
+            <span className="text-[10px] font-normal text-rose-500 flex items-center gap-1 select-none">
               <ShieldAlert className="w-3 h-3" />
               <span>Expiring Soon</span>
             </span>
@@ -143,7 +143,7 @@ export default function CouponCard({
               handleCardClick();
               onRedeem(coupon);
             }}
-            className="w-full text-xs py-2 rounded-lg shadow-none border-0 h-auto cursor-pointer font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            className="w-full text-xs py-2 rounded-xl shadow-2xs border-0 h-auto cursor-pointer font-normal bg-[#F72853] hover:bg-[#df1c44] text-white transition-colors"
           >
             Claim Offer
           </Button>
@@ -151,7 +151,7 @@ export default function CouponCard({
           <Button
             asChild
             onClick={handleCardClick}
-            className="w-full text-xs py-2 rounded-lg shadow-none border-0 h-auto cursor-pointer text-center justify-center font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            className="w-full text-xs py-2 rounded-xl shadow-2xs border-0 h-auto cursor-pointer text-center justify-center font-normal bg-[#F72853] hover:bg-[#df1c44] text-white transition-colors"
           >
             <Link href={`/deals/${_id}`}>View Offer</Link>
           </Button>

@@ -13,7 +13,7 @@ export default function SavedDealsTab({
     <div className="space-y-4 text-left font-sans">
       <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
         <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight">
-          Bookmarked &amp; Saved Deals ({savedClaims.length})
+          Bookmarked &amp; Saved Offers ({savedClaims.length})
         </h3>
       </div>
       {savedClaims.length > 0 ? (

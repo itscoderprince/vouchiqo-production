@@ -255,7 +255,7 @@ export default function SettingsTab({
                 Expiry Warnings
               </span>
               <span className="text-[10px] text-slate-400 font-normal">
-                Notify 24 hours prior to coupon expiration.
+                Notify 24 hours prior to offer expiration.
               </span>
             </div>
             <Checkbox

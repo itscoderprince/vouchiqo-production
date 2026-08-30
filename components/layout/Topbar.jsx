@@ -122,17 +122,21 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
   const user =
     mounted && authUser
       ? {
+          ...authUser,
           name: authUser.name,
+          email: authUser.email,
           role: displayRole,
           image: authUser.image,
         }
       : propUser
         ? {
             ...propUser,
+            email: propUser.email || authUser?.email,
             role: displayRole,
           }
         : {
-            name: "Merchant",
+            name: "User",
+            email: authUser?.email,
             role: displayRole,
           };
 

@@ -66,26 +66,49 @@ export function NavMain({ groups, isMerchant = false }) {
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               {group.items.map((item) => {
+                const [itemPath, itemQuery] = (item.url || "").split("?");
                 const normalizedPath = pathname.replace(/\/$/, "");
-                const normalizedUrl = item.url
-                  ? item.url.replace(/\/$/, "")
-                  : "";
+                const normalizedItemPath = itemPath.replace(/\/$/, "");
                 const hasSubItems = item.subItems && item.subItems.length > 0;
 
                 let isParentActive = false;
                 if (hasSubItems) {
                   isParentActive = item.subItems.some((sub) => {
-                    const subBaseUrl = sub.url.split("?")[0].replace(/\/$/, "");
-                    return normalizedPath === subBaseUrl;
+                    const [subPath, subQuery] = sub.url.split("?");
+                    const normalizedSubPath = subPath.replace(/\/$/, "");
+                    if (normalizedPath !== normalizedSubPath) return false;
+                    if (!subQuery) return true;
+                    const subParams = new URLSearchParams(subQuery);
+                    for (const [k, v] of subParams.entries()) {
+                      if (searchParams?.get(k) !== v) return false;
+                    }
+                    return true;
                   });
-                } else if (normalizedUrl) {
-                  isParentActive =
-                    normalizedPath === normalizedUrl ||
-                    (normalizedUrl !== "" &&
-                      normalizedUrl !== "/merchant/dashboard" &&
-                      normalizedUrl !== "/admin/dashboard" &&
-                      normalizedUrl !== "/customer/dashboard" &&
-                      normalizedPath.startsWith(`${normalizedUrl}/`));
+                } else if (normalizedItemPath) {
+                  if (normalizedPath === normalizedItemPath) {
+                    if (itemQuery) {
+                      const itemParams = new URLSearchParams(itemQuery);
+                      isParentActive = true;
+                      for (const [k, v] of itemParams.entries()) {
+                        if (searchParams?.get(k) !== v) {
+                          isParentActive = false;
+                          break;
+                        }
+                      }
+                    } else {
+                      isParentActive =
+                        !searchParams?.get("tab") ||
+                        normalizedItemPath === "/customer/dashboard";
+                    }
+                  } else if (
+                    normalizedItemPath !== "" &&
+                    normalizedItemPath !== "/merchant/dashboard" &&
+                    normalizedItemPath !== "/admin/dashboard" &&
+                    normalizedItemPath !== "/customer/dashboard" &&
+                    normalizedPath.startsWith(`${normalizedItemPath}/`)
+                  ) {
+                    isParentActive = true;
+                  }
                 }
 
                 const isSubOpen =

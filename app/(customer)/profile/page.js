@@ -128,7 +128,7 @@ function ProfileContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
 
-  // Load Tab from URL Parameter dynamically
+  // Load Tab from URL Parameter dynamically or redirect default /profile to /customer/dashboard
   useEffect(() => {
     const validTabs = [
       "savings",
@@ -140,8 +140,10 @@ function ProfileContent() {
     ];
     if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam);
+    } else if (!tabParam) {
+      router.replace("/customer/dashboard");
     }
-  }, [tabParam]);
+  }, [tabParam, router]);
 
   // Smoothly center the active tab in the horizontally scrollable bar
   useEffect(() => {
@@ -438,7 +440,8 @@ function ProfileContent() {
       title={`${profileUsername} Profile`}
       user={
         authUser || {
-          name: profileData.name || "Sarah Jenkins",
+          name: profileData.name || "User",
+          email: authUser?.email || profileData?.email,
           role: "customer",
         }
       }
