@@ -2,12 +2,12 @@
 
 export default function ActivityTab() {
   return (
-    <div className="bg-brand-bg border border-brand-border rounded-md p-5 shadow-sm space-y-5 w-full text-left">
-      <h3 className="font-heading text-xs font-bold text-brand-navy uppercase tracking-wider border-b border-brand-border pb-3">
+    <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4 w-full text-left font-sans">
+      <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight border-b border-slate-100 pb-2.5">
         Your Chronological Activity
       </h3>
 
-      <div className="space-y-5 relative pl-4 border-l border-brand-border">
+      <div className="space-y-4 relative pl-4 border-l border-slate-200">
         {[
           {
             message: "Checked in at Marbella Home Improvement (Ranchi)",
@@ -35,16 +35,16 @@ export default function ActivityTab() {
             desc: "Selected shopping category interests for Homepage customization.",
           },
         ].map((act, idx) => (
-          <div key={idx} className="relative space-y-1">
+          <div key={idx} className="relative space-y-0.5">
             {/* Dot */}
-            <div className="absolute left-[-21px] top-1.5 w-2.5 h-2.5 rounded-full bg-brand-blue border-2 border-white"></div>
-            <div className="flex items-center justify-between font-bold text-xs">
-              <span className="text-brand-navy">{act.message}</span>
-              <span className="text-[10px] text-brand-subtext font-semibold">
+            <div className="absolute left-[-21px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#F72853] border-2 border-white shadow-2xs"></div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-800 font-medium">{act.message}</span>
+              <span className="text-[9.5px] text-slate-400 font-normal">
                 {act.time}
               </span>
             </div>
-            <p className="text-[10px] text-brand-subtext leading-relaxed">
+            <p className="text-[10.5px] text-slate-500 font-normal leading-relaxed">
               {act.desc}
             </p>
           </div>

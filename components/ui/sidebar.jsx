@@ -1,6 +1,6 @@
 "use client";
 import { cva } from "class-variance-authority";
-import { PanelLeftIcon } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Slot } from "radix-ui";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -235,14 +235,14 @@ function SidebarTrigger({ className, onClick, ...props }) {
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon-sm"
-      className={cn(className)}
+      className={cn("p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      <Menu className="h-5 w-5 stroke-[1.8]" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

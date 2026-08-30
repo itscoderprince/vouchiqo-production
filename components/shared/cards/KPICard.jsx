@@ -5,19 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 /**
- * KPICard — Compact, high-contrast KPI analytics card built with Shadcn UI.
- *
- * @param {string} title - metric label (e.g. "TOTAL IMPRESSIONS")
- * @param {string|number} value - primary metric number (e.g. "3", "₹12,450", "0.0%")
- * @param {number} [change] - percentage change value
- * @param {boolean} [isPositive=true] - positive vs negative trend color
- * @param {React.ComponentType} [icon] - Lucide icon component
- * @param {string} [iconClassName] - custom background/text classes for icon container
- * @param {string} [subtitle] - helper description (e.g. "ticker views", "codes claimed")
- * @param {string} [timeFrame="vs last month"] - trend comparison label
- * @param {boolean} [loading=false] - loading skeleton state
- * @param {string} [href] - optional link wrapper
- * @param {string} [className] - custom container classes
+ * KPICard — Modern, soft-colored, compact KPI analytics card.
  */
 export default function KPICard({
   title,
@@ -34,48 +22,58 @@ export default function KPICard({
   variant = "default",
 }) {
   const variantStyles = {
-    emerald: "bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/20 border-emerald-200/80 hover:border-emerald-300 shadow-sm hover:shadow-md hover:shadow-emerald-500/5",
-    blue: "bg-gradient-to-br from-blue-50/80 via-white to-blue-50/20 border-blue-200/80 hover:border-blue-300 shadow-sm hover:shadow-md hover:shadow-blue-500/5",
-    amber: "bg-gradient-to-br from-amber-50/80 via-white to-amber-50/20 border-amber-200/80 hover:border-amber-300 shadow-sm hover:shadow-md hover:shadow-amber-500/5",
-    purple: "bg-gradient-to-br from-purple-50/80 via-white to-purple-50/20 border-purple-200/80 hover:border-purple-300 shadow-sm hover:shadow-md hover:shadow-purple-500/5",
-    default: "bg-white border-slate-200/90 hover:border-blue-300 shadow-xs hover:shadow-sm",
+    rose: "bg-gradient-to-br from-rose-50/70 via-white to-pink-50/20 border-rose-200/70 hover:border-[#F72853] hover:shadow-[0_8px_20px_rgba(247,40,83,0.12)]",
+    emerald: "bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/20 border-emerald-200/70 hover:border-emerald-400 hover:shadow-[0_8px_20px_rgba(16,185,129,0.12)]",
+    blue: "bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/20 border-blue-200/70 hover:border-blue-400 hover:shadow-[0_8px_20px_rgba(37,99,235,0.12)]",
+    amber: "bg-gradient-to-br from-amber-50/70 via-white to-orange-50/20 border-amber-200/70 hover:border-amber-400 hover:shadow-[0_8px_20px_rgba(245,158,11,0.12)]",
+    purple: "bg-gradient-to-br from-purple-50/70 via-white to-fuchsia-50/20 border-purple-200/70 hover:border-purple-400 hover:shadow-[0_8px_20px_rgba(168,85,247,0.12)]",
+    default: "bg-white border-slate-200/90 hover:border-[#F72853]/60 hover:shadow-[0_8px_20px_rgba(247,40,83,0.08)]",
   };
 
-  const topBarStyles = {
-    emerald: "bg-emerald-500",
-    blue: "bg-blue-600",
-    amber: "bg-amber-500",
-    purple: "bg-purple-500",
-    default: "bg-[#08214d]",
+  const iconVariantStyles = {
+    rose: "bg-rose-50 text-[#F72853] border-rose-200/60",
+    emerald: "bg-emerald-50 text-emerald-600 border-emerald-200/60",
+    blue: "bg-blue-50 text-blue-600 border-blue-200/60",
+    amber: "bg-amber-50 text-amber-600 border-amber-200/60",
+    purple: "bg-purple-50 text-purple-600 border-purple-200/60",
+    default: "bg-slate-50 text-slate-600 border-slate-200/60",
+  };
+
+  const trendVariantStyles = {
+    rose: "text-[#F72853] bg-rose-50/90 border-rose-100",
+    emerald: "text-emerald-700 bg-emerald-50/90 border-emerald-100",
+    blue: "text-blue-700 bg-blue-50/90 border-blue-100",
+    amber: "text-amber-700 bg-amber-50/90 border-amber-100",
+    purple: "text-purple-700 bg-purple-50/90 border-purple-100",
+    default: isPositive
+      ? "text-emerald-700 bg-emerald-50/90 border-emerald-100"
+      : "text-rose-700 bg-rose-50/90 border-rose-100",
   };
 
   const cardContent = (
     <Card
       className={cn(
-        "rounded-2xl p-0 transition-all duration-300 overflow-hidden relative flex flex-col justify-between h-full group hover:-translate-y-0.5 font-sans border",
+        "rounded-xl sm:rounded-2xl p-0 transition-all duration-300 overflow-hidden relative flex flex-col justify-between h-full group hover:-translate-y-0.5 font-sans border shadow-2xs",
         variantStyles[variant] || variantStyles.default,
         className,
       )}
     >
-      {/* Top Color Accent Bar */}
-      <div className={cn("h-1 w-full absolute top-0 left-0", topBarStyles[variant] || topBarStyles.default)} />
-
-      <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between h-full pt-3.5">
+      <CardContent className="p-3 sm:p-4 flex flex-col justify-between h-full">
         {loading ? (
           <div className="space-y-2 py-0.5">
             <div className="flex items-center justify-between">
-              <Skeleton className="h-3 w-24 rounded-md" />
-              <Skeleton className="h-6.5 w-6.5 rounded-md" />
+              <Skeleton className="h-3 w-20 rounded-md" />
+              <Skeleton className="h-6 w-6 rounded-md" />
             </div>
-            <Skeleton className="h-6 w-20 rounded-md my-1" />
-            <Skeleton className="h-3 w-28 rounded-md" />
+            <Skeleton className="h-5.5 w-18 rounded-md my-1" />
+            <Skeleton className="h-2.5 w-24 rounded-md" />
           </div>
         ) : (
-          <div className="flex flex-col justify-between h-full">
+          <div className="flex flex-col justify-between h-full space-y-1.5 sm:space-y-2">
             {/* Header: Title & Icon Badge */}
-            <div className="flex items-center justify-between gap-1.5 mb-1">
+            <div className="flex items-center justify-between gap-1.5">
               <span
-                className="text-[10px] sm:text-[11px] font-medium text-slate-500 uppercase tracking-wider block truncate max-w-[calc(100%-1.75rem)]"
+                className="text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 uppercase tracking-wider block truncate max-w-[calc(100%-1.75rem)]"
                 title={title}
               >
                 {title}
@@ -83,7 +81,8 @@ export default function KPICard({
               {Icon && (
                 <div
                   className={cn(
-                    "w-6.5 h-6.5 rounded-md bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 shrink-0 shadow-2xs group-hover:scale-105 transition-all",
+                    "w-6 h-6 sm:w-7 sm:h-7 rounded-lg border flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-200",
+                    iconVariantStyles[variant] || iconVariantStyles.default,
                     iconClassName,
                   )}
                 >
@@ -93,34 +92,32 @@ export default function KPICard({
             </div>
 
             {/* Metric Value */}
-            <div className="my-0.5">
-              <span className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight leading-tight block">
+            <div>
+              <span className="text-base sm:text-xl font-medium text-slate-900 tracking-tight leading-none block">
                 {value}
               </span>
             </div>
 
             {/* Subtitle / Helper Label */}
             {subtitle && (
-              <p className="text-[11px] font-semibold text-slate-500 mb-1.5 capitalize leading-tight">
+              <p className="text-[10.5px] font-normal text-slate-500 capitalize leading-tight">
                 {subtitle}
               </p>
             )}
 
             {/* Trend Indicator & Timeframe */}
-            <div className="flex items-center flex-wrap gap-1 pt-0.5 text-[10px] sm:text-[11px] font-medium">
+            <div className="flex items-center flex-wrap gap-1 text-[9.5px] sm:text-[10.5px] font-normal pt-0.5">
               {change !== undefined && change !== null && (
                 <span
                   className={cn(
-                    "inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] font-medium px-1.5 py-0.5 rounded-md border",
-                    isPositive
-                      ? "text-blue-600 bg-blue-50/90 border-blue-100"
-                      : "text-rose-600 bg-rose-50/90 border-rose-100",
+                    "inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-md border",
+                    trendVariantStyles[variant] || trendVariantStyles.default,
                   )}
                 >
                   {isPositive ? (
-                    <TrendingUp className="w-3 h-3 shrink-0" />
+                    <TrendingUp className="w-2.5 h-2.5 shrink-0" />
                   ) : (
-                    <TrendingDown className="w-3 h-3 shrink-0" />
+                    <TrendingDown className="w-2.5 h-2.5 shrink-0" />
                   )}
                   <span>
                     {isPositive ? "+" : ""}
@@ -128,8 +125,9 @@ export default function KPICard({
                   </span>
                 </span>
               )}
-              {change !== undefined && change !== null && timeFrame && (
-                <span className="text-[10px] sm:text-[11px] font-medium text-slate-400">
+
+              {timeFrame && (
+                <span className="text-slate-400 text-[9px] sm:text-[10px] truncate">
                   {timeFrame}
                 </span>
               )}
@@ -142,11 +140,11 @@ export default function KPICard({
 
   if (href) {
     return (
-      <Link href={href} className="block h-full cursor-pointer">
+      <Link href={href} className="block no-underline h-full select-none cursor-pointer">
         {cardContent}
       </Link>
     );
   }
 
-  return cardContent;
+  return <div className="h-full select-none">{cardContent}</div>;
 }

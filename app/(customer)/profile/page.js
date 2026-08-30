@@ -6,6 +6,7 @@ import {
   History,
   MapPin,
   PiggyBank,
+  Settings,
   Wallet,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -396,6 +397,15 @@ function ProfileContent() {
     );
   }
 
+  const PROFILE_TABS = [
+    { id: "savings", label: "Savings Hub", icon: PiggyBank },
+    { id: "saved", label: "Saved Deals", icon: Bookmark },
+    { id: "wallet", label: "Cashback Wallet", icon: Wallet },
+    { id: "activity", label: "Activity", icon: History },
+    { id: "nearby", label: "Nearby Offers", icon: MapPin },
+    { id: "settings", label: "Preferences & Settings", icon: Settings },
+  ];
+
   return (
     <DashboardLayout
       title={`${profileUsername} Profile`}
@@ -408,10 +418,32 @@ function ProfileContent() {
     >
       <ConfettiOverlay active={triggerConfetti} />
 
-      {/* Tabs removed to use Sidebar Navigation instead */}
+      {/* Horizontal Nav Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 border-b border-slate-200/80 mb-3 sm:mb-4 select-none">
+        {PROFILE_TABS.map((t) => {
+          const Icon = t.icon;
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => handleTabChange(t.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all whitespace-nowrap cursor-pointer border ${
+                isActive
+                  ? "bg-rose-50 text-[#F72853] border-rose-200 font-medium shadow-2xs"
+                  : "bg-white text-slate-600 border-transparent hover:bg-slate-50 hover:text-slate-900 font-normal"
+              }`}
+            >
+              <Icon
+                className={`w-3.5 h-3.5 ${isActive ? "text-[#F72853]" : "text-slate-400"}`}
+              />
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* TAB CONTENT PANEL */}
-      <div className="space-y-6 pt-2">
+      <div className="space-y-6 pt-1">
         {activeTab === "savings" && savingsData && (
           <SavingsTab
             savingsData={savingsData}

@@ -5,6 +5,7 @@ import {
   Check,
   Download,
   Lock,
+  Percent,
   PiggyBank,
   Search,
   Share2,
@@ -34,12 +35,12 @@ import {
 } from "@/components/ui/table";
 
 const DONUT_COLORS = [
-  "#2563eb",
-  "#1E4FAF",
-  "#2563eb",
-  "#FFB020",
-  "#A855F7",
-  "#3B82F6",
+  "#F72853",
+  "#10B981",
+  "#6366F1",
+  "#F59E0B",
+  "#8B5CF6",
+  "#06B6D4",
   "#EC4899",
   "#14B8A6",
 ];
@@ -152,90 +153,101 @@ export default function SavingsTab({
   );
 
   return (
-    <div className="space-y-6">
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="space-y-4 sm:space-y-6 text-left font-sans">
+      {/* KPI Cards Grid (Compact 2x2 on Mobile, 4-col on Desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
         <KPICard
           title="Saved This Month"
           value={`₹${(Number(savingsData?.kpis?.totalSavedMonth) || 0).toLocaleString("en-IN")}`}
           change={savingsData?.kpis?.savingsRate || 12.5}
           icon={PiggyBank}
+          variant="emerald"
         />
         <KPICard
           title="Total Lifetime Saved"
           value={`₹${(Number(savingsData?.kpis?.totalSavedAllTime) || 0).toLocaleString("en-IN")}`}
           change={8.2}
           icon={Award}
+          variant="purple"
         />
         <KPICard
           title="Total Spent Tracked"
           value={`₹${(Number(savingsData?.kpis?.totalSpentAllTime) || 0).toLocaleString("en-IN")}`}
           change={4.5}
           icon={TrendingUp}
+          variant="blue"
         />
-        <div className="bg-brand-bg border border-brand-border rounded-[16px] p-5 shadow-sm space-y-3 relative overflow-hidden">
-          <span className="text-[10px] text-brand-subtext font-bold uppercase tracking-wider">
-            Savings Rate
-          </span>
-          <div className="flex items-baseline gap-2">
-            <span
-              className={`text-2xl font-black font-heading ${
-                savingsData.kpis.savingsRate > 20
-                  ? "text-brand-success"
-                  : savingsData.kpis.savingsRate >= 10
-                    ? "text-brand-warning"
-                    : "text-brand-subtext"
-              }`}
-            >
-              {savingsData.kpis.savingsRate}%
+        <div className="bg-gradient-to-br from-rose-50/70 via-white to-pink-50/20 border border-rose-200/70 hover:border-[#F72853] rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xs hover:shadow-[0_8px_20px_rgba(247,40,83,0.12)] transition-all duration-300 flex flex-col justify-between group">
+          <div className="flex items-center justify-between gap-1.5 mb-1">
+            <span className="text-[9.5px] sm:text-[10.5px] text-slate-500 font-medium uppercase tracking-wider block truncate">
+              Savings Rate
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-50 border border-rose-200/60 text-[#F72853] flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all">
+              <Percent className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="my-0.5">
+            <span className="text-base sm:text-xl font-medium text-[#F72853] tracking-tight leading-none block">
+              {savingsData?.kpis?.savingsRate || 0}%
             </span>
           </div>
-          <p className="text-[10px] text-brand-subtext font-semibold">
-            You save ₹{savingsData.kpis.savingsRate} for every ₹100 spent.
+          <p className="text-[9.5px] sm:text-[10px] text-slate-500 font-normal leading-tight pt-0.5">
+            You save ₹{savingsData?.kpis?.savingsRate || 0} per ₹100 spent
           </p>
         </div>
       </div>
 
-      {/* Achievements row */}
-      <div className="bg-brand-bg border border-brand-border rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-          <span>Savings Milestone Badges</span>
-        </h3>
+      {/* Milestone Badges */}
+      <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-2xs space-y-3 sm:space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight flex items-center gap-1.5">
+            <span>Savings Milestone Badges</span>
+          </h3>
+          <span className="text-[10px] sm:text-[10.5px] text-[#F72853] font-normal bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+            {savingsData?.milestones?.filter((m) => m.achieved)?.length || 0} /{" "}
+            {savingsData?.milestones?.length || 0} Unlocked
+          </span>
+        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          {savingsData.milestones.map((m) => {
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+          {savingsData?.milestones?.map((m) => {
             const dateStr = m.achievedAt
               ? new Date(m.achievedAt).toLocaleDateString("en-IN", {
                   day: "2-digit",
                   month: "short",
-                  year: "numeric",
                 })
               : "";
             return (
               <div
                 key={m.id}
-                className={`relative group rounded-xl p-4 border text-center transition-all ${
+                className={`relative group rounded-xl p-2.5 sm:p-3 border text-center transition-all duration-200 ${
                   m.achieved
-                    ? "bg-brand-surface border-brand-success/20 text-brand-success"
-                    : "bg-brand-surface/40 border-brand-border/60 text-brand-subtext"
+                    ? "bg-gradient-to-br from-emerald-50/80 to-teal-50/40 border-emerald-200 text-emerald-800 shadow-2xs"
+                    : "bg-slate-50/70 border-slate-200/70 text-slate-500"
                 }`}
               >
-                <div className="mx-auto w-9 h-9 rounded-full flex items-center justify-center border bg-white mb-2 shadow-sm">
+                <div
+                  className={`mx-auto w-8 h-8 rounded-full flex items-center justify-center border mb-1.5 shadow-2xs ${
+                    m.achieved
+                      ? "bg-white border-emerald-200 text-emerald-600"
+                      : "bg-white border-slate-200 text-slate-300"
+                  }`}
+                >
                   {m.achieved ? (
-                    <Award className="w-5 h-5 text-brand-success" />
+                    <Award className="w-4 h-4 text-emerald-600" />
                   ) : (
-                    <Lock className="w-4 h-4 text-slate-300" />
+                    <Lock className="w-3.5 h-3.5 text-slate-300" />
                   )}
                 </div>
-                <span className="text-[10px] font-bold block truncate uppercase tracking-wider">
+                <span className="text-[10px] sm:text-[10.5px] font-medium block truncate">
                   {m.title}
                 </span>
                 {m.achieved ? (
-                  <span className="text-[9px] text-brand-subtext block mt-1 font-semibold">
+                  <span className="text-[8.5px] sm:text-[9px] text-emerald-600 block mt-0.5 font-normal">
                     Unlocked {dateStr}
                   </span>
                 ) : (
-                  <span className="text-[9px] text-slate-400 block mt-1 font-semibold">
+                  <span className="text-[8.5px] sm:text-[9px] text-slate-400 block mt-0.5 font-normal">
                     Target ₹{m.threshold}
                   </span>
                 )}
@@ -245,27 +257,24 @@ export default function SavingsTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left Side: Recharts Spline Timeline Chart */}
-        <div className="lg:col-span-8 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md p-4 shadow-sm flex flex-col justify-between space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-zinc-850 pb-3">
-            <div>
-              <h3 className="text-xs font-semibold text-slate-550 uppercase tracking-wider">
-                Savings vs. Spending Timeline
-              </h3>
-            </div>
-            <div className="flex items-center border border-slate-200 dark:border-zinc-800 rounded-md p-0.5 bg-slate-50 dark:bg-zinc-900 shrink-0 select-none">
+      {/* Timeline Chart + Personalized Card Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5">
+        {/* Left: Timeline Chart */}
+        <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-2xs flex flex-col justify-between space-y-3.5">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 border-b border-slate-100 pb-3">
+            <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight">
+              Savings vs. Spending Timeline
+            </h3>
+            <div className="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50 shrink-0 select-none">
               {["3", "6", "12", "all"].map((r) => (
                 <button
                   key={r}
                   type="button"
-                  onClick={() => {
-                    setTimelineRange(r);
-                  }}
-                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-sm transition-all uppercase cursor-pointer border-0 ${
+                  onClick={() => setTimelineRange(r)}
+                  className={`text-[9.5px] sm:text-[10px] font-medium px-2.5 py-0.5 rounded-md transition-all uppercase cursor-pointer border-0 ${
                     timelineRange === r
-                      ? "bg-slate-950 dark:bg-zinc-800 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-800 dark:hover:text-white bg-transparent"
+                      ? "bg-white text-[#F72853] shadow-2xs border border-rose-100"
+                      : "text-slate-500 hover:text-slate-800 bg-transparent"
                   }`}
                 >
                   {r === "all" ? "All" : `${r}M`}
@@ -274,7 +283,7 @@ export default function SavingsTab({
             </div>
           </div>
 
-          <div className="relative flex-1 min-h-[220px] w-full">
+          <div className="relative flex-1 min-h-[200px] sm:min-h-[220px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={chartData}
@@ -282,8 +291,8 @@ export default function SavingsTab({
               >
                 <defs>
                   <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.12} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient
                     id="colorSpending"
@@ -292,23 +301,23 @@ export default function SavingsTab({
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="5%" stopColor="#64748b" stopOpacity={0.08} />
-                    <stop offset="95%" stopColor="#64748b" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.12} />
+                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="#e2e8f0"
+                  stroke="#f1f5f9"
                 />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 500 }}
+                  tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 400 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 500 }}
+                  tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 400 }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -317,23 +326,23 @@ export default function SavingsTab({
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-slate-950 dark:bg-zinc-900 border border-slate-800 text-white text-[10px] p-2.5 rounded shadow-lg min-w-[130px] text-left">
-                          <div className="font-semibold text-slate-400 border-b border-white/10 pb-1 mb-1 text-[9px] uppercase">
+                        <div className="bg-slate-900 border border-slate-800 text-white text-[10px] p-2.5 rounded-lg shadow-lg min-w-[130px] text-left">
+                          <div className="font-medium text-slate-300 border-b border-white/10 pb-1 mb-1 text-[9px] uppercase">
                             {data.fullLabel}
                           </div>
                           <div className="flex justify-between gap-4">
-                            <span className="text-slate-350 font-light">
+                            <span className="text-slate-400 font-normal">
                               Saved:
                             </span>
-                            <span className="font-semibold text-blue-400">
+                            <span className="font-medium text-emerald-400">
                               ₹{data.savings.toLocaleString("en-IN")}
                             </span>
                           </div>
                           <div className="flex justify-between gap-4 mt-0.5">
-                            <span className="text-slate-355 font-light">
+                            <span className="text-slate-400 font-normal">
                               Spent:
                             </span>
-                            <span className="font-semibold text-slate-400">
+                            <span className="font-medium text-indigo-300">
                               ₹{data.spending.toLocaleString("en-IN")}
                             </span>
                           </div>
@@ -346,7 +355,7 @@ export default function SavingsTab({
                 <Area
                   type="monotone"
                   dataKey="savings"
-                  stroke="#2563eb"
+                  stroke="#10B981"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorSavings)"
@@ -354,7 +363,7 @@ export default function SavingsTab({
                 <Area
                   type="monotone"
                   dataKey="spending"
-                  stroke="#64748b"
+                  stroke="#6366F1"
                   strokeWidth={1.5}
                   fillOpacity={1}
                   fill="url(#colorSpending)"
@@ -363,53 +372,53 @@ export default function SavingsTab({
             </ResponsiveContainer>
           </div>
 
-          <div className="flex justify-center gap-6 text-[9px] font-medium text-slate-400 pt-2 border-t border-slate-100 dark:border-zinc-850 select-none">
+          <div className="flex justify-center gap-6 text-[9.5px] font-normal text-slate-500 pt-2 border-t border-slate-100 select-none">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-blue-600"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>Savings</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-slate-500"></span>
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
               <span>Spending</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Highlight Card (Compact, Less Rounding, Simple Fonts) */}
-        <div className="lg:col-span-4 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md p-4 shadow-sm flex flex-col justify-between space-y-4">
+        {/* Right: Personalized Savings Card */}
+        <div className="lg:col-span-4 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-2xs flex flex-col justify-between space-y-3.5">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-              Highlight Card
+            <span className="text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
+              Share &amp; Celebrate
             </span>
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+            <h3 className="text-xs sm:text-[13px] font-medium text-slate-800">
               Personalized Savings Card
             </h3>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal font-light">
-              Generate an image card displaying your tracked savings on Vouchiqo
-              to share on WhatsApp or Twitter!
+            <p className="text-[10.5px] text-slate-500 leading-relaxed font-normal">
+              Share your verified savings milestone with friends on WhatsApp or
+              social media!
             </p>
           </div>
 
-          <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800/80 rounded-md p-3.5 text-center space-y-3">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400 font-semibold block">
-              Monthly savings certificate
+          <div className="bg-gradient-to-br from-rose-50/70 via-white to-pink-50/30 border border-rose-200/60 rounded-xl p-3.5 text-center space-y-2 shadow-2xs">
+            <span className="text-[8.5px] uppercase tracking-wider text-slate-400 font-medium block">
+              Monthly Verified Certificate
             </span>
             <div className="space-y-0.5">
-              <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-normal">
+              <span className="text-[9px] text-slate-500 block font-normal">
                 I SAVED THIS MONTH
               </span>
-              <span className="text-2xl font-semibold text-brand-blue tracking-tight block">
-                ₹{savingsData.kpis.totalSavedMonth.toLocaleString("en-IN")}
+              <span className="text-xl sm:text-2xl font-medium text-[#F72853] tracking-tight block">
+                ₹{savingsData?.kpis?.totalSavedMonth?.toLocaleString("en-IN") || 0}
               </span>
-              <span className="text-[8px] text-slate-400 block font-light">
-                with verified discount vouchers
+              <span className="text-[8.5px] text-slate-400 block font-normal">
+                with verified Vouchiqo vouchers
               </span>
             </div>
           </div>
 
           <Button
             onClick={handleShareSavings}
-            className="w-full py-2 rounded-sm text-xs font-semibold text-white bg-brand-blue hover:bg-blue-600 border-0 h-auto cursor-pointer flex justify-center items-center gap-1.5 shadow-none transition-all"
+            className="w-full py-2 rounded-lg text-xs font-normal text-white bg-[#F72853] hover:bg-[#df1c44] border-0 h-auto cursor-pointer flex justify-center items-center gap-1.5 shadow-2xs transition-colors"
           >
             {copiedShareCard ? (
               <Check className="w-3.5 h-3.5" />
@@ -423,31 +432,29 @@ export default function SavingsTab({
         </div>
       </div>
 
-      {/* Category breakdown slice & top brands */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-brand-bg border border-brand-border rounded-[16px] p-5 shadow-sm space-y-4">
+      {/* Category Breakdown & Top Brands */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-5">
+        <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-2xs space-y-3.5">
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-heading text-xs font-bold text-brand-navy tracking-wider uppercase">
-                Category Breakdown
-              </h3>
-            </div>
+            <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight">
+              Category Breakdown
+            </h3>
             {selectedCategory && (
               <button
                 type="button"
                 onClick={() => setSelectedCategory(null)}
-                className="text-[9px] font-bold text-brand-error uppercase hover:underline cursor-pointer bg-transparent border-0"
+                className="text-[9px] font-medium text-[#F72853] uppercase hover:underline cursor-pointer bg-transparent border-0"
               >
-                Clear
+                Clear Filter
               </button>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
-            <div className="relative w-32 h-32 shrink-0">
+          <div className="flex flex-col sm:flex-row items-center justify-around gap-4 sm:gap-6">
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
               <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
                 {donutSlices.length > 0 ? (
-                  donutSlices.map((slice, i) => (
+                  donutSlices.map((slice) => (
                     <circle
                       key={slice.category}
                       cx="80"
@@ -474,19 +481,19 @@ export default function SavingsTab({
                 )}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center select-none">
-                <span className="text-[8px] text-brand-subtext font-bold uppercase">
+                <span className="text-[8px] text-slate-400 font-medium uppercase">
                   Total
                 </span>
-                <span className="text-xs font-black text-brand-navy">
+                <span className="text-xs font-medium text-slate-900">
                   ₹
-                  {savingsData.kpis.totalSavedAllTime.toLocaleString("en-IN", {
+                  {savingsData?.kpis?.totalSavedAllTime?.toLocaleString("en-IN", {
                     maximumFractionDigits: 0,
-                  })}
+                  }) || 0}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-1 flex-grow max-w-[180px]">
+            <div className="space-y-1.5 flex-grow max-w-[200px]">
               {donutSlices.length > 0 ? (
                 donutSlices.map((slice) => (
                   <button
@@ -499,186 +506,198 @@ export default function SavingsTab({
                           : slice.category,
                       )
                     }
-                    className={`w-full flex items-center justify-between text-[9px] font-bold p-1 rounded transition-all cursor-pointer border-0 ${
+                    className={`w-full flex items-center justify-between text-[10.5px] p-1 rounded-md transition-colors cursor-pointer border-0 ${
                       selectedCategory === slice.category
-                        ? "bg-brand-surface text-brand-navy"
-                        : "text-brand-text bg-transparent hover:bg-brand-surface"
+                        ? "bg-rose-50 text-[#F72853] font-medium"
+                        : "text-slate-600 hover:bg-slate-50 font-normal"
                     }`}
                   >
-                    <div className="flex items-center gap-1 truncate">
+                    <span className="flex items-center gap-1.5 truncate">
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        className="w-2 h-2 rounded-full shrink-0"
                         style={{ backgroundColor: slice.color }}
-                      ></span>
+                      />
                       <span className="truncate">{slice.category}</span>
-                    </div>
-                    <span>{slice.pct}%</span>
+                    </span>
+                    <span className="font-medium shrink-0 ml-1">
+                      ₹{slice.saved.toLocaleString("en-IN")}
+                    </span>
                   </button>
                 ))
               ) : (
-                <div className="text-[10px] text-brand-subtext font-semibold text-center py-4">
-                  No category savings recorded yet.
-                </div>
+                <p className="text-xs text-slate-400">No categories recorded</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-brand-bg border border-brand-border rounded-[16px] p-5 shadow-sm space-y-4">
-          <h3 className="font-heading text-xs font-bold text-brand-navy tracking-wider uppercase">
-            Top Partner Brands
+        {/* Top Stores/Merchants Breakdown */}
+        <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-2xs space-y-3.5">
+          <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight">
+            Top Store Savings
           </h3>
-          <div className="space-y-3">
-            {savingsData.brandBreakdown.map((brand) => {
-              const savedVal = parseFloat(brand.saved.replace(/[^0-9.]/g, ""));
-              const maxSavedVal =
-                parseFloat(
-                  savingsData.brandBreakdown[0].saved.replace(/[^0-9.]/g, ""),
-                ) || 1;
-              return (
-                <div key={brand.brand} className="space-y-1">
-                  <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span>
-                      {brand.brand} ({brand.claims} claims)
-                    </span>
-                    <span className="text-brand-success">{brand.saved}</span>
+
+          <div className="space-y-2">
+            {(savingsData?.topMerchants || []).length > 0 ? (
+              savingsData.topMerchants.slice(0, 4).map((m) => (
+                <div
+                  key={m.brand}
+                  className="flex items-center justify-between p-2 rounded-lg border border-slate-100 hover:border-rose-100 bg-slate-50/50 hover:bg-rose-50/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center text-xs font-medium text-[#F72853] shrink-0">
+                      {m.brand?.[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-medium text-slate-800 truncate block">
+                        {m.brand}
+                      </span>
+                      <span className="text-[9.5px] text-slate-400 font-normal block">
+                        {m.couponsRedeemed || 1} offers used
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-full bg-brand-surface h-1.5 rounded-full overflow-hidden border border-brand-border">
-                    <div
-                      className="bg-brand-blue h-full rounded-full"
-                      style={{ width: `${(savedVal / maxSavedVal) * 100}%` }}
-                    ></div>
-                  </div>
+                  <span className="text-xs font-medium text-emerald-600 shrink-0">
+                    ₹{m.saved?.toLocaleString("en-IN") || 0} Saved
+                  </span>
                 </div>
-              );
-            })}
+              ))
+            ) : (
+              <p className="text-xs text-slate-400 py-4 text-center">
+                No store savings recorded yet.
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Transactions table history */}
-      <div className="bg-brand-bg border border-brand-border rounded-[16px] p-5 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 border-b border-brand-border pb-3">
+      {/* Recent Redemptions Table */}
+      <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-2xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 pb-2 border-b border-slate-100">
           <div>
-            <h3 className="font-heading text-xs font-bold text-brand-navy tracking-wider uppercase">
-              Transaction Log
+            <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight">
+              Verified Savings Log
             </h3>
+            <p className="text-[10.5px] text-slate-400 font-normal">
+              Track all your redeemed deals and total discounts
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-brand-subtext absolute left-2.5 top-1/2 -translate-y-1/2" />
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-56">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <Input
-                type="text"
-                placeholder="Search history..."
+                placeholder="Search logs..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="pl-8 h-8 text-[10px] w-36 bg-brand-surface border-brand-border"
+                className="pl-8 pr-2.5 py-1 text-xs h-8 rounded-lg border-slate-200 focus-visible:ring-1 focus-visible:ring-[#F72853]"
               />
             </div>
             <Button
               onClick={handleExportCSV}
               variant="outline"
-              className="btn-tertiary h-8 text-[10px] font-bold border-brand-border flex items-center gap-1 shadow-none px-3 cursor-pointer"
+              size="sm"
+              className="h-8 px-2.5 text-xs font-normal border-slate-200 hover:border-rose-200 hover:text-[#F72853] text-slate-600 rounded-lg cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>CSV</span>
+              <Download className="w-3.5 h-3.5 mr-1" />
+              CSV
             </Button>
           </div>
         </div>
 
-        {paginatedTx.length > 0 ? (
-          <div className="space-y-3">
-            <div className="border border-brand-border rounded-xl overflow-hidden">
-              <Table className="w-full text-xs">
-                <TableHeader className="bg-brand-surface border-b border-brand-border">
-                  <TableRow>
-                    <TableHead
-                      onClick={() => toggleSort("date")}
-                      className="p-3 cursor-pointer text-brand-subtext font-bold"
-                    >
-                      Date{" "}
-                      {sortField === "date" &&
-                        (sortOrder === "asc" ? "▲" : "▼")}
-                    </TableHead>
-                    <TableHead
-                      onClick={() => toggleSort("brand")}
-                      className="p-3 cursor-pointer text-brand-subtext font-bold"
-                    >
-                      Brand{" "}
-                      {sortField === "brand" &&
-                        (sortOrder === "asc" ? "▲" : "▼")}
-                    </TableHead>
-                    <TableHead className="p-3 text-brand-subtext font-bold">
-                      Code
-                    </TableHead>
-                    <TableHead className="p-3 text-brand-subtext font-bold text-right">
-                      Saved
-                    </TableHead>
-                    <TableHead className="p-3 text-brand-subtext font-bold">
-                      Category
-                    </TableHead>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-slate-100 hover:bg-transparent">
+                <TableHead
+                  onClick={() => toggleSort("date")}
+                  className="text-[10px] uppercase font-medium text-slate-400 cursor-pointer"
+                >
+                  Date
+                </TableHead>
+                <TableHead
+                  onClick={() => toggleSort("brand")}
+                  className="text-[10px] uppercase font-medium text-slate-400 cursor-pointer"
+                >
+                  Brand / Merchant
+                </TableHead>
+                <TableHead className="text-[10px] uppercase font-medium text-slate-400">
+                  Category
+                </TableHead>
+                <TableHead
+                  onClick={() => toggleSort("saved")}
+                  className="text-[10px] uppercase font-medium text-slate-400 cursor-pointer text-right"
+                >
+                  Amount Saved
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedTx.length > 0 ? (
+                paginatedTx.map((tx, idx) => (
+                  <TableRow
+                    key={tx.id || idx}
+                    className="border-slate-100 hover:bg-rose-50/20 transition-colors"
+                  >
+                    <TableCell className="text-xs text-slate-500 font-normal">
+                      {tx.date}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-800 font-medium">
+                      {tx.brand}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-[9.5px] font-normal px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                        {tx.category}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs font-medium text-emerald-600 text-right">
+                      {tx.amountSaved}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody className="font-semibold text-brand-text">
-                  {paginatedTx.map((tx) => (
-                    <TableRow
-                      key={tx._id}
-                      className="hover:bg-brand-surface border-b border-brand-border last:border-0"
-                    >
-                      <TableCell className="p-3 text-brand-subtext">
-                        {tx.date}
-                      </TableCell>
-                      <TableCell className="p-3 font-bold text-brand-navy">
-                        {tx.brand}
-                      </TableCell>
-                      <TableCell className="p-3 font-mono text-[10px] text-brand-blue">
-                        {tx.code}
-                      </TableCell>
-                      <TableCell className="p-3 text-right text-brand-success font-bold text-sm">
-                        {tx.amountSaved}
-                      </TableCell>
-                      <TableCell className="p-3">
-                        <Badge className="bg-brand-surface text-brand-navy border border-brand-border text-[9px] px-2 py-0.5 shadow-none hover:bg-brand-surface/80">
-                          {tx.category}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center text-xs text-slate-400 py-6"
+                  >
+                    No savings records found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2 text-xs text-slate-500 border-t border-slate-100">
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="h-7 text-xs px-2.5 rounded-md cursor-pointer disabled:opacity-40"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="h-7 text-xs px-2.5 rounded-md cursor-pointer disabled:opacity-40"
+              >
+                Next
+              </Button>
             </div>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between text-[10px] text-brand-subtext font-semibold">
-                <span>
-                  Showing {startIndex + 1} to{" "}
-                  {Math.min(startIndex + itemsPerPage, totalFilteredCount)} of{" "}
-                  {totalFilteredCount}
-                </span>
-                <div className="flex gap-1 select-none">
-                  <Button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                    className="h-7 text-[9px] px-2 cursor-pointer"
-                  >
-                    Prev
-                  </Button>
-                  <Button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                    className="h-7 text-[9px] px-2 cursor-pointer"
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-6 text-xs text-brand-subtext font-bold bg-brand-surface/40 rounded-xl select-none">
-            No transactions found.
           </div>
         )}
       </div>

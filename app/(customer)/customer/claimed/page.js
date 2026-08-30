@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, History, Loader2 } from "lucide-react";
+import { Check, Copy, History, Loader2, Ticket } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -52,95 +52,109 @@ export default function ClaimedCoupons() {
   };
 
   return (
-    <DashboardLayout title="Claimed Coupons" user={user}>
-      <div className="flex justify-between items-center border-b border-brand-border pb-3">
-        <h2 className="text-base font-bold text-brand-navy font-sans uppercase tracking-wider">
-          Your Coupon Claims & Redeemed History
-        </h2>
-        <span className="text-xs text-brand-subtext font-semibold">
-          {redemptions.length} Redemptions
-        </span>
-      </div>
+    <DashboardLayout title="Claimed Offers" user={user}>
+      <div className="space-y-4 text-left font-sans">
+        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h2 className="text-xs sm:text-[13.5px] font-medium text-slate-800 tracking-tight flex items-center gap-1.5">
+            <Ticket className="w-4 h-4 text-[#F72853]" />
+            <span>Coupon Claims &amp; Redeemed History</span>
+          </h2>
+          <span className="text-[10px] sm:text-[10.5px] text-[#F72853] font-normal bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+            {redemptions.length} Claimed
+          </span>
+        </div>
 
-      {loading
-        ? <DashboardSkeleton mode="table" />
-        : redemptions.length > 0
-          ? <div className="bg-brand-bg border border-brand-border rounded-xl shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <Table className="w-full text-xs">
-                  <TableHeader className="bg-brand-surface border-b border-brand-border hover:bg-transparent">
-                    <TableRow className="hover:bg-transparent border-b border-brand-border">
-                      <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
-                        Brand
-                      </TableHead>
-                      <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
-                        Offer
-                      </TableHead>
-                      <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
-                        Voucher Code
-                      </TableHead>
-                      <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
-                        Redeemed Date
-                      </TableHead>
-                      <TableHead className="p-4 text-brand-subtext font-bold uppercase tracking-wider h-auto">
-                        Saved Value
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-brand-border font-semibold text-brand-text">
-                    {redemptions.map((red, idx) => {
-                      const dateStr = new Date(
-                        red.createdAt,
-                      ).toLocaleDateString("en-IN", {
+        {loading ? (
+          <DashboardSkeleton mode="table" />
+        ) : redemptions.length > 0 ? (
+          <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table className="w-full text-xs">
+                <TableHeader className="bg-slate-50/70 border-b border-slate-100 hover:bg-transparent">
+                  <TableRow className="hover:bg-transparent border-b border-slate-100">
+                    <TableHead className="p-3.5 text-slate-400 font-medium uppercase tracking-wider text-[10px] h-auto">
+                      Brand / Store
+                    </TableHead>
+                    <TableHead className="p-3.5 text-slate-400 font-medium uppercase tracking-wider text-[10px] h-auto">
+                      Offer Details
+                    </TableHead>
+                    <TableHead className="p-3.5 text-slate-400 font-medium uppercase tracking-wider text-[10px] h-auto">
+                      Voucher Code
+                    </TableHead>
+                    <TableHead className="p-3.5 text-slate-400 font-medium uppercase tracking-wider text-[10px] h-auto">
+                      Redeemed Date
+                    </TableHead>
+                    <TableHead className="p-3.5 text-slate-400 font-medium uppercase tracking-wider text-[10px] h-auto text-right">
+                      Savings Amount
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-slate-100 font-normal text-slate-700">
+                  {redemptions.map((red, idx) => {
+                    const dateStr = new Date(red.createdAt).toLocaleDateString(
+                      "en-IN",
+                      {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
-                      });
-                      const brandName =
-                        red.merchantId?.businessName || "Unknown Merchant";
-                      const couponTitle =
-                        red.couponId?.title || `${red.discountValue}% OFF`;
+                      },
+                    );
+                    const brandName =
+                      red.merchantId?.businessName || "Verified Partner";
+                    const couponTitle =
+                      red.couponId?.title || `${red.discountValue}% OFF`;
 
-                      return (
-                        <TableRow
-                          key={red._id}
-                          className="hover:bg-brand-surface/40 transition-colors border-b border-brand-border last:border-b-0"
-                        >
-                          <TableCell className="p-4 font-bold text-brand-navy">
-                            {brandName}
-                          </TableCell>
-                          <TableCell className="p-4">{couponTitle}</TableCell>
-                          <TableCell className="p-4">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono bg-brand-surface border border-brand-border px-2.5 py-1 rounded text-brand-navy tracking-wide font-bold">
-                                {red.couponCode}
-                              </span>
-                              <button
-                                onClick={() => handleCopy(red.couponCode, idx)}
-                                className="text-brand-subtext hover:text-brand-blue p-1 rounded hover:bg-brand-surface transition-all cursor-pointer"
-                              >
-                                {copiedIndex === idx
-                                  ? <Check className="w-3.5 h-3.5 text-brand-success" />
-                                  : <Copy className="w-3.5 h-3.5" />}
-                              </button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="p-4">{dateStr}</TableCell>
-                          <TableCell className="p-4 text-brand-success font-bold">
-                            ₹{red.savingsAmount?.toLocaleString("en-IN") || "0"}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                    return (
+                      <TableRow
+                        key={red._id}
+                        className="hover:bg-rose-50/20 transition-colors border-b border-slate-100 last:border-b-0"
+                      >
+                        <TableCell className="p-3.5 font-medium text-slate-900">
+                          {brandName}
+                        </TableCell>
+                        <TableCell className="p-3.5 text-slate-600">
+                          {couponTitle}
+                        </TableCell>
+                        <TableCell className="p-3.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md text-[#F72853] text-[11px] font-normal tracking-wide">
+                              {red.couponCode}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(red.couponCode, idx)}
+                              className="text-slate-400 hover:text-[#F72853] p-1 rounded-md hover:bg-rose-50 transition-all cursor-pointer border-0 bg-transparent"
+                              title="Copy Code"
+                            >
+                              {copiedIndex === idx ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-3.5 text-slate-500 text-[11px]">
+                          {dateStr}
+                        </TableCell>
+                        <TableCell className="p-3.5 text-emerald-600 font-medium text-right">
+                          ₹{red.savingsAmount?.toLocaleString("en-IN") || "0"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
-          : <EmptyState
-              icon={History}
-              title="No claims history"
-              description="Your claimed voucher codes will appear here once you redeem them."
-            />}
+          </div>
+        ) : (
+          <EmptyState
+            icon={History}
+            title="No claims history"
+            description="Your claimed voucher codes will appear here once you redeem them."
+          />
+        )}
+      </div>
     </DashboardLayout>
   );
 }

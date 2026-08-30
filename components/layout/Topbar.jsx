@@ -137,21 +137,21 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
           };
 
   return (
-    <header className="h-[60px] bg-white border-b border-slate-200 shadow-xs flex items-center justify-between px-6 sticky top-0 z-40 font-sans">
-      {/* Left section: Sidebar Trigger and title */}
-      <div className="flex items-center gap-3">
-        <SidebarTrigger className="text-brand-text hover:text-brand-blue" />
-        <h1 className="text-base font-semibold text-slate-800 tracking-tight">
+    <header className="h-14 sm:h-[60px] bg-white border-b border-slate-200 shadow-xs flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40 font-sans">
+      {/* Left section: Sidebar Trigger (Hamburger) and title */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <SidebarTrigger className="text-slate-700 hover:text-[#F72853]" />
+        <h1 className="text-[13.5px] sm:text-base font-medium text-slate-800 tracking-tight">
           {title}
         </h1>
       </div>
 
       {/* Right section: Search input & User actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2.5 sm:gap-4">
         {/* Search */}
-        <div className="hidden sm:flex items-center bg-brand-surface border border-brand-border rounded-md px-2.5 py-1.5 w-60 h-8">
+        <div className="hidden sm:flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 w-60 h-8">
           <Search
-            className="w-3.5 h-3.5 text-brand-subtext mr-2 cursor-pointer hover:text-brand-blue"
+            className="w-3.5 h-3.5 text-slate-400 mr-2 cursor-pointer hover:text-[#F72853]"
             onClick={handleSearchClick}
           />
           <Input
@@ -160,7 +160,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
             onKeyDown={handleSearchSubmit}
-            className="border-0 bg-transparent text-xs w-full p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 placeholder-brand-subtext text-brand-text shadow-none"
+            className="border-0 bg-transparent text-xs w-full p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 placeholder-slate-400 text-slate-800 shadow-none"
           />
         </div>
 
@@ -170,11 +170,11 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
             variant="ghost"
             size="icon"
             onClick={() => setNotifOpen(!notifOpen)}
-            className="relative text-brand-text hover:text-brand-blue p-2 rounded-md hover:bg-brand-surface transition-all cursor-pointer h-8 w-8 border-0 bg-transparent shadow-none"
+            className="relative text-slate-600 hover:text-[#F72853] p-1.5 rounded-lg hover:bg-rose-50/60 transition-all cursor-pointer h-8 w-8 border-0 bg-transparent shadow-none"
           >
-            <Bell className="w-4.5 h-4.5" />
+            <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#F72853] rounded-full animate-pulse"></span>
             )}
           </Button>
 
@@ -184,16 +184,16 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
                 className="fixed inset-0 z-40"
                 onClick={() => setNotifOpen(false)}
               />
-              <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left">
+              <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left">
                 <div className="flex justify-between items-center px-3.5 pb-2 border-b border-slate-100 dark:border-zinc-850">
-                  <span className="text-[10px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
+                  <span className="text-[10px] font-medium text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                     Notifications ({unreadCount} unread)
                   </span>
                   {unreadCount > 0 && (
                     <button
                       type="button"
                       onClick={markAllRead}
-                      className="text-[8px] font-bold text-blue-600 hover:underline border-0 bg-transparent cursor-pointer"
+                      className="text-[9px] font-normal text-[#F72853] hover:underline border-0 bg-transparent cursor-pointer"
                     >
                       Mark all read
                     </button>

@@ -47,50 +47,50 @@ export default function WalletTab() {
   const pendingCashback = 0;
 
   return (
-    <div className="space-y-6 text-left select-none">
-      {/* Balance cards with reduced border radius (rounded-md) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-brand-bg border border-brand-border rounded-md p-5 shadow-sm space-y-1 relative">
-          <span className="text-[10px] text-brand-subtext font-bold uppercase tracking-wider">
+    <div className="space-y-4 sm:space-y-6 text-left select-none font-sans">
+      {/* Balance cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/20 border border-emerald-200/70 rounded-xl sm:rounded-2xl p-4 shadow-2xs space-y-1 relative">
+          <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
             Available Balance
           </span>
-          <span className="text-2xl font-black font-heading text-brand-navy block">
+          <span className="text-xl sm:text-2xl font-medium text-emerald-700 block">
             ₹{totalCashback.toFixed(2)}
           </span>
-          <span className="text-[9px] text-brand-success font-semibold flex items-center gap-1">
+          <span className="text-[9.5px] text-emerald-600 font-normal flex items-center gap-1">
             <Check className="w-3 h-3" /> Ready to withdraw
           </span>
         </div>
 
-        <div className="bg-brand-bg border border-brand-border rounded-md p-5 shadow-sm space-y-1 relative">
-          <span className="text-[10px] text-brand-subtext font-bold uppercase tracking-wider">
+        <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl sm:rounded-2xl p-4 shadow-2xs space-y-1 relative">
+          <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
             Pending Balance
           </span>
-          <span className="text-2xl font-black font-heading text-slate-400 block">
+          <span className="text-xl sm:text-2xl font-medium text-slate-400 block">
             ₹{pendingCashback.toFixed(2)}
           </span>
-          <span className="text-[9px] text-slate-400 font-semibold">
+          <span className="text-[9.5px] text-slate-400 font-normal">
             All redemptions verified
           </span>
         </div>
 
-        <div className="bg-brand-bg border border-brand-border rounded-md p-5 shadow-sm flex flex-col justify-center items-stretch gap-2.5">
+        <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-4 shadow-2xs flex flex-col justify-center items-stretch gap-2">
           <Button
             disabled={totalCashback <= 0}
-            className="w-full py-2 text-xs font-bold border-0 h-auto cursor-pointer bg-brand-navy text-white shadow-none hover:bg-brand-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 text-xs font-normal border-0 h-auto cursor-pointer bg-[#F72853] hover:bg-[#df1c44] text-white shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed rounded-lg"
           >
             Request Wallet Payout
           </Button>
-          <span className="text-[9px] text-brand-subtext text-center font-bold flex items-center justify-center gap-1 select-none">
-            <Info className="w-3.5 h-3.5 text-brand-blue" />
+          <span className="text-[9.5px] text-slate-400 text-center font-normal flex items-center justify-center gap-1 select-none">
+            <Info className="w-3 h-3 text-[#F72853]" />
             Payout requests require ₹100 minimum
           </span>
         </div>
       </div>
 
-      {/* Wallet history table with reduced border radius (rounded-md) */}
-      <div className="bg-brand-bg border border-brand-border rounded-md p-5 shadow-sm space-y-4">
-        <h3 className="font-heading text-xs font-bold text-brand-navy uppercase tracking-wider">
+      {/* Wallet history table */}
+      <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
+        <h3 className="text-xs sm:text-[13px] font-medium text-slate-800 tracking-tight">
           Cashback Transaction Log
         </h3>
 
