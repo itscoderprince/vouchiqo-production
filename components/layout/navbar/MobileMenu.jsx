@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { signOut, useSession } from "@/lib/auth-client";
+import { useLenis } from "@/components/shared/SmoothScrollProvider";
 import LocationSelector from "../LocationSelector";
 import Logo from "./Logo";
 
@@ -30,10 +31,12 @@ export const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const lenis = useLenis();
 
-  // Robust background scroll lock when drawer is open
+  // Robust background scroll lock and Lenis stop/start when drawer is open
   useEffect(() => {
     if (isOpen) {
+      lenis?.stop();
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
@@ -41,6 +44,7 @@ export const MobileMenu = () => {
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";
     } else {
+      lenis?.start();
       const scrollY = document.body.style.top;
       document.body.style.position = "";
       document.body.style.top = "";
@@ -52,6 +56,7 @@ export const MobileMenu = () => {
       }
     }
     return () => {
+      lenis?.start();
       const scrollY = document.body.style.top;
       document.body.style.position = "";
       document.body.style.top = "";
@@ -62,7 +67,7 @@ export const MobileMenu = () => {
         window.scrollTo(0, parseInt(scrollY || "0", 10) * -1);
       }
     };
-  }, [isOpen]);
+  }, [isOpen, lenis]);
 
   const handleSignOut = async () => {
     setIsOpen(false);
@@ -104,7 +109,10 @@ export const MobileMenu = () => {
 
       {/* Full-Width Mobile Drawer */}
       {isOpen && (
-        <div className="fixed inset-0 w-full h-full bg-white shadow-2xl z-[60] flex flex-col animate-slide-in-right overflow-y-auto">
+        <div
+          data-lenis-prevent="true"
+          className="fixed inset-0 w-full h-full bg-white shadow-2xl z-[60] flex flex-col animate-slide-in-right overflow-y-auto"
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
             {/* Logo left */}

@@ -5,6 +5,7 @@ import QueryProvider from "@/components/shared/QueryProvider";
 import PushNotificationPrompt from "@/components/shared/PushNotificationPrompt";
 import PublicMobileBottomNav from "@/components/layout/PublicMobileBottomNav";
 import GoogleOneTapPrompt from "@/components/shared/GoogleOneTapPrompt";
+import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,26 +33,27 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       className={`${inter.variable} ${geistSans.variable} h-full antialiased`}
-      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body
         className="min-h-full flex flex-col bg-brand-surface text-brand-text w-full pb-16 md:pb-0"
         suppressHydrationWarning
       >
-        <QueryProvider>
-          {children}
-          <GoogleOneTapPrompt />
-          <PushNotificationPrompt />
-          <PublicMobileBottomNav />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              duration: 4000,
-              style: { fontSize: "13px", fontWeight: 600 },
-            }}
-          />
-        </QueryProvider>
+        <SmoothScrollProvider>
+          <QueryProvider>
+            {children}
+            <GoogleOneTapPrompt />
+            <PushNotificationPrompt />
+            <PublicMobileBottomNav />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                duration: 4000,
+                style: { fontSize: "13px", fontWeight: 600 },
+              }}
+            />
+          </QueryProvider>
+        </SmoothScrollProvider>
       </body>
     </html>
   );
