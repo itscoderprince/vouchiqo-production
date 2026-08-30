@@ -3,9 +3,9 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Calendar,
   CheckCircle2,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
@@ -18,12 +18,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 const FESTIVAL_THEMES = [
-  { value: "diwali", label: "🪔 Grand Diwali Celebration" },
-  { value: "eid", label: "🌙 Royal Eid Festive Special" },
-  { value: "christmas", label: "🎄 Merry Christmas Shopping Carnival" },
-  { value: "durga_puja", label: "🪷 Durga Puja Sharadotsav" },
-  { value: "new_year", label: "🎉 Happy New Year Bonanza" },
-  { value: "holi", label: "🎨 Festival of Colours — Holi Deals" },
+  { value: "diwali", label: "Grand Diwali Celebration" },
+  { value: "eid", label: "Royal Eid Festive Special" },
+  { value: "christmas", label: "Merry Christmas Shopping Carnival" },
+  { value: "durga_puja", label: "Durga Puja Sharadotsav" },
+  { value: "new_year", label: "Happy New Year Bonanza" },
+  { value: "holi", label: "Festival of Colours — Holi Deals" },
 ];
 
 const WIZARD_STEPS = [
@@ -40,10 +40,10 @@ export default function FestivalCampaignWizardPage() {
   const [festivalTheme, setFestivalTheme] = useState("diwali");
   const [teaserDate, setTeaserDate] = useState("2026-10-25");
   const [emailSubject, setEmailSubject] = useState(
-    "🪔 Exclusive Festival Offer — Flat 20% OFF!",
+    "Exclusive Festival Offer — Flat 20% OFF!",
   );
   const [pushText, setPushText] = useState(
-    "🪔 Festival Special: Flat 20% OFF deals active now on Vouchiqo!",
+    "Festival Special: Flat 20% OFF deals active now on Vouchiqo!",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
@@ -94,11 +94,11 @@ export default function FestivalCampaignWizardPage() {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-semibold text-slate-900 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-500" /> Activate
+                <h1 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-blue-600" /> Activate
                   Festival Package Wizard (₹2,999)
                 </h1>
-                <Badge className="bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-medium px-2 py-0.5">
+                <Badge className="bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-medium px-2 py-0.5">
                   Simultaneous Multi-Channel
                 </Badge>
               </div>

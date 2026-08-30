@@ -7,7 +7,6 @@ import {
   Clock,
   History,
   Smartphone,
-  Sparkles,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -210,7 +209,7 @@ export default function PushNotificationBuilderPage() {
               <div className="bg-white/10 backdrop-blur-md border border-white/15 p-4 rounded-xl space-y-1.5">
                 <div className="flex justify-between items-center text-[10px] text-white/70 font-semibold">
                   <span className="flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#e85d04]" /> Vouchiqo
+                    <Bell className="w-3 h-3 text-blue-400" /> Vouchiqo
                     Deals
                   </span>
                   <span>Just now</span>

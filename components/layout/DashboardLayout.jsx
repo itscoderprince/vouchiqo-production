@@ -363,7 +363,7 @@ export default function DashboardLayout({ title, user, children }) {
               {/* Dynamic Live Merchant Notice Alert Banner */}
               {isMerchant && <MerchantNoticeBanner />}
 
-              <main className="p-4 space-y-6 w-full grow bg-white relative">
+              <main className="p-[7px] w-full grow bg-white relative">
                 {isMerchant && <MerchantPageLockOverlay />}
                 {children}
               </main>

@@ -8,7 +8,7 @@ import {
   Image as ImageIcon,
   Mail,
   Send,
-  Sparkles,
+  Tag,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function EmailBlastBuilderPage() {
   const [headline, setHeadline] = useState(
-    "🔥 Pre-Diwali Grand Renovation Sale — Flat 20% OFF!",
+    "Pre-Diwali Grand Renovation Sale — Flat 20% OFF!",
   );
   const [description, setDescription] = useState(
     "Get 20% discount on all imported Italian marble slabs & bath fittings. Exclusive pre-booking for Diwali home upgrades.",
@@ -166,7 +166,7 @@ export default function EmailBlastBuilderPage() {
               {/* Offer Code */}
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Offer
+                  <Tag className="w-3.5 h-3.5 text-blue-600" /> Offer
                   Code / Deal Link *
                 </Label>
                 <Input

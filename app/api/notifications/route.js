@@ -69,7 +69,7 @@ export const GET = asyncHandler(async (request) => {
       expiringCoupons.forEach((c) => {
         synth.push({
           _id: `sys-exp-${c._id}`,
-          title: "Coupon Expiring Soon Warning",
+          title: "Offer Expiring Soon Warning",
           message: `Offer listing '${c.title}' (Code: ${c.code || "AUTO"}) is expiring soon. Consider renewing or boosting it.`,
           type: "Expiring Soon",
           category: "campaign",

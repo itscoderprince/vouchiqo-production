@@ -6,6 +6,7 @@ import {
   Bell,
   Bookmark,
   Building2,
+  Calendar,
   CheckSquare,
   Clock,
   CreditCard,
@@ -24,7 +25,6 @@ import {
   Settings,
   ShieldCheck,
   Sliders,
-  Sparkles,
   Store,
   ShoppingBag,
   Tag,
@@ -32,7 +32,6 @@ import {
   TrendingUp,
   Users,
   Wallet,
-  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -470,12 +469,12 @@ export function AppSidebar({ ...props }) {
               {
                 title: "Marketing Tools",
                 url: "/admin/campaigns/festival-wizard",
-                icon: Zap,
+                icon: Megaphone,
                 subItems: [
                   {
                     title: "Festival Wizard",
                     url: "/admin/campaigns/festival-wizard",
-                    icon: Zap,
+                    icon: Calendar,
                   },
                   {
                     title: "Email Blast Builder",

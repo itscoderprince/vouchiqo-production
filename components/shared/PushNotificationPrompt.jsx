@@ -79,7 +79,7 @@ export default function PushNotificationPrompt() {
           Turn on notifications
         </p>
         <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-          Get instant updates on new deals, coupon expiries, and account alerts.
+          Get instant updates on new deals, offer expiries, and account alerts.
         </p>
 
         {/* Actions */}

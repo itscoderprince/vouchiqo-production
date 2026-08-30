@@ -3,11 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
-  ListOrdered,
-  PieChart,
-  Rocket,
-  Sparkles,
-  Zap,
+  Layers,
+  Megaphone,
+  Radio,
+  TrendingUp,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
@@ -120,14 +119,14 @@ export default function AdminCampaignsPage() {
               value="addons"
               className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 mr-1 text-purple-600" /> Add-On
+              <Layers className="w-3.5 h-3.5 mr-1 text-slate-600" /> Add-On
               Activations
             </TabsTrigger>
             <TabsTrigger
               value="live"
               className="rounded-xl text-xs font-bold py-2 data-[state=active]:bg-white data-[state=active]:shadow-2xs cursor-pointer"
             >
-              <Zap className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Live
+              <Radio className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Live
               Monitoring
             </TabsTrigger>
             <TabsTrigger
