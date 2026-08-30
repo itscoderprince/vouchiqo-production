@@ -2,8 +2,8 @@
 
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
 import {
@@ -21,10 +21,16 @@ import {
 
 export function NavMain({ groups, isMerchant = false }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [currentSearch, setCurrentSearch] = useState("");
   const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { isLocked, openModal } = useMerchantLock();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentSearch(window.location.search);
+    }
+  }, [pathname]);
 
   const [openSubMenus, setOpenSubMenus] = useState({});
 
@@ -70,6 +76,7 @@ export function NavMain({ groups, isMerchant = false }) {
                 const normalizedPath = pathname.replace(/\/$/, "");
                 const normalizedItemPath = itemPath.replace(/\/$/, "");
                 const hasSubItems = item.subItems && item.subItems.length > 0;
+                const searchParamsObj = new URLSearchParams(currentSearch);
 
                 let isParentActive = false;
                 if (hasSubItems) {
@@ -80,7 +87,7 @@ export function NavMain({ groups, isMerchant = false }) {
                     if (!subQuery) return true;
                     const subParams = new URLSearchParams(subQuery);
                     for (const [k, v] of subParams.entries()) {
-                      if (searchParams?.get(k) !== v) return false;
+                      if (searchParamsObj.get(k) !== v) return false;
                     }
                     return true;
                   });
@@ -90,14 +97,14 @@ export function NavMain({ groups, isMerchant = false }) {
                       const itemParams = new URLSearchParams(itemQuery);
                       isParentActive = true;
                       for (const [k, v] of itemParams.entries()) {
-                        if (searchParams?.get(k) !== v) {
+                        if (searchParamsObj.get(k) !== v) {
                           isParentActive = false;
                           break;
                         }
                       }
                     } else {
                       isParentActive =
-                        !searchParams?.get("tab") ||
+                        !searchParamsObj.get("tab") ||
                         normalizedItemPath === "/customer/dashboard";
                     }
                   } else if (
@@ -240,14 +247,14 @@ export function NavMain({ groups, isMerchant = false }) {
 
                               if (!subQuery) {
                                 return (
-                                  !searchParams?.get("type") &&
-                                  !searchParams?.get("status")
+                                  !searchParamsObj.get("type") &&
+                                  !searchParamsObj.get("status")
                                 );
                               }
 
                               const subParams = new URLSearchParams(subQuery);
                               for (const [key, value] of subParams.entries()) {
-                                if (searchParams?.get(key) !== value)
+                                if (searchParamsObj.get(key) !== value)
                                   return false;
                               }
                               return true;

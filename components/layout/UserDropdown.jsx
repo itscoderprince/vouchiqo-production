@@ -17,7 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
@@ -40,9 +40,15 @@ export default function UserDropdown({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [currentSearch, setCurrentSearch] = useState("");
   const { user: authUser, logout } = useUser();
   const { isLocked, openModal } = useMerchantLock();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentSearch(window.location.search);
+    }
+  }, [pathname]);
 
   if (!user && !authUser) return null;
 
@@ -100,16 +106,18 @@ export default function UserDropdown({
     const normalizedCurrent = pathname.replace(/\/$/, "");
 
     if (normalizedCurrent !== normalizedTarget) return false;
+    const searchParams = new URLSearchParams(currentSearch);
+
     if (!targetQuery) {
       return (
-        !searchParams?.get("tab") ||
+        !searchParams.get("tab") ||
         normalizedTarget === "/customer/dashboard"
       );
     }
 
     const params = new URLSearchParams(targetQuery);
     for (const [k, v] of params.entries()) {
-      if (searchParams?.get(k) !== v) return false;
+      if (searchParams.get(k) !== v) return false;
     }
     return true;
   };
