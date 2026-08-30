@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const LOGO = {
   src: "/navbarlogovouchiqo.webp",
   alt: "Vouchiqo",
@@ -5,9 +7,9 @@ const LOGO = {
 };
 
 export const Logo = () => (
-  <a href={LOGO.href} className="shrink-0">
+  <Link href={LOGO.href} prefetch={true} className="shrink-0">
     <img src={LOGO.src} alt={LOGO.alt} className="h-12 w-auto" />
-  </a>
+  </Link>
 );
 
 export default Logo;

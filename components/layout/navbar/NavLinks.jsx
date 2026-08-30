@@ -1,6 +1,7 @@
 "use client";
 
 import { Flame, LayoutGrid, MapPin, Store } from "lucide-react";
+import Link from "next/link";
 import LocationSelector from "../LocationSelector";
 
 const ALL_NAV_LINKS = [
@@ -11,8 +12,9 @@ const ALL_NAV_LINKS = [
 ];
 
 const NavLink = ({ href, icon: Icon, label, className }) => (
-  <a
+  <Link
     href={href}
+    prefetch={true}
     className={
       className ||
       "flex items-center gap-1.5 text-[14px] font-medium text-gray-700 hover:text-[#2563eb] transition-colors whitespace-nowrap"
@@ -20,7 +22,7 @@ const NavLink = ({ href, icon: Icon, label, className }) => (
   >
     <Icon className="h-[18px] w-[18px] stroke-[1.5] shrink-0" />
     <span>{label}</span>
-  </a>
+  </Link>
 );
 
 export const NavLinks = () => (

@@ -31,15 +31,36 @@ export const MobileMenu = () => {
   const { data: session } = useSession();
   const router = useRouter();
 
-  // Prevent background scrolling when drawer is open
+  // Robust background scroll lock when drawer is open
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || "0", 10) * -1);
+      }
     }
     return () => {
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || "0", 10) * -1);
+      }
     };
   }, [isOpen]);
 
@@ -76,22 +97,22 @@ export const MobileMenu = () => {
       {/* Backdrop Blur Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 animate-fade-in"
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 animate-fade-in"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Right-to-Left Sliding Drawer */}
+      {/* Full-Width Mobile Drawer */}
       {isOpen && (
-        <div className="fixed right-0 top-0 bottom-0 w-72 max-w-[85vw] bg-white h-full shadow-2xl z-[60] flex flex-col animate-slide-in-right overflow-y-auto">
+        <div className="fixed inset-0 w-full h-full bg-white shadow-2xl z-[60] flex flex-col animate-slide-in-right overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
             {/* Logo left */}
             <Logo />
             {/* Close button right */}
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition cursor-pointer bg-transparent border-0"
+              className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition cursor-pointer bg-transparent border-0"
               aria-label="Close menu"
             >
               <X className="h-6 w-6" />
@@ -109,15 +130,16 @@ export const MobileMenu = () => {
           {/* Navigation Links */}
           <div className="flex-1 py-2 flex flex-col">
             {MOBILE_NAV_LINKS.map(({ href, icon: Icon, label }) => (
-              <a
+              <Link
                 key={href}
                 href={href}
+                prefetch={true}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-5 py-3.5 text-[14px] font-semibold text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] transition-all border-b border-slate-100/50"
+                className="flex items-center gap-3 px-5 py-3.5 text-[14px] font-semibold text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] active:bg-[#dbeafe] transition-all border-b border-slate-100/50"
               >
                 <Icon className="h-4.5 w-4.5 stroke-[1.8] text-slate-400 shrink-0" />
                 <span>{label}</span>
-              </a>
+              </Link>
             ))}
           </div>
 

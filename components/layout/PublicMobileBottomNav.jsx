@@ -57,7 +57,8 @@ export default function PublicMobileBottomNav() {
           <Link
             key={item.label}
             href={item.href}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-lg transition-colors focus:outline-none ${
+            prefetch={true}
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-lg transition-colors focus:outline-none active:scale-95 ${
               isActive
                 ? "text-black font-bold"
                 : "text-slate-400 hover:text-slate-700"
