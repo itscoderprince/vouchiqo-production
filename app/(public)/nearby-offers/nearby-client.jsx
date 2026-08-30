@@ -171,44 +171,52 @@ const DISTANCE_PRESETS = [
 ];
 
 const MAP_TILES = {
-  osm: {
-    id: "osm",
-    name: "Street Map",
+  google_streets: {
+    id: "google_streets",
+    name: "Street View (HD)",
     icon: Navigation,
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    url: "https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&scale=2",
+    subdomains: ["0", "1", "2", "3"],
+    attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>',
+    maxZoom: 21,
+  },
+  google_hybrid: {
+    id: "google_hybrid",
+    name: "Satellite + Roads",
+    icon: Globe,
+    url: "https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&scale=2",
+    subdomains: ["0", "1", "2", "3"],
+    attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>',
+    maxZoom: 21,
+  },
+  osm_hot: {
+    id: "osm_hot",
+    name: "Clean Street",
+    icon: MapIcon,
+    url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    subdomains: ["a", "b", "c"],
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  },
-  voyager: {
-    id: "voyager",
-    name: "Clean Light",
-    icon: MapIcon,
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution:
-      '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
-  },
-  satellite: {
-    id: "satellite",
-    name: "Satellite",
-    icon: Globe,
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution:
-      '&copy; <a href="https://www.esri.com/">Esri</a>, Earthstar Geographics',
+    maxZoom: 19,
   },
   dark: {
     id: "dark",
     name: "Dark Night",
     icon: Moon,
     url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    subdomains: ["a", "b", "c", "d"],
     attribution:
       '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    maxZoom: 19,
   },
   terrain: {
     id: "terrain",
     name: "Terrain",
     icon: Mountain,
     url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    subdomains: ["a", "b", "c"],
     attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+    maxZoom: 18,
   },
 };
 
@@ -570,7 +578,7 @@ export default function NearbyOffers() {
   const [distance, setDistance] = useState("10");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [tileLayerType, setTileLayerType] = useState("osm");
+  const [tileLayerType, setTileLayerType] = useState("google_streets");
   const [rawCoupons, setRawCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -621,9 +629,75 @@ export default function NearbyOffers() {
     }
   }, []);
 
+  const userGpsRef = useRef(null);
+
+  // High-accuracy live GPS location detector with fast IP fallback
+  const handleLocateMe = useCallback((showToast = true) => {
+    setGpsLoading(true);
+    let toastId = null;
+    if (showToast) {
+      toastId = toast.loading("Detecting your live GPS location...");
+    }
+
+    const fallbackIP = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.latitude && data.longitude) {
+            const coords = [data.latitude, data.longitude];
+            setUserGpsCoords(coords);
+            userGpsRef.current = coords;
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.flyTo(coords, 14, { duration: 1 });
+            }
+            if (showToast && toastId) {
+              toast.success(`Location: ${data.city || "Detected"}`, { id: toastId });
+            }
+            setGpsLoading(false);
+            return;
+          }
+        }
+      } catch (_) {}
+      if (showToast && toastId) {
+        toast.error("Location detection unavailable. Using selected city.", { id: toastId });
+      }
+      setGpsLoading(false);
+    };
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      fallbackIP();
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = [pos.coords.latitude, pos.coords.longitude];
+        setUserGpsCoords(coords);
+        userGpsRef.current = coords;
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo(coords, 14, { duration: 1.2 });
+        }
+        if (showToast && toastId) {
+          toast.success("Live GPS coordinates detected!", { id: toastId });
+        }
+        setGpsLoading(false);
+      },
+      () => {
+        fallbackIP();
+      },
+      { timeout: 6000, enableHighAccuracy: true },
+    );
+  }, []);
+
+  // Auto-request live location on mount
+  useEffect(() => {
+    handleLocateMe(false);
+  }, [handleLocateMe]);
+
   // Sync city to coordinates
   useEffect(() => {
-    if (savedCity) {
+    if (savedCity && !userGpsRef.current) {
       const match = CITY_COORDINATES[savedCity.toLowerCase()];
       if (match) {
         setMapCenter(match);
@@ -835,16 +909,14 @@ export default function NearbyOffers() {
     return uniqueDeals.sort((a, b) => a.distance - b.distance);
   }, [enrichedCoupons, categoryFilter, searchQuery]);
 
-  // Handle deal selection & draw shortest orange route from user location to brand
+  // Handle deal selection & draw shortest route from user location to store
   const handleSelectDeal = useCallback(
     async (deal, shouldFly = true) => {
       if (!deal) return;
       setSelectedDealId(deal._id);
 
-      // Increment request ID to cancel/ignore any previous in-flight route fetches
       const currentReqId = ++currentRoutingIdRef.current;
 
-      // Immediately remove any active route layer on the map
       if (routeLayerRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.removeLayer(routeLayerRef.current);
         routeLayerRef.current = null;
@@ -854,17 +926,16 @@ export default function NearbyOffers() {
       if (!mapInstanceRef.current || !window.L) return;
       const L = window.L;
 
-      const start = userGpsCoords || mapCenter;
+      // Always take current physical GPS location if detected, fallback to mapCenter
+      const start = userGpsRef.current || userGpsCoords || mapCenter;
       const end = deal.coords;
 
       if (!start || !end) return;
 
-      const drawOrangeRoute = (coords, distKm, durMin) => {
-        // If a newer deal selection was triggered while fetching, ignore this stale route
+      const drawRoute = (coords, distKm, durMin) => {
         if (currentReqId !== currentRoutingIdRef.current) return;
         if (!mapInstanceRef.current) return;
 
-        // Ensure any previous route layer is cleaned up
         if (routeLayerRef.current) {
           mapInstanceRef.current.removeLayer(routeLayerRef.current);
           routeLayerRef.current = null;
@@ -872,42 +943,51 @@ export default function NearbyOffers() {
 
         // Route casing / road glow for high depth
         const casing = L.polyline(coords, {
-          color: "#9a3412",
-          weight: 7,
-          opacity: 0.75,
+          color: "#9f1239",
+          weight: 7.5,
+          opacity: 0.8,
           lineCap: "round",
           lineJoin: "round",
         });
 
-        // Vibrant Orange Shortest Path
-        const orangeLine = L.polyline(coords, {
-          color: "#ea580c",
+        // Vibrant Brand Rose Shortest Path
+        const roseLine = L.polyline(coords, {
+          color: "#F72853",
           weight: 4.5,
           opacity: 0.98,
           lineCap: "round",
           lineJoin: "round",
         });
 
-        const routeGroup = L.featureGroup([casing, orangeLine]).addTo(
+        const routeGroup = L.featureGroup([casing, roseLine]).addTo(
           mapInstanceRef.current,
         );
         routeLayerRef.current = routeGroup;
 
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${end[0]},${end[1]}&travelmode=driving`;
+        const appleMapsUrl = `https://maps.apple.com/?saddr=${start[0]},${start[1]}&daddr=${end[0]},${end[1]}&dirflg=d`;
+
         setActiveRouteInfo({
           distanceKm: distKm,
           durationMin: durMin,
+          walkMin: Math.max(2, Math.round(Number(distKm) * 12)),
           startCoords: start,
           endCoords: end,
           businessName: deal.businessName,
           address: deal.address,
           dealId: deal._id,
+          dealTitle: deal.title,
+          discountValue: deal.discountValue,
+          discountType: deal.discountType,
+          googleMapsUrl,
+          appleMapsUrl,
         });
 
         if (shouldFly) {
           const bounds = routeGroup.getBounds();
           if (bounds.isValid()) {
             mapInstanceRef.current.fitBounds(bounds, {
-              padding: [50, 50],
+              padding: [60, 60],
               maxZoom: 15,
               animate: true,
               duration: 0.8,
@@ -921,40 +1001,45 @@ export default function NearbyOffers() {
         }
       };
 
-      // Fetch shortest direct turn-by-turn road route from OSRM
+      // Multi-endpoint road routing engine (High speed, 100% Free)
       try {
         const startLng = start[1];
         const startLat = start[0];
         const endLng = end[1];
         const endLat = end[0];
 
-        // Query driving alternatives and street network in parallel to find the true shortest path
-        const drivingReq = fetch(
-          `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&alternatives=3&continue_straight=false`,
+        const primaryReq = fetch(
+          `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
 
-        const streetReq = fetch(
-          `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
+        const secondaryReq = fetch(
+          `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&alternatives=2`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
 
-        const [drivingData, streetData] = await Promise.all([
-          drivingReq,
-          streetReq,
+        const tertiaryReq = fetch(
+          `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+
+        const [primaryData, secondaryData, tertiaryData] = await Promise.all([
+          primaryReq,
+          secondaryReq,
+          tertiaryReq,
         ]);
 
-        // If user selected another brand while network call was pending, abort immediately
         if (currentReqId !== currentRoutingIdRef.current) return;
 
         const candidateRoutes = [];
-        if (drivingData?.routes) candidateRoutes.push(...drivingData.routes);
-        if (streetData?.routes) candidateRoutes.push(...streetData.routes);
+        if (primaryData?.routes) candidateRoutes.push(...primaryData.routes);
+        if (secondaryData?.routes) candidateRoutes.push(...secondaryData.routes);
+        if (tertiaryData?.routes) candidateRoutes.push(...tertiaryData.routes);
 
         if (candidateRoutes.length > 0) {
-          // Sort by physical distance ascending (shortest path first)
           candidateRoutes.sort((a, b) => a.distance - b.distance);
           const best = candidateRoutes[0];
 
@@ -962,20 +1047,19 @@ export default function NearbyOffers() {
             const latLngs = best.geometry.coordinates.map((c) => [c[1], c[0]]);
             const distKm = (best.distance / 1000).toFixed(1);
             const durMin = Math.max(1, Math.round(Number(distKm) * 2.5));
-            drawOrangeRoute(latLngs, distKm, durMin);
+            drawRoute(latLngs, distKm, durMin);
             return;
           }
         }
       } catch (err) {
-        console.warn("OSRM shortest routing fallback:", err);
+        console.warn("Multi-source routing fallback:", err);
       }
 
       if (currentReqId !== currentRoutingIdRef.current) return;
 
-      // Direct fallback polyline with calculated distance
       const fallbackDist = deal.distance ? deal.distance.toFixed(1) : "2.0";
-      const fallbackMin = Math.max(2, Math.round(Number(fallbackDist) * 3));
-      drawOrangeRoute([start, end], fallbackDist, fallbackMin);
+      const fallbackMin = Math.max(2, Math.round(Number(fallbackDist) * 2.5));
+      drawRoute([start, end], fallbackDist, fallbackMin);
     },
     [mapCenter, userGpsCoords],
   );
@@ -1001,8 +1085,7 @@ export default function NearbyOffers() {
 
     const L = window.L;
 
-    // Validate center point coordinates
-    const rawCenter = userGpsCoords || mapCenter;
+    const rawCenter = userGpsRef.current || userGpsCoords || mapCenter;
     const centerPoint =
       Array.isArray(rawCenter) &&
       typeof rawCenter[0] === "number" &&
@@ -1028,10 +1111,12 @@ export default function NearbyOffers() {
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      const activeTileConfig = MAP_TILES[tileLayerType] || MAP_TILES.voyager;
+      const activeTileConfig = MAP_TILES[tileLayerType] || MAP_TILES.google_streets;
       const tileLayer = L.tileLayer(activeTileConfig.url, {
         attribution: activeTileConfig.attribution,
-        maxZoom: 19,
+        subdomains: activeTileConfig.subdomains || ["0", "1", "2", "3"],
+        maxZoom: activeTileConfig.maxZoom || 21,
+        detectRetina: true,
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
@@ -1051,40 +1136,35 @@ export default function NearbyOffers() {
 
     // Switch Tile Layer if changed
     if (tileLayerRef.current) {
-      const activeTileConfig = MAP_TILES[tileLayerType] || MAP_TILES.voyager;
+      const activeTileConfig = MAP_TILES[tileLayerType] || MAP_TILES.google_streets;
       tileLayerRef.current.setUrl(activeTileConfig.url);
     }
 
-    // Clear existing markers
-    if (markersGroupRef.current) {
-      markersGroupRef.current.clearLayers();
-    } else {
-      markersGroupRef.current = L.layerGroup().addTo(map);
-    }
+    if (!markersGroupRef.current) return;
+    markersGroupRef.current.clearLayers();
     markersMapRef.current = {};
 
-    // 1. Draw Radius Circle
+    // 1. Draw Radius Circle around User / Selected Location
     const distNum = parseFloat(distance);
     if (showRadiusCircle && !Number.isNaN(distNum) && distNum < 900) {
-      const radiusMeters = distNum * 1000;
       try {
         L.circle(centerPoint, {
-          radius: radiusMeters,
-          color: "#2563eb",
+          radius: distNum * 1000,
+          color: "#F72853",
           weight: 1.5,
           opacity: 0.65,
-          fillColor: "#3b82f6",
-          fillOpacity: 0.08,
+          fillColor: "#F72853",
+          fillOpacity: 0.05,
           dashArray: "6, 6",
         }).addTo(markersGroupRef.current);
       } catch (e) {
-        console.warn("Leaflet circle render skipped:", e);
+        console.warn("Leaflet circle error:", e);
       }
     }
 
-    // 2. Draw User Center Marker (Pulsing & Blinking Radar Beacon)
+    // 2. Draw Pulsing User Beacon Marker
     try {
-      const userIconHtml = `
+      const userMarkerHtml = `
         <div class="user-pulse-marker">
           <div class="pulse-ring-outer"></div>
           <div class="pulse-ring"></div>
@@ -1093,16 +1173,18 @@ export default function NearbyOffers() {
           </div>
         </div>
       `;
+
       const userDivIcon = L.divIcon({
         className: "custom-user-marker",
-        html: userIconHtml,
+        html: userMarkerHtml,
         iconSize: [44, 44],
         iconAnchor: [22, 22],
+        popupAnchor: [0, -22],
       });
 
       L.marker(centerPoint, { icon: userDivIcon, zIndexOffset: 2000 })
         .bindPopup(
-          `<div style="font-family:var(--font-inter),sans-serif;font-size:12px;font-weight:700;color:#1e293b;padding:4px 6px;">
+          `<div style="font-family:var(--font-inter),sans-serif;font-size:11px;font-weight:600;color:#1e293b;padding:3px 5px;">
             📍 ${userGpsCoords ? "Your Live GPS Location" : `Center: ${savedCity || "Selected City"}`}
           </div>`,
         )
@@ -1111,7 +1193,7 @@ export default function NearbyOffers() {
       console.warn("Leaflet user marker render skipped:", e);
     }
 
-    // 3. Draw Store / Deal Markers with Rich Interactive Cards
+    // 3. Draw Store / Deal Markers with Compact Cards
     filteredDeals.forEach((deal) => {
       if (
         !deal.coords ||
@@ -1162,7 +1244,7 @@ export default function NearbyOffers() {
                 <span class="verified-check-circle" title="Verified Merchant">${checkCircleSvg}</span>
                 ${
                   deal.offersCount > 1
-                    ? `<span style="font-size:8px;font-weight:700;color:#2563eb;background:#eff6ff;padding:0.5px 4px;border-radius:3px;border:1px solid #dbeafe;flex-shrink:0;">${deal.offersCount} Deals</span>`
+                    ? `<span style="font-size:8px;font-weight:600;color:#F72853;background:#fff1f2;padding:0.5px 4px;border-radius:3px;border:1px solid #fecdd3;flex-shrink:0;">${deal.offersCount} Deals</span>`
                     : ""
                 }
               </div>
@@ -1192,8 +1274,8 @@ export default function NearbyOffers() {
       );
 
       marker.bindPopup(popupContent, {
-        maxWidth: 260,
-        minWidth: 220,
+        maxWidth: 240,
+        minWidth: 200,
         className: "vouchiqo-custom-leaflet-popup",
       });
 
@@ -1238,70 +1320,6 @@ export default function NearbyOffers() {
     });
   }, [filteredDeals, userGpsCoords, mapCenter]);
 
-  // GPS Locate me action
-  const handleLocateMe = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
-      return;
-    }
-
-    setGpsLoading(true);
-    const toastId = toast.loading("Detecting your exact GPS location...");
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const coords = [pos.coords.latitude, pos.coords.longitude];
-        setUserGpsCoords(coords);
-        setMapCenter(coords);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo(coords, 14, { duration: 1.2 });
-        }
-
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`,
-            { headers: { "Accept-Language": "en" } },
-          );
-          if (res.ok) {
-            const data = await res.json();
-            const detectedCity =
-              data.address?.city ||
-              data.address?.town ||
-              data.address?.village ||
-              data.address?.county ||
-              null;
-            if (detectedCity) {
-              setSavedCity(detectedCity);
-              toast.success(`Location set to ${detectedCity}!`, {
-                id: toastId,
-              });
-            } else {
-              toast.success("Live GPS coordinates detected!", { id: toastId });
-            }
-          }
-        } catch {
-          toast.success("Live location centered!", { id: toastId });
-        } finally {
-          setGpsLoading(false);
-        }
-      },
-      (err) => {
-        setGpsLoading(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          toast.error(
-            "Location permission denied. Select city from dropdown.",
-            {
-              id: toastId,
-            },
-          );
-        } else {
-          toast.error("Could not fetch GPS location.", { id: toastId });
-        }
-      },
-      { timeout: 10000, enableHighAccuracy: true },
-    );
-  };
-
   // City change handler
   const handleCitySelect = (cityName) => {
     setSavedCity(cityName);
@@ -1343,7 +1361,7 @@ export default function NearbyOffers() {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          background: rgba(37, 99, 235, 0.3);
+          background: rgba(247, 40, 83, 0.3);
           animation: mapPulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
         }
         .pulse-ring {
@@ -1351,16 +1369,16 @@ export default function NearbyOffers() {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          background: rgba(59, 130, 246, 0.45);
+          background: rgba(247, 40, 83, 0.45);
           animation: mapPulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1) 0.6s;
         }
         .center-dot {
           width: 20px;
           height: 20px;
-          background: #2563eb;
+          background: #F72853;
           border: 3px solid #ffffff;
           border-radius: 50%;
-          box-shadow: 0 0 16px rgba(37, 99, 235, 0.8), 0 3px 10px rgba(0, 0, 0, 0.35);
+          box-shadow: 0 0 16px rgba(247, 40, 83, 0.8), 0 3px 10px rgba(0, 0, 0, 0.35);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1381,7 +1399,7 @@ export default function NearbyOffers() {
         }
         @keyframes dotBlink {
           0%, 100% { transform: scale(1); filter: brightness(1); }
-          50% { transform: scale(1.18); filter: brightness(1.25); box-shadow: 0 0 20px rgba(37, 99, 235, 0.95), 0 4px 12px rgba(0, 0, 0, 0.4); }
+          50% { transform: scale(1.18); filter: brightness(1.25); box-shadow: 0 0 20px rgba(247, 40, 83, 0.95), 0 4px 12px rgba(0, 0, 0, 0.4); }
         }
 
         /* Deal Marker */
@@ -1393,22 +1411,31 @@ export default function NearbyOffers() {
           cursor: pointer;
           transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        /* Deal Marker - Compact & Clean Font */
+        .deal-map-marker {
+          position: relative;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+          transition: transform 0.15s ease;
+        }
         .deal-map-marker:hover, .deal-map-marker.marker-selected {
-          transform: scale(1.12) translateY(-4px);
+          transform: scale(1.08) translateY(-2px);
           z-index: 1000 !important;
         }
         .marker-pill {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 3px;
           background: #ffffff;
-          border: 2px solid #2563eb;
+          border: 1.5px solid #F72853;
           border-radius: 999px;
-          padding: 3px 6.5px;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-          font-weight: 700;
-          font-size: 11px;
-          color: #0f172a;
+          padding: 1.5px 5px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+          font-weight: 500;
+          font-size: 9.5px;
+          color: #1e293b;
           white-space: nowrap;
         }
         .marker-icon {
@@ -1418,44 +1445,43 @@ export default function NearbyOffers() {
           line-height: 1;
         }
         .marker-label {
-          letter-spacing: -0.2px;
-          color: #0f172a;
+          letter-spacing: -0.1px;
+          color: #1e293b;
         }
         .marker-pin-tip {
-          width: 6px;
-          height: 6px;
-          background: #2563eb;
-          transform: rotate(45deg) translateY(-2.5px);
-          border-radius: 1px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          width: 5px;
+          height: 5px;
+          background: #F72853;
+          transform: rotate(45deg) translateY(-2px);
+          border-radius: 0.5px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
 
-        /* Custom Leaflet Popup Card */
+        /* Custom Leaflet Popup Card - Ultra Compact */
         .vouchiqo-custom-leaflet-popup .leaflet-popup-content-wrapper {
           padding: 0;
-          border-radius: 12px;
+          border-radius: 10px;
           overflow: hidden;
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12);
           border: 1px solid #e2e8f0;
           background: #ffffff;
         }
         .vouchiqo-custom-leaflet-popup .leaflet-popup-content {
           margin: 0;
-          line-height: 1.35;
+          line-height: 1.3;
           font-family: var(--font-inter), sans-serif !important;
         }
         .vouchiqo-custom-leaflet-popup .leaflet-popup-close-button {
-          top: 6px !important;
-          right: 6px !important;
+          top: 4px !important;
+          right: 4px !important;
           color: #94a3b8 !important;
-          font-size: 15px !important;
-          width: 20px !important;
-          height: 20px !important;
+          font-size: 13px !important;
+          width: 18px !important;
+          height: 18px !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          border-radius: 6px !important;
-          transition: all 0.15s !important;
+          border-radius: 4px !important;
           padding: 0 !important;
         }
         .vouchiqo-custom-leaflet-popup .leaflet-popup-close-button:hover {
@@ -1466,8 +1492,8 @@ export default function NearbyOffers() {
           background: #ffffff;
         }
         .map-popup-card {
-          width: 232px;
-          padding: 10px 12px;
+          width: 208px;
+          padding: 7px 9px;
           box-sizing: border-box;
           color: #0f172a;
           font-family: var(--font-inter), sans-serif !important;
@@ -1475,14 +1501,14 @@ export default function NearbyOffers() {
         .popup-header {
           display: flex;
           align-items: center;
-          gap: 8px;
-          margin-bottom: 6px;
-          padding-right: 14px;
+          gap: 6px;
+          margin-bottom: 4px;
+          padding-right: 12px;
         }
         .popup-avatar {
-          width: 28px;
-          height: 28px;
-          border-radius: 7px;
+          width: 22px;
+          height: 22px;
+          border-radius: 5px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1496,14 +1522,14 @@ export default function NearbyOffers() {
         .popup-brand {
           display: flex;
           align-items: center;
-          gap: 3.5px;
+          gap: 2.5px;
           flex-wrap: wrap;
         }
         .popup-brand .brand-text {
-          font-size: 11.5px;
-          font-weight: 600;
+          font-size: 10.5px;
+          font-weight: 500;
           color: #0f172a;
-          line-height: 1.25;
+          line-height: 1.2;
         }
         .verified-check-circle {
           display: inline-flex;
@@ -1512,7 +1538,7 @@ export default function NearbyOffers() {
           flex-shrink: 0;
         }
         .popup-dist {
-          font-size: 9.5px;
+          font-size: 8.5px;
           color: #64748b;
           font-weight: 400;
           display: flex;
@@ -1520,48 +1546,48 @@ export default function NearbyOffers() {
           margin-top: 1px;
         }
         .popup-discount {
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: -0.2px;
-          margin: 2px 0 1px 0;
+          font-size: 11.5px;
+          font-weight: 600;
+          letter-spacing: -0.1px;
+          margin: 1px 0;
           line-height: 1.2;
         }
         .popup-deal-title {
-          font-size: 10.5px;
-          font-weight: 500;
-          color: #334155;
-          margin-bottom: 2px;
-          line-height: 1.3;
-        }
-        .popup-address {
           font-size: 9.5px;
           font-weight: 400;
+          color: #334155;
+          margin-bottom: 1.5px;
+          line-height: 1.25;
+        }
+        .popup-address {
+          font-size: 8.5px;
+          font-weight: 400;
           color: #64748b;
-          margin-bottom: 6px;
-          line-height: 1.35;
+          margin-bottom: 5px;
+          line-height: 1.25;
           word-break: break-word;
         }
         .popup-footer {
           display: flex;
-          gap: 5px;
+          gap: 4px;
           align-items: center;
-          margin-top: 4px;
+          margin-top: 3px;
         }
         .popup-btn-claim {
           flex: 1;
-          background: #2563eb;
+          background: #F72853;
           color: #ffffff !important;
           text-align: center;
-          padding: 4.5px 7px;
-          border-radius: 6px;
-          font-size: 10px;
-          font-weight: 700;
+          padding: 3.5px 6px;
+          border-radius: 5px;
+          font-size: 9px;
+          font-weight: 500;
           text-decoration: none;
           transition: background 0.15s;
           white-space: nowrap;
         }
         .popup-btn-claim:hover {
-          background: #1d4ed8;
+          background: #e01e47;
         }
         .popup-btn-directions {
           display: inline-flex;
@@ -1570,10 +1596,10 @@ export default function NearbyOffers() {
           background: #f8fafc;
           border: 1px solid #e2e8f0;
           color: #334155 !important;
-          padding: 4.5px 7px;
-          border-radius: 6px;
-          font-size: 10px;
-          font-weight: 700;
+          padding: 3.5px 6px;
+          border-radius: 5px;
+          font-size: 9px;
+          font-weight: 500;
           text-decoration: none;
           transition: all 0.15s;
           white-space: nowrap;
@@ -1632,7 +1658,7 @@ export default function NearbyOffers() {
               <div>
                 <h1 className="text-[13px] font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
                   <span>Deals Near You</span>
-                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded-full border border-blue-100">
+                  <span className="text-[10px] font-bold text-[#F72853] bg-rose-50 px-1.5 py-0.2 rounded-full border border-rose-200">
                     {filteredDeals.length}
                   </span>
                 </h1>
@@ -1647,13 +1673,13 @@ export default function NearbyOffers() {
                 disabled={gpsLoading}
                 className={`flex items-center gap-1 text-[10.5px] font-semibold px-2 py-1 rounded-md border transition-all cursor-pointer shrink-0 ${
                   userGpsCoords
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-xs"
-                    : "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                    ? "bg-rose-50 text-[#F72853] border-rose-300 shadow-2xs"
+                    : "bg-rose-50/70 hover:bg-rose-100/70 text-[#F72853] border-rose-200"
                 }`}
-                title="Locate with browser GPS"
+                title="Locate with live GPS"
               >
                 <Crosshair
-                  className={`w-3 h-3 ${gpsLoading ? "animate-spin text-blue-600" : ""}`}
+                  className={`w-3 h-3 ${gpsLoading ? "animate-spin text-[#F72853]" : "text-[#F72853]"}`}
                 />
                 <span>
                   {gpsLoading
@@ -1667,13 +1693,13 @@ export default function NearbyOffers() {
 
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search stores or deals…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50/70 border border-slate-300 focus:border-blue-600 focus:bg-white focus:ring-1 focus:ring-blue-100 rounded-md pl-8 pr-7 py-1.5 text-[12px] font-medium text-gray-800 placeholder-gray-400 outline-none transition-all"
+                className="w-full bg-slate-50/70 border border-slate-300 focus:border-[#F72853] focus:bg-white focus:ring-1 focus:ring-rose-100 rounded-md pl-8 pr-7 py-1.5 text-[12px] font-medium text-gray-800 placeholder-gray-400 outline-none transition-all"
               />
               {searchQuery && (
                 <button
@@ -1697,10 +1723,10 @@ export default function NearbyOffers() {
                   <button
                     key={cat.key}
                     onClick={(e) => handleCategoryClick(cat.key, e)}
-                    className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
                       active
-                        ? "bg-gray-900 text-white border-gray-900 font-bold shadow-xs"
-                        : "bg-slate-50 hover:bg-slate-100 text-gray-700 border-slate-200"
+                        ? "bg-[#F72853] text-white border-[#F72853] shadow-2xs"
+                        : "bg-slate-50 hover:bg-rose-50/40 text-gray-700 border-slate-200"
                     }`}
                   >
                     <IconComponent
@@ -1727,7 +1753,7 @@ export default function NearbyOffers() {
                 <div className="w-10 h-10 rounded-full bg-slate-100 text-gray-400 flex items-center justify-center mx-auto text-lg">
                   <Search className="w-5 h-5 text-gray-400" />
                 </div>
-                <p className="text-xs font-bold text-gray-700">
+                <p className="text-xs font-semibold text-gray-700">
                   No deals match your search
                 </p>
                 <p className="text-[10.5px] text-gray-500">
@@ -1738,7 +1764,7 @@ export default function NearbyOffers() {
                     setCategoryFilter("all");
                     setSearchQuery("");
                   }}
-                  className="mt-1.5 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+                  className="mt-1.5 text-[11px] font-semibold text-[#F72853] hover:underline cursor-pointer"
                 >
                   Reset search
                 </button>
@@ -1760,10 +1786,10 @@ export default function NearbyOffers() {
                       cardRefs.current[deal._id] = el;
                     }}
                     onClick={() => handleSelectDeal(deal, true)}
-                    className={`bg-white rounded-lg p-2.5 border transition-all cursor-pointer shadow-xs hover:shadow-sm relative group ${
+                    className={`bg-white rounded-lg p-2.5 border transition-all cursor-pointer shadow-2xs hover:shadow-xs relative group ${
                       isSelected
-                        ? "border-blue-600 ring-1.5 ring-blue-100 bg-blue-50/15"
-                        : "border-slate-200 hover:border-blue-300"
+                        ? "border-[#F72853] ring-1 ring-rose-200 bg-rose-50/20"
+                        : "border-slate-200 hover:border-rose-200"
                     }`}
                   >
                     <div className="flex gap-2.5 items-start">
@@ -1794,35 +1820,35 @@ export default function NearbyOffers() {
                         {/* Top Line: Brand & Distance */}
                         <div className="flex items-center justify-between gap-1 mb-0.5">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <h2 className="text-[10.5px] font-bold text-gray-900 uppercase tracking-wider truncate">
+                            <h2 className="text-[10.5px] font-semibold text-gray-900 uppercase tracking-wider truncate">
                               {deal.businessName}
                             </h2>
                             {deal.offersCount > 1 && (
-                              <span className="text-[8px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1 py-0.2 rounded-full shrink-0">
+                              <span className="text-[8px] font-medium text-[#F72853] bg-rose-50 border border-rose-200 px-1 py-0.2 rounded-full shrink-0">
                                 {deal.offersCount} Deals
                               </span>
                             )}
                           </div>
-                          <span className="text-[9.5px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.2 rounded-full shrink-0">
+                          <span className="text-[9.5px] font-medium text-[#F72853] bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded-full shrink-0">
                             {deal.distance} km away
                           </span>
                         </div>
 
                         {/* Discount Banner */}
                         <div
-                          className="text-[13px] font-bold tracking-tight leading-none my-0.5"
+                          className="text-[12.5px] font-semibold tracking-tight leading-none my-0.5"
                           style={{ color: deal.theme.color }}
                         >
                           {discountText}
                         </div>
 
                         {/* Title */}
-                        <p className="text-[11px] font-medium text-gray-700 line-clamp-1">
+                        <p className="text-[10.5px] font-normal text-gray-700 line-clamp-1">
                           {deal.title}
                         </p>
 
                         {/* Address */}
-                        <div className="flex items-center gap-1 text-[10px] text-gray-400 font-normal mt-0.5 truncate">
+                        <div className="flex items-center gap-1 text-[9.5px] text-gray-400 font-normal mt-0.5 truncate">
                           <MapPin className="w-2.5 h-2.5 text-gray-400 shrink-0" />
                           <span className="truncate">{deal.address}</span>
                         </div>
@@ -1834,7 +1860,7 @@ export default function NearbyOffers() {
                               e.stopPropagation();
                               handleSelectDeal(deal, true);
                             }}
-                            className="text-[10px] font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50/70 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                            className="text-[9.5px] font-medium text-slate-700 hover:text-[#F72853] bg-slate-50 hover:bg-rose-50 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                             title="Show Route and Directions"
                           >
                             <GoogleIcon className="w-2.5 h-2.5" />
@@ -1843,7 +1869,7 @@ export default function NearbyOffers() {
                           <Link
                             href={`/deals/${deal._id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
+                            className="text-[10.5px] font-medium text-[#F72853] hover:text-[#e01e47] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
                           >
                             <span>Get Deal</span>
                             <ChevronRight className="w-3 h-3" />
@@ -1986,23 +2012,85 @@ export default function NearbyOffers() {
             </div>
           )}
 
+          {/* ─── FLOATING DIRECTION & LIVE NAVIGATION HUD (Ultra Compact & Clean Font) ─── */}
+          {leafletLoaded && activeRouteInfo && (
+            <div className="absolute bottom-3 left-3 right-3 md:left-auto md:right-3 md:w-80 z-20 pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-150 font-sans">
+              <div className="bg-white/95 backdrop-blur-md rounded-xl p-2.5 shadow-lg border border-slate-200/90 flex flex-col gap-1.5">
+                {/* Header: Destination & Close */}
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#F72853] animate-pulse shrink-0" />
+                      <h3 className="text-[11.5px] font-medium text-slate-800 truncate">
+                        {activeRouteInfo.businessName}
+                      </h3>
+                      {activeRouteInfo.discountValue && (
+                        <span className="px-1.5 py-0.2 rounded text-[8.5px] font-medium bg-rose-50 text-[#F72853] border border-rose-200 shrink-0">
+                          {activeRouteInfo.discountType === "percentage"
+                            ? `${activeRouteInfo.discountValue}% OFF`
+                            : `₹${activeRouteInfo.discountValue} OFF`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[9px] text-slate-500 font-normal truncate mt-0.2">
+                      {activeRouteInfo.address}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleClearRoute}
+                    className="w-4.5 h-4.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center shrink-0 cursor-pointer transition-colors p-0"
+                    title="Close Route"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+
+                {/* Metrics Row: Drive time, Distance, Walk time */}
+                <div className="flex items-center gap-2 bg-slate-50 rounded-md py-1 px-2 border border-slate-100 text-[10.5px]">
+                  <div className="flex items-center gap-1 text-[#F72853] font-medium">
+                    <Car className="w-3 h-3" />
+                    <span>{activeRouteInfo.durationMin} mins drive</span>
+                  </div>
+                  <span className="text-slate-300">•</span>
+                  <span className="font-normal text-slate-700">
+                    {activeRouteInfo.distanceKm} km
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-400 font-normal text-[9.5px]">
+                    Walk ~{activeRouteInfo.walkMin}m
+                  </span>
+                </div>
+
+                {/* CTA Navigation Buttons */}
+                <div className="flex items-center gap-1.5 pt-0.2">
+                  <a
+                    href={activeRouteInfo.googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-[#F72853] hover:bg-[#e01e47] text-white text-[10.5px] font-medium py-1 px-2.5 rounded-md flex items-center justify-center gap-1 transition-all shadow-2xs active:scale-98"
+                  >
+                    <Navigation className="w-3 h-3" />
+                    <span>Start Live Navigation</span>
+                  </a>
+
+                  <Link
+                    href={`/deals/${activeRouteInfo.dealId}`}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10.5px] font-medium py-1 px-2 rounded-md flex items-center gap-0.5 transition-all"
+                  >
+                    <span>View Deal</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Separated Recenter Button: Positioned in Bottom-Left of the Map Canvas */}
-          {leafletLoaded && selectedDealId && (
+          {leafletLoaded && selectedDealId && !activeRouteInfo && (
             <div className="absolute bottom-3 left-3 z-20 pointer-events-auto">
               <button
                 onClick={() => {
-                  if (routeLayerRef.current && mapInstanceRef.current) {
-                    const bounds = routeLayerRef.current.getBounds();
-                    if (bounds.isValid()) {
-                      mapInstanceRef.current.fitBounds(bounds, {
-                        padding: [45, 45],
-                        maxZoom: 15,
-                        animate: true,
-                        duration: 0.8,
-                      });
-                      return;
-                    }
-                  }
                   if (selectedDealId) {
                     const deal = filteredDeals.find(
                       (d) => d._id === selectedDealId,
@@ -2016,12 +2104,12 @@ export default function NearbyOffers() {
                   }
                   handleFitBounds();
                 }}
-                className="flex flex-col items-center justify-center gap-0.5 bg-white/95 backdrop-blur-md hover:bg-orange-50/90 text-orange-600 px-2.5 py-1.5 rounded-lg shadow-md border border-orange-200 hover:border-orange-300 transition-all cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-200 group"
-                title="Re-Center Map on Selected Store / Route"
+                className="flex flex-col items-center justify-center gap-0.5 bg-white/95 backdrop-blur-md hover:bg-rose-50/90 text-[#F72853] px-2.5 py-1.5 rounded-lg shadow-md border border-rose-200 hover:border-rose-300 transition-all cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-200 group"
+                title="Re-Center Map on Selected Store"
                 aria-label="Recenter"
               >
-                <LocateFixed className="w-4.5 h-4.5 text-orange-600 stroke-[2.3] group-hover:scale-110 transition-transform" />
-                <span className="text-[9px] font-extrabold text-orange-600 tracking-tight leading-none">
+                <LocateFixed className="w-4.5 h-4.5 text-[#F72853] stroke-[2.3] group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] font-extrabold text-[#F72853] tracking-tight leading-none">
                   Recenter
                 </span>
               </button>
