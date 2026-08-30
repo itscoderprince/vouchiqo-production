@@ -45,9 +45,18 @@ export default function UserDropdown({
   const { isLocked, openModal } = useMerchantLock();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setCurrentSearch(window.location.search);
-    }
+    const updateSearch = () => {
+      if (typeof window !== "undefined") {
+        setCurrentSearch(window.location.search);
+      }
+    };
+    updateSearch();
+    window.addEventListener("popstate", updateSearch);
+    const interval = setInterval(updateSearch, 200);
+    return () => {
+      window.removeEventListener("popstate", updateSearch);
+      clearInterval(interval);
+    };
   }, [pathname]);
 
   if (!user && !authUser) return null;

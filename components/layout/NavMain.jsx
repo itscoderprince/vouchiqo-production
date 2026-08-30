@@ -21,15 +21,31 @@ import {
 
 export function NavMain({ groups, isMerchant = false }) {
   const pathname = usePathname();
-  const [currentSearch, setCurrentSearch] = useState("");
+  const [currentSearch, setCurrentSearch] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.location.search;
+    }
+    return "";
+  });
   const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { isLocked, openModal } = useMerchantLock();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setCurrentSearch(window.location.search);
-    }
+    const updateSearch = () => {
+      if (typeof window !== "undefined") {
+        setCurrentSearch(window.location.search);
+      }
+    };
+    updateSearch();
+    window.addEventListener("popstate", updateSearch);
+    window.addEventListener("vouchiqo_nav_change", updateSearch);
+    const interval = setInterval(updateSearch, 150);
+    return () => {
+      window.removeEventListener("popstate", updateSearch);
+      window.removeEventListener("vouchiqo_nav_change", updateSearch);
+      clearInterval(interval);
+    };
   }, [pathname]);
 
   const [openSubMenus, setOpenSubMenus] = useState({});
@@ -166,20 +182,20 @@ export function NavMain({ groups, isMerchant = false }) {
                 // Expandable sub-items menu (e.g. My Listings, Merchants)
                 if (hasSubItems) {
                   const parentBtnClass = isParentActive
-                    ? "!bg-[#F72853] !text-white font-medium shadow-sm shadow-[#F72853]/25 hover:!bg-[#df1c44] rounded-xl"
-                    : "bg-slate-50/70 hover:bg-rose-50/60 text-slate-700 hover:text-[#F72853] font-normal border border-slate-200/60 rounded-xl transition-all shadow-2xs";
+                    ? "!bg-[#F72853] !text-white font-medium shadow-sm shadow-[#F72853]/25 hover:!bg-[#e01e47] rounded-xl"
+                    : "bg-transparent hover:bg-rose-50/70 text-slate-700 hover:text-[#F72853] font-normal border border-transparent hover:border-rose-200/60 rounded-xl transition-all";
 
                   const parentIconClass = isParentActive
                     ? "!text-white"
-                    : "text-slate-500 group-hover:text-[#F72853]";
+                    : "text-slate-500 group-hover:text-[#F72853] transition-colors";
 
                   const parentTextClass = isParentActive
                     ? "!text-white font-medium"
-                    : "text-slate-700 font-normal group-hover:text-[#F72853]";
+                    : "text-slate-700 font-normal group-hover:text-[#F72853] transition-colors";
 
                   const chevronClass = isParentActive
                     ? "text-white"
-                    : "text-slate-400";
+                    : "text-slate-400 group-hover:text-[#F72853] transition-colors";
 
                   return (
                     <SidebarMenuItem
@@ -312,16 +328,16 @@ export function NavMain({ groups, isMerchant = false }) {
 
                 // Normal sidebar navigation item
                 const singleBtnClass = isParentActive
-                  ? "!bg-[#F72853] !text-white font-medium shadow-sm shadow-[#F72853]/25 hover:!bg-[#df1c44] rounded-xl"
-                  : "bg-slate-50/70 hover:bg-rose-50/60 text-slate-700 hover:text-[#F72853] font-normal border border-slate-200/60 rounded-xl transition-all shadow-2xs";
+                  ? "!bg-[#F72853] !text-white font-medium shadow-sm shadow-[#F72853]/25 hover:!bg-[#e01e47] rounded-xl"
+                  : "bg-transparent hover:bg-rose-50/70 text-slate-700 hover:text-[#F72853] font-normal border border-transparent hover:border-rose-200/60 rounded-xl transition-all";
 
                 const singleIconClass = isParentActive
                   ? "!text-white"
-                  : "text-slate-500 group-hover:text-[#F72853]";
+                  : "text-slate-500 group-hover:text-[#F72853] transition-colors";
 
                 const singleTextClass = isParentActive
                   ? "!text-white font-medium"
-                  : "text-slate-700 font-normal group-hover:text-[#F72853]";
+                  : "text-slate-700 font-normal group-hover:text-[#F72853] transition-colors";
 
                 const URL_TOUR_MAP = {
                   "/merchant/dashboard": "tour-dashboard-overview",

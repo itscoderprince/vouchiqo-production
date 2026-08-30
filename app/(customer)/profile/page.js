@@ -166,6 +166,8 @@ function ProfileContent() {
       const url = new URL(window.location);
       url.searchParams.set("tab", tabName);
       window.history.pushState({}, "", url);
+      window.dispatchEvent(new Event("vouchiqo_nav_change"));
+      window.dispatchEvent(new Event("popstate"));
     }
 
     const btn = tabRefs.current[tabName];
@@ -448,10 +450,10 @@ function ProfileContent() {
     >
       <ConfettiOverlay active={triggerConfetti} />
 
-      {/* Horizontal Nav Tabs */}
+      {/* Horizontal Nav Tabs (Mobile Only - Hidden on Desktop as sidebar handles navigation) */}
       <div
         ref={tabsContainerRef}
-        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-1 border-b border-slate-200/80 mb-3 sm:mb-4 select-none px-0.5"
+        className="flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-1 border-b border-slate-200/80 mb-3 sm:mb-4 select-none px-0.5"
       >
         {PROFILE_TABS.map((t) => {
           const Icon = t.icon;
