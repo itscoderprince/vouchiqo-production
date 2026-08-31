@@ -768,10 +768,13 @@ export function AppSidebar({ ...props }) {
           </Button>
         )}
       </SidebarHeader>
-      <SidebarContent className="px-2 py-3 bg-white text-slate-900">
+      <SidebarContent
+        data-lenis-prevent
+        className="px-2 py-3 bg-white text-slate-900 overflow-y-auto overflow-x-hidden overscroll-contain custom-scrollbar"
+      >
         <NavMain groups={groups} isMerchant={isMerchant} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-slate-200 bg-white">
+      <SidebarFooter className="border-t border-slate-200 bg-white shrink-0">
         <NavUser user={user} role={role} />
       </SidebarFooter>
       <SidebarRail />
