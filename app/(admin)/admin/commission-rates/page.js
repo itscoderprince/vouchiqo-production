@@ -1,24 +1,35 @@
 "use client";
 
 import {
+  Check,
   CheckCircle2,
   Eye,
+  Layers,
   Percent,
   Plus,
   RefreshCw,
   RotateCcw,
+  Save,
   Search,
   Sliders,
+  Tag,
   Trash2,
+  X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { FormInput } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { adminFetchSettings, adminUpdateSetting } from "@/lib/api-helpers";
 import { showError, showSuccess } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_COMMISSION_TABLE = [
   { id: "fashion", category: "Fashion & Clothing", rate: "5%", model: "CPA", notes: "Uniform across apparel" },
@@ -38,10 +49,23 @@ const DEFAULT_COMMISSION_TABLE = [
   { id: "grocery", category: "Grocery & Essentials", rate: "1.5% FMCG / 3% specialty", model: "CPA", notes: "Low margin, volume based" },
 ];
 
+// 8 Distinct Pastel Row Palettes (Clearly visible without hover)
+const ROW_COLOR_THEMES = [
+  { row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900" },
+  { row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900" },
+  { row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900" },
+  { row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900" },
+  { row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900" },
+  { row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900" },
+  { row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900" },
+  { row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900" },
+];
+
 export default function CommissionRatesEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
   const [cpaRates, setCpaRates] = useState([]);
   const [previewCategoryIdx, setPreviewCategoryIdx] = useState(0);
 
@@ -52,11 +76,15 @@ export default function CommissionRatesEditorPage() {
     notes: "",
   });
 
-  const fetchCpaRates = async () => {
+  const fetchCpaRates = useCallback(async () => {
     try {
       setLoading(true);
       const data = await adminFetchSettings();
-      if (data?.master_cpa_rates && Array.isArray(data.master_cpa_rates) && data.master_cpa_rates.length > 0) {
+      if (
+        data?.master_cpa_rates &&
+        Array.isArray(data.master_cpa_rates) &&
+        data.master_cpa_rates.length > 0
+      ) {
         setCpaRates(data.master_cpa_rates);
       } else {
         setCpaRates(DEFAULT_COMMISSION_TABLE);
@@ -67,17 +95,17 @@ export default function CommissionRatesEditorPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCpaRates();
-  }, []);
+  }, [fetchCpaRates]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
       await adminUpdateSetting("master_cpa_rates", cpaRates);
-      showSuccess("Master Performance Commission Rates saved successfully to database!");
+      showSuccess("Master Performance Commission Rates saved successfully!");
     } catch (err) {
       showError("Failed to save commission rates to database.");
     } finally {
@@ -86,14 +114,18 @@ export default function CommissionRatesEditorPage() {
   };
 
   const handleResetToDefaults = () => {
-    if (confirm("Reset commission rate table to standard defaults? (Remember to click 'Save Commission Rates' to persist to database)")) {
+    if (
+      confirm(
+        "Reset commission rate table to standard defaults? (Remember to click 'Save Commission Rates' to persist to database)",
+      )
+    ) {
       setCpaRates(DEFAULT_COMMISSION_TABLE);
       showSuccess("Reset rate card to 15 standard category defaults.");
     }
   };
 
   const handleAddCpaRate = () => {
-    if (!newCpaRate.category || !newCpaRate.rate) {
+    if (!newCpaRate.category.trim() || !newCpaRate.rate.trim()) {
       showError("Please enter Category Name and Base Rate.");
       return;
     }
@@ -101,10 +133,10 @@ export default function CommissionRatesEditorPage() {
       ...cpaRates,
       {
         id: `cpa_${Date.now()}`,
-        category: newCpaRate.category,
-        rate: newCpaRate.rate,
+        category: newCpaRate.category.trim(),
+        rate: newCpaRate.rate.trim(),
         model: newCpaRate.model || "CPA",
-        notes: newCpaRate.notes || "",
+        notes: newCpaRate.notes.trim(),
       },
     ];
     setCpaRates(updated);
@@ -119,289 +151,534 @@ export default function CommissionRatesEditorPage() {
     showSuccess("Category rate entry removed.");
   };
 
-  const filteredRates = useMemo(() => {
-    if (!searchQuery.trim()) return cpaRates;
-    const q = searchQuery.toLowerCase().trim();
-    return cpaRates.filter(
-      (r) =>
-        r.category?.toLowerCase().includes(q) ||
-        r.rate?.toLowerCase().includes(q) ||
-        r.model?.toLowerCase().includes(q) ||
-        r.notes?.toLowerCase().includes(q)
-    );
-  }, [cpaRates, searchQuery]);
+  const handleUpdateField = (actualIdx, field, val) => {
+    const updated = [...cpaRates];
+    updated[actualIdx] = { ...updated[actualIdx], [field]: val };
+    setCpaRates(updated);
+  };
 
-  const activePreviewRate = filteredRates[previewCategoryIdx] || cpaRates[0] || {};
+  const stats = useMemo(() => {
+    const total = cpaRates.length;
+    const cpaCount = cpaRates.filter((r) => r.model?.includes("CPA")).length;
+    const cplCount = cpaRates.filter((r) => r.model?.includes("CPL")).length;
+    const hybridCount = cpaRates.filter(
+      (r) => r.model?.includes("CPA") && r.model?.includes("CPL"),
+    ).length;
+    return { total, cpaCount, cplCount, hybridCount };
+  }, [cpaRates]);
+
+  const filteredRates = useMemo(() => {
+    return cpaRates.filter((r) => {
+      // Tab Filter
+      if (activeTab === "cpa" && !r.model?.includes("CPA")) return false;
+      if (activeTab === "cpl" && !r.model?.includes("CPL")) return false;
+
+      // Search Filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        return (
+          r.category?.toLowerCase().includes(q) ||
+          r.rate?.toLowerCase().includes(q) ||
+          r.model?.toLowerCase().includes(q) ||
+          r.notes?.toLowerCase().includes(q)
+        );
+      }
+
+      return true;
+    });
+  }, [cpaRates, activeTab, searchQuery]);
+
+  const activePreviewRate =
+    filteredRates[previewCategoryIdx] || cpaRates[0] || {};
 
   return (
-    <DashboardLayout>
-      <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto font-sans text-left">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Percent className="w-6 h-6 text-emerald-600" />
-              <span>Performance Commission Rates Editor</span>
-            </h1>
-            <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Manage category commission rate cards (CPA/CPL rates, models &amp; rules) stored in MongoDB and rendered in real time on merchant onboarding.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <Button
-              variant="outline"
-              onClick={handleResetToDefaults}
-              className="text-xs font-semibold rounded-xl h-9 px-3 border-slate-200 text-slate-700 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5 mr-1 text-slate-500" />
-              <span>Reset Defaults</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={fetchCpaRates}
-              disabled={loading}
-              className="text-xs font-bold rounded-xl h-9 px-3 border-slate-200 text-slate-700 cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? "animate-spin" : ""}`} />
-              <span>Refresh</span>
-            </Button>
-
-            <Button
-              onClick={handleSave}
-              disabled={saving || loading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl h-9 px-6 cursor-pointer shadow-sm shadow-emerald-500/20 flex items-center gap-2"
-            >
-              {saving ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Saving to Database...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Commission Rates</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Live Onboarding Preview Card */}
-        {activePreviewRate?.category && (
-          <Card className="border-blue-200/80 bg-blue-50/40 p-4 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-blue-600" />
-                Live Merchant View Preview (Onboarding Step 5)
-              </span>
-              <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] font-bold">
-                {activePreviewRate.category}
-              </Badge>
-            </div>
-            <div className="bg-white border border-blue-200 rounded-xl p-3 text-xs space-y-1">
-              <div className="flex justify-between items-center font-bold text-slate-900">
-                <span>{activePreviewRate.category}:</span>
-                <span className="bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-md border border-blue-200">
-                  {activePreviewRate.rate}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600">
-                <strong className="text-slate-800">Model:</strong> {activePreviewRate.model || "CPA"}
-                {activePreviewRate.notes && (
-                  <span className="ml-3 italic text-slate-500">
-                    — Notes: {activePreviewRate.notes}
-                  </span>
-                )}
-              </p>
-            </div>
-          </Card>
-        )}
-
-        {/* Master CPA Rates Table & Actions */}
-        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-5">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+    <DashboardLayout
+      title="Performance Commission Rates"
+      user={{ name: "Super Admin", role: "admin" }}
+    >
+      <TooltipProvider delayDuration={100}>
+        <div className="space-y-3 font-sans w-full pb-12 text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-emerald-600" />
-                <span>Master Category CPA / CPL Rate Card ({cpaRates.length} Categories)</span>
-              </h3>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Configure rate, performance model (CPA / CPL), and legal terms for each category.
+              <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
+                Performance Commission Rates Editor
+              </h1>
+              <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+                Manage category commission rate cards (CPA/CPL rates, models &amp; rules) rendered live on Merchant Onboarding.
               </p>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <FormInput
-                placeholder="Search category or rate..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs rounded-xl border-slate-200"
-              />
-            </div>
-          </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetToDefaults}
+                    className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+                  >
+                    <RotateCcw className="w-3 h-3 text-slate-500" />
+                    <span>Reset Defaults</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Reset rate card to 15 standard launch defaults
+                </TooltipContent>
+              </Tooltip>
 
-          {/* Add New Category Entry Form */}
-          <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-3">
-            <h4 className="text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5">
-              <Plus className="w-4 h-4 text-emerald-600" /> Add New Category Commission Rate
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-              <FormInput
-                placeholder="Category Name (e.g. Clean Energy)"
-                value={newCpaRate.category}
-                onChange={(e) => setNewCpaRate({ ...newCpaRate, category: e.target.value })}
-              />
-              <FormInput
-                placeholder="Base Rate (e.g. 4% / ₹500 CPL)"
-                value={newCpaRate.rate}
-                onChange={(e) => setNewCpaRate({ ...newCpaRate, rate: e.target.value })}
-              />
-              <FormInput
-                placeholder="Model (CPA / CPL / CPA + CPL)"
-                value={newCpaRate.model}
-                onChange={(e) => setNewCpaRate({ ...newCpaRate, model: e.target.value })}
-              />
-              <FormInput
-                placeholder="Notes & Rules"
-                value={newCpaRate.notes}
-                onChange={(e) => setNewCpaRate({ ...newCpaRate, notes: e.target.value })}
-              />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchCpaRates}
+                    disabled={loading}
+                    className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+                    <span>Refresh</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Reload rates from database
+                </TooltipContent>
+              </Tooltip>
+
               <Button
-                onClick={handleAddCpaRate}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl h-9 px-4 cursor-pointer gap-1.5"
+                onClick={handleSave}
+                disabled={saving || loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-3.5 cursor-pointer shadow-2xs gap-1.5 shrink-0"
               >
-                <Plus className="w-4 h-4" /> Add Entry
+                {saving ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                <span>Save Commission Rates</span>
               </Button>
             </div>
           </div>
 
-          {/* Rates Table */}
-          <div className="overflow-x-auto border border-slate-200 rounded-xl">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
-                <tr>
-                  <th className="px-3 py-2.5 w-12 text-center">#</th>
-                  <th className="px-3 py-2.5 w-52">Category Name</th>
-                  <th className="px-3 py-2.5 w-56">Base CPA / CPL Rate</th>
-                  <th className="px-3 py-2.5 w-36">Model</th>
-                  <th className="px-3 py-2.5">Notes &amp; Special Rules</th>
-                  <th className="px-3 py-2.5 w-24 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
-                {filteredRates.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-8 text-slate-500 font-medium text-xs">
-                      No category commission rates match &quot;{searchQuery}&quot;.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRates.map((rate, rIdx) => {
-                    const actualIdxInCpaRates = cpaRates.indexOf(rate);
-                    return (
-                      <tr
-                        key={rate.id || rIdx}
-                        className={`hover:bg-slate-50/80 transition-colors ${
-                          previewCategoryIdx === rIdx ? "bg-blue-50/30" : ""
-                        }`}
-                        onClick={() => setPreviewCategoryIdx(rIdx)}
-                      >
-                        <td className="px-3 py-2 text-center font-bold text-slate-500">
-                          {rIdx + 1}
-                        </td>
-                        <td className="px-3 py-2">
-                          <FormInput
-                            value={rate.category}
-                            onChange={(e) => {
-                              const updated = [...cpaRates];
-                              updated[actualIdxInCpaRates].category = e.target.value;
-                              setCpaRates(updated);
-                            }}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <FormInput
-                            value={rate.rate}
-                            placeholder="e.g. 5%"
-                            onChange={(e) => {
-                              const updated = [...cpaRates];
-                              updated[actualIdxInCpaRates].rate = e.target.value;
-                              setCpaRates(updated);
-                            }}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <FormInput
-                            value={rate.model}
-                            placeholder="CPA / CPL"
-                            onChange={(e) => {
-                              const updated = [...cpaRates];
-                              updated[actualIdxInCpaRates].model = e.target.value;
-                              setCpaRates(updated);
-                            }}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <FormInput
-                            value={rate.notes || ""}
-                            placeholder="e.g. Uniform across apparel"
-                            onChange={(e) => {
-                              const updated = [...cpaRates];
-                              updated[actualIdxInCpaRates].notes = e.target.value;
-                              setCpaRates(updated);
-                            }}
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveCpaRate(rIdx);
-                            }}
-                            className="text-[10px] font-bold text-rose-600 border-rose-200 hover:bg-rose-50 h-7 px-2 shadow-none cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-xs text-slate-500 font-medium">
-              Showing {filteredRates.length} of {cpaRates.length} total categories configured
-            </span>
-
-            <Button
-              onClick={handleSave}
-              disabled={saving || loading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl h-9 px-6 cursor-pointer shadow-sm shadow-emerald-500/20 flex items-center gap-2"
-            >
-              {saving ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Saving to Database...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Commission Rates Table</span>
-                </>
+          {/* 4 Top KPI Overview Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <Card
+              onClick={() => setActiveTab("all")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "all"
+                  ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
               )}
-            </Button>
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Total Categories
+                  </span>
+                  <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
+                    {stats.total}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+                  <Percent className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => setActiveTab("cpa")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "cpa"
+                  ? "bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
+              )}
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    CPA Percentage
+                  </span>
+                  <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
+                    {stats.cpaCount}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                  <Tag className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => setActiveTab("cpl")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "cpl"
+                  ? "bg-purple-50/70 border-purple-300 ring-1 ring-purple-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
+              )}
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    CPL Fixed Leads
+                  </span>
+                  <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none">
+                    {stats.cplCount}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => setActiveTab("all")}
+              className="rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans bg-white border-slate-200/80 hover:border-slate-300"
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Live Onboarding
+                  </span>
+                  <span className="text-base font-medium text-blue-700 mt-0.5 block leading-none">
+                    Active
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </Card>
-      </div>
+
+          {/* Live Merchant View Preview Bar */}
+          {activePreviewRate?.category && (
+            <div className="bg-slate-50/90 border border-slate-200/90 p-2.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-white border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Eye className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 block leading-tight">
+                    Live Onboarding View Preview (Step 5)
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs font-medium text-slate-900">
+                      {activePreviewRate.category}:
+                    </span>
+                    <span className="font-mono text-[11px] font-medium text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200/80 shadow-2xs">
+                      {activePreviewRate.rate}
+                    </span>
+                    <span className="text-[10.5px] text-slate-500 font-normal">
+                      • Model: <strong className="text-slate-800 font-medium">{activePreviewRate.model || "CPA"}</strong>
+                      {activePreviewRate.notes && ` — ${activePreviewRate.notes}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <span className="bg-white text-blue-700 border border-blue-200 text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs self-start sm:self-auto">
+                Selected Preview Row
+              </span>
+            </div>
+          )}
+
+          {/* Master Rate Card Container */}
+          <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white p-3 text-left space-y-3">
+            {/* Header Controls & Filter Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div>
+                <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Master Category Rate Card ({cpaRates.length} Categories)</span>
+                </h3>
+                <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
+                  Click any cell to edit rates, model types, and specific accounting rules.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                {/* Search Bar */}
+                <div className="relative w-full sm:w-56">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search category or rate..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Tabs with Tooltips */}
+                <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
+                  {[
+                    { id: "all", label: "All", count: stats.total, desc: "Show all configured category rates" },
+                    { id: "cpa", label: "CPA", count: stats.cpaCount, desc: "Show percentage commission categories" },
+                    { id: "cpl", label: "CPL", count: stats.cplCount, desc: "Show fixed lead commission categories" },
+                  ].map((tab) => (
+                    <Tooltip key={tab.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab(tab.id)}
+                          className={cn(
+                            "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
+                            activeTab === tab.id
+                              ? "bg-white text-blue-600 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-800 bg-transparent",
+                          )}
+                        >
+                          <span>{tab.label}</span>
+                          <span
+                            className={cn(
+                              "text-[9px] px-1 rounded-full",
+                              activeTab === tab.id
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-slate-200/70 text-slate-600",
+                            )}
+                          >
+                            {tab.count}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                        {tab.desc}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Add New Category Entry Box */}
+            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-medium text-slate-700 uppercase flex items-center gap-1">
+                  <Plus className="w-3 h-3 text-blue-600" /> Add New Category Commission Rate
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                <div className="sm:col-span-3">
+                  <input
+                    type="text"
+                    placeholder="Category Name (e.g. Clean Energy)"
+                    value={newCpaRate.category}
+                    onChange={(e) =>
+                      setNewCpaRate({ ...newCpaRate, category: e.target.value })
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                  />
+                </div>
+                <div className="sm:col-span-3">
+                  <input
+                    type="text"
+                    placeholder="Base Rate (e.g. 4% / ₹500 CPL)"
+                    value={newCpaRate.rate}
+                    onChange={(e) =>
+                      setNewCpaRate({ ...newCpaRate, rate: e.target.value })
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <input
+                    type="text"
+                    placeholder="Model (CPA / CPL)"
+                    value={newCpaRate.model}
+                    onChange={(e) =>
+                      setNewCpaRate({ ...newCpaRate, model: e.target.value })
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                  />
+                </div>
+                <div className="sm:col-span-3">
+                  <input
+                    type="text"
+                    placeholder="Notes & Rules (e.g. Uniform rate)"
+                    value={newCpaRate.notes}
+                    onChange={(e) =>
+                      setNewCpaRate({ ...newCpaRate, notes: e.target.value })
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                  />
+                </div>
+                <div className="sm:col-span-1">
+                  <Button
+                    onClick={handleAddCpaRate}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-2 cursor-pointer gap-1 shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Colorful Commission Rates Table */}
+            <div className="overflow-x-auto rounded-xl border border-slate-200/90">
+              <table className="w-full border-collapse text-left font-sans">
+                <thead>
+                  <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                    <th className="py-2 px-2.5 w-10 text-center">#</th>
+                    <th className="py-2 px-2.5 w-52">Category Name</th>
+                    <th className="py-2 px-2.5 w-52">Base CPA / CPL Rate</th>
+                    <th className="py-2 px-2.5 w-32">Model</th>
+                    <th className="py-2 px-2.5">Notes &amp; Special Rules</th>
+                    <th className="py-2 px-2.5 w-16 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                        <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                        Loading commission rates...
+                      </td>
+                    </tr>
+                  ) : filteredRates.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                        No category rates found matching your search.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRates.map((rate, rIdx) => {
+                      const actualIdx = cpaRates.indexOf(rate);
+                      const theme = ROW_COLOR_THEMES[rIdx % ROW_COLOR_THEMES.length];
+                      const isSelected = previewCategoryIdx === rIdx;
+
+                      return (
+                        <tr
+                          key={rate.id || rIdx}
+                          onClick={() => setPreviewCategoryIdx(rIdx)}
+                          className={cn(
+                            "transition-all duration-150 cursor-pointer",
+                            theme.row,
+                            isSelected && "ring-1 ring-blue-500",
+                          )}
+                        >
+                          {/* # */}
+                          <td className="py-1.5 px-2 text-center">
+                            <div className="w-5.5 h-5.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] mx-auto shadow-2xs">
+                              #{rIdx + 1}
+                            </div>
+                          </td>
+
+                          {/* Category Name */}
+                          <td className="py-1.5 px-2.5">
+                            <input
+                              type="text"
+                              value={rate.category}
+                              onChange={(e) =>
+                                handleUpdateField(actualIdx, "category", e.target.value)
+                              }
+                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-medium text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                            />
+                          </td>
+
+                          {/* Rate */}
+                          <td className="py-1.5 px-2.5">
+                            <input
+                              type="text"
+                              value={rate.rate}
+                              placeholder="e.g. 5%"
+                              onChange={(e) =>
+                                handleUpdateField(actualIdx, "rate", e.target.value)
+                              }
+                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs font-mono h-7 px-2 font-medium text-blue-700 focus:border-blue-500 outline-none shadow-2xs"
+                            />
+                          </td>
+
+                          {/* Model */}
+                          <td className="py-1.5 px-2.5">
+                            <input
+                              type="text"
+                              value={rate.model}
+                              placeholder="CPA / CPL"
+                              onChange={(e) =>
+                                handleUpdateField(actualIdx, "model", e.target.value)
+                              }
+                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                            />
+                          </td>
+
+                          {/* Notes */}
+                          <td className="py-1.5 px-2.5">
+                            <input
+                              type="text"
+                              value={rate.notes || ""}
+                              placeholder="e.g. Uniform across apparel"
+                              onChange={(e) =>
+                                handleUpdateField(actualIdx, "notes", e.target.value)
+                              }
+                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-normal text-slate-700 focus:border-blue-500 outline-none shadow-2xs"
+                            />
+                          </td>
+
+                          {/* Action */}
+                          <td className="py-1.5 px-2.5 text-right">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveCpaRate(rIdx);
+                                  }}
+                                  className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 bg-white rounded-md cursor-pointer ml-auto shadow-2xs"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  <span className="sr-only">Delete</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                                Remove rate entry
+                              </TooltipContent>
+                            </Tooltip>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bottom Status & Save Action */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              <span className="text-[11px] text-slate-500 font-normal">
+                Showing {filteredRates.length} of {cpaRates.length} configured category rate cards
+              </span>
+
+              <Button
+                onClick={handleSave}
+                disabled={saving || loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-3.5 cursor-pointer shadow-2xs gap-1.5 shrink-0 self-start sm:self-auto"
+              >
+                {saving ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                <span>Save Commission Rates</span>
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }
