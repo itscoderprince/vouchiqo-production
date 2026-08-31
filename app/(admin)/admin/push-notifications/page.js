@@ -305,8 +305,9 @@ export default function AdminPushNotificationsPage() {
         body: formData,
       });
       const json = await res.json();
-      if (res.ok && json.data?.secure_url) {
-        handleFormChange("image", json.data.secure_url);
+      const imageUrl = json.data?.url || json.data?.secure_url;
+      if (res.ok && imageUrl) {
+        handleFormChange("image", imageUrl);
         setResult({ ok: true, message: "Push banner uploaded to Cloudinary successfully!" });
       } else {
         setResult({ ok: false, message: json.message || "Failed to upload image to Cloudinary." });
@@ -315,6 +316,9 @@ export default function AdminPushNotificationsPage() {
       setResult({ ok: false, message: "Network error during Cloudinary upload." });
     } finally {
       setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 

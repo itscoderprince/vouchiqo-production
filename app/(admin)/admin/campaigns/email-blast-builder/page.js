@@ -101,8 +101,9 @@ export default function EmailBlastBuilderPage() {
       });
 
       const json = await res.json();
-      if (res.ok && json.data?.secure_url) {
-        setBannerUrl(json.data.secure_url);
+      const imageUrl = json.data?.url || json.data?.secure_url;
+      if (res.ok && imageUrl) {
+        setBannerUrl(imageUrl);
         toast.success("Banner image uploaded to Cloudinary CDN successfully!");
       } else {
         toast.error(json.message || "Failed to upload image to Cloudinary.");
@@ -112,6 +113,9 @@ export default function EmailBlastBuilderPage() {
       toast.error("Network error while uploading banner to Cloudinary.");
     } finally {
       setIsUploadingBanner(false);
+      if (bannerFileInputRef.current) {
+        bannerFileInputRef.current.value = "";
+      }
     }
   };
 
