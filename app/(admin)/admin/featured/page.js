@@ -8,7 +8,6 @@ import {
   Pin,
   RefreshCw,
   Search,
-  Sparkles,
   Store,
   Tag,
   X,

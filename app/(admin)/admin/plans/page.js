@@ -12,9 +12,9 @@ import {
   RotateCcw,
   Save,
   Shield,
-  Sparkles,
   Tag,
   Trash2,
+  TrendingUp,
   Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -387,7 +387,7 @@ export default function MerchantPlansEditorPage() {
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <TrendingUp className="w-3.5 h-3.5" />
                 </div>
               </CardContent>
             </Card>
