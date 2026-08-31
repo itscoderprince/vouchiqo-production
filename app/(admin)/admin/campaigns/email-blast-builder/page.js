@@ -2,273 +2,673 @@
 
 import {
   ArrowLeft,
-  Clock,
+  CheckCircle2,
+  ExternalLink,
   Eye,
-  FileText,
-  Image as ImageIcon,
+  ImageIcon,
+  Loader2,
   Mail,
+  RefreshCw,
   Send,
-  Tag,
+  Store,
+  Trash2,
+  Upload,
+  UploadCloud,
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export default function EmailBlastBuilderPage() {
   const [headline, setHeadline] = useState(
-    "Pre-Diwali Grand Renovation Sale — Flat 20% OFF!",
+    "Weekend Mega Shopping Carnival — Flat 25% OFF!",
+  );
+  const [subject, setSubject] = useState(
+    "🎁 Weekend Special: Flat 25% OFF on Top Verified Stores in Ranchi!",
   );
   const [description, setDescription] = useState(
-    "Get 20% discount on all imported Italian marble slabs & bath fittings. Exclusive pre-booking for Diwali home upgrades.",
+    "Explore exclusive limited-period discounts on dining, fashion, and home upgrades. Claim your verified voucher online and redeem at the store counter.",
   );
   const [bannerUrl, setBannerUrl] = useState(
     "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&auto=format&fit=crop&q=80",
   );
-  const [offerCode, setOfferCode] = useState("MARBLE20");
-  const [scheduledTime, setScheduledTime] = useState("2026-07-25T10:00");
-  const [targetCategory, setTargetCategory] = useState(
-    "Home Improvement & Living",
-  );
-  const [adminTestEmail, setAdminTestEmail] = useState("admin@vouchiqo.com");
-  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [offerCode, setOfferCode] = useState("CARNIVAL25");
+  const [ctaUrl, setCtaUrl] = useState("https://vouchiqo.com/deals");
+  const [testEmail, setTestEmail] = useState("admin@vouchiqo.com");
+  const [recipientType, setRecipientType] = useState("all"); // "all" | "users" | "merchants"
 
-  const handleSendTestCopy = () => {
-    setIsSendingTest(true);
-    setTimeout(() => {
-      setIsSendingTest(false);
-      toast.success(
-        `Test copy sent to ${adminTestEmail} via SendGrid Template E-9!`,
-      );
-    }, 1200);
+  // Real DB Data & Loading States
+  const [recipientsData, setRecipientsData] = useState(null);
+  const [loadingRecipients, setLoadingRecipients] = useState(true);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+  const fileInputRef = useRef(null);
+
+  // Fetch real registered users from MongoDB
+  const fetchRecipients = useCallback(async () => {
+    try {
+      setLoadingRecipients(true);
+      const res = await fetch("/api/admin/broadcast/email");
+      const json = await res.json();
+      if (json.success && json.data) {
+        setRecipientsData(json.data);
+      }
+    } catch (err) {
+      console.error("Error fetching recipients:", err);
+    } finally {
+      setLoadingRecipients(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRecipients();
+  }, [fetchRecipients]);
+
+  // Cloudinary Direct Image Upload Handler
+  const handleBannerFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      return toast.error("Please select a JPEG, PNG, or WebP image.");
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error("Image file size must be less than 5 MB.");
+    }
+
+    try {
+      setIsUploadingBanner(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "email_banners");
+
+      const res = await fetch("/api/uploads", {
+        method: "POST",
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (res.ok && json.data?.secure_url) {
+        setBannerUrl(json.data.secure_url);
+        toast.success("Banner image uploaded to Cloudinary CDN successfully!");
+      } else {
+        toast.error(json.message || "Failed to upload image to Cloudinary.");
+      }
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      toast.error("Network error while uploading banner to Cloudinary.");
+    } finally {
+      setIsUploadingBanner(false);
+    }
   };
 
-  const handleScheduleSendGridCampaign = () => {
-    toast.success(
-      "SendGrid campaign scheduled successfully using Template E-9!",
+  // Send test email via Resend
+  const handleSendTest = async () => {
+    if (!testEmail || !testEmail.includes("@")) {
+      return toast.error("Please enter a valid test email address.");
+    }
+    try {
+      setIsSendingTest(true);
+      const res = await fetch("/api/admin/broadcast/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          headline,
+          description,
+          bannerUrl,
+          offerCode,
+          ctaUrl,
+          isTest: true,
+          testEmail,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        toast.success(`Test email sent to ${testEmail} via Resend!`);
+      } else {
+        toast.error(json.error || "Failed to send test email.");
+      }
+    } catch (err) {
+      console.error("Test send error:", err);
+      toast.error("Network error while sending test email.");
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
+  const totalUsers = recipientsData?.totalUsers || 0;
+  const totalMerchants = recipientsData?.totalMerchants || 0;
+  const totalRecipients = recipientsData?.totalRecipients || totalUsers + totalMerchants;
+
+  const currentAudienceCount =
+    recipientType === "users"
+      ? totalUsers
+      : recipientType === "merchants"
+        ? totalMerchants
+        : totalRecipients;
+
+  const audienceLabel =
+    recipientType === "users"
+      ? "Registered Shoppers"
+      : recipientType === "merchants"
+        ? "Partner Merchants"
+        : "All Platform Members";
+
+  // Broadcast live email to real registered users/merchants in DB via Resend
+  const handleLiveBroadcast = async () => {
+    if (!subject.trim()) {
+      return toast.error("Email subject line is required.");
+    }
+    const confirmSend = window.confirm(
+      `Send live promotional email to ${currentAudienceCount > 0 ? currentAudienceCount : "all"} ${audienceLabel} via Resend?`,
     );
+    if (!confirmSend) return;
+
+    try {
+      setIsBroadcasting(true);
+      const res = await fetch("/api/admin/broadcast/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          headline,
+          description,
+          bannerUrl,
+          offerCode,
+          ctaUrl,
+          recipientType,
+          isTest: false,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        toast.success(
+          json.message || `Live broadcast sent to ${audienceLabel} via Resend!`,
+        );
+      } else {
+        toast.error(json.error || "Failed to dispatch email broadcast.");
+      }
+    } catch (err) {
+      console.error("Broadcast dispatch error:", err);
+      toast.error("Network error while dispatching broadcast.");
+    } finally {
+      setIsBroadcasting(false);
+    }
   };
 
   return (
     <DashboardLayout
-      title="Dedicated Email Blast Builder (Template E-9)"
+      title="Platform Email Blast Builder"
       user={{ name: "Super Admin", role: "admin" }}
     >
-      <div className="space-y-6 text-left font-sans w-full">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild className="p-1.5 h-auto rounded-xl">
-              <Link href="/admin/campaigns/queue">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-            </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-blue-600" /> Dedicated Email
-                  Blast Builder (₹799 Add-On)
+      <TooltipProvider delayDuration={100}>
+        <div className="space-y-3 font-sans w-full pb-12 text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rose-100 pb-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                asChild
+                className="p-1 h-7.5 w-7.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-rose-50 cursor-pointer shrink-0 shadow-2xs border border-rose-200/80"
+              >
+                <Link href="/admin/campaigns/queue">
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900 flex items-center gap-2">
+                  <span>Platform Email Blast Builder</span>
+                  <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-mono font-medium px-2 py-0.5 rounded shadow-2xs">
+                    Resend + Cloudinary
+                  </span>
                 </h1>
-                <Badge className="bg-blue-100 text-blue-800 text-[9px] font-bold border-0">
-                  SendGrid Template E-9
-                </Badge>
+                <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+                  Design promotional email broadcasts and dispatch directly to registered platform users &amp; merchants via Resend.
+                </p>
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Targeting opt-in subscribers in{" "}
-                <strong>{targetCategory}</strong> • Default send = Campaign
-                Go-Live
-              </p>
+            </div>
+
+            {/* Header Actions */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSendTest}
+                    disabled={isSendingTest}
+                    className="gap-1.5 h-7.5 px-3 text-xs font-medium border-rose-200 text-rose-700 bg-white hover:bg-rose-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+                  >
+                    <Send className={cn("w-3 h-3 text-rose-600", isSendingTest && "animate-spin")} />
+                    <span>{isSendingTest ? "Sending Test..." : "Send Test Copy"}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Send test copy to {testEmail}
+                </TooltipContent>
+              </Tooltip>
+
+              <Button
+                size="sm"
+                onClick={handleLiveBroadcast}
+                disabled={isBroadcasting}
+                className="gap-1.5 h-7.5 px-3.5 text-xs font-medium bg-rose-600 hover:bg-rose-700 text-white rounded-lg shrink-0 cursor-pointer shadow-2xs"
+              >
+                <Mail className={cn("w-3 h-3", isBroadcasting && "animate-spin")} />
+                <span>
+                  {isBroadcasting
+                    ? "Broadcasting..."
+                    : `Send Blast (${currentAudienceCount} ${recipientType === "merchants" ? "Merchants" : recipientType === "users" ? "Shoppers" : "Members"})`}
+                </span>
+              </Button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSendTestCopy}
-              disabled={isSendingTest}
-              className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer"
-            >
-              <Send className="w-3.5 h-3.5 mr-1 text-[#e85d04]" />
-              <span>
-                {isSendingTest
-                  ? "Sending Test..."
-                  : "Send Test Copy to My Email"}
-              </span>
-            </Button>
+          {/* 4 Mini KPI Overview Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-rose-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Registered Users in DB
+                  </span>
+                  <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none font-mono">
+                    {loadingRecipients ? "..." : totalUsers}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
+                  <Users className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
 
-            <Button
-              onClick={handleScheduleSendGridCampaign}
-              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer shadow-xs"
-            >
-              Schedule SendGrid Campaign →
-            </Button>
-          </div>
-        </div>
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-rose-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Registered Merchants
+                  </span>
+                  <span className="text-base font-medium text-pink-700 mt-0.5 block leading-none font-mono">
+                    {loadingRecipients ? "..." : totalMerchants}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 border border-pink-200/60 flex items-center justify-center shrink-0">
+                  <Store className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* 2-COLUMN BUILDER: LEFT (6 COLS - EDITABLE FIELDS), RIGHT (6 COLS - RENDERED HTML PREVIEW) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* LEFT: EDITABLE BUILDER FORM */}
-          <div className="lg:col-span-6 space-y-6">
-            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-4 text-left">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                Email Content &amp; Schedule Settings
-              </h3>
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-rose-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Selected Target Audience
+                  </span>
+                  <span className="text-xs font-medium text-emerald-700 mt-0.5 block leading-none truncate max-w-[130px]">
+                    {audienceLabel}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Pre-populated Headline (Editable) */}
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                  <FileText className="w-3.5 h-3.5 text-blue-600" />{" "}
-                  Pre-Populated Campaign Headline *
-                </Label>
-                <Input
-                  type="text"
-                  value={headline}
-                  onChange={(e) => setHeadline(e.target.value)}
-                  className="bg-white border-slate-200 text-xs h-10 rounded-xl font-bold"
-                />
-              </div>
-
-              {/* Pre-populated Description (Editable) */}
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                  <FileText className="w-3.5 h-3.5 text-emerald-600" /> Campaign
-                  Description Text *
-                </Label>
-                <Textarea
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="bg-white border-slate-200 text-xs rounded-xl leading-relaxed"
-                />
-              </div>
-
-              {/* Banner Image (Replaceable) */}
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                  <ImageIcon className="w-3.5 h-3.5 text-orange-600" /> Banner
-                  Image URL (Replaceable)
-                </Label>
-                <Input
-                  type="url"
-                  value={bannerUrl}
-                  onChange={(e) => setBannerUrl(e.target.value)}
-                  className="bg-white border-slate-200 text-xs h-10 rounded-xl"
-                />
-              </div>
-
-              {/* Offer Code */}
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                  <Tag className="w-3.5 h-3.5 text-blue-600" /> Offer
-                  Code / Deal Link *
-                </Label>
-                <Input
-                  type="text"
-                  value={offerCode}
-                  onChange={(e) => setOfferCode(e.target.value.toUpperCase())}
-                  className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono uppercase font-bold"
-                />
-              </div>
-
-              {/* Scheduled Send Time (Default = Campaign Go-Live) */}
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                  <Clock className="w-3.5 h-3.5 text-rose-600" /> Scheduled Send
-                  Time (Default = Campaign Go-Live) *
-                </Label>
-                <Input
-                  type="datetime-local"
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  className="bg-white border-slate-200 text-xs h-10 rounded-xl font-mono font-medium"
-                />
-              </div>
-
-              {/* Target Audience Opt-In Segment */}
-              <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-semibold text-blue-950 flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>
-                  Target Segment: Opted-in subscribers in{" "}
-                  <strong>{targetCategory}</strong> (~4,850 users)
-                </span>
-              </div>
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-rose-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Total Selected
+                  </span>
+                  <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none font-mono">
+                    {loadingRecipients ? "..." : currentAudienceCount} Recipients
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
             </Card>
           </div>
 
-          {/* RIGHT: RENDERED HTML EMAIL PREVIEW BOX */}
-          <div className="lg:col-span-6 space-y-4">
-            <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 space-y-4 text-left">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  <Eye className="w-4 h-4 text-blue-600" /> Rendered HTML Email
-                  Preview (Template E-9)
-                </span>
-                <Badge className="bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                  Live HTML Preview
-                </Badge>
-              </div>
+          {/* Interactive Audience Selection Badges (Users / Merchants / All) */}
+          <div className="p-2.5 rounded-xl border border-rose-200 bg-rose-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-medium text-slate-800">
+                Target Audience Selection:
+              </span>
+              <span className="text-[10px] text-slate-500 font-normal">
+                (Click to switch recipient group)
+              </span>
+            </div>
 
-              {/* Rendered HTML Email Container Mock */}
-              <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 p-4 font-sans space-y-4">
-                <div className="bg-[#1A3C5E] text-white p-4 rounded-xl text-center">
-                  <h3 className="font-black text-lg tracking-tight">
-                    Vouch<span className="text-[#e85d04]">iqo</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                {
+                  id: "all",
+                  label: "All Platform Members",
+                  count: totalRecipients,
+                  desc: "Send to both registered shoppers & merchants",
+                },
+                {
+                  id: "users",
+                  label: "Registered Shoppers",
+                  count: totalUsers,
+                  desc: "Send only to registered consumer accounts",
+                },
+                {
+                  id: "merchants",
+                  label: "Partner Merchants",
+                  count: totalMerchants,
+                  desc: "Send only to registered store partners",
+                },
+              ].map((badge) => {
+                const isSelected = recipientType === badge.id;
+                return (
+                  <Tooltip key={badge.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setRecipientType(badge.id)}
+                        className={cn(
+                          "px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all flex items-center gap-1.5 shadow-2xs border",
+                          isSelected
+                            ? "bg-rose-600 text-white border-rose-600 shadow-xs"
+                            : "bg-white text-slate-700 border-rose-200 hover:bg-rose-50/80 hover:text-rose-900",
+                        )}
+                      >
+                        <span>{badge.label}</span>
+                        <span
+                          className={cn(
+                            "text-[9.5px] px-1.5 py-0.2 rounded-full font-mono",
+                            isSelected
+                              ? "bg-white/25 text-white"
+                              : "bg-rose-100 text-rose-800",
+                          )}
+                        >
+                          {loadingRecipients ? "..." : badge.count}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                      {badge.desc}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2-Column Builder: Left (Edit Fields), Right (Live HTML Email Preview) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+            {/* Left Form: Compact & Clean */}
+            <div className="lg:col-span-6 space-y-3">
+              <Card className="border border-rose-200/80 shadow-2xs rounded-2xl bg-white p-3.5 space-y-3 text-left">
+                <div className="flex items-center justify-between border-b border-rose-100 pb-2">
+                  <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider">
+                    Email Content &amp; Campaign Details
                   </h3>
-                  <span className="text-[10px] text-white/70 block uppercase tracking-wider mt-0.5">
-                    Exclusive Brand Partner Blast
+                  <span className="text-[10px] text-rose-600 font-medium bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                    Live HTML Sync
                   </span>
                 </div>
 
-                <div className="bg-white p-5 rounded-xl border border-slate-200/80 space-y-3">
-                  <h2 className="font-bold text-slate-900 text-base leading-snug">
+                {/* Subject Line */}
+                <div className="space-y-0.5">
+                  <label className="text-[10.5px] font-medium text-slate-700">
+                    Email Subject Line *
+                  </label>
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full bg-white border border-slate-200 focus:border-rose-500 rounded-lg text-xs h-8 px-2.5 font-normal text-slate-900 outline-none shadow-2xs transition-all"
+                  />
+                </div>
+
+                {/* Pre-populated Headline */}
+                <div className="space-y-0.5">
+                  <label className="text-[10.5px] font-medium text-slate-700">
+                    Main Email Headline *
+                  </label>
+                  <input
+                    type="text"
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    className="w-full bg-white border border-slate-200 focus:border-rose-500 rounded-lg text-xs h-8 px-2.5 font-normal text-slate-900 outline-none shadow-2xs transition-all"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-0.5">
+                  <label className="text-[10.5px] font-medium text-slate-700">
+                    Email Body Copy *
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full bg-white border border-slate-200 focus:border-rose-500 rounded-lg text-xs p-2.5 font-normal text-slate-900 outline-none shadow-2xs transition-all"
+                  />
+                </div>
+
+                {/* Cloudinary Banner Upload Box with Aspect Ratio */}
+                <div className="space-y-1.5 p-3 bg-rose-50/50 border border-rose-200/90 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10.5px] font-medium text-slate-800 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Hero Banner Image</span>
+                    </label>
+                    <span className="bg-rose-100 text-rose-800 text-[9.5px] font-mono font-medium px-2 py-0.2 rounded border border-rose-200">
+                      Ratio 16:9 (1200 x 675px)
+                    </span>
+                  </div>
+
+                  {/* Hidden File Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleBannerFileUpload}
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                  />
+
+                  {/* Upload Trigger Area */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingBanner}
+                      className="h-7.5 px-3 text-xs font-medium bg-white hover:bg-rose-50 border-rose-300 text-rose-700 rounded-lg cursor-pointer shadow-2xs gap-1.5 shrink-0"
+                    >
+                      {isUploadingBanner ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Uploading to Cloudinary...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Upload via Cloudinary (16:9)</span>
+                        </>
+                      )}
+                    </Button>
+
+                    {bannerUrl && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setBannerUrl("")}
+                        className="h-7.5 px-2 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-100/60 rounded-lg cursor-pointer gap-1 shrink-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Clear</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Direct CDN URL Fallback Input */}
+                  <input
+                    type="url"
+                    value={bannerUrl}
+                    onChange={(e) => setBannerUrl(e.target.value)}
+                    placeholder="Or paste Cloudinary image URL..."
+                    className="w-full bg-white border border-slate-200 focus:border-rose-500 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-800 outline-none shadow-2xs transition-all"
+                  />
+                </div>
+
+                {/* Offer Code & CTA URL */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-0.5">
+                    <label className="text-[10.5px] font-medium text-slate-700">
+                      Promo Code
+                    </label>
+                    <input
+                      type="text"
+                      value={offerCode}
+                      onChange={(e) => setOfferCode(e.target.value)}
+                      className="w-full bg-white border border-slate-200 focus:border-rose-500 rounded-lg text-xs h-8 px-2.5 font-mono font-medium text-rose-700 outline-none shadow-2xs transition-all uppercase"
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <label className="text-[10.5px] font-medium text-slate-700">
+                      Call-to-Action Link
+                    </label>
+                    <input
+                      type="text"
+                      value={ctaUrl}
+                      onChange={(e) => setCtaUrl(e.target.value)}
+                      className="w-full bg-white border border-slate-200 focus:border-rose-500 rounded-lg text-xs h-8 px-2.5 font-normal text-slate-900 outline-none shadow-2xs transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Test Email Target Input */}
+                <div className="p-2.5 bg-rose-50/50 border border-rose-200 rounded-xl space-y-1.5">
+                  <span className="text-[10px] font-medium text-rose-950 uppercase tracking-wider block">
+                    Resend Test Copy Dispatch
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="email"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      placeholder="admin@vouchiqo.com"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-rose-500 outline-none shadow-2xs"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleSendTest}
+                      disabled={isSendingTest}
+                      className="h-7.5 px-3 text-[11px] font-medium bg-white hover:bg-rose-50 border-rose-300 text-rose-700 cursor-pointer shadow-2xs shrink-0"
+                    >
+                      {isSendingTest ? "Sending..." : "Send Test"}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Form: Rendered HTML Email Preview */}
+            <div className="lg:col-span-6 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Rendered HTML Email Preview (Resend Format)</span>
+                </span>
+                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded shadow-2xs">
+                  Ratio 16:9 Responsive
+                </span>
+              </div>
+
+              {/* Rendered Email Container in Pink/Rose Theme */}
+              <div className="rounded-2xl border border-rose-200 bg-white overflow-hidden shadow-xs text-left">
+                {/* Email Header */}
+                <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 p-4 text-center text-white">
+                  <span className="text-xl font-bold tracking-tight block">Vouchiqo</span>
+                  <span className="text-[10px] font-medium uppercase tracking-widest text-pink-100 block mt-0.5">
+                    Verified Deals &amp; Offers
+                  </span>
+                </div>
+
+                {/* Email Body */}
+                <div className="p-5 space-y-3">
+                  <h2 className="text-base font-medium text-slate-900 leading-snug">
                     {headline}
                   </h2>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-slate-600 font-normal leading-relaxed">
                     {description}
                   </p>
 
+                  {/* Banner Image in 16:9 Aspect Ratio */}
                   {bannerUrl && (
-                    <div className="h-40 rounded-xl overflow-hidden bg-slate-900 relative">
+                    <div className="rounded-xl overflow-hidden border border-rose-100 aspect-video bg-slate-100 relative">
                       <img
                         src={bannerUrl}
-                        alt="Banner"
+                        alt="Campaign Banner"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                       />
                     </div>
                   )}
 
-                  <div className="p-3 bg-slate-50 border-2 border-dashed border-[#e85d04] rounded-xl text-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Use Promo Code At Counter
-                    </span>
-                    <span className="font-mono text-lg font-black text-[#e85d04]">
-                      {offerCode}
-                    </span>
-                  </div>
+                  {/* Promo Code Box */}
+                  {offerCode && (
+                    <div className="p-3 bg-rose-50/70 border border-dashed border-rose-400 rounded-xl text-center space-y-0.5 my-3">
+                      <span className="text-[9.5px] font-medium uppercase tracking-wider text-rose-800 block">
+                        Use Promo Code At Counter
+                      </span>
+                      <span className="text-lg font-mono font-bold text-rose-700 tracking-widest block">
+                        {offerCode}
+                      </span>
+                    </div>
+                  )}
 
-                  <div className="pt-2 text-center">
-                    <Button className="bg-[#e85d04] text-white font-bold text-xs py-2.5 px-6 rounded-xl cursor-default w-full">
-                      Claim Discount on Vouchiqo →
-                    </Button>
+                  {/* CTA Button */}
+                  <div className="text-center pt-1">
+                    <a
+                      href={ctaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium py-2 px-6 rounded-lg transition-all shadow-2xs"
+                    >
+                      Claim Deal on Vouchiqo →
+                    </a>
                   </div>
                 </div>
 
-                <div className="text-center text-[10px] text-slate-400">
-                  © 2026 Vouchiqo • You received this email because
-                  you opted into {targetCategory} updates.
+                {/* Email Footer */}
+                <div className="p-3 bg-rose-50/50 border-t border-rose-100 text-center text-[10px] text-rose-900/80 font-normal">
+                  © 2026 Vouchiqo • You are receiving this official promotional alert as a registered member.
+                  <br />
+                  Ranchi, Jharkhand, India.
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
-      </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }

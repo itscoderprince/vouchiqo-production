@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
@@ -18,6 +18,9 @@ import {
   AlertCircle,
   CheckCircle2,
   X,
+  Loader2,
+  UploadCloud,
+  Trash2,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { apiFetch } from "@/lib/fetcher";
@@ -274,6 +277,46 @@ export default function AdminPushNotificationsPage() {
 
   const titleMax = 80;
   const bodyMax = 240;
+
+  const fileInputRef = useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handlePushImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setResult({ ok: false, message: "Please select a JPEG, PNG, or WebP image." });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setResult({ ok: false, message: "Image size must be less than 5 MB." });
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "push_banners");
+
+      const res = await fetch("/api/uploads", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.secure_url) {
+        handleFormChange("image", json.data.secure_url);
+        setResult({ ok: true, message: "Push banner uploaded to Cloudinary successfully!" });
+      } else {
+        setResult({ ok: false, message: json.message || "Failed to upload image to Cloudinary." });
+      }
+    } catch {
+      setResult({ ok: false, message: "Network error during Cloudinary upload." });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   // Stats query
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery({
@@ -599,23 +642,67 @@ export default function AdminPushNotificationsPage() {
                 />
               </div>
 
-              {/* Banner image URL */}
-              <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">
-                  <span className="flex items-center gap-1.5">
-                    <ImageIcon className="w-3 h-3 text-slate-400" />
-                    Banner image URL
-                    <span className="px-1.5 py-0.5 text-[10px] bg-slate-100 text-slate-500 rounded font-normal">
-                      2:1 ratio · 1024×512 px
-                    </span>
+              {/* Banner image with Cloudinary Upload */}
+              <div className="space-y-1.5 p-2 bg-slate-50 border border-slate-200/80 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Banner image</span>
+                  </label>
+                  <span className="px-1.5 py-0.5 text-[10px] bg-blue-50 text-blue-700 border border-blue-200 rounded font-medium">
+                    Ratio 2:1 (1024 × 512 px)
                   </span>
-                </label>
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handlePushImageUpload}
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                />
+
+                {/* Upload action bar */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-md cursor-pointer shadow-2xs transition-colors"
+                  >
+                    {isUploadingImage ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                        <span>Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Upload via Cloudinary (2:1)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {form.image && (
+                    <button
+                      type="button"
+                      onClick={() => handleFormChange("image", "")}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-md cursor-pointer transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Clear</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* CDN URL input fallback */}
                 <input
                   type="url"
                   value={form.image}
                   onChange={(e) => handleFormChange("image", e.target.value)}
-                  placeholder="https://res.cloudinary.com/..."
-                  className="w-full text-xs text-slate-800 border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400"
+                  placeholder="Or paste Cloudinary image URL..."
+                  className="w-full text-xs text-slate-800 bg-white border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400"
                 />
               </div>
 

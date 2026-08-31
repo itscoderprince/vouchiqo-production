@@ -6,13 +6,16 @@ import {
   Bell,
   Check,
   CheckCircle2,
-  Clock,
-  CreditCard,
+  Globe,
   Layers,
   Mail,
+  MapPin,
+  Megaphone,
+  Radio,
   RefreshCw,
   Send,
   Sparkles,
+  Users,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -32,25 +35,25 @@ import { cn } from "@/lib/utils";
 const WIZARD_STEPS = [
   { step: 1, title: "Email Blast", icon: Mail },
   { step: 2, title: "Push Notification", icon: Bell },
-  { step: 3, title: "Confirm & Deploy", icon: CheckCircle2 },
+  { step: 3, title: "Confirm & Broadcast", icon: CheckCircle2 },
 ];
 
-export default function MarketingPackageWizardPage() {
+export default function PlatformBroadcastWizardPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Step 1: Email Blast Fields
-  const [emailTemplate, setEmailTemplate] = useState("E-9 Promotional Multi-Store Showcase");
+  const [emailTemplate, setEmailTemplate] = useState("E-9 Platform Deals Showcase");
   const [emailSubject, setEmailSubject] = useState(
-    "🎁 Mega Deals: Flat 25% OFF on Top Verified Stores in Ranchi!",
+    "🎁 Weekend Special: Flat 25% OFF on Top Verified Stores in Ranchi!",
   );
-  const [emailSenderName, setEmailSenderName] = useState("Vouchiqo Campaign Desk");
+  const [emailSenderName, setEmailSenderName] = useState("Vouchiqo Platform Desk");
   const [targetCity, setTargetCity] = useState("Ranchi");
   const [targetAudience, setTargetAudience] = useState("all");
 
   // Step 2: Push Notification Fields
   const [pushTitle, setPushTitle] = useState("🔥 Exclusive Deals Live in Ranchi!");
   const [pushBody, setPushBody] = useState(
-    "Promotional Special: Flat 20% to 40% OFF vouchers active now on Vouchiqo!",
+    "Weekend Special: Flat 20% to 40% OFF vouchers active now on Vouchiqo!",
   );
   const [pushTargetPlatform, setPushTargetPlatform] = useState("all");
 
@@ -63,19 +66,19 @@ export default function MarketingPackageWizardPage() {
       setIsSubmitting(true);
       const payload = {
         name: emailSubject,
-        type: "promotional_package",
-        objective: "multi_channel_boost",
+        type: "platform_broadcast",
+        objective: "multi_channel_announcement",
         headline: pushTitle,
         subHeadline: pushBody,
-        description: `Full Multi-Channel Broadcast Package (₹2,999) with Email Blast and Instant Push Notifications for ${targetCity}.`,
+        description: `Super Admin Platform Broadcast with Email Blast and Instant Push Notifications for ${targetCity}.`,
         startDate: new Date(),
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         audience: targetAudience,
         targetCity,
         addOns: [
-          "Targeted Push Notification Broadcast (₹599)",
+          "Targeted Push Notification Broadcast",
           `Email Blast Template (${emailTemplate})`,
-          "Homepage Featured Showcase (₹999)",
+          "Platform Homepage Featured Banner",
         ],
         emailSubject,
         status: "live",
@@ -92,14 +95,14 @@ export default function MarketingPackageWizardPage() {
       if (res.ok && json.data) {
         setDeployedCampaign(json.data.campaign);
         toast.success(
-          `Multi-Channel Broadcast Package (₹2,999) successfully deployed live into MongoDB!`,
+          `Platform Multi-Channel Broadcast successfully deployed live!`,
         );
       } else {
-        toast.error(json.error || "Failed to deploy package.");
+        toast.error(json.error || "Failed to deploy broadcast.");
       }
     } catch (err) {
-      console.error("Package deployment error:", err);
-      toast.error("Network error while deploying package.");
+      console.error("Broadcast deployment error:", err);
+      toast.error("Network error while deploying broadcast.");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +117,7 @@ export default function MarketingPackageWizardPage() {
 
   return (
     <DashboardLayout
-      title="Marketing Campaign Package Wizard"
+      title="Platform Broadcast Wizard"
       user={{ name: "Super Admin", role: "admin" }}
     >
       <TooltipProvider delayDuration={100}>
@@ -133,13 +136,13 @@ export default function MarketingPackageWizardPage() {
               </Button>
               <div>
                 <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900 flex items-center gap-2">
-                  <span>Marketing Campaign Package Wizard</span>
-                  <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-mono font-medium px-2 py-0.5 rounded shadow-2xs">
-                    ₹2,999 Multi-Channel Package
+                  <span>Platform Multi-Channel Broadcast Wizard</span>
+                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-medium px-2 py-0.5 rounded shadow-2xs">
+                    Super Admin Console
                   </span>
                 </h1>
                 <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-                  Simultaneous multi-channel broadcast: Targeted Email Blast + Instant Push Notification Broadcast.
+                  Simultaneous multi-channel broadcast: Targeted Email Blast + Instant Push Notification Broadcast across active users.
                 </p>
               </div>
             </div>
@@ -157,14 +160,14 @@ export default function MarketingPackageWizardPage() {
               <CardContent className="p-0 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
-                    All-in-One Package
+                    Broadcast Mode
                   </span>
-                  <span className="text-base font-medium text-blue-700 mt-0.5 block leading-none font-mono">
-                    ₹2,999
+                  <span className="text-xs font-medium text-blue-700 mt-0.5 block leading-none">
+                    Multi-Channel Sync
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
-                  <CreditCard className="w-3.5 h-3.5" />
+                  <Radio className="w-3.5 h-3.5" />
                 </div>
               </CardContent>
             </Card>
@@ -212,7 +215,7 @@ export default function MarketingPackageWizardPage() {
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
-                  <Zap className="w-3.5 h-3.5" />
+                  <MapPin className="w-3.5 h-3.5" />
                 </div>
               </CardContent>
             </Card>
@@ -278,7 +281,7 @@ export default function MarketingPackageWizardPage() {
                       <span>Step 1: Multi-Channel Email Blast Builder</span>
                     </h3>
                     <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
-                      Configure automated promotional email announcements for verified shoppers.
+                      Configure automated promotional email announcements for verified platform shoppers.
                     </p>
                   </div>
                   <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[9.5px] font-medium px-2 py-0.5 rounded shadow-2xs">
@@ -334,7 +337,7 @@ export default function MarketingPackageWizardPage() {
                           onChange={(e) => setEmailTemplate(e.target.value)}
                           className="w-full bg-white border border-slate-200 rounded-lg text-xs h-8 px-2 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
                         >
-                          <option value="E-9 Promotional Multi-Store Showcase">E-9 Multi-Store</option>
+                          <option value="E-9 Platform Deals Showcase">E-9 Platform Showcase</option>
                           <option value="E-4 Flash Announcement">E-4 Flash Deals</option>
                           <option value="E-12 VIP Exclusive">E-12 VIP Club</option>
                         </select>
@@ -356,7 +359,7 @@ export default function MarketingPackageWizardPage() {
                         {emailSubject}
                       </span>
                       <p className="text-[10.5px] text-slate-500 font-normal">
-                        Explore exclusive promotional discounts from verified stores in {targetCity}. Claim code online, redeem at store counter.
+                        Explore verified promotional discounts from local partner stores in {targetCity}. Claim code online, redeem at store counter.
                       </p>
                     </div>
                   </div>
@@ -442,7 +445,7 @@ export default function MarketingPackageWizardPage() {
             )}
 
             {/* ════════════════════════════════════════════════════════════════ */}
-            {/* STEP 3: CONFIRM FULL PACKAGE ACTIVATION & DEPLOYMENT            */}
+            {/* STEP 3: CONFIRM FULL BROADCAST ACTIVATION & DEPLOYMENT           */}
             {/* ════════════════════════════════════════════════════════════════ */}
             {currentStep === 3 && (
               <div className="space-y-4">
@@ -450,14 +453,14 @@ export default function MarketingPackageWizardPage() {
                   <div>
                     <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Step 3: Confirm Simultaneous Multi-Channel Deployment</span>
+                      <span>Step 3: Confirm Simultaneous Multi-Channel Broadcast</span>
                     </h3>
                     <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
-                      Review broadcast channels and launch directly into the platform MongoDB database.
+                      Review broadcast channels and trigger live delivery across email and push subscribers.
                     </p>
                   </div>
                   <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[9.5px] font-medium px-2 py-0.5 rounded shadow-2xs">
-                    Ready to Deploy
+                    Ready to Broadcast
                   </span>
                 </div>
 
@@ -497,12 +500,12 @@ export default function MarketingPackageWizardPage() {
                     {isSubmitting ? (
                       <>
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Deploying Marketing Package into MongoDB...</span>
+                        <span>Triggering Multi-Channel Broadcast into Database...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
-                        <span>Confirm &amp; Deploy Marketing Package (₹2,999) Live Now →</span>
+                        <span>Confirm &amp; Launch Multi-Channel Broadcast Now →</span>
                       </>
                     )}
                   </Button>
@@ -510,10 +513,10 @@ export default function MarketingPackageWizardPage() {
                   <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl space-y-2 text-center">
                     <div className="flex items-center justify-center gap-1.5 text-emerald-800 text-xs font-medium">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Marketing Package Successfully Activated &amp; Deployed to MongoDB!</span>
+                      <span>Multi-Channel Broadcast Successfully Triggered &amp; Deployed!</span>
                     </div>
                     <p className="text-[11px] text-slate-600 font-normal">
-                      Campaign is now live in the platform queue and visible across all channels.
+                      Broadcast is now live in the platform queue and visible across all channels.
                     </p>
                     <div className="flex items-center justify-center gap-2 pt-1">
                       <Button
