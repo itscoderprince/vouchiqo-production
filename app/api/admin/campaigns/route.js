@@ -3,6 +3,7 @@ import { dispatchEvent } from "@/lib/socket/dispatcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Campaign from "@/modules/merchant/campaign.model";
+import Merchant from "@/modules/merchant/merchant.model";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
@@ -32,6 +33,79 @@ export const GET = asyncHandler(async (request) => {
     .lean();
 
   return ok({ campaigns });
+});
+
+/**
+ * POST /api/admin/campaigns
+ * Create a new platform festival / marketing campaign package directly.
+ */
+export const POST = asyncHandler(async (request) => {
+  await connectDB();
+  await requireRole(request, ROLES.ADMIN);
+
+  const body = await request.json();
+  let merchantId = body.merchantId;
+
+  if (!merchantId) {
+    const defaultMerchant = await Merchant.findOne().lean();
+    if (defaultMerchant) {
+      merchantId = defaultMerchant._id;
+    }
+  }
+
+  const campaign = await Campaign.create({
+    merchantId,
+    name: body.name || "Festival Campaign Package",
+    type: body.type || "festival",
+    objective: body.objective || "festival_boost",
+    headline: body.headline || body.name,
+    subHeadline: body.subHeadline || "",
+    description: body.description || "",
+    bannerUrl: body.bannerUrl || "",
+    timing: {
+      startDate: body.startDate ? new Date(body.startDate) : new Date(),
+      endDate: body.endDate
+        ? new Date(body.endDate)
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      hasCountdownTimer: body.hasCountdownTimer !== false,
+      hasPreTeaser: Boolean(body.hasPreTeaser),
+      preTeaserHeadline: body.preTeaserHeadline || "",
+    },
+    targeting: {
+      audience: body.audience || "all",
+      targetCity: body.targetCity || "Ranchi",
+      addOns: body.addOns || [
+        "Homepage Featured Slot (₹999)",
+        "Targeted Push Notification (₹599)",
+        "Flash Campaign Boost (₹799)",
+      ],
+      preferredEmailSubject: body.emailSubject || "",
+    },
+    settings: {
+      homepageSlot: true,
+      pushNotification: true,
+      newsletter: true,
+    },
+    status: body.status || "live",
+    startDate: body.startDate ? new Date(body.startDate) : new Date(),
+    endDate: body.endDate
+      ? new Date(body.endDate)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+
+  const populated = await Campaign.findById(campaign._id).populate("merchantId", "businessName plan logo");
+
+  await dispatchEvent({
+    target: "admins",
+    event: SOCKET_EVENTS.CAMPAIGN_STATUS_CHANGED,
+    payload: {
+      campaignId: campaign._id,
+      status: campaign.status,
+      name: campaign.name,
+    },
+  });
+
+  return ok({ campaign: populated }, "Festival Campaign Package created & deployed successfully");
 });
 
 /**
