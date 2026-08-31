@@ -1,25 +1,35 @@
 "use client";
 
 import {
+  Check,
+  CheckCircle2,
   CheckSquare,
   Download,
   ExternalLink,
+  FileCheck,
   FileText,
   Plus,
   RefreshCw,
+  Save,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { FormInput } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { adminFetchSettings, adminUpdateSetting } from "@/lib/api-helpers";
 import { showError, showSuccess } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 // Helper function to turn Google Drive links into direct download URLs
 export function getDirectDownloadUrl(url) {
@@ -105,6 +115,34 @@ const DEFAULT_POLICIES = [
   },
 ];
 
+// 8 Distinct Colorful Row Palettes (Clearly visible without hover)
+const ROW_COLOR_THEMES = [
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
+];
+
 export default function PolicyAgreementsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -120,6 +158,30 @@ export default function PolicyAgreementsAdminPage() {
     link: "",
     required: true,
   });
+
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDirectDownload = (link, filename, itemId) => {
+    if (!link || !link.trim()) return;
+    setDownloadingId(itemId);
+    const directUrl = getDirectDownloadUrl(link);
+
+    showSuccess(`Starting direct download for: ${filename || "Agreement"}...`);
+
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = directUrl;
+    document.body.appendChild(iframe);
+
+    setTimeout(() => {
+      try {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      } catch {}
+      setDownloadingId(null);
+    }, 2500);
+  };
 
   const fetchSettings = async () => {
     try {
@@ -228,256 +290,401 @@ export default function PolicyAgreementsAdminPage() {
     handleSaveAll(commitments, updated);
   };
 
+  const stats = useMemo(() => {
+    const totalCommitments = commitments.length;
+    const requiredCommitments = commitments.filter((c) => c.required !== false).length;
+    const totalPolicies = policies.length;
+    const linkedPdfs = policies.filter((p) => Boolean(p.link?.trim())).length;
+    return { totalCommitments, requiredCommitments, totalPolicies, linkedPdfs };
+  }, [commitments, policies]);
+
   return (
     <DashboardLayout
       title="Terms & Policy Agreements"
-      user={{ name: "Platform Admin", role: "admin" }}
+      user={{ name: "Super Admin", role: "admin" }}
     >
-      <div className="space-y-8 text-left font-sans w-full max-w-5xl mx-auto pb-12">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-blue-600" /> Merchant Commitments &amp; Policy PDF Links
-            </h2>
-            <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Customize registration checkboxes and direct Google Drive PDF download links live.
-            </p>
-          </div>
-          <Button
-            onClick={() => handleSaveAll(commitments, policies)}
-            disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl h-9 px-5 cursor-pointer shadow-2xs gap-1.5 shrink-0"
-          >
-            {saving ? (
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <ShieldCheck className="w-3.5 h-3.5" />
-            )}
-            <span>Save All Settings</span>
-          </Button>
-        </div>
-
-        {/* ════════════════════════════════════════════════════════════════ */}
-        {/* SECTION 1: MERCHANT COMMITMENTS CHECKBOXES                     */}
-        {/* ════════════════════════════════════════════════════════════════ */}
-        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 text-left space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+      <TooltipProvider delayDuration={100}>
+        <div className="space-y-3 font-sans w-full pb-12 text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
             <div>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-emerald-600" /> Merchant Mandatory Commitments ({commitments.length})
-              </h3>
-              <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                Add, edit, or remove required commitment checkboxes shown on Section F.
+              <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
+                Merchant Commitments &amp; Policy Agreements
+              </h1>
+              <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+                Customize partner onboarding checkboxes and direct Google Drive PDF download agreements live.
               </p>
             </div>
-            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">
-              Live On Registration
-            </Badge>
-          </div>
-
-          {/* Add Commitment Row */}
-          <div className="flex flex-col sm:flex-row gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <input
-              type="text"
-              placeholder="Enter new commitment text (e.g. I will honour every verified offer...)"
-              value={newCommitmentText}
-              onChange={(e) => setNewCommitmentText(e.target.value)}
-              className="flex-1 bg-white border border-slate-300 rounded-lg text-xs h-9 px-3 font-medium text-slate-900 focus:ring-1 focus:ring-blue-600 outline-none"
-            />
-            <Button
-              onClick={handleAddCommitment}
-              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl h-9 px-4 cursor-pointer gap-1.5 shrink-0"
-            >
-              <Plus className="w-4 h-4" /> Add Commitment
-            </Button>
-          </div>
-
-          {/* Commitment List */}
-          {loading ? (
-            <div className="py-6 text-center text-slate-400 text-xs flex justify-center items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-              <span>Loading commitments...</span>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {commitments.map((c, idx) => (
-                <div
-                  key={c.id || idx}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white transition-all shadow-2xs"
-                >
-                  <span className="text-[11px] font-bold text-slate-400 w-6 text-center shrink-0">
-                    #{idx + 1}
-                  </span>
-                  <input
-                    type="text"
-                    value={c.text}
-                    onChange={(e) =>
-                      handleUpdateCommitment(idx, "text", e.target.value)
-                    }
-                    className="flex-1 bg-white border border-slate-300 rounded-lg text-xs h-9 px-3 font-medium text-slate-900 focus:ring-1 focus:ring-blue-600 outline-none"
-                  />
-                  <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer select-none shrink-0">
-                    <Checkbox
-                      checked={c.required !== false}
-                      onCheckedChange={(val) =>
-                        handleUpdateCommitment(idx, "required", !!val)
-                      }
-                    />
-                    <span className="font-medium text-[11px]">Required</span>
-                  </label>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleRemoveCommitment(idx)}
-                    className="text-[10px] font-bold text-rose-600 border-rose-200 hover:bg-rose-50 h-8 px-2.5 shadow-none cursor-pointer shrink-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* ════════════════════════════════════════════════════════════════ */}
-        {/* SECTION 2: POLICY AGREEMENTS & DIRECT DOWNLOAD PDF LINKS       */}
-        {/* ════════════════════════════════════════════════════════════════ */}
-        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 text-left space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <div>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <FileText className="w-4 h-4 text-purple-600" /> Policy Agreements &amp; Direct PDF Download Links ({policies.length})
-              </h3>
-              <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                Provide Google Drive PDF URLs. Merchants can download the PDF directly without page redirects.
-              </p>
-            </div>
-            <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-[10px]">
-              Direct PDF Download Supported
-            </Badge>
-          </div>
-
-          {/* Add Policy Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div className="sm:col-span-5">
-              <FormInput
-                label="Agreement Label Text"
-                placeholder="e.g. Agree to Merchant Agreement"
-                value={newPolicy.title}
-                onChange={(e) =>
-                  setNewPolicy({ ...newPolicy, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="sm:col-span-5">
-              <FormInput
-                label="Google Drive PDF Document Link"
-                placeholder="https://drive.google.com/file/d/.../view"
-                value={newPolicy.link}
-                onChange={(e) =>
-                  setNewPolicy({ ...newPolicy, link: e.target.value })
-                }
-              />
-            </div>
-            <div className="sm:col-span-2 flex flex-col justify-end">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               <Button
-                onClick={handleAddPolicy}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl h-10 px-4 cursor-pointer gap-1.5 w-full"
+                variant="outline"
+                size="sm"
+                onClick={fetchSettings}
+                disabled={loading}
+                className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
               >
-                <Plus className="w-4 h-4" /> Add Policy
+                <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
+              </Button>
+              <Button
+                onClick={() => handleSaveAll(commitments, policies)}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-3.5 cursor-pointer shadow-2xs gap-1.5 shrink-0"
+              >
+                {saving ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                <span>Save All Settings</span>
               </Button>
             </div>
           </div>
 
-          {/* Policy List */}
-          {loading ? (
-            <div className="py-8 text-center text-slate-400 text-xs flex justify-center items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-              <span>Loading policy agreements...</span>
+          {/* 4 Mini KPI Overview Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-slate-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Mandatory Statements
+                  </span>
+                  <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
+                    {stats.totalCommitments}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                  <CheckSquare className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-slate-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Required on Form
+                  </span>
+                  <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
+                    {stats.requiredCommitments}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-slate-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Policy Agreements
+                  </span>
+                  <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none">
+                    {stats.totalPolicies}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
+                  <FileText className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-xl border p-2.5 shadow-2xs font-sans bg-white border-slate-200/80">
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    PDF Downloads
+                  </span>
+                  <span className="text-base font-medium text-blue-700 mt-0.5 block leading-none">
+                    {stats.linkedPdfs}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
+                  <Download className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ════════════════════════════════════════════════════════════════ */}
+          {/* SECTION 1: MERCHANT COMMITMENTS CHECKBOXES                     */}
+          {/* ════════════════════════════════════════════════════════════════ */}
+          <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white p-3 text-left space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div>
+                <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckSquare className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Merchant Mandatory Commitments ({commitments.length})</span>
+                </h3>
+                <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
+                  Required declarations and agreements displayed during Merchant Registration.
+                </p>
+              </div>
+              <span className="bg-white/95 text-emerald-700 border border-emerald-300 text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs">
+                ● Live On Registration
+              </span>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {policies.map((p, idx) => {
-                const directDlUrl = getDirectDownloadUrl(p.link);
 
-                return (
-                  <div
-                    key={p.id || idx}
-                    className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white transition-all space-y-3 shadow-2xs"
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                      <div className="sm:col-span-5 space-y-1">
-                        <Label className="text-[11px] font-semibold text-slate-600 uppercase">
-                          Agreement Checkbox Label
-                        </Label>
-                        <input
-                          type="text"
-                          value={p.title}
-                          onChange={(e) =>
-                            handleUpdatePolicy(idx, "title", e.target.value)
-                          }
-                          className="w-full bg-white border border-slate-300 rounded-lg text-xs h-9 px-3 font-medium text-slate-900 focus:ring-1 focus:ring-blue-600 outline-none"
-                        />
+            {/* Add Commitment Input Box */}
+            <div className="flex flex-col sm:flex-row gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+              <input
+                type="text"
+                placeholder="Enter new commitment text (e.g. I will honour every verified offer...)"
+                value={newCommitmentText}
+                onChange={(e) => setNewCommitmentText(e.target.value)}
+                className="flex-1 bg-white border border-slate-200 rounded-lg text-xs h-8 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+              />
+              <Button
+                onClick={handleAddCommitment}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-8 px-3 cursor-pointer gap-1 shrink-0 shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Statement</span>
+              </Button>
+            </div>
+
+            {/* Commitment List with 8 Colorful Palettes */}
+            {loading ? (
+              <div className="py-6 text-center text-slate-400 text-xs flex justify-center items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                <span>Loading commitments...</span>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {commitments.map((c, idx) => {
+                  const theme = ROW_COLOR_THEMES[idx % ROW_COLOR_THEMES.length];
+                  return (
+                    <div
+                      key={c.id || idx}
+                      className={cn(
+                        "flex items-center gap-2 p-2 rounded-xl border shadow-2xs transition-all",
+                        theme.row,
+                      )}
+                    >
+                      <div className="w-6 h-6 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
+                        #{idx + 1}
                       </div>
+                      <input
+                        type="text"
+                        value={c.text}
+                        onChange={(e) =>
+                          handleUpdateCommitment(idx, "text", e.target.value)
+                        }
+                        className="flex-1 bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                      />
+                      <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer select-none shrink-0 bg-white/95 border border-slate-300/90 px-2 py-1 rounded-lg shadow-2xs">
+                        <Checkbox
+                          checked={c.required !== false}
+                          onCheckedChange={(val) =>
+                            handleUpdateCommitment(idx, "required", !!val)
+                          }
+                        />
+                        <span className="font-medium text-[10.5px]">Required</span>
+                      </label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRemoveCommitment(idx)}
+                            className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 bg-white rounded-md cursor-pointer shrink-0 shadow-2xs"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                          Remove this declaration statement
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
 
-                      <div className="sm:col-span-5 space-y-1">
-                        <Label className="text-[11px] font-semibold text-slate-600 uppercase flex items-center justify-between">
-                          <span>Google Drive PDF Link</span>
-                          {p.link && (
-                            <a
-                              href={directDlUrl}
-                              download
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[10px] text-emerald-600 font-bold hover:underline flex items-center gap-0.5"
-                            >
-                              <Download className="w-3 h-3" /> Test Direct Download
-                            </a>
-                          )}
-                        </Label>
-                        <div className="relative flex items-center">
+          {/* ════════════════════════════════════════════════════════════════ */}
+          {/* SECTION 2: POLICY AGREEMENTS & DIRECT DOWNLOAD PDF LINKS       */}
+          {/* ════════════════════════════════════════════════════════════════ */}
+          <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white p-3 text-left space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div>
+                <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Policy Agreements &amp; Direct PDF Download Links ({policies.length})</span>
+                </h3>
+                <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
+                  Google Drive PDF links with 1-click automatic direct file download for onboarded merchants.
+                </p>
+              </div>
+              <span className="bg-white/95 text-purple-700 border border-purple-300 text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs">
+                Direct PDF Downloads
+              </span>
+            </div>
+
+            {/* Add Policy Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+              <div className="sm:col-span-5 space-y-0.5">
+                <label className="text-[10.5px] font-medium text-slate-700">
+                  Agreement Checkbox Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Agree to Merchant Agreement"
+                  value={newPolicy.title}
+                  onChange={(e) =>
+                    setNewPolicy({ ...newPolicy, title: e.target.value })
+                  }
+                  className="w-full bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                />
+              </div>
+              <div className="sm:col-span-5 space-y-0.5">
+                <label className="text-[10.5px] font-medium text-slate-700">
+                  Google Drive Document URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://drive.google.com/file/d/.../view"
+                  value={newPolicy.link}
+                  onChange={(e) =>
+                    setNewPolicy({ ...newPolicy, link: e.target.value })
+                  }
+                  className="w-full bg-white border border-slate-200 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                />
+              </div>
+              <div className="sm:col-span-2 flex flex-col justify-end">
+                <Button
+                  onClick={handleAddPolicy}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-3 cursor-pointer gap-1 w-full shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Policy</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Policy List */}
+            {loading ? (
+              <div className="py-6 text-center text-slate-400 text-xs flex justify-center items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                <span>Loading policy agreements...</span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {policies.map((p, idx) => {
+                  const directDlUrl = getDirectDownloadUrl(p.link);
+                  const theme = ROW_COLOR_THEMES[(idx + 3) % ROW_COLOR_THEMES.length];
+
+                  return (
+                    <div
+                      key={p.id || idx}
+                      className={cn(
+                        "p-2.5 rounded-xl border shadow-2xs transition-all",
+                        theme.row,
+                      )}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                        <div className="sm:col-span-5 space-y-0.5">
+                          <label className="text-[10px] font-medium text-slate-700">
+                            Agreement Checkbox Label
+                          </label>
                           <input
-                            type="url"
-                            placeholder="https://drive.google.com/file/d/..."
-                            value={p.link}
+                            type="text"
+                            value={p.title}
                             onChange={(e) =>
-                              handleUpdatePolicy(idx, "link", e.target.value)
+                              handleUpdatePolicy(idx, "title", e.target.value)
                             }
-                            className="w-full bg-white border border-slate-300 rounded-lg text-xs h-9 px-3 font-mono text-slate-800 focus:ring-1 focus:ring-blue-600 outline-none pr-8"
+                            className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7.5 px-2.5 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
                           />
-                          {p.link && (
-                            <FileText className="w-4 h-4 text-red-500 absolute right-2.5 pointer-events-none" />
-                          )}
+                        </div>
+
+                        <div className="sm:col-span-5 space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-medium text-slate-700">
+                              Google Drive Document Link
+                            </label>
+                            {p.link && (
+                              <button
+                                type="button"
+                                disabled={downloadingId === (p.id || idx)}
+                                onClick={() =>
+                                  handleDirectDownload(
+                                    p.link,
+                                    p.title,
+                                    p.id || idx,
+                                  )
+                                }
+                                className="text-[9.5px] text-emerald-700 font-medium hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
+                              >
+                                {downloadingId === (p.id || idx) ? (
+                                  <>
+                                    <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                                    <span>Downloading...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Download className="w-2.5 h-2.5" />
+                                    <span>Direct Download</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                          <div className="relative flex items-center">
+                            <input
+                              type="url"
+                              placeholder="https://drive.google.com/file/d/..."
+                              value={p.link}
+                              onChange={(e) =>
+                                handleUpdatePolicy(idx, "link", e.target.value)
+                              }
+                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7.5 px-2.5 font-mono text-slate-800 focus:border-blue-500 outline-none pr-7 shadow-2xs"
+                            />
+                            {p.link && (
+                              <FileText className="w-3.5 h-3.5 text-red-500 absolute right-2 pointer-events-none" />
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-2 flex items-center justify-end gap-1.5 pt-1 sm:pt-4">
+                          <label className="flex items-center gap-1 text-xs text-slate-700 cursor-pointer select-none bg-white/95 border border-slate-300/90 px-1.5 py-0.5 rounded-md shadow-2xs">
+                            <Checkbox
+                              checked={p.required !== false}
+                              onCheckedChange={(val) =>
+                                handleUpdatePolicy(idx, "required", !!val)
+                              }
+                            />
+                            <span className="font-medium text-[10px]">Required</span>
+                          </label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRemovePolicy(idx)}
+                                className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 bg-white rounded-md cursor-pointer shrink-0 shadow-2xs"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                              Remove policy agreement
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </div>
-
-                      <div className="sm:col-span-2 flex items-center justify-end gap-2 pt-4 sm:pt-0">
-                        <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer select-none">
-                          <Checkbox
-                            checked={p.required !== false}
-                            onCheckedChange={(val) =>
-                              handleUpdatePolicy(idx, "required", !!val)
-                            }
-                          />
-                          <span className="font-medium text-[11px]">Required</span>
-                        </label>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemovePolicy(idx)}
-                          className="text-[10px] font-bold text-rose-600 border-rose-200 hover:bg-rose-50 h-8 px-2.5 shadow-none cursor-pointer shrink-0"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-      </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }

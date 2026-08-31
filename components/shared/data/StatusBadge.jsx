@@ -9,7 +9,6 @@ import {
   FileEdit,
   Loader2,
   PauseCircle,
-  Star,
   XCircle,
   Zap,
 } from "lucide-react";
@@ -133,7 +132,7 @@ const STATUS_CONFIG = {
   // Subscription-specific
   trial: {
     label: "Trial",
-    icon: Star,
+    icon: Clock,
     classes: "bg-orange-50 text-orange-700 border-orange-200",
     dot: "bg-orange-400",
   },
@@ -193,7 +192,7 @@ export default function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center font-semibold rounded-full border",
+        "inline-flex items-center font-medium rounded-full border",
         SIZE_MAP[size] ?? SIZE_MAP.md,
         config.classes,
         className,

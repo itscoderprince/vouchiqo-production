@@ -94,14 +94,14 @@ export default function AdminDashboard() {
       sortable: true,
       cell: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+          <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-medium text-[10px] shrink-0">
             {row.customer.slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <span className="font-bold text-slate-900 block">
+            <span className="font-medium text-slate-800 block text-xs">
               {row.customer}
             </span>
-            <span className="text-[9px] text-slate-400 font-semibold">
+            <span className="text-[10px] text-slate-400 font-normal">
               {row.type} Moderation
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
       key: "product",
       header: "Product",
       cell: (row) => (
-        <span className="font-semibold text-slate-700">{row.product}</span>
+        <span className="font-normal text-slate-700">{row.product}</span>
       ),
     },
     {
@@ -133,14 +133,14 @@ export default function AdminDashboard() {
       sortable: true,
       cell: (row) => (
         <div className="text-right">
-          <span className="font-bold text-slate-900 block">{row.amount}</span>
+          <span className="font-medium text-slate-800 block text-xs">{row.amount}</span>
           <Link
             href={
               row.type === "Merchant"
                 ? "/admin/approvals/merchants"
                 : "/admin/approvals/coupons"
             }
-            className="text-[10px] text-[#2563eb] hover:underline font-semibold"
+            className="text-[10px] text-[#2563eb] hover:underline font-normal"
           >
             Review →
           </Link>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200/80 pb-2 text-left">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+              <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
                 Super Admin Dashboard
               </h1>
               <LiveIndicator />
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
           >
             <span>Review Queue</span>
             {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
+              <span className="bg-red-500 text-white text-[9px] font-medium px-1.5 py-0.2 rounded-full animate-pulse">
                 {unreadCount}
               </span>
             )}
@@ -235,7 +235,7 @@ export default function AdminDashboard() {
           <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden flex flex-col h-full p-0 gap-0">
             <CardHeader className="px-3.5 py-2.5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30 min-h-[44px]">
               <div>
-                <CardTitle className="font-sans text-xs font-bold text-slate-900 tracking-wider uppercase m-0 leading-none">
+                <CardTitle className="font-sans text-xs font-medium text-slate-800 tracking-wider uppercase m-0 leading-none">
                   Overview
                 </CardTitle>
                 <CardDescription className="text-[11px] font-normal text-slate-500 mt-0.5 leading-none font-sans normal-case tracking-normal">
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
           <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden flex flex-col h-full p-0 gap-0">
             <CardHeader className="px-3.5 py-2.5 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-slate-50/50 min-h-[44px]">
               <div>
-                <CardTitle className="font-heading text-xs font-bold text-slate-900 tracking-wider uppercase m-0 leading-none">
+                <CardTitle className="font-sans text-xs font-medium text-slate-800 tracking-wider uppercase m-0 leading-none">
                   Recent Orders
                 </CardTitle>
                 <CardDescription className="text-[11px] font-normal text-slate-500 mt-0.5 leading-none font-sans normal-case tracking-normal">

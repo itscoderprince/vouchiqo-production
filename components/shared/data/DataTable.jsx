@@ -169,7 +169,7 @@ export default function DataTable({
                     key={colIdx}
                     style={col.width ? { width: col.width } : undefined}
                     className={cn(
-                      "text-[10px] font-bold text-brand-subtext uppercase tracking-wider py-2.5 px-3",
+                      "text-[10px] font-medium text-slate-500 uppercase tracking-wider py-2 px-2.5",
                       col.align === "center" && "text-center",
                       col.align === "right" && "text-right",
                     )}
@@ -247,7 +247,7 @@ export default function DataTable({
                         <TableCell
                           key={colIdx}
                           className={cn(
-                            "py-3 px-3 text-sm text-brand-text",
+                            "py-2 px-2.5 text-xs text-brand-text",
                             col.align === "center" && "text-center",
                             col.align === "right" && "text-right",
                           )}

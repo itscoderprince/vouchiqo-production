@@ -1,20 +1,68 @@
 "use client";
 
-import { GripVertical, ListOrdered, RefreshCw } from "lucide-react";
+import {
+  Award,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Eye,
+  GripVertical,
+  Layers,
+  ListOrdered,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Store,
+  Tag,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { DataTable } from "@/components/shared/data";
-
-import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import { FormSelect } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRealtime } from "@/hooks/use-realtime";
 import { adminFetchCampaignQueue } from "@/lib/api-helpers";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
+import { cn } from "@/lib/utils";
+
+// 8 Distinct Colorful Row Palettes (Clearly visible without hover)
+const ROW_COLOR_THEMES = [
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
+];
 
 // Dynamic Priority Score Calculation
 function calculatePriorityScore(campaign) {
@@ -60,6 +108,7 @@ export default function AdminCampaignQueuePage() {
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("all");
   const [planFilter, setPlanFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("all");
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -97,63 +146,71 @@ export default function AdminCampaignQueuePage() {
       .sort((a, b) => b.priorityScore - a.priorityScore);
   }, [campaigns]);
 
+  const stats = useMemo(() => {
+    const total = scoredQueue.length;
+    const festivals = scoredQueue.filter((c) => (c.type || "").toLowerCase() === "festival").length;
+    const flash = scoredQueue.filter((c) => (c.type || "").toLowerCase() === "flash").length;
+    const highPriority = scoredQueue.filter((c) => c.priorityScore >= 70).length;
+    return { total, festivals, flash, highPriority };
+  }, [scoredQueue]);
+
   const filteredQueue = useMemo(() => {
     return scoredQueue.filter((c) => {
       const cType = (c.type || "").toLowerCase();
       const planTier = (c.merchantId?.plan || c.planTier || "").toLowerCase();
 
+      // Tab filter
+      if (activeTab === "festivals" && cType !== "festival") return false;
+      if (activeTab === "flash" && cType !== "flash") return false;
+      if (activeTab === "high_priority" && c.priorityScore < 70) return false;
+
+      // Select filters
       const matchesType = typeFilter === "all" || cType === typeFilter;
       const matchesPlan =
         planFilter === "all" || planTier.includes(planFilter.toLowerCase());
 
       return matchesType && matchesPlan;
     });
-  }, [scoredQueue, typeFilter, planFilter]);
+  }, [scoredQueue, typeFilter, planFilter, activeTab]);
 
-  const handleResetFilters = useCallback(() => {
-    setTypeFilter("all");
-    setPlanFilter("all");
-  }, []);
+  const getRowClassName = (row, index) => {
+    const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
+    return cn("transition-all", theme.row);
+  };
 
   const columns = useMemo(
     () => [
       {
-        key: "drag",
-        header: "",
-        width: "40px",
-        cell: () => (
-          <GripVertical
-            className="w-4 h-4 text-slate-400 cursor-grab"
-            title="Drag & Drop Reorder"
-          />
-        ),
-      },
-      {
-        key: "submissionTime",
-        header: "Submission Date & Time",
+        key: "name",
+        header: "Campaign & Merchant",
         sortable: true,
-        cell: (row) => (
-          <span className="font-mono text-[11px] text-slate-500">
-            {row.createdAt
-              ? new Date(row.createdAt).toLocaleString("en-IN", {
-                  dateStyle: "short",
-                  timeStyle: "short",
-                })
-              : row.submissionTime || "—"}
-          </span>
-        ),
-      },
-      {
-        key: "merchantName",
-        header: "Merchant Name",
-        sortable: true,
-        cell: (row) => (
-          <span className="font-bold text-slate-900">
-            {row.merchantId?.businessName ||
-              row.merchantName ||
-              "Merchant Partner"}
-          </span>
-        ),
+        cell: (row) => {
+          const merchantName =
+            row.merchantId?.businessName || row.merchantName || "Merchant Partner";
+          const initials = (row.name || row.campaignName || "CP")
+            .split(" ")
+            .map((w) => w[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase();
+
+          return (
+            <div className="flex items-center gap-2 py-0.5 min-w-[200px]">
+              <div className="w-6.5 h-6.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <span className="font-medium text-slate-900 text-[11.5px] leading-tight block truncate">
+                  {row.name || row.campaignName || "Untitled Campaign"}
+                </span>
+                <div className="flex items-center gap-1 text-[9.5px] text-slate-600 font-normal truncate mt-0.5 leading-none">
+                  <Store className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                  <span className="truncate">{merchantName}</span>
+                </div>
+              </div>
+            </div>
+          );
+        },
       },
       {
         key: "campaignType",
@@ -162,29 +219,20 @@ export default function AdminCampaignQueuePage() {
         cell: (row) => {
           const cType = (row.type || row.campaignType || "flash").toLowerCase();
           return (
-            <Badge
-              className={`rounded px-2 py-0.5 border-0 text-[9px] font-bold uppercase ${
+            <span
+              className={cn(
+                "capitalize text-[10px] font-medium px-2 py-0.5 rounded-md border shadow-2xs inline-block whitespace-nowrap",
                 cType === "festival"
-                  ? "bg-purple-100 text-purple-800"
+                  ? "bg-purple-100 text-purple-800 border-purple-300"
                   : cType === "flash"
-                    ? "bg-orange-100 text-orange-800"
-                    : "bg-blue-100 text-blue-800"
-              }`}
+                    ? "bg-orange-100 text-orange-800 border-orange-300"
+                    : "bg-white/95 text-slate-800 border-slate-300/90",
+              )}
             >
               {cType}
-            </Badge>
+            </span>
           );
         },
-      },
-      {
-        key: "name",
-        header: "Campaign Name",
-        sortable: true,
-        cell: (row) => (
-          <span className="font-bold text-slate-800 max-w-[180px] truncate block">
-            {row.name || row.campaignName || "Untitled Campaign"}
-          </span>
-        ),
       },
       {
         key: "planTier",
@@ -193,63 +241,89 @@ export default function AdminCampaignQueuePage() {
         cell: (row) => {
           const plan = row.merchantId?.plan || row.planTier || "starter";
           return (
-            <Badge
-              variant="outline"
-              className="text-[9px] font-bold border-slate-200 text-slate-700 capitalize"
-            >
+            <span className="capitalize text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/95 text-slate-800 border border-slate-300/90 inline-block shadow-2xs">
               {plan}
-            </Badge>
+            </span>
           );
         },
       },
       {
         key: "addOns",
-        header: "Add-Ons Purchased",
+        header: "Add-Ons",
         cell: (row) => {
           const addOns = row.targeting?.addOns || row.addOns || [];
           return (
             <div className="flex flex-wrap gap-1">
-              {addOns.length > 0
-                ? addOns.map((ao, idx) => (
-                    <Badge
-                      key={idx}
-                      className="bg-amber-50 text-amber-800 border-amber-200 text-[8px] font-bold"
-                    >
-                      {ao}
-                    </Badge>
-                  ))
-                : <span className="text-[10px] text-slate-400 font-normal">
-                    None
-                  </span>}
+              {addOns.length > 0 ? (
+                addOns.map((ao, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-white/95 text-amber-800 border border-amber-300 text-[9px] font-medium px-1.5 py-0.2 rounded shadow-2xs"
+                  >
+                    {ao}
+                  </span>
+                ))
+              ) : (
+                <span className="text-[10px] text-slate-400 font-normal">None</span>
+              )}
             </div>
           );
         },
+      },
+      {
+        key: "submissionTime",
+        header: "Submitted",
+        sortable: true,
+        cell: (row) => (
+          <span className="text-[10.5px] text-slate-600 font-normal whitespace-nowrap">
+            {row.createdAt
+              ? new Date(row.createdAt).toLocaleDateString("en-IN", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—"}
+          </span>
+        ),
       },
       {
         key: "priorityScore",
         header: "Priority Score",
         sortable: true,
         cell: (row) => (
-          <span className="bg-orange-50 text-[#e85d04] px-2 py-0.5 rounded-full border border-orange-100 font-black text-sm">
-            ⚡ {row.priorityScore}
+          <span className="bg-white/95 text-orange-700 px-2 py-0.5 rounded-md border border-orange-200 font-medium text-[11px] inline-flex items-center gap-1 shadow-2xs">
+            <span>Score</span>
+            <span className="font-semibold">{row.priorityScore}</span>
           </span>
         ),
       },
       {
         key: "actions",
         header: "Actions",
+        align: "right",
         cell: (row) => {
           const id = row._id || row.id;
           return (
-            <Button
-              asChild
-              size="sm"
-              className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold h-7 px-3 rounded-lg cursor-pointer"
-            >
-              <Link href={`/admin/campaigns/queue/${id}`}>
-                Review Campaign →
-              </Link>
-            </Button>
+            <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    size="sm"
+                    className="h-6.5 w-6.5 p-0 flex items-center justify-center bg-blue-100 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                  >
+                    <Link href={`/admin/campaigns/queue/${id}`}>
+                      <Eye className="h-3 w-3" />
+                      <span className="sr-only">Review Campaign</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Review &amp; Approve Campaign Submission
+                </TooltipContent>
+              </Tooltip>
+            </div>
           );
         },
       },
@@ -257,82 +331,226 @@ export default function AdminCampaignQueuePage() {
     [],
   );
 
-  const filterActions = (
-    <div className="flex items-center gap-2">
-      <FormSelect
-        value={typeFilter}
-        onValueChange={setTypeFilter}
-        placeholder="Campaign Type"
-        options={TYPE_OPTIONS}
-        triggerClassName="min-w-[165px] h-8 text-xs bg-white border-slate-200 shadow-2xs font-semibold"
-      />
-      <FormSelect
-        value={planFilter}
-        onValueChange={setPlanFilter}
-        placeholder="Plan Tier"
-        options={PLAN_OPTIONS}
-        triggerClassName="min-w-[145px] h-8 text-xs bg-white border-slate-200 shadow-2xs font-semibold"
-      />
-      {(typeFilter !== "all" || planFilter !== "all") && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleResetFilters}
-          className="text-[11px] h-8 px-2 text-slate-500 hover:text-slate-900 cursor-pointer"
-        >
-          Reset
-        </Button>
-      )}
-    </div>
-  );
-
   return (
     <DashboardLayout
       title="Dedicated Campaign Review Queue"
       user={{ name: "Super Admin", role: "admin" }}
     >
-      <div className="space-y-6 text-left font-sans w-full">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <ListOrdered className="w-6 h-6 text-[#e85d04]" /> Campaign Review
-              Queue
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Auto-calculated Priority Scores • Live database review queue.
-            </p>
+      <TooltipProvider delayDuration={100}>
+        <div className="space-y-3 font-sans w-full pb-12 text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+            <div>
+              <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
+                Campaign Review Queue
+              </h1>
+              <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+                Auto-calculated priority scores and real-time merchant campaign submissions queue.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchQueue}
+              disabled={loading}
+              className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+            >
+              <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh Queue</span>
+            </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <LiveIndicator />
-            <Badge className="bg-[#e85d04] text-white font-bold text-xs px-3.5 py-1.5 border-0 shadow-xs flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-white inline-block" />
-              <span>{filteredQueue.length} Pending Review</span>
-            </Badge>
-          </div>
-        </div>
 
-        {/* Dynamic Reusable Table with inline right-aligned Select Filters */}
-        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 overflow-hidden text-left">
-          <DataTable
-            columns={columns}
-            data={filteredQueue}
-            loading={loading}
-            searchable={true}
-            searchPlaceholder="Search campaigns by merchant name, title..."
-            rightActions={filterActions}
-            defaultPageSize={10}
-            emptyState={
-              loading
-                ? <div className="flex items-center justify-center gap-2 py-4 text-xs font-medium text-slate-500">
-                    <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-                    <span>Loading real-time campaign queue from DB...</span>
+          {/* 4 Mini KPI Overview Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <Card
+              onClick={() => setActiveTab("all")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "all"
+                  ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
+              )}
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Total in Queue
+                  </span>
+                  <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
+                    {stats.total}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+                  <ListOrdered className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => setActiveTab("festivals")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "festivals"
+                  ? "bg-purple-50/70 border-purple-300 ring-1 ring-purple-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
+              )}
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Festival Specials
+                  </span>
+                  <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none">
+                    {stats.festivals}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
+                  <Award className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => setActiveTab("flash")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "flash"
+                  ? "bg-orange-50/70 border-orange-300 ring-1 ring-orange-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
+              )}
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    Flash Sales
+                  </span>
+                  <span className="text-base font-medium text-orange-700 mt-0.5 block leading-none">
+                    {stats.flash}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 border border-orange-200/60 flex items-center justify-center shrink-0">
+                  <Zap className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => setActiveTab("high_priority")}
+              className={cn(
+                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                activeTab === "high_priority"
+                  ? "bg-amber-50/70 border-amber-300 ring-1 ring-amber-300"
+                  : "bg-white border-slate-200/80 hover:border-slate-300",
+              )}
+            >
+              <CardContent className="p-0 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                    High Priority (&gt;70)
+                  </span>
+                  <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none">
+                    {stats.highPriority}
+                  </span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Table Container */}
+          <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden text-left">
+            <DataTable
+              columns={columns}
+              data={filteredQueue}
+              loading={loading}
+              searchable={true}
+              searchPlaceholder="Search campaigns by merchant name, title..."
+              getRowClassName={getRowClassName}
+              rightActions={
+                <div className="flex items-center gap-2">
+                  <FormSelect
+                    value={typeFilter}
+                    onValueChange={setTypeFilter}
+                    placeholder="Campaign Type"
+                    options={TYPE_OPTIONS}
+                    triggerClassName="w-[140px] h-7 text-[11px] bg-white border-slate-200 font-medium"
+                  />
+                  <FormSelect
+                    value={planFilter}
+                    onValueChange={setPlanFilter}
+                    placeholder="Plan Tier"
+                    options={PLAN_OPTIONS}
+                    triggerClassName="w-[130px] h-7 text-[11px] bg-white border-slate-200 font-medium"
+                  />
+
+                  <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
+                    {[
+                      {
+                        id: "all",
+                        label: "All",
+                        count: stats.total,
+                        description: "View all submitted campaign requests in queue",
+                      },
+                      {
+                        id: "festivals",
+                        label: "Festivals",
+                        count: stats.festivals,
+                        description: "Filter to festival & seasonal holiday campaigns",
+                      },
+                      {
+                        id: "flash",
+                        label: "Flash",
+                        count: stats.flash,
+                        description: "Filter to time-limited flash sale campaigns",
+                      },
+                      {
+                        id: "high_priority",
+                        label: "High Priority",
+                        count: stats.highPriority,
+                        description: "Filter to urgent submissions scoring over 70",
+                      },
+                    ].map((tab) => (
+                      <Tooltip key={tab.id}>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={cn(
+                              "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
+                              activeTab === tab.id
+                                ? "bg-white text-blue-600 shadow-2xs"
+                                : "text-slate-500 hover:text-slate-800 bg-transparent",
+                            )}
+                          >
+                            <span>{tab.label}</span>
+                            <span
+                              className={cn(
+                                "text-[9px] px-1 rounded-full",
+                                activeTab === tab.id
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "bg-slate-200/70 text-slate-600",
+                              )}
+                            >
+                              {tab.count}
+                            </span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                          {tab.description}
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
                   </div>
-                : "No pending campaigns match the selected filters."
-            }
-          />
-        </Card>
-      </div>
+                </div>
+              }
+              defaultPageSize={10}
+              emptyState="No pending campaigns match the selected filters."
+            />
+          </Card>
+        </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }

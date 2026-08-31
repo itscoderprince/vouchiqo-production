@@ -82,29 +82,29 @@ export default function MonthlyGoalsCard({ analyticsData = {} }) {
 
   return (
     <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col p-0 gap-0 text-left font-sans">
-      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 via-white to-indigo-50/40 min-h-[52px]">
-        <CardTitle className="font-sans text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 via-white to-indigo-50/40 min-h-[48px]">
+        <CardTitle className="font-sans text-xs font-medium text-slate-800 tracking-wider uppercase m-0 leading-none">
           Monthly Goals
         </CardTitle>
-        <CardDescription className="text-[11px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+        <CardDescription className="text-[11px] font-normal text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
           Track progress toward targets (Live DB)
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="p-4 sm:p-5 pt-4 space-y-4">
+      <CardContent className="p-4 sm:p-5 pt-4 space-y-3.5">
         {goals.map((g, idx) => (
-          <div key={idx} className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-slate-800 font-bold">{g.title}</span>
-              <span className="text-blue-600 font-extrabold">{g.pct}%</span>
+          <div key={idx} className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-normal">
+              <span className="text-slate-700 font-normal">{g.title}</span>
+              <span className="text-blue-600 font-medium">{g.pct}%</span>
             </div>
             {/* Shadcn Progress component */}
             <Progress
               value={g.pct}
-              className="h-2 rounded-full bg-slate-100"
+              className="h-1.5 rounded-full bg-slate-100"
               indicatorClassName={g.color}
             />
-            <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400">
+            <div className="flex items-center justify-between text-[10px] font-normal text-slate-400">
               <span>{g.current}</span>
               <span>{g.target}</span>
             </div>

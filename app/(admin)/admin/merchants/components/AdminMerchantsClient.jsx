@@ -1,23 +1,43 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, RefreshCw, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Ban,
+  Building2,
+  Check,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Eye,
+  FileText,
+  RefreshCw,
+  ShieldCheck,
+  Store,
+  Trash2,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DataTable from "@/components/shared/data/DataTable";
 import FormSelect from "@/components/shared/form/FormSelect";
-import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAdminMerchants, useReviewMerchant } from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { cn } from "@/lib/utils";
-
 import MerchantKycDialog from "../../approvals/merchants/components/MerchantKycDialog";
 
 const STATUS_OPTIONS = [
@@ -35,6 +55,34 @@ const PLAN_OPTIONS = [
   { value: "growth", label: "Growth Partner" },
   { value: "pro", label: "Pro Partner" },
   { value: "enterprise", label: "Enterprise" },
+];
+
+// 8 Distinct Colorful Row Palettes (Clearly visible without hover)
+const ROW_COLOR_THEMES = [
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
 ];
 
 export default function AdminMerchantsClient({
@@ -57,6 +105,14 @@ export default function AdminMerchantsClient({
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const stats = useMemo(() => {
+    const total = merchants.length;
+    const active = merchants.filter((m) => m.status === "active" || m.status === "approved").length;
+    const pending = merchants.filter((m) => m.status === "pending" || m.status === "form_accepted" || m.status === "under_review").length;
+    const suspended = merchants.filter((m) => m.status === "suspended" || m.status === "rejected").length;
+    return { total, active, pending, suspended };
+  }, [merchants]);
+
   const handleDeleteMerchant = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
@@ -64,7 +120,7 @@ export default function AdminMerchantsClient({
       const res = await fetch(`/api/admin/merchants/${deleteId}`, { method: "DELETE" });
       const json = await res.json().catch(() => ({}));
       if (res.ok) {
-        toast.success(json.message || "Merchant partner and all associated data deleted in depth!");
+        toast.success(json.message || "Merchant partner and all associated data deleted permanently!");
         queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
         queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
         refetch();
@@ -95,15 +151,8 @@ export default function AdminMerchantsClient({
   };
 
   const getMerchantRowColor = (row, index) => {
-    const rowStyles = [
-      "bg-blue-100/70 hover:bg-blue-100/90 border-l-4 border-l-blue-600 border-b border-blue-200/90 transition-all text-slate-900",
-      "bg-emerald-100/70 hover:bg-emerald-100/90 border-l-4 border-l-emerald-600 border-b border-emerald-200/90 transition-all text-slate-900",
-      "bg-amber-100/70 hover:bg-amber-100/90 border-l-4 border-l-amber-600 border-b border-amber-200/90 transition-all text-slate-900",
-      "bg-purple-100/70 hover:bg-purple-100/90 border-l-4 border-l-purple-600 border-b border-purple-200/90 transition-all text-slate-900",
-      "bg-indigo-100/70 hover:bg-indigo-100/90 border-l-4 border-l-indigo-600 border-b border-indigo-200/90 transition-all text-slate-900",
-      "bg-rose-100/70 hover:bg-rose-100/90 border-l-4 border-l-rose-600 border-b border-rose-200/90 transition-all text-slate-900",
-    ];
-    return rowStyles[index % rowStyles.length];
+    const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
+    return cn("transition-all", theme.row);
   };
 
   // Socket listener for real-time applications and status updates
@@ -120,14 +169,14 @@ export default function AdminMerchantsClient({
   const filteredMerchants = useMemo(() => {
     return merchants.filter((m) => {
       // Tab filter
-      if (activeTab === "pending" && m.status !== "pending") return false;
+      if (activeTab === "pending" && m.status !== "pending" && m.status !== "form_accepted" && m.status !== "under_review") return false;
       if (
         activeTab === "approved" &&
         m.status !== "approved" &&
         m.status !== "active"
       )
         return false;
-      if (activeTab === "suspended" && m.status !== "suspended") return false;
+      if (activeTab === "suspended" && m.status !== "suspended" && m.status !== "rejected") return false;
 
       // Status dropdown filter
       if (statusFilter !== "all") {
@@ -180,9 +229,16 @@ export default function AdminMerchantsClient({
           "Merchant Owner";
         const emailStr = row.userId?.email || row.contactEmail || "No Email";
 
+        const initials = (row.businessName || "MB")
+          .split(" ")
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join("")
+          .toUpperCase();
+
         return (
-          <div className="flex items-center gap-2.5 py-0.5">
-            <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium text-xs overflow-hidden border border-blue-200 shrink-0">
+          <div className="flex items-center gap-2 py-0.5 min-w-[200px]">
+            <div className="w-6.5 h-6.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs overflow-hidden">
               {row.logoUrl || row.logo ? (
                 // biome-ignore lint/performance/noImgElement: dynamic user avatar
                 <img
@@ -191,17 +247,17 @@ export default function AdminMerchantsClient({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                (row.businessName?.[0] || "M").toUpperCase()
+                initials
               )}
             </div>
-            <div>
+            <div className="min-w-0">
               <Link
                 href={`/admin/merchants/${row._id}`}
-                className="font-medium text-slate-900 hover:text-blue-600 transition-colors text-xs leading-snug block"
+                className="font-medium text-slate-900 hover:text-blue-600 transition-colors text-[11.5px] leading-tight block truncate"
               >
                 {row.businessName || "Merchant Partner"}
               </Link>
-              <p className="text-[11px] text-slate-600 font-normal">
+              <p className="text-[9.5px] text-slate-600 font-normal truncate mt-0.5 leading-none">
                 {ownerName} • {emailStr}
               </p>
             </div>
@@ -216,10 +272,10 @@ export default function AdminMerchantsClient({
         const cityStr = row.location?.city || row.city || "Ranchi";
         return (
           <div className="space-y-0.5 py-0.5">
-            <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded bg-white/90 text-slate-800 border border-slate-300 inline-block shadow-2xs">
+            <span className="capitalize text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/95 text-slate-800 border border-slate-300/90 inline-block shadow-2xs">
               {row.category || "General"}
             </span>
-            <p className="text-[11px] text-slate-600 font-normal">{cityStr}</p>
+            <p className="text-[9.5px] text-slate-600 font-normal leading-none">{cityStr}</p>
           </div>
         );
       },
@@ -229,22 +285,22 @@ export default function AdminMerchantsClient({
       accessorKey: "subscriptionTier",
       cell: (row) => {
         const tier = (row.subscriptionTier || row.plan || "starter").toLowerCase();
-        let tierBg = "bg-white text-slate-800 border-slate-300";
-        let tierLabel = "Starter";
+        let tierBg = "bg-white/95 text-slate-800 border-slate-300/90";
+        let tierLabel = "STARTER";
 
         if (tier.includes("growth")) {
-          tierBg = "bg-emerald-600 text-white border-emerald-700";
-          tierLabel = "Growth";
+          tierBg = "bg-emerald-100 text-emerald-800 border-emerald-300";
+          tierLabel = "GROWTH";
         } else if (tier.includes("pro")) {
-          tierBg = "bg-blue-600 text-white border-blue-700";
-          tierLabel = "Pro";
+          tierBg = "bg-blue-100 text-blue-800 border-blue-300";
+          tierLabel = "PRO";
         } else if (tier.includes("enterprise")) {
-          tierBg = "bg-amber-600 text-white border-amber-700";
-          tierLabel = "Enterprise";
+          tierBg = "bg-amber-100 text-amber-800 border-amber-300";
+          tierLabel = "ENTERPRISE";
         }
 
         return (
-          <span className={cn("px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", tierBg)}>
+          <span className={cn("px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", tierBg)}>
             {tierLabel}
           </span>
         );
@@ -278,16 +334,16 @@ export default function AdminMerchantsClient({
           <div className="space-y-0.5 py-0.5">
             <span
               className={cn(
-                "px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
+                "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
                 isPaid
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-amber-50 text-amber-700 border-amber-200",
+                  ? "bg-white/95 text-emerald-700 border-emerald-300"
+                  : "bg-white/95 text-amber-700 border-amber-300",
               )}
             >
               {isStarter ? "FREE PLAN" : isPaid ? "PAYMENT DONE" : "PENDING"}
             </span>
             {diffStr && (
-              <p className="text-[10px] font-mono text-slate-600 font-normal">
+              <p className="text-[9.5px] font-mono text-slate-600 font-normal leading-none">
                 {diffStr}
               </p>
             )}
@@ -300,20 +356,21 @@ export default function AdminMerchantsClient({
       accessorKey: "status",
       cell: (row) => {
         const st = row.status || "pending";
-        let stBg = "bg-amber-50 text-amber-700 border-amber-200";
+        let stBg = "bg-white/95 text-amber-700 border-amber-300";
         let stLabel = st;
         if (st === "approved" || st === "active") {
-          stBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
+          stBg = "bg-white/95 text-emerald-700 border-emerald-300";
           stLabel = "Active";
         } else if (st === "form_accepted" || st === "under_review") {
-          stBg = "bg-blue-50 text-blue-700 border-blue-200";
+          stBg = "bg-white/95 text-blue-700 border-blue-300";
           stLabel = "Form Accepted";
         } else if (st === "suspended" || st === "rejected") {
-          stBg = "bg-rose-50 text-rose-700 border-rose-200";
+          stBg = "bg-white/95 text-rose-700 border-rose-300";
+          stLabel = "Suspended";
         }
 
         return (
-          <span className={cn("px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", stBg)}>
+          <span className={cn("px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap", stBg)}>
             {stLabel}
           </span>
         );
@@ -322,89 +379,148 @@ export default function AdminMerchantsClient({
     {
       header: "Actions",
       accessorKey: "_id",
+      align: "right",
       cell: (row) => {
         const isPending =
           reviewMutation.isPending &&
           reviewMutation.variables?.merchantId === row._id;
 
         return (
-          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleOpenKyc(row)}
-              className="h-7 px-2.5 gap-1 text-[11px] font-medium border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
-            >
-              <Eye className="h-3 w-3" />
-              <span>Audit</span>
-            </Button>
+          <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+            {/* Audit KYC Action */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenKyc(row)}
+                  className="h-6.5 w-6.5 p-0 flex items-center justify-center border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                >
+                  <Eye className="h-3 w-3" />
+                  <span className="sr-only">Audit KYC</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                Audit KYC &amp; Verification
+              </TooltipContent>
+            </Tooltip>
 
-            <Button
-              size="sm"
-              variant="outline"
-              asChild
-              className="h-7 px-2.5 text-[11px] font-medium border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
-            >
-              <Link href={`/admin/merchants/${row._id}`}>
-                Details
-              </Link>
-            </Button>
+            {/* View Details Profile Action */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  asChild
+                  className="h-6.5 w-6.5 p-0 flex items-center justify-center border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                >
+                  <Link href={`/admin/merchants/${row._id}`}>
+                    <FileText className="h-3 w-3" />
+                    <span className="sr-only">Partner Details</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                View Complete Merchant Profile
+              </TooltipContent>
+            </Tooltip>
 
+            {/* Contextual Status Action Button */}
             {(row.status === "pending" || !row.status) && (
-              <Button
-                size="sm"
-                className="h-7 bg-blue-600 hover:bg-blue-700 text-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
-                onClick={() => handleAction(row._id, "form_accepted")}
-                disabled={isPending}
-              >
-                Accept Form
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="h-6.5 w-6.5 p-0 flex items-center justify-center bg-blue-100 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                    onClick={() => handleAction(row._id, "form_accepted")}
+                    disabled={isPending}
+                  >
+                    <Check className="h-3 w-3" />
+                    <span className="sr-only">Accept Form</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Accept Partner Application
+                </TooltipContent>
+              </Tooltip>
             )}
 
             {(row.status === "form_accepted" || row.status === "under_review") && (
-              <Button
-                size="sm"
-                className="h-7 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
-                onClick={() => handleAction(row._id, "approved")}
-                disabled={isPending}
-              >
-                Approve
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="h-6.5 w-6.5 p-0 flex items-center justify-center bg-emerald-100 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                    onClick={() => handleAction(row._id, "approved")}
+                    disabled={isPending}
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    <span className="sr-only">Approve Partner</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Approve &amp; Activate Partner Access
+                </TooltipContent>
+              </Tooltip>
             )}
 
             {(row.status === "approved" || row.status === "active") && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-amber-700 hover:bg-amber-50 border-amber-300 bg-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
-                onClick={() => handleAction(row._id, "suspended")}
-                disabled={isPending}
-              >
-                Suspend
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6.5 w-6.5 p-0 flex items-center justify-center text-amber-700 hover:bg-amber-50 border-amber-200 bg-white rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                    onClick={() => handleAction(row._id, "suspended")}
+                    disabled={isPending}
+                  >
+                    <Ban className="h-3 w-3" />
+                    <span className="sr-only">Suspend Partner</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Suspend Partner Account
+                </TooltipContent>
+              </Tooltip>
             )}
 
             {row.status === "suspended" && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-emerald-700 hover:bg-emerald-50 border-emerald-300 bg-white text-[11px] px-2.5 font-medium rounded-lg cursor-pointer shadow-2xs"
-                onClick={() => handleAction(row._id, "approved")}
-                disabled={isPending}
-              >
-                Reactivate
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6.5 w-6.5 p-0 flex items-center justify-center text-emerald-700 hover:bg-emerald-50 border-emerald-200 bg-white rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                    onClick={() => handleAction(row._id, "approved")}
+                    disabled={isPending}
+                  >
+                    <UserCheck className="h-3 w-3" />
+                    <span className="sr-only">Reactivate Partner</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                  Reactivate Partner Account
+                </TooltipContent>
+              </Tooltip>
             )}
 
-            <Button
-              size="sm"
-              variant="destructive"
-              title="Delete Merchant & All Data"
-              className="h-7 w-7 p-0 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 rounded-lg cursor-pointer shadow-2xs shrink-0"
-              onClick={() => setDeleteId(row._id)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {/* Delete Action */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6.5 w-6.5 p-0 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                  onClick={() => setDeleteId(row._id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  <span className="sr-only">Delete Partner</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                Delete Merchant Account Permanently
+              </TooltipContent>
+            </Tooltip>
           </div>
         );
       },
@@ -412,93 +528,227 @@ export default function AdminMerchantsClient({
   ];
 
   return (
-    <div className="w-full space-y-3 pb-12 font-sans text-left">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+    <TooltipProvider delayDuration={100}>
+      <div className="w-full space-y-3 pb-12 font-sans text-left">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+          <div>
+            <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
               {title}
             </h1>
-            <LiveIndicator label="Real-time Directory" />
+            <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+              {description}
+            </p>
           </div>
-          <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-            {description}
-          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+          >
+            <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+            <span>Refresh Queue</span>
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="self-start sm:self-auto gap-1.5 h-7 px-2.5 text-[11px] font-medium border-slate-200 text-slate-700 rounded-lg shrink-0 cursor-pointer shadow-2xs"
-        >
-          <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
-          <span>Refresh Queue</span>
-        </Button>
-      </div>
 
-      <div className="w-full overflow-x-auto">
-        <DataTable
-          columns={columns}
-          data={filteredMerchants}
-          isLoading={isLoading}
-          searchKey="businessName"
-          getRowClassName={getMerchantRowColor}
-          rightActions={
-            <div className="flex items-center gap-2">
-              <FormSelect
-                value={planFilter}
-                onValueChange={setPlanFilter}
-                options={PLAN_OPTIONS}
-                className="w-[120px] h-7 text-[11px] border-slate-200 bg-white"
-              />
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-4 bg-slate-100/90 p-0.5 rounded-lg h-7 border border-slate-200/80">
-                  <TabsTrigger value="all" className="text-[11px] font-medium rounded-md h-6 px-2">
-                    All ({merchants.length})
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="pending"
-                    className="text-[11px] font-medium rounded-md h-6 px-2 relative"
-                  >
-                    Pending
-                    {merchants.filter((m) => m.status === "pending").length >
-                      0 && (
-                      <span className="ml-1 rounded-full bg-amber-500 text-white text-[10px] px-1.5 py-0.2">
-                        {merchants.filter((m) => m.status === "pending").length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger value="approved" className="text-[11px] font-medium rounded-md h-6 px-2">
-                    Active
-                  </TabsTrigger>
-                  <TabsTrigger value="suspended" className="text-[11px] font-medium rounded-md h-6 px-2">
-                    Suspended
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          }
+        {/* 4 Mini KPI Overview Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <Card
+            onClick={() => setActiveTab("all")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "all"
+                ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Total Partners
+                </span>
+                <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
+                  {stats.total}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+                <Store className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setActiveTab("approved")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "approved"
+                ? "bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Active Partners
+                </span>
+                <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
+                  {stats.active}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setActiveTab("pending")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "pending"
+                ? "bg-amber-50/70 border-amber-300 ring-1 ring-amber-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Pending Review
+                </span>
+                <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none">
+                  {stats.pending}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
+                <Clock className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setActiveTab("suspended")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "suspended"
+                ? "bg-rose-50/70 border-rose-300 ring-1 ring-rose-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Suspended
+                </span>
+                <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none">
+                  {stats.suspended}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
+                <Ban className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Card Container */}
+        <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+          <DataTable
+            columns={columns}
+            data={filteredMerchants}
+            loading={isLoading}
+            searchKey="businessName"
+            getRowClassName={getMerchantRowColor}
+            rightActions={
+              <div className="flex items-center gap-2">
+                <FormSelect
+                  value={planFilter}
+                  onValueChange={setPlanFilter}
+                  options={PLAN_OPTIONS}
+                  triggerClassName="w-[120px] h-7 text-[11px] border-slate-200 bg-white font-medium"
+                />
+
+                <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
+                  {[
+                    {
+                      id: "all",
+                      label: "All",
+                      count: stats.total,
+                      description: "View all onboarded merchant accounts",
+                    },
+                    {
+                      id: "pending",
+                      label: "Pending",
+                      count: stats.pending,
+                      description: "Filter to merchant submissions awaiting verification",
+                    },
+                    {
+                      id: "approved",
+                      label: "Active",
+                      count: stats.active,
+                      description: "Filter to approved active merchant partners",
+                    },
+                    {
+                      id: "suspended",
+                      label: "Suspended",
+                      count: stats.suspended,
+                      description: "Filter to suspended or restricted merchant partners",
+                    },
+                  ].map((tab) => (
+                    <Tooltip key={tab.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab(tab.id)}
+                          className={cn(
+                            "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
+                            activeTab === tab.id
+                              ? "bg-white text-blue-600 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-800 bg-transparent",
+                          )}
+                        >
+                          <span>{tab.label}</span>
+                          <span
+                            className={cn(
+                              "text-[9px] px-1 rounded-full",
+                              activeTab === tab.id
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-slate-200/70 text-slate-600",
+                            )}
+                          >
+                            {tab.count}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                        {tab.description}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            }
+          />
+        </Card>
+
+        {/* Merchant KYC Audit Dialog */}
+        <MerchantKycDialog
+          open={kycDialogOpen}
+          onOpenChange={setKycDialogOpen}
+          merchant={selectedMerchant}
+          onAction={handleAction}
+        />
+
+        {/* Confirm Delete Modal */}
+        <ConfirmDeleteModal
+          open={!!deleteId}
+          onOpenChange={(open) => !open && setDeleteId(null)}
+          title="Delete Merchant Account & All Associated Data"
+          description="This action cannot be undone. This will permanently delete the merchant partner account, all their posted offer listings, active customer claims, redemptions, campaigns, and user profile data from the database."
+          onConfirm={handleDeleteMerchant}
+          isPending={isDeleting}
         />
       </div>
-
-      {/* Merchant KYC Audit Dialog */}
-      <MerchantKycDialog
-        open={kycDialogOpen}
-        onOpenChange={setKycDialogOpen}
-        merchant={selectedMerchant}
-        onAction={handleAction}
-      />
-
-      {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
-        open={!!deleteId}
-        onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Delete Merchant Account & All Associated Data"
-        description="This action cannot be undone. This will permanently delete the merchant partner account, all their posted offer listings, active customer claims, redemptions, campaigns, and user profile data from the database."
-        onConfirm={handleDeleteMerchant}
-        isPending={isDeleting}
-      />
-    </div>
+    </TooltipProvider>
   );
 }

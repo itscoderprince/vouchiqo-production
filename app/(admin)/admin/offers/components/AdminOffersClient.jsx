@@ -1,13 +1,35 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, Tag, ShoppingBag, ExternalLink, Copy, Check, Edit2, Trash2, Power } from "lucide-react";
+import {
+  AlertTriangle,
+  Ban,
+  Building2,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Edit2,
+  ExternalLink,
+  Power,
+  RefreshCw,
+  ShieldCheck,
+  ShoppingBag,
+  Store,
+  Tag,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DataTable from "@/components/shared/data/DataTable";
 import FormSelect from "@/components/shared/form/FormSelect";
-import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   useAdminCoupons,
   useApproveAdminCoupon,
@@ -17,6 +39,7 @@ import {
 } from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
+import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import OfferDetailsModal from "./OfferDetailsModal";
 import OfferEditModal from "./OfferEditModal";
@@ -31,6 +54,34 @@ const STATUS_OPTIONS = [
   { value: "paused", label: "Paused" },
   { value: "expired", label: "Expired" },
   { value: "deleted", label: "Deleted" },
+];
+
+// 8 Distinct Colorful Row Palettes (Clearly visible without hover)
+const ROW_COLOR_THEMES = [
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
 ];
 
 export default function AdminOffersClient() {
@@ -79,6 +130,14 @@ export default function AdminOffersClient() {
     search: debouncedSearch,
   });
 
+  const stats = useMemo(() => {
+    const total = offers.length;
+    const activeVerified = offers.filter((o) => o.status === "active" && o.isVerified).length;
+    const pending = offers.filter((o) => o.status === "pending" || !o.isVerified).length;
+    const expiredPaused = offers.filter((o) => o.status === "paused" || o.status === "expired" || o.status === "rejected").length;
+    return { total, activeVerified, pending, expiredPaused };
+  }, [offers]);
+
   // Fetch admin affiliate products
   const fetchAdminAffiliates = useCallback(async () => {
     setLoadingAffiliates(true);
@@ -120,15 +179,8 @@ export default function AdminOffersClient() {
   });
 
   const getOfferRowColor = (row, index) => {
-    const rowStyles = [
-      "bg-blue-100/70 hover:bg-blue-100/90 border-l-4 border-l-blue-600 border-b border-blue-200/90 transition-all text-slate-900",
-      "bg-emerald-100/70 hover:bg-emerald-100/90 border-l-4 border-l-emerald-600 border-b border-emerald-200/90 transition-all text-slate-900",
-      "bg-amber-100/70 hover:bg-amber-100/90 border-l-4 border-l-amber-600 border-b border-amber-200/90 transition-all text-slate-900",
-      "bg-purple-100/70 hover:bg-purple-100/90 border-l-4 border-l-purple-600 border-b border-purple-200/90 transition-all text-slate-900",
-      "bg-indigo-100/70 hover:bg-indigo-100/90 border-l-4 border-l-indigo-600 border-b border-indigo-200/90 transition-all text-slate-900",
-      "bg-rose-100/70 hover:bg-rose-100/90 border-l-4 border-l-rose-600 border-b border-rose-200/90 transition-all text-slate-900",
-    ];
-    return rowStyles[index % rowStyles.length];
+    const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
+    return cn("transition-all", theme.row);
   };
 
   const handleOpenEdit = useCallback((coupon) => {
@@ -237,91 +289,190 @@ export default function AdminOffersClient() {
   );
 
   return (
-    <div className="w-full space-y-3 pb-12 font-sans text-left">
-      {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+    <TooltipProvider delayDuration={100}>
+      <div className="w-full space-y-3 pb-12 font-sans text-left">
+        {/* Header & Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+          <div>
+            <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
               Offer Desk &amp; Verification
             </h1>
-            <LiveIndicator label="Real-time Platform Sync" />
+            <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+              Manage all platform coupons, merchant affiliate products, service packages, and deal parameters.
+            </p>
           </div>
-          <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-            Manage all platform coupons, merchant affiliate products, service packages, and deal parameters.
-          </p>
+
+          {/* Tab Switcher Pills */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab("coupons")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5 border-0",
+                  activeTab === "coupons"
+                    ? "bg-white text-blue-600 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900 bg-transparent",
+                )}
+              >
+                <Tag className="w-3 h-3" />
+                <span>Standard Coupons ({offers.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("affiliates")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5 border-0",
+                  activeTab === "affiliates"
+                    ? "bg-white text-blue-600 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900 bg-transparent",
+                )}
+              >
+                <ShoppingBag className="w-3 h-3" />
+                <span>Affiliate Products &amp; Brand Deals</span>
+              </button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (activeTab === "coupons") refetch();
+                else fetchAdminAffiliates();
+              }}
+              disabled={isLoading || loadingAffiliates}
+              className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+            >
+              <RefreshCw className={`h-3 w-3 ${(isLoading || loadingAffiliates) ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Tab Switcher Pills */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveTab("coupons")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === "coupons"
-                  ? "bg-white text-blue-600 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Tag className="w-3.5 h-3.5" />
-              <span>Standard Coupons ({offers.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("affiliates")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === "affiliates"
-                  ? "bg-white text-blue-600 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Affiliate Products &amp; Brand Deals</span>
-            </button>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (activeTab === "coupons") refetch();
-              else fetchAdminAffiliates();
-            }}
-            disabled={isLoading || loadingAffiliates}
-            className="gap-1.5 h-8 px-2.5 text-[11px] font-medium border-slate-200 text-slate-700 rounded-xl shrink-0 cursor-pointer shadow-2xs"
+        {/* 4 Mini KPI Overview Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <Card
+            onClick={() => setStatusFilter("all")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              statusFilter === "all"
+                ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
           >
-            <RefreshCw className={`h-3 w-3 ${(isLoading || loadingAffiliates) ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Tab 1: Standard Coupons */}
-      {activeTab === "coupons" ? (
-        <div className="w-full overflow-x-auto">
-          <DataTable
-            columns={columns}
-            data={offers}
-            isLoading={isLoading}
-            searchKey="title"
-            searchKeys={["title", "code", "merchantName"]}
-            searchPlaceholder="Search by title, code, or merchant..."
-            getRowClassName={getOfferRowColor}
-            rightActions={
-              <div className="flex items-center gap-2">
-                <FormSelect
-                  name="statusFilter"
-                  options={STATUS_OPTIONS}
-                  value={statusFilter}
-                  onValueChange={setStatusFilter}
-                  placeholder="Select Status"
-                  triggerClassName="w-[160px] h-7 text-[11px] bg-white border-slate-200 font-medium"
-                />
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Total Listings
+                </span>
+                <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
+                  {stats.total}
+                </span>
               </div>
-            }
-          />
+              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+                <Tag className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setStatusFilter("active")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              statusFilter === "active"
+                ? "bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Active &amp; Verified
+                </span>
+                <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
+                  {stats.activeVerified}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setStatusFilter("pending")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              statusFilter === "pending"
+                ? "bg-amber-50/70 border-amber-300 ring-1 ring-amber-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Pending Audit
+                </span>
+                <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none">
+                  {stats.pending}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
+                <Clock className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setStatusFilter("paused")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              statusFilter === "paused" || statusFilter === "expired"
+                ? "bg-rose-50/70 border-rose-300 ring-1 ring-rose-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Paused / Expired
+                </span>
+                <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none">
+                  {stats.expiredPaused}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
+                <Ban className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Tab 1: Standard Coupons */}
+        {activeTab === "coupons" ? (
+          <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+            <DataTable
+              columns={columns}
+              data={offers}
+              loading={isLoading}
+              searchKey="title"
+              searchKeys={["title", "code", "merchantName"]}
+              searchPlaceholder="Search by title, code, or merchant..."
+              getRowClassName={getOfferRowColor}
+              rightActions={
+                <div className="flex items-center gap-2">
+                  <FormSelect
+                    name="statusFilter"
+                    options={STATUS_OPTIONS}
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
+                    placeholder="Select Status"
+                    triggerClassName="w-[160px] h-7 text-[11px] bg-white border-slate-200 font-medium"
+                  />
+                </div>
+              }
+            />
+          </Card>
       ) : (
         /* Tab 2: Admin Affiliate Products & Brand Service Deals */
         <div className="space-y-3">
@@ -567,5 +718,6 @@ export default function AdminOffersClient() {
         isPending={isDeletingAffiliate}
       />
     </div>
+    </TooltipProvider>
   );
 }

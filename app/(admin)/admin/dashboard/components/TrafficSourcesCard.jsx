@@ -47,16 +47,16 @@ export default function TrafficSourcesCard({ analyticsData = {} }) {
 
   return (
     <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col p-0 gap-0 text-left font-sans">
-      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-gradient-to-r from-indigo-50/60 via-white to-purple-50/40 min-h-[52px] flex flex-row justify-between items-center">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3 border-b border-slate-100 bg-gradient-to-r from-indigo-50/60 via-white to-purple-50/40 min-h-[48px] flex flex-row justify-between items-center">
         <div>
-          <CardTitle className="font-sans text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
+          <CardTitle className="font-sans text-xs font-medium text-slate-800 tracking-wider uppercase m-0 leading-none">
             Traffic Sources
           </CardTitle>
-          <CardDescription className="text-[11px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+          <CardDescription className="text-[11px] font-normal text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
             Where your visitors come from (Live DB)
           </CardDescription>
         </div>
-        <Badge variant="outline" className="text-[10px] font-bold border-slate-200 text-slate-700 bg-white">
+        <Badge variant="outline" className="text-[10px] font-normal border-slate-200 text-slate-700 bg-white">
           {visitsDisplay} Visits
         </Badge>
       </CardHeader>
@@ -64,18 +64,18 @@ export default function TrafficSourcesCard({ analyticsData = {} }) {
       <CardContent className="p-4 sm:p-5 space-y-4">
         {/* Total Visits Center Display */}
         <div className="flex items-center gap-4">
-          <div className="relative h-24 w-24 shrink-0 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <div className="relative h-20 w-20 shrink-0 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div className="text-center">
-              <span className="text-xl font-extrabold text-slate-900 block">
+              <span className="text-xl font-medium text-slate-900 block leading-none">
                 {visitsDisplay}
               </span>
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+              <span className="text-[9px] text-slate-400 font-normal uppercase tracking-wider mt-1 block">
                 Total Visits
               </span>
             </div>
           </div>
 
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-2.5">
             {sources.map((src, i) => {
               const numVal =
                 typeof src.value === "number"
@@ -84,18 +84,18 @@ export default function TrafficSourcesCard({ analyticsData = {} }) {
 
               return (
                 <div key={i} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-700 font-bold">
+                  <div className="flex items-center justify-between text-xs font-normal">
+                    <span className="text-slate-700">
                       {src.label || src.name}
                     </span>
-                    <span className="text-slate-900 font-extrabold">
+                    <span className="text-slate-800 font-medium">
                       {src.pct || `${numVal}%`}
                     </span>
                   </div>
                   {/* Shadcn UI Progress Component */}
                   <Progress
                     value={numVal}
-                    className="h-2 rounded-full bg-slate-100"
+                    className="h-1.5 rounded-full bg-slate-100"
                     indicatorClassName={src.color || "bg-[#2563eb]"}
                   />
                 </div>

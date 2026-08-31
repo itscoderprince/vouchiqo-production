@@ -459,6 +459,40 @@ export function MerchantOnboardingWizard() {
   const [duplicateErrors, setDuplicateErrors] = useState({});
   const [checkingExistingMerchant, setCheckingExistingMerchant] = useState(true);
   const [showMasterCpaTable, setShowMasterCpaTable] = useState(false);
+  const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+
+  const handleDirectDownload = (link, filename, itemId) => {
+    if (!link || !link.trim()) return;
+    setDownloadingPdfId(itemId);
+    const trimmed = link.trim();
+    const m =
+      trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+      trimmed.match(/id=([a-zA-Z0-9_-]+)/);
+    const directUrl =
+      m && m[1]
+        ? `https://drive.google.com/uc?export=download&id=${m[1]}`
+        : /^https?:\/\//i.test(trimmed)
+          ? trimmed
+          : `https://${trimmed}`;
+
+    toast.success(`Starting download: ${filename || "Agreement"}...`, {
+      id: `dl-${itemId}`,
+    });
+
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = directUrl;
+    document.body.appendChild(iframe);
+
+    setTimeout(() => {
+      try {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      } catch {}
+      setDownloadingPdfId(null);
+    }, 2500);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -2794,18 +2828,31 @@ export function MerchantOnboardingWizard() {
                       </label>
 
                       {p.link && (
-                        <a
-                          href={directDlUrl(p.link)}
-                          download
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded transition-all shadow-2xs shrink-0"
+                        <button
+                          type="button"
+                          disabled={downloadingPdfId === (p.id || itemKey)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDirectDownload(
+                              p.link,
+                              p.title || p.text,
+                              p.id || itemKey,
+                            );
+                          }}
+                          className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded transition-all shadow-2xs shrink-0 cursor-pointer disabled:opacity-75"
                         >
                           <FileText className="w-3 h-3 text-rose-500 shrink-0" />
-                          <span>PDF</span>
-                          <Download className="w-2.5 h-2.5 text-blue-600 shrink-0" />
-                        </a>
+                          <span>
+                            {downloadingPdfId === (p.id || itemKey)
+                              ? "Downloading..."
+                              : "PDF"}
+                          </span>
+                          {downloadingPdfId === (p.id || itemKey) ? (
+                            <Loader2 className="w-2.5 h-2.5 text-blue-600 animate-spin shrink-0" />
+                          ) : (
+                            <Download className="w-2.5 h-2.5 text-blue-600 shrink-0" />
+                          )}
+                        </button>
                       )}
                     </div>
                   );

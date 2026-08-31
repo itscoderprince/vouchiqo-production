@@ -50,19 +50,19 @@ export default function RecentActivityTimeline() {
         ];
 
   return (
-    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full p-0 gap-0 text-left">
-      <CardHeader className="px-4 py-3.5 sm:px-5 sm:py-3.5 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-gradient-to-r from-emerald-50/60 via-white to-blue-50/40 min-h-[56px]">
+    <Card className="bg-white border border-slate-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full p-0 gap-0 text-left font-sans">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3 border-b border-slate-100 flex flex-row justify-between items-center gap-3 bg-gradient-to-r from-emerald-50/60 via-white to-blue-50/40 min-h-[48px]">
         <div>
-          <CardTitle className="font-heading text-xs sm:text-[13px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
+          <CardTitle className="font-sans text-xs font-medium text-slate-800 tracking-wider uppercase m-0 leading-none">
             Recent Activity
           </CardTitle>
-          <CardDescription className="text-[11px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+          <CardDescription className="text-[11px] font-normal text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
             Live moderation events from your platform
           </CardDescription>
         </div>
         <Link
           href="/admin/approvals/merchants"
-          className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-0.5"
+          className="text-xs font-normal text-[#2563eb] hover:underline flex items-center gap-0.5"
         >
           <span>View all</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -70,26 +70,26 @@ export default function RecentActivityTimeline() {
       </CardHeader>
 
       <CardContent className="p-4 sm:p-5 pt-4">
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {activities.map((act, idx) => {
             const Icon = act.icon;
             return (
               <div key={idx} className="flex items-start gap-3">
                 <div
-                  className={`w-8 h-8 rounded-full ${act.bg} ${act.color} flex items-center justify-center shrink-0`}
+                  className={`w-7 h-7 rounded-lg ${act.bg} ${act.color} flex items-center justify-center shrink-0 mt-0.5`}
                 >
-                  <Icon className="w-4 h-4 stroke-[2]" />
+                  <Icon className="w-3.5 h-3.5 stroke-[1.8]" />
                 </div>
                 <div className="flex-grow space-y-0.5 text-xs text-left">
                   <div className="flex justify-between items-baseline gap-2">
-                    <span className="font-bold text-slate-800">
+                    <span className="font-medium text-slate-800">
                       {act.title}
                     </span>
-                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                    <span className="text-[9px] text-slate-400 font-normal whitespace-nowrap">
                       {act.time}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                  <p className="text-[10px] text-slate-500 font-normal leading-relaxed">
                     {act.desc}
                   </p>
                 </div>

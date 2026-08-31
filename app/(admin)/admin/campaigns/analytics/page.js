@@ -3,6 +3,7 @@
 import {
   BarChart2,
   CheckCircle2,
+  Download,
   Eye,
   FileText,
   IndianRupee,
@@ -19,12 +20,35 @@ import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { DataTable } from "@/components/shared/data";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   adminFetchCampaignAnalytics,
   adminFetchCampaignQueue,
 } from "@/lib/api-helpers";
+import { cn } from "@/lib/utils";
+
+// 4 Colorful Channel Palettes
+const CHANNEL_ROW_THEMES = [
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+];
 
 export default function AdminCampaignAnalyticsPage() {
   const [loading, setLoading] = useState(true);
@@ -101,76 +125,68 @@ export default function AdminCampaignAnalyticsPage() {
   const kpiCards = useMemo(
     () => [
       {
-        title: "Impressions",
+        title: "Total Impressions",
         value: computedSummary.totalImpressions.toLocaleString(),
         icon: Eye,
-        iconBg: "bg-blue-50 text-blue-600 border-blue-100",
+        iconBg: "bg-blue-50 text-blue-600 border-blue-200/60",
         valueColor: "text-slate-900",
-        trend: "+14.2% vs last week",
-        trendColor: "text-emerald-600 bg-emerald-50/80 border-emerald-100",
+        desc: "Campaign views across platform",
       },
       {
-        title: "Clicks",
+        title: "Total Clicks",
         value: computedSummary.totalClicks.toLocaleString(),
         icon: MousePointerClick,
-        iconBg: "bg-sky-50 text-sky-600 border-sky-100",
+        iconBg: "bg-sky-50 text-sky-600 border-sky-200/60",
         valueColor: "text-slate-900",
-        trend: "+8.4% CTR active",
-        trendColor: "text-sky-700 bg-sky-50/80 border-sky-100",
+        desc: "Click-through interactions",
       },
       {
         title: "Redemptions",
         value: computedSummary.totalRedemptions.toLocaleString(),
         icon: Ticket,
-        iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
-        valueColor: "text-emerald-600",
-        trend: "Real-time verified",
-        trendColor: "text-emerald-600 bg-emerald-50/80 border-emerald-100",
+        iconBg: "bg-emerald-50 text-emerald-600 border-emerald-200/60",
+        valueColor: "text-emerald-700",
+        desc: "Verified coupon claims",
       },
       {
-        title: "Unique Users",
+        title: "Unique Shoppers",
         value: computedSummary.uniqueUsers.toLocaleString(),
         icon: Users,
-        iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
+        iconBg: "bg-indigo-50 text-indigo-600 border-indigo-200/60",
         valueColor: "text-slate-900",
-        trend: "Active claimers",
-        trendColor: "text-indigo-600 bg-indigo-50/80 border-indigo-100",
+        desc: "Individual active customers",
       },
       {
         title: "Conversion Rate",
         value: computedSummary.conversionRate,
         icon: TrendingUp,
-        iconBg: "bg-violet-50 text-violet-600 border-violet-100",
-        valueColor: "text-violet-600",
-        trend: "Funnel efficiency",
-        trendColor: "text-violet-600 bg-violet-50/80 border-violet-100",
+        iconBg: "bg-purple-50 text-purple-600 border-purple-200/60",
+        valueColor: "text-purple-700",
+        desc: "View to redemption ratio",
       },
       {
-        title: "Est Revenue Driven",
+        title: "Revenue Driven",
         value: `₹${computedSummary.estimatedRevenue.toLocaleString("en-IN")}`,
         icon: IndianRupee,
-        iconBg: "bg-emerald-50 text-emerald-700 border-emerald-100",
-        valueColor: "text-slate-900",
-        trend: "Partner GMV",
-        trendColor: "text-emerald-700 bg-emerald-50/80 border-emerald-100",
+        iconBg: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+        valueColor: "text-emerald-700",
+        desc: "Gross merchant sales GMV",
       },
       {
-        title: "Commission Charged",
+        title: "Commission Earned",
         value: `₹${computedSummary.commissionCharged.toLocaleString("en-IN")}`,
         icon: Percent,
-        iconBg: "bg-amber-50 text-[#e85d04] border-amber-100",
-        valueColor: "text-[#e85d04]",
-        trend: "10% platform share",
-        trendColor: "text-[#e85d04] bg-amber-50/80 border-amber-100",
+        iconBg: "bg-amber-50 text-amber-700 border-amber-200/60",
+        valueColor: "text-amber-800",
+        desc: "10% platform share",
       },
       {
         title: "Success Rate",
         value: computedSummary.successRate,
         icon: CheckCircle2,
-        iconBg: "bg-purple-50 text-purple-600 border-purple-100",
-        valueColor: "text-purple-600",
-        trend: "Redemption pass rate",
-        trendColor: "text-purple-600 bg-purple-50/80 border-purple-100",
+        iconBg: "bg-teal-50 text-teal-600 border-teal-200/60",
+        valueColor: "text-teal-700",
+        desc: "Redemption fulfillment rate",
       },
     ],
     [computedSummary],
@@ -194,7 +210,7 @@ export default function AdminCampaignAnalyticsPage() {
             : "0.0%",
       },
       {
-        channel: "Targeted Push Alert",
+        channel: "Targeted Push Alerts",
         impressions: Math.round(totalImp * 0.3),
         clicks: Math.round(totalClk * 0.33),
         redemptions: Math.round(totalRed * 0.33),
@@ -204,7 +220,7 @@ export default function AdminCampaignAnalyticsPage() {
             : "0.0%",
       },
       {
-        channel: "Email Blast",
+        channel: "Email Blast Broadcast",
         impressions: Math.round(totalImp * 0.2),
         clicks: Math.round(totalClk * 0.2),
         redemptions: Math.round(totalRed * 0.18),
@@ -214,7 +230,7 @@ export default function AdminCampaignAnalyticsPage() {
             : "0.0%",
       },
       {
-        channel: "Direct Link Redirection",
+        channel: "Direct Storefront Links",
         impressions: Math.round(totalImp * 0.1),
         clicks: Math.round(totalClk * 0.09),
         redemptions: Math.round(totalRed * 0.09),
@@ -226,14 +242,19 @@ export default function AdminCampaignAnalyticsPage() {
     ];
   }, [computedSummary]);
 
+  const getChannelRowColor = (row, index) => {
+    const theme = CHANNEL_ROW_THEMES[index % CHANNEL_ROW_THEMES.length];
+    return cn("transition-all", theme.row);
+  };
+
   const channelColumns = useMemo(
     () => [
       {
         key: "channel",
-        header: "Channel",
+        header: "Promotion Channel",
         sortable: true,
         cell: (row) => (
-          <span className="font-bold text-slate-900">{row.channel}</span>
+          <span className="font-medium text-slate-900 text-[11.5px]">{row.channel}</span>
         ),
       },
       {
@@ -242,7 +263,7 @@ export default function AdminCampaignAnalyticsPage() {
         sortable: true,
         align: "right",
         cell: (row) => (
-          <span className="font-mono text-slate-700">
+          <span className="font-mono text-[11px] text-slate-700">
             {row.impressions.toLocaleString()}
           </span>
         ),
@@ -253,7 +274,7 @@ export default function AdminCampaignAnalyticsPage() {
         sortable: true,
         align: "right",
         cell: (row) => (
-          <span className="font-mono text-slate-700">
+          <span className="font-mono text-[11px] text-slate-700">
             {(Number(row?.clicks) || 0).toLocaleString()}
           </span>
         ),
@@ -264,18 +285,20 @@ export default function AdminCampaignAnalyticsPage() {
         sortable: true,
         align: "right",
         cell: (row) => (
-          <span className="font-black text-slate-900">
+          <span className="font-medium text-emerald-800 text-[11.5px]">
             {(Number(row?.redemptions) || 0).toLocaleString()}
           </span>
         ),
       },
       {
         key: "rate",
-        header: "Conversion %",
+        header: "Conversion Rate",
         sortable: true,
         align: "right",
         cell: (row) => (
-          <span className="font-bold text-emerald-600">{row.rate}</span>
+          <span className="font-medium text-emerald-700 text-[11px] bg-white/95 px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs inline-block">
+            {row.rate}
+          </span>
         ),
       },
     ],
@@ -287,112 +310,122 @@ export default function AdminCampaignAnalyticsPage() {
       title="Campaign Analytics & Reporting"
       user={{ name: "Super Admin", role: "admin" }}
     >
-      <div className="space-y-6 text-left font-sans w-full pb-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <BarChart2 className="w-6 h-6 text-[#e85d04]" /> Campaign
-              Analytics &amp; Reporting
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Channel attribution, conversion funnels, post-campaign PDF report
-              generator &amp; automated email delivery.
-            </p>
+      <TooltipProvider delayDuration={100}>
+        <div className="space-y-3 font-sans w-full pb-12 text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+            <div>
+              <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
+                Campaign Analytics &amp; Reporting
+              </h1>
+              <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+                Multi-channel attribution, conversion funnels, and automated post-campaign merchant reporting.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading}
+                onClick={fetchAnalytics}
+                className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+              >
+                <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
+              </Button>
+              <Button
+                onClick={handleGenerateReport}
+                disabled={isGeneratingReport}
+                className="gap-1.5 h-7.5 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer shadow-2xs shrink-0"
+              >
+                {isGeneratingReport ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <FileText className="w-3.5 h-3.5 mr-1" />
+                )}
+                <span>
+                  {isGeneratingReport
+                    ? "Generating PDF..."
+                    : "Generate PDF Report"}
+                </span>
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={loading}
-              onClick={fetchAnalytics}
-              className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer"
-            >
-              {loading
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 mr-1" />
-                : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
-              <span>Refresh</span>
-            </Button>
-            <Button
-              onClick={handleGenerateReport}
-              disabled={isGeneratingReport}
-              className="bg-[#e85d04] hover:bg-orange-600 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-xs"
-            >
-              {isGeneratingReport
-                ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                : <FileText className="w-4 h-4 mr-1.5" />}
-              <span>
-                {isGeneratingReport
-                  ? "Generating PDF..."
-                  : "Generate Post-Campaign PDF Report"}
-              </span>
-            </Button>
-          </div>
-        </div>
-
-        {/* 8 Professional KPI Stat Cards (Original Compact Card Dimensions) */}
-        {loading
-          ? <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* 8 Compact KPI Cards */}
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <Card
                   key={i}
-                  className="p-4 space-y-2 rounded-2xl bg-white border-slate-200/80 shadow-xs"
+                  className="p-2.5 space-y-1 rounded-xl bg-white border-slate-200/80 shadow-2xs"
                 >
-                  <Skeleton className="h-4 w-1/2 rounded" />
-                  <Skeleton className="h-6 w-3/4 rounded-md" />
+                  <Skeleton className="h-3.5 w-1/2 rounded" />
+                  <Skeleton className="h-5 w-3/4 rounded-md" />
                 </Card>
               ))}
             </div>
-          : <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               {kpiCards.map((card) => {
                 const IconComponent = card.icon;
                 return (
                   <Card
                     key={card.title}
-                    className="border-slate-200/80 shadow-xs hover:shadow-sm transition-all rounded-2xl p-4 bg-white space-y-1 text-left cursor-default group"
+                    className="border border-slate-200/80 shadow-2xs rounded-xl p-2.5 bg-white text-left font-sans"
                   >
-                    <div className="flex items-center justify-between gap-1.5">
-                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                        {card.title}
-                      </span>
+                    <CardContent className="p-0 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                          {card.title}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-base font-medium mt-0.5 block leading-none",
+                            card.valueColor,
+                          )}
+                        >
+                          {card.value}
+                        </span>
+                      </div>
                       <div
-                        className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 ${card.iconBg}`}
+                        className={cn(
+                          "w-7 h-7 rounded-lg border flex items-center justify-center shrink-0",
+                          card.iconBg,
+                        )}
                       >
                         <IconComponent className="w-3.5 h-3.5" />
                       </div>
-                    </div>
-
-                    <p
-                      className={`text-xl font-black tracking-tight ${card.valueColor}`}
-                    >
-                      {card.value}
-                    </p>
+                    </CardContent>
                   </Card>
                 );
               })}
-            </div>}
+            </div>
+          )}
 
-        {/* Channel Attribution Breakdown Table via Reusable DataTable */}
-        <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 overflow-hidden text-left space-y-3">
-          <div>
-            <h3 className="font-heading text-sm font-bold text-slate-900 uppercase tracking-wider">
-              Channel Attribution Breakdown (Ticker, Push, Email, Direct)
-            </h3>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Performance tracked individually across promotional channels
-            </p>
-          </div>
+          {/* Channel Attribution Breakdown Table */}
+          <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white p-3 space-y-2.5 overflow-hidden text-left font-sans">
+            <div>
+              <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider">
+                Channel Attribution Breakdown
+              </h3>
+              <p className="text-[10.5px] text-slate-500 font-normal">
+                Performance tracked individually across promotional channels (Ticker, Push, Email, Direct)
+              </p>
+            </div>
 
-          <DataTable
-            columns={channelColumns}
-            data={channelData}
-            loading={loading}
-            searchable={false}
-            defaultPageSize={10}
-          />
-        </Card>
-      </div>
+            <DataTable
+              columns={channelColumns}
+              data={channelData}
+              loading={loading}
+              searchable={false}
+              defaultPageSize={10}
+              getRowClassName={getChannelRowColor}
+            />
+          </Card>
+        </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }

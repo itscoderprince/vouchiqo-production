@@ -1,9 +1,9 @@
 "use client";
 
 import {
+  Activity,
   Bell,
   CheckCheck,
-  Sparkles,
   Store,
   Tag,
   Trash2,
@@ -203,7 +203,7 @@ export const NotificationBell = () => {
       case "notification":
         return <Bell className="w-3.5 h-3.5 text-amber-600" />;
       default:
-        return <Sparkles className="w-3.5 h-3.5 text-blue-500" />;
+        return <Activity className="w-3.5 h-3.5 text-blue-500" />;
     }
   };
 

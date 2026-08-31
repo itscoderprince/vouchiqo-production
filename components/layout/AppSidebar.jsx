@@ -356,7 +356,7 @@ export function AppSidebar({ ...props }) {
                     ? String(totalUnseenAdminApprovals)
                     : null,
                 badgeColor:
-                  "bg-red-500 text-white font-extrabold shadow-sm shadow-red-500/30",
+                  "bg-red-500 text-white font-medium shadow-sm shadow-red-500/30",
                 subItems: [
                   {
                     title: "Merchant Approvals",
@@ -366,7 +366,7 @@ export function AppSidebar({ ...props }) {
                       unseenAdminMerchants > 0
                         ? String(unseenAdminMerchants)
                         : null,
-                    badgeColor: "bg-red-500 text-white font-extrabold",
+                    badgeColor: "bg-red-500 text-white font-medium",
                   },
                   {
                     title: "Offer Moderation",
@@ -376,7 +376,7 @@ export function AppSidebar({ ...props }) {
                       unseenAdminCoupons > 0
                         ? String(unseenAdminCoupons)
                         : null,
-                    badgeColor: "bg-red-500 text-white font-extrabold",
+                    badgeColor: "bg-red-500 text-white font-medium",
                   },
                   {
                     title: "Offer Verification",
@@ -398,7 +398,7 @@ export function AppSidebar({ ...props }) {
                   unseenAdminMerchants > 0
                     ? String(unseenAdminMerchants)
                     : null,
-                badgeColor: "bg-red-500 text-white font-extrabold",
+                badgeColor: "bg-red-500 text-white font-medium",
               },
             ],
           },
@@ -422,7 +422,7 @@ export function AppSidebar({ ...props }) {
                       unseenAdminCampaigns > 0
                         ? String(unseenAdminCampaigns)
                         : null,
-                    badgeColor: "bg-red-500 text-white font-extrabold",
+                    badgeColor: "bg-red-500 text-white font-medium",
                   },
                   {
                     title: "Live Monitoring",
@@ -560,14 +560,14 @@ export function AppSidebar({ ...props }) {
                 tourId: "tour-my-listings",
                 badge: unseenCoupons > 0 ? String(unseenCoupons) : null,
                 badgeColor:
-                  "bg-red-500 text-white font-extrabold shadow-sm shadow-red-500/30",
+                  "bg-red-500 text-white font-medium shadow-sm shadow-red-500/30",
                 subItems: [
                   {
                     title: "All Listings",
                     url: "/merchant/coupons",
                     icon: Ticket,
                     badge: unseenCoupons > 0 ? String(unseenCoupons) : null,
-                    badgeColor: "bg-red-500 text-white font-extrabold",
+                    badgeColor: "bg-red-500 text-white font-medium",
                   },
                   {
                     title: "Active Offers",
@@ -608,7 +608,7 @@ export function AppSidebar({ ...props }) {
                 icon: Megaphone,
                 badge: unseenCampaigns > 0 ? String(unseenCampaigns) : null,
                 badgeColor:
-                  "bg-red-500 text-white font-extrabold shadow-sm shadow-red-500/30",
+                  "bg-red-500 text-white font-medium shadow-sm shadow-red-500/30",
               },
               {
                 title: "Notifications",
@@ -617,7 +617,7 @@ export function AppSidebar({ ...props }) {
                 badge:
                   unseenNotifications > 0 ? String(unseenNotifications) : null,
                 badgeColor:
-                  "bg-red-500 text-white font-black shadow-sm shadow-red-500/40 animate-pulse",
+                  "bg-red-500 text-white font-medium shadow-sm shadow-red-500/40 animate-pulse",
               },
               {
                 title: "Subscription & Billing",
@@ -643,10 +643,10 @@ export function AppSidebar({ ...props }) {
                   : "UNDER AUDIT",
                 badgeColor:
                   merchantBadges.status === "approved"
-                    ? "bg-emerald-600 text-white font-extrabold"
+                    ? "bg-emerald-600 text-white font-medium"
                     : merchantBadges.status === "rejected"
-                      ? "bg-red-600 text-white font-extrabold"
-                      : "bg-amber-500 text-slate-950 font-black",
+                      ? "bg-red-600 text-white font-medium"
+                      : "bg-amber-500 text-slate-950 font-medium",
               },
               {
                 title: "Account Settings",

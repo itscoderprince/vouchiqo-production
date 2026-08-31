@@ -11,7 +11,6 @@ import {
   Image as ImageIcon,
   MapPin,
   ShieldAlert,
-  Sparkles,
   Store,
   X,
   Zap,

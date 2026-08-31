@@ -449,24 +449,30 @@ export async function getFeaturedCoupons() {
 
   let coupons = await Coupon.find({
     isFeatured: true,
-    isVerified: true,
-    status: COUPON_STATUS.ACTIVE,
-    expiresAt: { $gt: new Date() },
+    status: { $in: [COUPON_STATUS.ACTIVE, "active", "approved"] },
+    $or: [
+      { expiresAt: { $gt: new Date() } },
+      { expiresAt: null },
+      { expiresAt: { $exists: false } },
+    ],
   })
     .populate("merchantId", "businessName slug logo banner")
     .sort({ createdAt: -1 })
-    .limit(12)
+    .limit(16)
     .lean();
 
   if (!coupons || coupons.length === 0) {
     coupons = await Coupon.find({
-      isVerified: true,
-      status: COUPON_STATUS.ACTIVE,
-      expiresAt: { $gt: new Date() },
+      status: { $in: [COUPON_STATUS.ACTIVE, "active", "approved"] },
+      $or: [
+        { expiresAt: { $gt: new Date() } },
+        { expiresAt: null },
+        { expiresAt: { $exists: false } },
+      ],
     })
       .populate("merchantId", "businessName slug logo banner")
       .sort({ createdAt: -1 })
-      .limit(12)
+      .limit(16)
       .lean();
   }
 

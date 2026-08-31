@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  Ban,
   Building2,
   Calendar,
   Check,
@@ -20,6 +21,7 @@ import {
   MapPin,
   Phone,
   RefreshCw,
+  Search,
   ShieldCheck,
   Store,
   Tag,
@@ -27,11 +29,13 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useState } from "react";
-import EmptyState from "@/components/shared/feedback/EmptyState";
+import { useMemo, useState } from "react";
+import DataTable from "@/components/shared/data/DataTable";
+import StatusBadge from "@/components/shared/data/StatusBadge";
 import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -39,17 +43,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useAdminPendingCoupons,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  useAdminCoupons,
   useApproveAdminCoupon,
   useRejectAdminCoupon,
 } from "@/hooks/use-admin";
@@ -57,6 +59,34 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { cn } from "@/lib/utils";
+
+// 8 Distinct Colorful Row Palettes (Clearly visible without hover)
+const ROW_COLOR_THEMES = [
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
+];
 
 function formatDiscountBadge(coupon) {
   if (!coupon) return "SPECIAL OFFER";
@@ -89,9 +119,11 @@ function formatDiscountBadge(coupon) {
 
 export default function CouponModerationClient() {
   const queryClient = useQueryClient();
-  const { data: coupons = [], isLoading, refetch } = useAdminPendingCoupons();
+  const { data: allCoupons = [], isLoading, refetch } = useAdminCoupons({ limit: 100 });
   const approveMutation = useApproveAdminCoupon();
   const rejectMutation = useRejectAdminCoupon();
+
+  const [activeTab, setActiveTab] = useState("all");
 
   // Audit details modal state
   const [selectedCoupon, setSelectedCoupon] = useState(null);
@@ -104,13 +136,37 @@ export default function CouponModerationClient() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejectOpen, setIsRejectOpen] = useState(false);
 
+  // Tab filtered coupons
+  const filteredCoupons = useMemo(() => {
+    if (activeTab === "pending") {
+      return allCoupons.filter((c) => c.status === "pending" || (!c.isVerified && c.status !== "rejected"));
+    }
+    if (activeTab === "approved") {
+      return allCoupons.filter((c) => c.status === "active" || c.status === "approved" || c.isVerified);
+    }
+    if (activeTab === "rejected") {
+      return allCoupons.filter((c) => c.status === "rejected" || c.status === "inactive" || c.status === "expired");
+    }
+    return allCoupons;
+  }, [allCoupons, activeTab]);
+
+  const stats = useMemo(() => {
+    const total = allCoupons.length;
+    const pending = allCoupons.filter((c) => c.status === "pending" || (!c.isVerified && c.status !== "rejected")).length;
+    const approved = allCoupons.filter((c) => c.status === "active" || c.status === "approved" || c.isVerified).length;
+    const rejected = allCoupons.filter((c) => c.status === "rejected" || c.status === "inactive" || c.status === "expired").length;
+    return { total, pending, approved, rejected };
+  }, [allCoupons]);
+
   // Real-time listener: invalidates TanStack Query cache instantly on submission & status updates
   useRealtime(SOCKET_EVENTS.COUPON_SUBMITTED, () => {
-    queryClient.invalidateQueries({ queryKey: qk.admin.pendingCoupons() });
+    queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+    refetch();
   });
 
   useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, () => {
-    queryClient.invalidateQueries({ queryKey: qk.admin.pendingCoupons() });
+    queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+    refetch();
   });
 
   const handleApprove = (couponId) => {
@@ -158,156 +214,360 @@ export default function CouponModerationClient() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const getCouponRowColor = (index) => {
-    const rowStyles = [
-      "bg-blue-50/70 hover:bg-blue-100/90 border-l-4 border-l-blue-600 border-b border-blue-200/90 transition-all text-slate-900",
-      "bg-emerald-50/70 hover:bg-emerald-100/90 border-l-4 border-l-emerald-600 border-b border-emerald-200/90 transition-all text-slate-900",
-      "bg-amber-50/70 hover:bg-amber-100/90 border-l-4 border-l-amber-600 border-b border-amber-200/90 transition-all text-slate-900",
-      "bg-purple-50/70 hover:bg-purple-100/90 border-l-4 border-l-purple-600 border-b border-purple-200/90 transition-all text-slate-900",
-      "bg-indigo-50/70 hover:bg-indigo-100/90 border-l-4 border-l-indigo-600 border-b border-indigo-200/90 transition-all text-slate-900",
-    ];
-    return rowStyles[index % rowStyles.length];
+  const getRowClassName = (row, index) => {
+    const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
+    return cn("transition-all", theme.row);
   };
 
+  const columns = [
+    {
+      header: "Offer & Merchant",
+      accessorKey: "headline",
+      cell: (row) => {
+        const merchantObj = row.merchantId || {};
+        const merchantName = row.merchantName || merchantObj.businessName || "Merchant Partner";
+        const merchantEmail = row.contactEmail || merchantObj.contactEmail || merchantObj.email || "No Email";
+
+        const initials = (row.headline || row.title || "OF")
+          .split(" ")
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join("")
+          .toUpperCase();
+
+        return (
+          <div className="flex items-center gap-2 py-0.5 min-w-[200px]">
+            <div className="w-6.5 h-6.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-slate-900 text-[11.5px] leading-tight truncate">
+                {row.headline || row.title || "Special Offer"}
+              </p>
+              <div className="flex items-center gap-1.5 text-[9.5px] text-slate-600 font-normal truncate mt-0.5 leading-none">
+                <Store className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                <span className="truncate">{merchantName}</span>
+                <span>•</span>
+                <span className="truncate max-w-[110px] text-slate-500">{merchantEmail}</span>
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Category",
+      accessorKey: "category",
+      cell: (row) => {
+        const merchantObj = row.merchantId || {};
+        return (
+          <span className="capitalize text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/95 text-slate-800 border border-slate-300/90 inline-block shadow-2xs">
+            {row.category || merchantObj.category || "General"}
+          </span>
+        );
+      },
+    },
+    {
+      header: "Discount",
+      accessorKey: "discountValue",
+      cell: (row) => (
+        <span className="font-medium text-emerald-800 text-[10.5px] bg-white/95 px-2 py-0.5 rounded-md border border-emerald-300/90 inline-block shadow-2xs">
+          {formatDiscountBadge(row)}
+        </span>
+      ),
+    },
+    {
+      header: "Coupon Code",
+      accessorKey: "code",
+      cell: (row) => (
+        <button
+          type="button"
+          onClick={() => copyCode(row.code || "AUTO-APPLY")}
+          title="Click to copy code"
+          className="px-2 py-0.5 text-[10px] rounded-md bg-white/95 font-mono font-medium border border-slate-300/90 text-slate-800 shadow-2xs hover:bg-slate-50 cursor-pointer inline-flex items-center gap-1"
+        >
+          <span>{row.code || "AUTO-APPLY"}</span>
+          <Copy className="w-2.5 h-2.5 text-slate-400" />
+        </button>
+      ),
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: (row) => <StatusBadge status={row.status || "pending"} size="sm" />,
+    },
+    {
+      header: "Submitted",
+      accessorKey: "createdAt",
+      cell: (row) => (
+        <span className="text-[10.5px] text-slate-600 font-normal whitespace-nowrap">
+          {row.createdAt ? new Date(row.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Recently"}
+        </span>
+      ),
+    },
+    {
+      header: "Actions",
+      accessorKey: "_id",
+      align: "right",
+      cell: (row) => (
+        <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+          {/* Audit Details Modal */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleOpenDetails(row)}
+                className="h-6.5 w-6.5 p-0 flex items-center justify-center border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+              >
+                <Eye className="h-3 w-3" />
+                <span className="sr-only">Audit Details</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+              Audit Offer Mechanics &amp; Details
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Approve Button */}
+          {row.status !== "active" && row.status !== "approved" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-6.5 w-6.5 p-0 flex items-center justify-center bg-emerald-100 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                  onClick={() => handleApprove(row._id)}
+                  disabled={approveMutation.isPending}
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  <span className="sr-only">Approve Offer</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                Approve &amp; Publish Offer
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Reject Button */}
+          {row.status !== "rejected" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6.5 w-6.5 p-0 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 rounded-md cursor-pointer shadow-2xs transition-colors shrink-0"
+                  onClick={() => openRejectModal(row._id)}
+                  disabled={rejectMutation.isPending}
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Reject Offer</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                Reject Offer
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="w-full space-y-3 pb-12 font-sans text-left">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-slate-900">
+    <TooltipProvider delayDuration={100}>
+      <div className="w-full space-y-3 pb-12 font-sans text-left">
+        {/* Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+          <div>
+            <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
               Offer Listing Moderation
             </h1>
-            <LiveIndicator label="Real-time Moderation Queue" />
+            <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
+              Review, verify, and approve newly submitted in-store discount offers from merchant partners.
+            </p>
           </div>
-          <p className="text-slate-500 text-[11px] mt-0.5 font-medium">
-            Review, verify, and approve newly submitted in-store discount offers from merchant partners.
-          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+          >
+            <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+            <span>Refresh Queue</span>
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="self-start sm:self-auto gap-1.5 h-7 px-2.5 text-[11px] font-bold border-slate-200 text-slate-700 rounded-lg shrink-0 cursor-pointer shadow-2xs"
-        >
-          <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
-          <span>Refresh Queue</span>
-        </Button>
-      </div>
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-8 border border-slate-200/80 rounded-xl bg-white">
-          <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-2" />
-          <p className="text-xs text-slate-500 font-medium">
-            Loading pending offers queue...
-          </p>
+        {/* 4 Mini KPI Overview Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <Card
+            onClick={() => setActiveTab("all")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "all"
+                ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Total Offers
+                </span>
+                <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
+                  {stats.total}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+                <Tag className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setActiveTab("pending")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "pending"
+                ? "bg-amber-50/70 border-amber-300 ring-1 ring-amber-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Pending Review
+                </span>
+                <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none">
+                  {stats.pending}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
+                <Clock className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setActiveTab("approved")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "approved"
+                ? "bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Approved Live Offers
+                </span>
+                <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
+                  {stats.approved}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => setActiveTab("rejected")}
+            className={cn(
+              "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+              activeTab === "rejected"
+                ? "bg-rose-50/70 border-rose-300 ring-1 ring-rose-300"
+                : "bg-white border-slate-200/80 hover:border-slate-300",
+            )}
+          >
+            <CardContent className="p-0 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                  Rejected / Inactive
+                </span>
+                <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none">
+                  {stats.rejected}
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
+                <Ban className="w-3.5 h-3.5" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      ) : coupons.length === 0 ? (
-        <EmptyState
-          icon={Tag}
-          title="No pending offers to review"
-          description="All merchant offer listings have been moderated. Newly submitted deals will appear here in real-time."
-        />
-      ) : (
-        <div className="w-full overflow-x-auto rounded-xl border border-slate-200 shadow-xs bg-white">
-          <Table className="w-full text-left">
-            <TableHeader className="bg-slate-100/90 border-b border-slate-200">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="text-xs font-bold text-slate-700 h-9">Offer &amp; Business</TableHead>
-                <TableHead className="text-xs font-bold text-slate-700 h-9">Category</TableHead>
-                <TableHead className="text-xs font-bold text-slate-700 h-9">Discount Badge</TableHead>
-                <TableHead className="text-xs font-bold text-slate-700 h-9">Code / Type</TableHead>
-                <TableHead className="text-xs font-bold text-slate-700 h-9">Submitted</TableHead>
-                <TableHead className="text-xs font-bold text-slate-700 h-9 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {coupons.map((coupon, index) => {
-                const merchantObj = coupon.merchantId || {};
-                const merchantName =
-                  coupon.merchantName || merchantObj.businessName || "Merchant Partner";
-                const merchantEmail =
-                  coupon.contactEmail || merchantObj.contactEmail || merchantObj.email || "No Email";
 
-                return (
-                  <TableRow key={coupon._id} className={getCouponRowColor(index)}>
-                    <TableCell className="py-2.5 px-3">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 text-xs leading-snug">
-                          {coupon.headline || coupon.title}
+        {/* Main Table Card */}
+        <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+          <DataTable
+            columns={columns}
+            data={filteredCoupons}
+            loading={isLoading}
+            searchKey="headline"
+            getRowClassName={getRowClassName}
+            rightActions={
+              <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
+                {[
+                  {
+                    id: "all",
+                    label: "All",
+                    count: stats.total,
+                    description: "View all submitted coupons and discount listings",
+                  },
+                  {
+                    id: "pending",
+                    label: "Pending",
+                    count: stats.pending,
+                    description: "Filter to pending offers awaiting moderation approval",
+                  },
+                  {
+                    id: "approved",
+                    label: "Approved",
+                    count: stats.approved,
+                    description: "Filter to approved active published offers",
+                  },
+                  {
+                    id: "rejected",
+                    label: "Rejected",
+                    count: stats.rejected,
+                    description: "Filter to rejected or expired coupon submissions",
+                  },
+                ].map((tab) => (
+                  <Tooltip key={tab.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab(tab.id)}
+                        className={cn(
+                          "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
+                          activeTab === tab.id
+                            ? "bg-white text-blue-600 shadow-2xs"
+                            : "text-slate-500 hover:text-slate-800 bg-transparent",
+                        )}
+                      >
+                        <span>{tab.label}</span>
+                        <span
+                          className={cn(
+                            "text-[9px] px-1 rounded-full",
+                            activeTab === tab.id
+                              ? "bg-blue-50 text-blue-600"
+                              : "bg-slate-200/70 text-slate-600",
+                          )}
+                        >
+                          {tab.count}
                         </span>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-600 font-medium">
-                          <Store className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="font-semibold text-slate-800">{merchantName}</span>
-                          <span className="text-slate-400">•</span>
-                          <span className="text-slate-500 truncate max-w-[150px]">{merchantEmail}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-2.5 px-3">
-                      <span className="capitalize text-[11px] font-bold px-2 py-0.5 rounded bg-white/90 text-slate-800 border border-slate-300 inline-block shadow-2xs">
-                        {coupon.category || merchantObj.category || "General"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-2.5 px-3">
-                      <span className="font-black text-emerald-800 text-xs bg-emerald-100/90 px-2 py-0.5 rounded border border-emerald-300">
-                        {formatDiscountBadge(coupon)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-2.5 px-3">
-                      <code className="px-2 py-0.5 text-[10px] rounded bg-white/90 font-mono font-bold border border-slate-300 text-slate-800 shadow-2xs">
-                        {coupon.code || "AUTO-APPLY"}
-                      </code>
-                    </TableCell>
-                    <TableCell className="py-2.5 px-3 text-[11px] text-slate-600 font-medium">
-                      {new Date(coupon.createdAt).toLocaleDateString("en-IN", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </TableCell>
-                    <TableCell className="py-2.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenDetails(coupon)}
-                          className="h-7 px-2.5 gap-1 text-[11px] font-bold border-slate-300 text-slate-800 bg-white hover:bg-slate-100 rounded-lg cursor-pointer shadow-2xs"
-                        >
-                          <Eye className="h-3 w-3 text-blue-600" />
-                          <span>Audit</span>
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          className="h-7 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 font-bold rounded-lg cursor-pointer shadow-2xs gap-1"
-                          onClick={() => handleApprove(coupon._id)}
-                          disabled={approveMutation.isPending}
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          <span>Approve</span>
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          title="Reject Offer"
-                          className="h-7 w-7 p-0 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 rounded-lg cursor-pointer shadow-2xs shrink-0"
-                          onClick={() => openRejectModal(coupon._id)}
-                          disabled={rejectMutation.isPending}
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                      {tab.description}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            }
+          />
+        </Card>
 
       {/* Offer Full Details Audit Dialog Modal */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
@@ -815,5 +1075,6 @@ export default function CouponModerationClient() {
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
