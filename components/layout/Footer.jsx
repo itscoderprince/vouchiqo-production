@@ -224,8 +224,12 @@ export default function Footer() {
 
         {/* Footer Bottom Block */}
         <div className="pt-6 border-t border-slate-800/80 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-          <p className="text-[11px] text-slate-500 font-medium">
-            &copy; {new Date().getFullYear()} Vouchiqo. All Rights Reserved.
+          <p className="text-[11px] text-slate-500 font-medium flex items-center justify-center md:justify-start gap-2">
+            <span>&copy; {new Date().getFullYear()} Vouchiqo. All Rights Reserved.</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              v1.0.1-prod
+            </span>
           </p>
           <p className="text-[11px] text-slate-500 font-medium">
             Designed & Maintained by{" "}
