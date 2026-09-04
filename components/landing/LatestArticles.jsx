@@ -1,5 +1,6 @@
 "use client";
 
+import SafeImage from "@/components/shared/SafeImage";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -88,11 +89,12 @@ function ArticleCard({ article }) {
       <div className="art-card__inner flex flex-col rounded-2xl overflow-hidden bg-white border border-slate-200/90 hover:border-[#F72853] transition-all duration-300 hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] shadow-2xs h-full">
         {/* Cover image */}
         <div className="h-[140px] sm:h-[150px] overflow-hidden shrink-0 relative bg-slate-100">
-          <img
+          <SafeImage
             src={article.image}
-            alt={article.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
-            loading="lazy"
+            alt={article.title || "Article Cover"}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
           />
           {/* Category pill */}
           <span className="absolute top-2.5 left-2.5 bg-rose-50 text-[#F72853] border border-rose-200/80 text-[9px] sm:text-[9.5px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">

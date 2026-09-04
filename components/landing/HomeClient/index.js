@@ -1,3 +1,3 @@
-import HomeClient from "./HomeClient";
+import { HomeClient } from "./HomeClient.jsx";
 export { HomeClient };
 export default HomeClient;

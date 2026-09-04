@@ -77,33 +77,31 @@ export const SearchBar = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch 100% REAL database merchants & categories for typewriter placeholder
+  // Fetch real public data for typewriter placeholder (only use public endpoints)
   useEffect(() => {
     let isCancelled = false;
     async function loadRealPlaceholderData() {
       try {
-        const [resMerchants, resCoupons] = await Promise.all([
-          fetch("/api/merchants?limit=10").then((r) => (r.ok ? r.json() : null)),
+        const [resCoupons1, resCoupons2] = await Promise.all([
           fetch("/api/coupons?limit=10").then((r) => (r.ok ? r.json() : null)),
+          fetch("/api/coupons?limit=30").then((r) => (r.ok ? r.json() : null)),
         ]);
 
         if (isCancelled) return;
 
-        const dbMerchants =
-          resMerchants?.data?.merchants || resMerchants?.merchants || [];
         const dbCoupons =
-          resCoupons?.data?.coupons || resCoupons?.coupons || [];
+          resCoupons2?.data?.coupons || resCoupons2?.coupons ||
+          resCoupons1?.data?.coupons || resCoupons1?.coupons || [];
 
         const realPhrases = [];
 
-        // Extract real active merchant names
-        dbMerchants.forEach((m) => {
-          if (
-            m.businessName &&
-            typeof m.businessName === "string" &&
-            m.businessName.trim()
-          ) {
-            realPhrases.push(`Search for '${m.businessName.trim()}'...`);
+        // Extract real merchant/store names from coupon data
+        const seenBrands = new Set();
+        dbCoupons.forEach((c) => {
+          const brand = c.merchantName || c.brandName || c.storeName;
+          if (brand && typeof brand === "string" && !seenBrands.has(brand)) {
+            seenBrands.add(brand);
+            realPhrases.push(`Search for '${brand.trim()}'...`);
           }
         });
 
@@ -137,6 +135,7 @@ export const SearchBar = () => {
       isCancelled = true;
     };
   }, []);
+
 
   // Smooth Typewriter Effect for Search Placeholder
   useEffect(() => {

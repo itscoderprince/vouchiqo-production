@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CheckCircle2,
+  MapPin,
   Clock,
   ExternalLink,
   Heart,
@@ -214,6 +215,31 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
 
   const merchantName = coupon.merchantId?.businessName || "Partner";
   const logoUrl = coupon.merchantId?.logo || "/placeholder-brand.png";
+  const bannerUrl =
+    coupon.merchantId?.banner ||
+    coupon.image ||
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&auto=format&fit=crop&q=80";
+  const categoryMap = {
+    food: "Food & Dining",
+    dining: "Food & Dining",
+    restaurant: "Food & Dining",
+    fashion: "Fashion & Apparel",
+    clothing: "Fashion & Apparel",
+    electronics: "Electronics",
+    beauty: "Beauty & Wellness",
+    health: "Health & Wellness",
+    fitness: "Fitness & Gym",
+    services: "Local Services",
+    entertainment: "Entertainment",
+    travel: "Travel & Hotels",
+    education: "Education",
+  };
+  const rawCategory = String(coupon.category || coupon.merchantId?.category || "dining").toLowerCase().trim();
+  const displayCategory = categoryMap[rawCategory] || coupon.category || "Exclusive Offer";
+  const merchantCity =
+    coupon.merchantId?.location?.city || coupon.location?.city || "Ranchi";
+  const merchantAddress =
+    coupon.merchantId?.location?.address || "";
 
   const discountFormatted = (() => {
     const rawVal = coupon.rawDiscountValue || coupon.discountValue;
@@ -291,115 +317,176 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
       <Navbar />
 
       <main className="w-full px-2.5 sm:px-4 md:px-5 py-3 sm:py-5 flex-grow space-y-3 sm:space-y-4">
-        {/* Navigation Action Row */}
-        <div className="flex justify-between items-center select-none bg-white border border-slate-200/90 rounded-xl px-3 py-2 shadow-2xs">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-xs font-normal text-slate-700 hover:text-blue-600 cursor-pointer transition-colors bg-transparent border-0"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Go Back</span>
-          </button>
-
-          <div className="flex items-center gap-2">
-            {/* Save Offer Toggle Action */}
-            <button
-              type="button"
-              onClick={handleToggleSave}
-              className={`flex items-center gap-1.5 text-xs font-normal px-3 py-1 rounded-lg border shadow-2xs cursor-pointer transition-all ${
-                isSaved
-                  ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
-              <span>{isSaved ? "Saved" : "Save Offer"}</span>
-            </button>
-
-            {/* Share action */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex items-center gap-1.5 text-xs font-normal text-slate-700 bg-white hover:bg-slate-50 px-3 py-1 rounded-lg border border-slate-200 shadow-2xs cursor-pointer transition-all"
-              >
-                <Share2 className="w-3.5 h-3.5 text-blue-600" />
-                <span>Share</span>
-              </button>
-              {showShareTooltip && (
-                <span className="absolute bottom-full right-0 mb-1.5 bg-slate-900 text-white text-[10px] font-normal px-2.5 py-0.5 rounded shadow-md whitespace-nowrap animate-fade-in">
-                  Link Copied!
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* 2-Column Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
           {/* Main Coupon Card (Left) */}
-          <div className="lg:col-span-8 bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            {/* Header section: label, title, and logo with soft colorful gradient */}
-            <div className="p-3.5 sm:p-6 flex justify-between items-start gap-2.5 sm:gap-3 border-b border-slate-100 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-purple-50/50">
-              <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="inline-block bg-blue-100/90 text-blue-700 border border-blue-200 text-[9.5px] sm:text-[10px] font-normal px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
-                    {discountFormatted}
+          <div className="lg:col-span-8 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+            {/* ── Merchant Hero Banner & Brand Identity ── */}
+            <div className="relative w-full h-48 sm:h-60 md:h-72 bg-slate-900 overflow-hidden select-none group">
+              <img
+                src={bannerUrl}
+                alt={merchantName}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                onError={(e) => {
+                  e.target.src =
+                    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&auto=format&fit=crop&q=80";
+                }}
+              />
+              {/* Refined multi-stop dark gradient overlay for crystal clear contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/45 to-slate-950/30 pointer-events-none" />
+
+              {/* Top Floating Badge Bar inside Banner */}
+              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center justify-between gap-2 z-10">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-white/95 text-slate-800 backdrop-blur-md px-3 py-1 rounded-lg text-[11px] font-medium shadow-sm border border-white/80 tracking-wide uppercase">
+                    {displayCategory}
                   </span>
-                  <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200/60 text-[9.5px] sm:text-[10px] font-normal px-2 sm:px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                    {coupon.code ? "PROMO CODE" : "VERIFIED SALE"}
+                  <span className="inline-flex items-center gap-1 bg-emerald-600/90 text-white backdrop-blur-md px-2.5 py-1 rounded-lg text-[11px] font-medium shadow-sm border border-emerald-500/30">
+                    <CheckCircle2 className="w-3 h-3 text-white" />
+                    <span>Verified Partner</span>
                   </span>
                 </div>
-                <h1 className="text-[14.5px] sm:text-lg md:text-xl font-normal text-slate-800 leading-snug tracking-normal">
-                  {coupon.code ? (
-                    <>
-                      {"Use Code & Get "}
-                      <span className="text-blue-600 font-medium">{discountFormatted}</span>
-                      {" on "}
-                      {coupon.merchantId?.slug ? (
-                        <Link
-                          href={`/brand/${coupon.merchantId.slug}`}
-                          className="text-blue-600 hover:underline cursor-pointer font-medium"
-                        >
-                          {merchantName}
-                        </Link>
-                      ) : (
-                        merchantName
-                      )}
-                    </>
-                  ) : (
-                    `Exclusive Deal: ${coupon.title}`
-                  )}
-                </h1>
+
+                <div className="bg-rose-600 text-white px-3.5 py-1 rounded-lg text-xs font-semibold shadow-sm tracking-wide">
+                  {discountFormatted}
+                </div>
               </div>
-              {coupon.merchantId?.slug ? (
-                <Link
-                  href={`/brand/${coupon.merchantId.slug}`}
-                  className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl border border-blue-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs hover:border-blue-400 transition-colors cursor-pointer"
-                >
-                  <img
-                    src={logoUrl}
-                    alt={merchantName}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.target.src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233e80dd' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-                    }}
-                  />
-                </Link>
-              ) : (
-                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl border border-blue-100 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs">
-                  <img
-                    src={logoUrl}
-                    alt={merchantName}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.target.src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233e80dd' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-                    }}
-                  />
+
+              {/* Overlaid Merchant Brand Strip at Bottom of Banner */}
+              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-5 right-3 sm:right-5 flex items-end justify-between gap-3 z-10">
+                <div className="flex items-end gap-3 min-w-0">
+                  {/* High-Contrast Crisp Merchant Logo Container */}
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 sm:p-2 shadow-xl border-2 border-white/90 shrink-0 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={logoUrl}
+                      alt={merchantName}
+                      className="w-full h-full object-contain rounded-xl"
+                      onError={(e) => {
+                        e.target.src =
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
+                      }}
+                    />
+                  </div>
+
+                  {/* Merchant Details on Hero Banner */}
+                  <div className="text-white drop-shadow-sm min-w-0 pb-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <h2 className="text-sm sm:text-base md:text-xl font-bold tracking-tight text-white truncate">
+                        {merchantName}
+                      </h2>
+                      <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 inline-block" />
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-slate-200/90 truncate flex items-center gap-1 font-normal mt-0.5">
+                      <MapPin className="w-3 h-3 text-rose-400 shrink-0" />
+                      <span>{merchantCity}</span>
+                      {merchantAddress && (
+                        <span className="opacity-80 hidden md:inline truncate">• {merchantAddress}</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
+
+                {coupon.merchantId?.slug && (
+                  <Link
+                    href={`/brand/${coupon.merchantId.slug}`}
+                    className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/30 shadow-sm transition-all shrink-0 cursor-pointer"
+                  >
+                    <span>View Store Deals</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation & Actions Bar Below Banner */}
+            <div className="flex justify-between items-center px-4 sm:px-6 py-2.5 bg-slate-50/90 border-b border-slate-100 select-none">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 cursor-pointer transition-colors bg-transparent border-0 p-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Go Back</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                {/* Save Offer Toggle Action */}
+                <button
+                  type="button"
+                  onClick={handleToggleSave}
+                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-lg border shadow-2xs cursor-pointer transition-all ${
+                    isSaved
+                      ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
+                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 ${
+                      isSaved ? "fill-rose-500 text-rose-500" : "text-slate-400"
+                    }`}
+                  />
+                  <span>{isSaved ? "Saved" : "Save Offer"}</span>
+                </button>
+
+                {/* Share action */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 px-3 py-1 rounded-lg border border-slate-200 shadow-2xs cursor-pointer transition-all"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Share</span>
+                  </button>
+                  {showShareTooltip && (
+                    <span className="absolute bottom-full right-0 mb-1.5 bg-slate-900 text-white text-[10px] font-normal px-2.5 py-0.5 rounded shadow-md whitespace-nowrap animate-fade-in z-20">
+                      Link Copied!
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Offer Summary & Deal Title Bar */}
+            <div className="p-4 sm:p-6 border-b border-slate-100 bg-white">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="inline-block bg-blue-50 text-blue-700 border border-blue-200 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  {discountFormatted}
+                </span>
+                <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200 text-[10px] sm:text-[10.5px] font-medium px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                  {coupon.code ? "PROMO CODE" : "VERIFIED SALE"}
+                </span>
+                <span className="inline-block bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[10.5px] font-medium px-2.5 py-0.5 rounded-md">
+                  In-Store &amp; Online
+                </span>
+              </div>
+
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-slate-900 leading-snug tracking-tight">
+                {coupon.code ? (
+                  <>
+                    {"Use Code & Get "}
+                    <span className="text-blue-600 font-extrabold">{discountFormatted}</span>
+                    {" on "}
+                    {coupon.merchantId?.slug ? (
+                      <Link
+                        href={`/brand/${coupon.merchantId.slug}`}
+                        className="text-slate-900 hover:text-blue-600 hover:underline cursor-pointer transition-colors"
+                      >
+                        {merchantName}
+                      </Link>
+                    ) : (
+                      merchantName
+                    )}
+                  </>
+                ) : (
+                  `Exclusive Deal: ${coupon.title}`
+                )}
+              </h1>
+
+              {coupon.description && (
+                <p className="text-xs sm:text-[13px] text-slate-500 font-normal leading-relaxed mt-1.5">
+                  {coupon.description}
+                </p>
               )}
             </div>
 
@@ -515,8 +602,8 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
               ) : (
                 <div className="pt-3 border-t border-slate-100/80">
                   <div className="max-w-md mx-auto bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-left space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
-                      <span>📍</span>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                      <MapPin className="w-3.5 h-3.5 text-slate-600" />
                       <span>Physical Store Counter Location</span>
                     </div>
                     {coupon.merchantId?.location ? (
@@ -776,7 +863,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
             ) : (
               <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 text-left space-y-1.5">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
-                  📍 Counter Claim Address:
+                  Counter Claim Address:
                 </span>
                 <p className="text-xs font-bold text-slate-800">
                   {merchantName}

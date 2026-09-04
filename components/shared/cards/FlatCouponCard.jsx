@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -248,17 +249,14 @@ export default function FlatCouponCard({ coupon }) {
             flexShrink: 0,
           }}
         >
-          <img
-            src={logoUrl}
-            alt={merchantName}
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-              display: "block",
-            }}
+          <Image
+            src={logoUrl || "/placeholder-brand.png"}
+            alt={merchantName || "Merchant Logo"}
+            width={40}
+            height={40}
+            className="max-w-full max-h-full object-contain block"
             onError={(e) => {
-              e.target.src =
+              e.currentTarget.src =
                 "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233e80dd' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
             }}
           />

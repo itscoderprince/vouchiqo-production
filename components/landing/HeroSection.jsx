@@ -1,5 +1,6 @@
 "use client";
 
+import SafeImage from "@/components/shared/SafeImage";
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -252,7 +253,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                     : `translateX(-${currentSlide * 100}%)`,
               }}
             >
-              {slides.map((slide) => {
+              {slides.map((slide, sIdx) => {
                 const isExternal =
                   slide.link?.startsWith("http://") ||
                   slide.link?.startsWith("https://");
@@ -264,11 +265,17 @@ export function HeroSection({ banners: initialBanners = [] }) {
 
                 const linkContent = (
                   <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
-                    <img
-                      src={slide.image}
+                    <SafeImage
+                      src={
+                        slide.image && typeof slide.image === "string" && slide.image.trim() !== ""
+                          ? slide.image
+                          : "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop"
+                      }
                       alt={slide.title || slide.name || "Banner slide"}
-                      className="w-full h-full object-cover cursor-pointer select-none pointer-events-none"
-                      draggable={false}
+                      fill
+                      priority={sIdx === 0}
+                      sizes="(max-width: 1440px) 100vw, 1440px"
+                      className="object-cover cursor-pointer select-none pointer-events-none"
                     />
 
                     {/* Optional Text Overlay */}
@@ -438,10 +445,12 @@ export function HeroSection({ banners: initialBanners = [] }) {
                   }`}
                   title={titleText}
                 >
-                  {brand.logo ? (
-                    <img
+                  {brand.logo && typeof brand.logo === "string" && brand.logo.trim() !== "" ? (
+                    <SafeImage
                       src={brand.logo}
                       alt={titleText}
+                      width={80}
+                      height={36}
                       className="max-w-full max-h-full w-auto h-auto object-contain rounded-md select-none pointer-events-none"
                     />
                   ) : (

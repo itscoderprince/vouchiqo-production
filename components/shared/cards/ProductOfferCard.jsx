@@ -1,5 +1,6 @@
 "use client";
 
+import SafeImage from "@/components/shared/SafeImage";
 import { ExternalLink, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -105,15 +106,15 @@ export default function ProductOfferCard({ product }) {
     >
       {/* ===== 16:9 Image Header ===== */}
       <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 shrink-0">
-        <img
-          src={coverImage}
+        <SafeImage
+          src={
+            coverImage ||
+            "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"
+          }
           alt={title || "Affiliate product"}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none"
-          draggable={false}
-          onError={(e) => {
-            e.currentTarget.src =
-              "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
-          }}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
 
@@ -138,13 +139,15 @@ export default function ProductOfferCard({ product }) {
             zIndex: 10,
           }}
         >
-          <img
-            src={merchantLogo}
-            alt={merchantName}
+          <SafeImage
+            src={
+              merchantLogo ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(merchantName || "Store")}&background=08214d&color=ffffff&size=64&bold=true`
+            }
+            alt={merchantName || "Merchant"}
+            width={32}
+            height={32}
             className="w-full h-full object-contain rounded-full select-none pointer-events-none"
-            onError={(e) => {
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(merchantName)}&background=08214d&color=ffffff&size=64&bold=true`;
-            }}
           />
         </div>
 

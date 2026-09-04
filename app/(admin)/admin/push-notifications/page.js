@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import {
   Bell,
   BellOff,
@@ -21,6 +22,9 @@ import {
   Loader2,
   UploadCloud,
   Trash2,
+  Copy,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { apiFetch } from "@/lib/fetcher";
@@ -156,6 +160,21 @@ function ConfirmModal({ open, onClose, onConfirm, form, stats, sending }) {
               </span>
             </div>
           )}
+          {form.image && (
+            <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+              <span className="text-slate-500">Banner</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Cloudinary 2:1
+                </span>
+                <img
+                  src={form.image}
+                  alt="Banner preview"
+                  className="w-12 h-6 object-cover rounded border border-slate-200 shadow-2xs"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-slate-500 mb-3">
@@ -280,16 +299,19 @@ export default function AdminPushNotificationsPage() {
 
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
-  const handlePushImageUpload = async (e) => {
-    const file = e.target.files?.[0];
+  const uploadFileToCloudinary = async (file) => {
     if (!file) return;
 
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast.error("Please select a valid image (JPEG, PNG, WebP, or GIF).");
       setResult({ ok: false, message: "Please select a JPEG, PNG, or WebP image." });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be under 5 MB.");
       setResult({ ok: false, message: "Image size must be less than 5 MB." });
       return;
     }
@@ -308,11 +330,14 @@ export default function AdminPushNotificationsPage() {
       const imageUrl = json.data?.url || json.data?.secure_url;
       if (res.ok && imageUrl) {
         handleFormChange("image", imageUrl);
+        toast.success("Banner uploaded to Cloudinary successfully!");
         setResult({ ok: true, message: "Push banner uploaded to Cloudinary successfully!" });
       } else {
+        toast.error(json.message || "Failed to upload image to Cloudinary.");
         setResult({ ok: false, message: json.message || "Failed to upload image to Cloudinary." });
       }
     } catch {
+      toast.error("Network error during Cloudinary upload.");
       setResult({ ok: false, message: "Network error during Cloudinary upload." });
     } finally {
       setIsUploadingImage(false);
@@ -320,6 +345,39 @@ export default function AdminPushNotificationsPage() {
         fileInputRef.current.value = "";
       }
     }
+  };
+
+  const handlePushImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFileToCloudinary(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadFileToCloudinary(file);
+  };
+
+  const handleCopyImageUrl = () => {
+    if (!form.image) return;
+    navigator.clipboard.writeText(form.image);
+    setCopiedUrl(true);
+    toast.success("Cloudinary URL copied to clipboard!");
+    setTimeout(() => setCopiedUrl(false), 2000);
   };
 
   // Stats query
@@ -647,13 +705,22 @@ export default function AdminPushNotificationsPage() {
               </div>
 
               {/* Banner image with Cloudinary Upload */}
-              <div className="space-y-1.5 p-2 bg-slate-50 border border-slate-200/80 rounded-lg">
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`space-y-2 p-3 bg-slate-50 border rounded-lg transition-all ${
+                  isDragging
+                    ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/20"
+                    : "border-slate-200/80"
+                }`}
+              >
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                     <span>Banner image</span>
                   </label>
-                  <span className="px-1.5 py-0.5 text-[10px] bg-blue-50 text-blue-700 border border-blue-200 rounded font-medium">
+                  <span className="px-1.5 py-0.5 text-[10px] bg-blue-50 text-blue-700 border border-blue-200 rounded font-semibold">
                     Ratio 2:1 (1024 × 512 px)
                   </span>
                 </div>
@@ -663,51 +730,124 @@ export default function AdminPushNotificationsPage() {
                   type="file"
                   ref={fileInputRef}
                   onChange={handlePushImageUpload}
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   className="hidden"
                 />
 
-                {/* Upload action bar */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
+                {/* Upload action bar or Preview */}
+                {form.image ? (
+                  <div className="space-y-2">
+                    <div className="relative rounded-lg overflow-hidden border border-slate-200 bg-white shadow-2xs group">
+                      <div className="aspect-[2/1] w-full max-h-[140px] overflow-hidden bg-slate-100 flex items-center justify-center">
+                        <img
+                          src={form.image}
+                          alt="Uploaded Banner"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      </div>
+                      <div className="p-2 bg-white flex items-center justify-between gap-2 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded flex items-center gap-1 shrink-0">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Cloudinary 2:1
+                          </span>
+                          <span className="text-[11px] text-slate-500 truncate font-mono">
+                            {form.image}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleCopyImageUrl}
+                            title="Copy image URL"
+                            className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                          >
+                            {copiedUrl ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                          <a
+                            href={form.image}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Open image in new tab"
+                            className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingImage}
+                            title="Replace Image"
+                            className="px-2 py-1 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors cursor-pointer"
+                          >
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleFormChange("image", "")}
+                            title="Remove image"
+                            className="p-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploadingImage}
-                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-md cursor-pointer shadow-2xs transition-colors"
+                    className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-100/40"
+                        : "border-slate-300 hover:border-blue-400 bg-white hover:bg-slate-50/80"
+                    }`}
                   >
-                    {isUploadingImage ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
-                        <span>Uploading to Cloudinary...</span>
-                      </>
-                    ) : (
-                      <>
-                        <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Upload via Cloudinary (2:1)</span>
-                      </>
-                    )}
-                  </button>
-
-                  {form.image && (
-                    <button
-                      type="button"
-                      onClick={() => handleFormChange("image", "")}
-                      className="flex items-center gap-1 px-2 py-1 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-md cursor-pointer transition-colors"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      <span>Clear</span>
-                    </button>
-                  )}
-                </div>
+                    <div className="flex flex-col items-center justify-center gap-1.5">
+                      {isUploadingImage ? (
+                        <>
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                          <p className="text-xs font-semibold text-blue-700">
+                            Uploading to Cloudinary CDN...
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            Optimizing format and quality...
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-0.5">
+                            <UploadCloud className="w-4 h-4" />
+                          </div>
+                          <p className="text-xs font-semibold text-slate-700">
+                            <span className="text-blue-600 hover:underline">Upload via Cloudinary</span> or drag and drop
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            PNG, JPG, WebP up to 5MB (Auto 2:1 Banner)
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* CDN URL input fallback */}
-                <input
-                  type="url"
-                  value={form.image}
-                  onChange={(e) => handleFormChange("image", e.target.value)}
-                  placeholder="Or paste Cloudinary image URL..."
-                  className="w-full text-xs text-slate-800 bg-white border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400"
-                />
+                <div className="pt-1">
+                  <input
+                    type="url"
+                    value={form.image}
+                    onChange={(e) => handleFormChange("image", e.target.value)}
+                    placeholder="Or paste Cloudinary image URL directly..."
+                    className="w-full text-xs text-slate-800 bg-white border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400 font-mono"
+                  />
+                </div>
               </div>
 
               {/* Send button */}

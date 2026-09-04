@@ -195,16 +195,24 @@ export default function EmailBlastBuilderPage() {
           offerCode,
           ctaUrl,
           recipientType,
+          syncInAppNotification: true,
           isTest: false,
         }),
       });
       const json = await res.json();
       if (res.ok && json.success) {
-        toast.success(
-          json.message || `Live broadcast sent to ${audienceLabel} via Resend!`,
-        );
+        if (json.data?.isSandboxMode) {
+          toast.success(
+            json.message || `Broadcast sent! ${json.data.inAppNotifiedCount || 0} Shoppers received In-App notifications.`,
+            { duration: 6000 }
+          );
+        } else {
+          toast.success(
+            json.message || `Live broadcast sent to ${audienceLabel} via Resend!`,
+          );
+        }
       } else {
-        toast.error(json.error || "Failed to dispatch email broadcast.");
+        toast.error(json.error || json.message || "Failed to dispatch email broadcast.");
       }
     } catch (err) {
       console.error("Broadcast dispatch error:", err);
@@ -281,6 +289,28 @@ export default function EmailBlastBuilderPage() {
               </Button>
             </div>
           </div>
+
+          {/* Resend Sandbox Notice */}
+          {recipientsData?.providerInfo?.isSandboxMode && (
+            <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl p-3 flex items-start gap-2.5 text-amber-900 shadow-2xs">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs leading-relaxed">
+                <span className="font-semibold">Resend Sandbox Active:</span> External recipient emails (like registered shoppers) are restricted by Resend until your sending domain (<code className="bg-amber-100/90 px-1 py-0.5 rounded font-mono text-[11px]">vouchiqo.com</code>) is verified on{" "}
+                <a
+                  href="https://resend.com/domains"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline font-medium text-amber-800 hover:text-amber-950"
+                >
+                  resend.com/domains
+                </a>
+                .
+                <span className="block mt-0.5 text-amber-700">
+                  ⚡ All live broadcasts automatically dispatch <strong>In-App Notifications</strong> to all selected shoppers in their notification bell!
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* 4 Mini KPI Overview Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">

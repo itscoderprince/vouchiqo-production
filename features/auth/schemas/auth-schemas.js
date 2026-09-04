@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDisposableEmail } from "@/utils/disposable-emails";
 
 export const loginSchema = z.object({
   email: z
@@ -37,7 +38,11 @@ export const registerSchema = z
     email: z
       .string()
       .min(1, "Email is required")
-      .email("Please enter a valid email address"),
+      .email("Please enter a valid email address")
+      .refine((val) => !isDisposableEmail(val), {
+        message:
+          "Temporary or disposable email addresses are not permitted. Please use a real email.",
+      }),
     phoneNumber: z
       .string()
       .min(1, "Mobile number is required")
@@ -68,7 +73,11 @@ export const merchantRegisterSchema = z.object({
   email: z
     .string()
     .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+    .email("Please enter a valid email address")
+    .refine((val) => !isDisposableEmail(val), {
+      message:
+        "Temporary or disposable email addresses are not permitted. Please use a real email.",
+    }),
   password: z
     .string()
     .min(1, "Password is required")

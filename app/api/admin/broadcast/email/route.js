@@ -3,6 +3,7 @@ import { sendEmail } from "@/lib/email";
 import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
+import Notification from "@/modules/notification/notification.model";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 import { ROLES } from "@/utils/constants";
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/admin/broadcast/email
- * Returns registered platform users and merchants available for broadcast.
+ * Returns registered platform users and merchants available for broadcast,
+ * plus delivery provider configuration and sandbox status.
  */
 export const GET = asyncHandler(async (request) => {
   await connectDB();
@@ -24,7 +26,7 @@ export const GET = asyncHandler(async (request) => {
     db
       .collection("user")
       .find({ email: { $exists: true, $ne: "" } })
-      .project({ name: 1, email: 1, role: 1, createdAt: 1 })
+      .project({ _id: 1, id: 1, name: 1, email: 1, role: 1, createdAt: 1 })
       .toArray()
       .catch(() => []),
     Merchant.find()
@@ -37,6 +39,7 @@ export const GET = asyncHandler(async (request) => {
   const shoppers = rawUsers.filter((u) => u.role !== "merchant");
 
   const shopperRecipients = shoppers.map((u) => ({
+    userId: u.id || u._id?.toString(),
     email: u.email,
     name: u.name || "Valued Shopper",
     type: "user",
@@ -52,17 +55,28 @@ export const GET = asyncHandler(async (request) => {
 
   const allRecipients = [...shopperRecipients, ...merchantRecipients];
 
+  const devRecipient = process.env.EMAIL_DEV_RECIPIENT || "vouchiqo@gmail.com";
+  const isProduction = process.env.NODE_ENV === "production";
+
   return ok({
     totalUsers: shopperRecipients.length > 0 ? shopperRecipients.length : rawUsers.length,
     totalMerchants: merchantRecipients.length > 0 ? merchantRecipients.length : merchants.length,
     totalRecipients: allRecipients.length,
     sampleRecipients: allRecipients.slice(0, 10),
+    providerInfo: {
+      provider: "Resend",
+      devRecipient,
+      isProduction,
+      // Resend test sandbox requires verified domain to send outside the account owner
+      isSandboxMode: !isProduction,
+      verifiedDomainNeeded: "vouchiqo.com",
+    },
   });
 });
 
 /**
  * POST /api/admin/broadcast/email
- * Send live email broadcast or test copy via Resend.
+ * Send live email broadcast (with in-app notification sync) or test copy.
  */
 export const POST = asyncHandler(async (request) => {
   await connectDB();
@@ -151,69 +165,161 @@ export const POST = asyncHandler(async (request) => {
       html: emailHtml,
     });
 
+    const isRedirected = result?.fallbackUsed;
+    const msg = isRedirected
+      ? `Test email dispatched! (Redirected to sandbox inbox: ${result.redirectedTo} because domain is unverified).`
+      : `Test email sent successfully to ${target} via Resend`;
+
     return ok(
-      { testEmail: target, result, status: "test_sent" },
-      `Test email sent successfully to ${target} via Resend`,
+      { testEmail: target, result, status: "test_sent", fallbackUsed: isRedirected },
+      msg,
     );
   }
 
   // Live broadcast mode: Send to registered database users/merchants based on recipientType
-  const { recipientType = "all" } = body;
+  const { recipientType = "all", syncInAppNotification = true } = body;
   const db = mongoose.connection.db;
+
   let targetList = [];
+  let targetedUsers = [];
 
   if (recipientType === "users" || recipientType === "all") {
     const rawUsers = await db
       .collection("user")
       .find({ email: { $exists: true, $ne: "" } })
-      .project({ email: 1, role: 1 })
+      .project({ _id: 1, id: 1, email: 1, name: 1, role: 1 })
       .toArray()
       .catch(() => []);
-    const shopperEmails = rawUsers
-      .filter((u) => recipientType === "all" || u.role !== "merchant")
-      .map((u) => u.email)
-      .filter(Boolean);
-    targetList.push(...shopperEmails);
+
+    const shoppers = rawUsers.filter((u) => recipientType === "all" || u.role !== "merchant");
+    targetedUsers.push(...shoppers);
+    targetList.push(...shoppers.map((u) => u.email).filter(Boolean));
   }
 
   if (recipientType === "merchants" || recipientType === "all") {
     const merchants = await Merchant.find({
       contactEmail: { $exists: true, $ne: "" },
     })
-      .select("contactEmail businessName")
+      .select("contactEmail businessName userId")
       .lean()
       .catch(() => []);
+
     targetList.push(...merchants.map((m) => m.contactEmail).filter(Boolean));
   }
 
-  // Deduplicate emails
-  targetList = [...new Set(targetList)];
+  // Deduplicate and filter out invalid/placeholder emails
+  const isValidBroadcastEmail = (email) => {
+    if (!email || typeof email !== "string") return false;
+    const lower = email.toLowerCase().trim();
+    if (!lower.includes("@") || !lower.includes(".")) return false;
+    if (
+      lower.endsWith("@example.com") ||
+      lower.endsWith("@test.com") ||
+      lower.endsWith("@sample.com")
+    ) {
+      return false;
+    }
+    return true;
+  };
+
+  targetList = [...new Set(targetList)].filter(isValidBroadcastEmail);
   if (targetList.length === 0) {
     targetList = ["admin@vouchiqo.com"];
   }
 
-  // Dispatch live emails in parallel batches
-  let sentCount = 0;
-  for (const email of targetList.slice(0, 50)) {
+  // 1. IN-APP NOTIFICATION MULTI-CHANNEL SYNC
+  // Persist announcement notification for each registered shopper in MongoDB
+  let inAppNotifiedCount = 0;
+  if (syncInAppNotification && targetedUsers.length > 0) {
     try {
-      await sendEmail({
+      const now = new Date();
+      const inAppDocs = targetedUsers
+        .map((u) => {
+          const uId = u.id || u._id?.toString();
+          if (!uId) return null;
+          return {
+            userId: uId,
+            type: "campaign",
+            category: "campaign",
+            title: headline || subject,
+            message: description || "New exclusive platform announcement on Vouchiqo!",
+            metadata: {
+              offerCode: offerCode || "",
+              ctaUrl: ctaUrl || "/deals",
+              bannerUrl: bannerUrl || "",
+              source: "email_blast_builder",
+            },
+            isRead: false,
+            createdAt: now,
+            updatedAt: now,
+          };
+        })
+        .filter(Boolean);
+
+      if (inAppDocs.length > 0) {
+        await Notification.insertMany(inAppDocs, { ordered: false });
+        inAppNotifiedCount = inAppDocs.length;
+        console.log(`[Broadcast In-App Sync]: Created ${inAppNotifiedCount} in-app notifications for shoppers.`);
+      }
+    } catch (inAppErr) {
+      console.warn("[Broadcast In-App Sync Warning]:", inAppErr.message);
+    }
+  }
+
+  // 2. DISPATCH EMAILS VIA RESEND WITH RATE-LIMIT THROTTLING
+  let deliveredDirectlyCount = 0;
+  let sandboxRedirectCount = 0;
+  let failedCount = 0;
+  const dispatchList = targetList.slice(0, 50);
+
+  // Send sequentially with 200ms delay to respect Resend rate limits
+  for (const email of dispatchList) {
+    try {
+      const res = await sendEmail({
         to: email,
         subject,
         html: emailHtml,
       });
-      sentCount++;
-    } catch (e) {
-      console.error(`[Broadcast Error to ${email}]:`, e);
+
+      if (res?.deliveredDirectly) {
+        deliveredDirectlyCount++;
+      } else if (res?.fallbackUsed) {
+        sandboxRedirectCount++;
+      } else if (res?.success) {
+        deliveredDirectlyCount++;
+      } else {
+        failedCount++;
+        console.warn(`[Broadcast Skipped for ${email}]:`, res?.error);
+      }
+    } catch (err) {
+      failedCount++;
+      console.warn(`[Broadcast Error for ${email}]:`, err.message);
     }
+
+    // Short 200ms throttle to prevent 429 rate limit
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
+
+  const devRecipient = process.env.EMAIL_DEV_RECIPIENT || "vouchiqo@gmail.com";
+  const isSandboxMode = sandboxRedirectCount > 0 && deliveredDirectlyCount === 0;
+
+  const message = isSandboxMode
+    ? `Broadcast processed: ${inAppNotifiedCount} shoppers received In-App Notifications! (Resend sandbox routed emails to ${devRecipient} because domain vouchiqo.com is unverified).`
+    : `Email broadcast delivered to ${deliveredDirectlyCount} recipients (and ${inAppNotifiedCount} In-App Notifications created)!`;
 
   return ok(
     {
-      sentCount,
+      sentCount: deliveredDirectlyCount + sandboxRedirectCount,
+      deliveredDirectlyCount,
+      sandboxRedirectCount,
+      inAppNotifiedCount,
+      failedCount,
       recipientType,
       totalRecipients: targetList.length,
+      isSandboxMode,
+      sandboxEmail: devRecipient,
       status: "broadcast_completed",
     },
-    `Email broadcast sent to ${sentCount} registered ${recipientType === "merchants" ? "merchants" : recipientType === "users" ? "shoppers" : "platform members"} via Resend!`,
+    message,
   );
 });

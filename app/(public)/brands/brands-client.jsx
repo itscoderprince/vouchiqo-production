@@ -80,6 +80,7 @@ export default function BrandsClient({ brands = [] }) {
                 name={brand.businessName}
                 logo={brand.logo}
                 banner={brand.banner}
+                category={brand.category || "Top Brand"}
                 href={`/brand/${brand.slug}`}
                 coupons={
                   (brand.totalCoupons || 0) +

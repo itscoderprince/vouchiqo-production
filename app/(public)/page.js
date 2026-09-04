@@ -1,5 +1,4 @@
 import { HomeClient } from "@/components/landing/HomeClient";
-import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
 import { redis } from "@/lib/redis";
 import { getPromoBanners } from "@/modules/admin/banner.service";
@@ -10,71 +9,91 @@ import {
 } from "@/modules/coupon/coupon.service";
 import Merchant from "@/modules/merchant/merchant.model";
 
-// Force Next.js to render this page dynamically (SSR) so database queries are fresh
+// Force dynamic SSR rendering
 export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
-export default async function Home() {
-  // 1. Connect to the database on the server
+const CACHE_KEY = "vouchiqo:homepage:data:v2";
+const CACHE_TTL_SECONDS = 60;
+
+async function fetchHomepageData() {
+  // 1. Check Redis cache first for sub-5ms TTFB
+  try {
+    if (redis && redis.status === "ready") {
+      const cached = await redis.get(CACHE_KEY);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    }
+  } catch (err) {
+    console.warn("[Homepage Cache Warning]:", err?.message);
+  }
+
+  // 2. Connect DB
   await connectDB();
 
-  // 2. Fetch active featured coupons from MongoDB
-  const rawCoupons = await getFeaturedCoupons();
-  const featuredCoupons = JSON.parse(JSON.stringify(rawCoupons || []));
-
-  // 3. Fetch latest active coupons from MongoDB
   const latestParams = new URLSearchParams({
     limit: "6",
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-  const latestResult = await listCoupons(latestParams);
-  const latestCoupons = JSON.parse(JSON.stringify(latestResult.coupons || []));
 
-  // 3.5. Fetch active approved/verified merchants from MongoDB
-  let popularMerchants = [];
-  try {
-    const rawMerchants = await Merchant.find({
-      status: "approved",
-    })
+  // 3. Parallel fetch all 5 data sources concurrently
+  const [
+    rawCoupons,
+    latestResult,
+    rawMerchants,
+    rawBanners,
+    rawProducts,
+  ] = await Promise.all([
+    getFeaturedCoupons().catch(() => []),
+    listCoupons(latestParams).catch(() => ({ coupons: [] })),
+    Merchant.find({ status: "approved" })
       .select(
         "businessName slug logo banner totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
       )
       .sort({ createdAt: -1 })
       .limit(36)
-      .lean();
-    popularMerchants = JSON.parse(JSON.stringify(rawMerchants || []));
-  } catch (err) {
-    console.error("Error fetching popular merchants:", err);
-  }
+      .lean()
+      .catch(() => []),
+    getPromoBanners().catch(() => []),
+    getPublicAffiliateProducts().catch(() => []),
+  ]);
 
-  // 3.7. Fetch active promotional banners
-  let banners = [];
+  const payload = {
+    featuredCoupons: JSON.parse(JSON.stringify(rawCoupons || [])),
+    latestCoupons: JSON.parse(JSON.stringify(latestResult?.coupons || [])),
+    popularMerchants: JSON.parse(JSON.stringify(rawMerchants || [])),
+    banners: JSON.parse(JSON.stringify(rawBanners || [])),
+    affiliateProducts: JSON.parse(JSON.stringify(rawProducts || [])),
+  };
+
+  // 4. Cache in Redis for instant subsequent loads
   try {
-    const rawBanners = await getPromoBanners();
-    banners = JSON.parse(JSON.stringify(rawBanners || []));
-  } catch (err) {
-    console.error("Error fetching promotional banners:", err);
-  }
+    if (redis) {
+      await redis.set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS);
+    }
+  } catch (_) {}
 
-  // 3.8. Fetch active affiliate products
-  let affiliateProducts = [];
-  try {
-    const rawProducts = await getPublicAffiliateProducts();
-    affiliateProducts = JSON.parse(JSON.stringify(rawProducts || []));
-  } catch (err) {
-    console.error("Error fetching affiliate products:", err);
-  }
+  return payload;
+}
 
-  // 4. Render the client-side component shell with hydrated database props
+export default async function Home() {
+  const {
+    featuredCoupons,
+    latestCoupons,
+    popularMerchants,
+    banners,
+    affiliateProducts,
+  } = await fetchHomepageData();
+
   return (
-    <>
-      <HomeClient
-        initialCoupons={featuredCoupons}
-        latestCoupons={latestCoupons}
-        popularMerchants={popularMerchants}
-        banners={banners}
-        affiliateProducts={affiliateProducts}
-      />
-    </>
+    <HomeClient
+      initialCoupons={featuredCoupons}
+      latestCoupons={latestCoupons}
+      popularMerchants={popularMerchants}
+      banners={banners}
+      affiliateProducts={affiliateProducts}
+    />
   );
 }

@@ -109,8 +109,20 @@ export default function BrandHeader({
         </div>
       </div>
 
-      {/* Hero Banner Container */}
-      <div className="relative w-full h-[180px] sm:h-[260px] md:h-[320px] bg-slate-950 overflow-hidden select-none font-sans flex items-center justify-center">
+      {/* Hero Banner Container - Clean Modern Brand Gradient Header */}
+      <div className="relative w-full h-[130px] sm:h-[170px] md:h-[200px] bg-gradient-to-r from-emerald-900/90 via-slate-900 to-teal-950 overflow-hidden select-none font-sans flex items-center justify-center">
+        {/* Subtle Decorative Ambient Mesh */}
+        <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
         {/* Floating Top-Right Share Button */}
         <button
           type="button"
@@ -122,37 +134,18 @@ export default function BrandHeader({
           <span className="hidden sm:inline">Share</span>
         </button>
 
-        {merchant.banner ? (
+        {merchant.banner && (
           <>
-            {/* Ambient Blurred Backdrop */}
-            <img
-              src={merchant.banner}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 w-full h-full object-cover object-center blur-xl opacity-40 scale-110 pointer-events-none"
-            />
-            {/* Centered Sharp Banner Image */}
+            {/* Full Bleed Banner with subtle darken overlay */}
             <img
               src={merchant.banner}
               alt={`${merchant.businessName} banner`}
-              className="relative z-10 max-w-full max-h-full object-contain object-center opacity-100 transition-transform duration-700"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-85 group-hover:scale-105 transition-transform duration-700"
             />
-          </>
-        ) : (
-          <>
-            <div
-              className="absolute inset-0 opacity-15"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-                backgroundSize: "36px 36px",
-              }}
-            />
-            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
-            <div className="absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
+            {/* Subtle Gradient Scrim for crisp text and contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30 pointer-events-none" />
           </>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-black/20 pointer-events-none" />
       </div>
 
       {/* Brand Identity Section */}
@@ -162,20 +155,20 @@ export default function BrandHeader({
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 sm:gap-3 relative">
             {/* Left: Logo + Brand Name */}
             <div className="flex flex-row gap-3 sm:gap-4 items-end">
-              {/* Logo — overlaps banner */}
+              {/* Logo — overlaps banner with elevated circular/rounded card */}
               <div
-                className="relative z-10 rounded-xl sm:rounded-2xl flex-shrink-0 flex items-center justify-center bg-white shadow-md border-2 sm:border-3 border-white overflow-hidden w-[76px] h-[76px] sm:w-[92px] sm:h-[92px] md:w-[104px] md:h-[104px] -mt-9 sm:-mt-11 md:-mt-[52px]"
+                className="relative z-10 rounded-2xl flex-shrink-0 flex items-center justify-center bg-white shadow-lg border-3 sm:border-4 border-white overflow-hidden w-[76px] h-[76px] sm:w-[92px] sm:h-[92px] md:w-[104px] md:h-[104px] -mt-9 sm:-mt-11 md:-mt-[52px] ring-1 ring-slate-200/60"
               >
                 {merchant.logo && !logoFailed ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={merchant.logo}
                     alt={merchant.businessName}
-                    className="max-h-full max-w-full object-contain object-center p-1"
+                    className="max-h-full max-w-full object-contain object-center p-1.5"
                     onError={() => setLogoFailed(true)}
                   />
                 ) : (
-                  <span className="font-medium text-xl sm:text-2xl text-blue-600 uppercase">
+                  <span className="font-semibold text-xl sm:text-2xl text-emerald-700 uppercase">
                     {merchant.businessName?.[0]}
                   </span>
                 )}
@@ -184,35 +177,30 @@ export default function BrandHeader({
               {/* Brand name + badges */}
               <div className="pt-1 space-y-0.5 pb-1.5 text-left font-sans min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <h1 className="text-[14.5px] sm:text-base md:text-[17px] font-normal text-slate-800 tracking-normal truncate">
+                  <h1 className="text-[15px] sm:text-lg md:text-xl font-medium text-slate-900 tracking-tight truncate">
                     {merchant.businessName}
                   </h1>
 
                   {/* Verified badge */}
                   {merchant.isVerified !== false && (
-                    <span className="inline-flex items-center gap-0.5 text-[9.5px] sm:text-[10px] font-normal text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-full border border-slate-200/80 shrink-0">
-                      <span>Verified</span>
-                      <TwitterGreenTick className="w-3 h-3 text-emerald-500" />
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-normal text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                      <TwitterGreenTick className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Verified Partner</span>
                     </span>
                   )}
 
-                  {/* Growth Partner badge */}
-                  {merchant.plan ? (
+                  {/* Plan Partner badge */}
+                  {merchant.plan && (
                     <span className="inline-flex items-center gap-1 text-[9.5px] sm:text-[10px] font-normal text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/80 capitalize shrink-0">
                       <span>{merchant.plan} Partner</span>
-                      <TrendingUp className="w-3 h-3 text-purple-600" />
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[9.5px] sm:text-[10px] font-normal text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/80 shrink-0">
-                      <span>Growth Partner</span>
                       <TrendingUp className="w-3 h-3 text-purple-600" />
                     </span>
                   )}
                 </div>
 
-                <p className="text-[10.5px] sm:text-[11.5px] text-slate-500 font-normal">
-                  {coupons.length} active deals · validated on{" "}
-                  <span className="text-slate-800 font-normal">{todayStr}</span>
+                <p className="text-[11px] sm:text-[12px] text-slate-500 font-normal">
+                  <span className="font-medium text-slate-800">{coupons.length} active deals</span> · validated on{" "}
+                  <span className="text-slate-700 font-normal">{todayStr}</span>
                 </p>
               </div>
             </div>

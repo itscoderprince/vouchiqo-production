@@ -24,6 +24,8 @@ export default function PopularStores({ merchants = [] }) {
     href: `/brand/${m.slug}`,
     coupons: m.totalCoupons || 0,
     banner: m.banner,
+    category: m.category || "Deals",
+    discount: m.maxDiscount ? `Up to ${m.maxDiscount}%` : null,
     isVerified: m.isVerified ?? (m.status === "approved"),
     totalOffers: (m.totalCoupons || 0) + (m.totalRedemptions || 0),
   }));
@@ -134,7 +136,7 @@ export default function PopularStores({ merchants = [] }) {
 
       <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mt-3 sm:mt-4 items-stretch">
         {/* ── Store of the Month Card ── */}
-        <div className="w-full lg:w-1/4 shrink-0 flex flex-col h-auto lg:h-[432px]">
+        <div className="w-full lg:w-1/4 shrink-0 flex flex-col self-stretch">
           <Link
             href={somHref}
             className="flex-1 relative flex flex-col justify-between no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200/90 bg-white shadow-2xs group transition-all duration-200 hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] h-full"
@@ -155,6 +157,8 @@ export default function PopularStores({ merchants = [] }) {
                   <img
                     src={somLogo}
                     alt="Store Logo"
+                    loading="lazy"
+                    decoding="async"
                     className="max-h-full max-w-full object-contain rounded-lg"
                   />
                 </div>
@@ -192,31 +196,30 @@ export default function PopularStores({ merchants = [] }) {
         {/* ── Sliding Grid of Partner Stores (3 cols on mobile, 4 cols on desktop) ── */}
         <div className="gp-store-wrap lg:w-3/4 overflow-hidden">
           <div
-            className="vouchiqo-carousel-viewport h-full cursor-grab active:cursor-grabbing"
+            className="vouchiqo-carousel-viewport w-full cursor-grab active:cursor-grabbing"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
           >
             <div
-              className="vouchiqo-carousel-container h-full flex transition-transform duration-500 ease-in-out"
+              className="vouchiqo-carousel-container flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${selectedIndex * 100}%)` }}
             >
               {slides.map((slideStores, slideIdx) => (
                 <div
                   key={slideIdx}
-                  className="vouchiqo-carousel-slide h-full w-full flex-shrink-0"
+                  className="vouchiqo-carousel-slide w-full flex-shrink-0"
                 >
-                  <div
-                    className="gp-store-grid grid grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3.5 h-full"
-                    style={{ gridTemplateRows: "repeat(3, 1fr)" }}
-                  >
+                  <div className="gp-store-grid grid grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3.5">
                     {slideStores.map((store, idx) => (
                       <BrandGridItem
                         key={idx}
                         name={store.name}
                         logo={store.logo}
                         banner={store.banner}
+                        category={store.category}
+                        discount={store.discount}
                         href={store.href}
                         coupons={store.coupons}
                         isVerified={store.isVerified}
@@ -244,10 +247,10 @@ export default function PopularStores({ merchants = [] }) {
           box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
           transition: box-shadow 300ms ease;
           display: block;
-          height: 290px;
+          height: 310px;
         }
         @media (min-width: 768px) {
-          .gp-feat { height: 432px; }
+          .gp-feat { height: 520px; }
         }
         .gp-feat:hover {
           box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
@@ -373,16 +376,7 @@ export default function PopularStores({ merchants = [] }) {
 
         /* ── Right-side store grid ── */
         .gp-store-wrap {
-          height: 390px;
-        }
-        @media (min-width: 1024px) {
-          .gp-store-wrap {
-            height: 432px;
-          }
-        }
-
-        .gp-store-grid > a {
-          height: 100%;
+          width: 100%;
         }
       `}</style>
     </section>

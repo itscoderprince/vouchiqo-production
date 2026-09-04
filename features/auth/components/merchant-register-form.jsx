@@ -17,7 +17,15 @@ export function MerchantRegisterForm() {
 
   return (
     <AuthCard title="Merchant Partner Registration">
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <form
+        method="POST"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(e);
+        }}
+        className="space-y-4"
+        noValidate
+      >
         {/* Brand Name */}
         <FormInput
           label="Brand Name"

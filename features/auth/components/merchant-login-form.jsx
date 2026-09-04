@@ -12,7 +12,15 @@ export function MerchantLoginForm() {
 
   return (
     <AuthCard title="Merchant Partner Log In">
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <form
+        method="POST"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(e);
+        }}
+        className="space-y-4"
+        noValidate
+      >
         {/* Email Address */}
         <FormInput
           label="Email Address"

@@ -285,8 +285,8 @@ export function AppSidebar({ ...props }) {
     ? {
         name: authUser.businessName || authUser.name,
         email: authUser.email,
-        avatar: authUser.image || `/avatars/${role}.jpg`,
-        image: authUser.image,
+        avatar: authUser.image || authUser.logo || authUser.logoUrl || `/avatars/${role}.jpg`,
+        image: authUser.image || authUser.logo || authUser.logoUrl,
       }
     : {
         name: isMerchant ? "Merchant Partner" : "Super Admin",
@@ -723,33 +723,57 @@ export function AppSidebar({ ...props }) {
         <div
           className={`flex items-center gap-2.5 flex-1 min-w-0 ${isCollapsed ? "justify-center" : ""}`}
         >
-          {/* Logo in Left */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-[#F72853] font-medium text-sm shadow-2xs overflow-hidden border border-rose-200/80">
-            <Image
-              src="/favicon.ico"
-              alt="Vouchiqo Logo"
-              width={22}
-              height={22}
-              className="w-5.5 h-5.5 object-contain"
-            />
+          {/* Logo & Identity in Left */}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-2xs">
+            {role === "admin" ? (
+              <div className="w-full h-full bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-white stroke-[2.2]" />
+              </div>
+            ) : role === "merchant" ? (
+              user?.image ? (
+                <img
+                  src={user.image}
+                  alt="Merchant Logo"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                  <Store className="w-5 h-5 text-white stroke-[2]" />
+                </div>
+              )
+            ) : (
+              <div className="w-full h-full bg-rose-50 border border-rose-200/80 flex items-center justify-center">
+                <Image
+                  src="/favicon.ico"
+                  alt="Vouchiqo Logo"
+                  width={22}
+                  height={22}
+                  className="w-5.5 h-5.5 object-contain"
+                />
+              </div>
+            )}
           </div>
 
-          {/* User Name & Customer Badge in Middle */}
+          {/* User Name & Role Badge in Middle */}
           {!isCollapsed && (
             <div className="flex flex-col text-left leading-tight min-w-0 flex-1">
-              <span className="text-[13.5px] font-medium tracking-tight truncate text-slate-800">
+              <span className="text-[13.5px] font-semibold tracking-tight truncate text-slate-800">
                 {role === "admin" ? "Super Admin" : user.name}
               </span>
               <div className="flex items-center gap-1 mt-0.5">
-                <span className="bg-rose-50 text-[#F72853] border border-rose-200/70 text-[8.5px] font-normal px-2 py-0.2 rounded-full inline-block">
-                  {merchantPlan
-                    ? (PLAN_LABELS[merchantPlan] ?? merchantPlan.toUpperCase())
-                    : role === "admin"
-                      ? "PLATFORM ADMIN"
-                      : role === "merchant"
-                        ? "MERCHANT PARTNER"
-                        : "CUSTOMER"}
-                </span>
+                {role === "admin" ? (
+                  <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <ShieldCheck className="w-2.5 h-2.5 text-purple-600" /> PLATFORM ADMIN
+                  </span>
+                ) : role === "merchant" ? (
+                  <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <Store className="w-2.5 h-2.5 text-blue-600" /> {merchantPlan ? (PLAN_LABELS[merchantPlan] ?? merchantPlan.toUpperCase()) : "MERCHANT PARTNER"}
+                  </span>
+                ) : (
+                  <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full inline-block">
+                    MEMBER
+                  </span>
+                )}
               </div>
             </div>
           )}

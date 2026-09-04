@@ -10,16 +10,43 @@ const ConfirmationModal = dynamicImport(() => import("@/components/shared/modals
 });
 
 const Testimonials = dynamicImport(() =>
-  import("../Testimonials").then((mod) => mod.Testimonials),
+  import("../Testimonials").then((mod) => mod.Testimonials || mod.default),
 );
 const FaqSection = dynamicImport(() =>
-  import("../FAQSection").then((mod) => mod.FaqSection),
+  import("../FAQSection").then((mod) => mod.FaqSection || mod.default),
 );
 const LatestArticles = dynamicImport(() =>
-  import("../LatestArticles").then((mod) => mod.LatestArticles),
+  import("../LatestArticles").then((mod) => mod.LatestArticles || mod.default),
 );
 const RevivalPromo = dynamicImport(() =>
-  import("../RevivalPromo").then((mod) => mod.RevivalPromo),
+  import("../RevivalPromo").then((mod) => mod.RevivalPromo || mod.default),
+);
+
+const LocationPromptModal = dynamicImport(
+  () =>
+    import("@/components/shared/modals/LocationPromptModal").then(
+      (mod) => mod.default || mod.LocationPromptModal,
+    ),
+  { ssr: false },
+);
+const PopupBannerModal = dynamicImport(
+  () =>
+    import("./PopupBannerModal").then(
+      (mod) => mod.PopupBannerModal || mod.default,
+    ),
+  { ssr: false },
+);
+const InterestSheet = dynamicImport(
+  () =>
+    import("./InterestSheet").then((mod) => mod.InterestSheet || mod.default),
+  { ssr: false },
+);
+const InterestBanner = dynamicImport(
+  () =>
+    import("./InterestBanner").then(
+      (mod) => mod.InterestBanner || mod.default,
+    ),
+  { ssr: false },
 );
 
 // Layout elements
@@ -33,10 +60,6 @@ import { HeroSection } from "../HeroSection";
 import PopularOffers from "../PopularOffers";
 import PopularStores from "../PopularStores";
 import DealsOfTheDay from "./DealsOfTheDay";
-import InterestBanner from "./InterestBanner";
-import InterestSheet from "./InterestSheet";
-import LocationPromptModal from "@/components/shared/modals/LocationPromptModal";
-import PopupBannerModal from "./PopupBannerModal";
 // Component page sections
 import LeadingTaglineBar from "./LeadingTaglineBar";
 import NewsletterSubscription from "./NewsletterSubscription";

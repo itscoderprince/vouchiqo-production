@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import ErrorState from "@/components/shared/feedback/ErrorState";
 import { LiveIndicator } from "@/components/shared/LiveIndicator";
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useApplicationStatus } from "@/hooks/use-application-status";
+import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { showSuccess } from "@/lib/toast";
 import AdminReviewModal from "./AdminReviewModal";
 
@@ -34,14 +36,27 @@ export default function ApplicationTracker({ initialData }) {
   const queryClient = useQueryClient();
   const [adminModalOpen, setAdminModalOpen] = useState(false);
 
+  const { data, isLoading, isError, refetch, isRefetching, isConnected } =
+    useApplicationStatus();
+
   const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    isRefetching,
-    isConnected,
-  } = useApplicationStatus();
+    isOpen: isFeedbackOpen,
+    openFeedback,
+    closeFeedback,
+    submitFeedback,
+    isSubmitting: isSubmittingFeedback,
+    dismissFeedback,
+    hasResponded: hasRespondedFeedback,
+  } = useProcessFeedback("onboarding_wizard");
+
+  useEffect(() => {
+    if (data?.hasSubmitted && !hasRespondedFeedback) {
+      const timer = setTimeout(() => {
+        openFeedback();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [data?.hasSubmitted, hasRespondedFeedback, openFeedback]);
 
   const handleRefresh = async () => {
     await refetch();
@@ -99,7 +114,9 @@ export default function ApplicationTracker({ initialData }) {
               No Merchant Application Submitted Yet
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Complete the merchant onboarding wizard to submit your store details, statutory documents, and business profile for admin verification.
+              Complete the merchant onboarding wizard to submit your store
+              details, statutory documents, and business profile for admin
+              verification.
             </p>
           </div>
           <Button
@@ -116,9 +133,7 @@ export default function ApplicationTracker({ initialData }) {
   const isApproved = status === "approved" || status === "active";
   const isRejected = status === "rejected";
   const isAccepted =
-    status === "form_accepted" ||
-    status === "under_review" ||
-    isApproved;
+    status === "form_accepted" || status === "under_review" || isApproved;
 
   const progressPercentage = isApproved
     ? 100
@@ -155,8 +170,17 @@ export default function ApplicationTracker({ initialData }) {
     },
     {
       id: 2,
-      name: isApproved ? "Audit Passed" : isRejected ? "Audit Rejected" : "Compliance Audit",
-      subtitle: isAccepted || isApproved ? "Form Accepted" : isRejected ? (rejectionReason || "Action Required") : "In Progress",
+      name: isApproved
+        ? "Audit Passed"
+        : isRejected
+          ? "Audit Rejected"
+          : "Compliance Audit",
+      subtitle:
+        isAccepted || isApproved
+          ? "Form Accepted"
+          : isRejected
+            ? rejectionReason || "Action Required"
+            : "In Progress",
       isComplete: isAccepted || isApproved,
       isCurrent: isAccepted && !isApproved,
       isError: isRejected,
@@ -164,7 +188,11 @@ export default function ApplicationTracker({ initialData }) {
     {
       id: 3,
       name: "Account Activated",
-      subtitle: isApproved ? `Verified on ${verifiedDateStr}` : isRejected ? "Suspended" : "Final Step",
+      subtitle: isApproved
+        ? `Verified on ${verifiedDateStr}`
+        : isRejected
+          ? "Suspended"
+          : "Final Step",
       isComplete: isApproved,
       isCurrent: false,
       isError: isRejected,
@@ -233,7 +261,8 @@ export default function ApplicationTracker({ initialData }) {
                 : isAccepted
                   ? "Form accepted. Our compliance desk is auditing your store location and statutory documents."
                   : isRejected
-                    ? rejectionReason || "Some details need correction. Please review your profile and update your KYC information."
+                    ? rejectionReason ||
+                      "Some details need correction. Please review your profile and update your KYC information."
                     : "Form Submitted — Waiting for admin to accept your application form for review."}
             </p>
           </div>
@@ -253,7 +282,9 @@ export default function ApplicationTracker({ initialData }) {
               disabled={isRefetching}
               className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-bold h-8 px-4 rounded-xl cursor-pointer flex items-center gap-1.5"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`}
+              />
               <span>Refresh</span>
             </Button>
           </div>
@@ -273,7 +304,9 @@ export default function ApplicationTracker({ initialData }) {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-bold text-slate-700">{progressPercentage}% Completed</span>
+            <span className="text-xs font-bold text-slate-700">
+              {progressPercentage}% Completed
+            </span>
             <Badge className="bg-slate-100 text-slate-600 text-[10px] font-mono border-slate-200">
               #{applicationId}
             </Badge>
@@ -285,7 +318,11 @@ export default function ApplicationTracker({ initialData }) {
           value={progressPercentage}
           className="h-2 rounded-full bg-slate-100 mb-3"
           indicatorClassName={
-            isApproved ? "bg-emerald-600" : isRejected ? "bg-rose-500" : "bg-blue-600"
+            isApproved
+              ? "bg-emerald-600"
+              : isRejected
+                ? "bg-rose-500"
+                : "bg-blue-600"
           }
         />
 
@@ -323,12 +360,22 @@ export default function ApplicationTracker({ initialData }) {
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className={`text-[11px] font-bold truncate ${
-                    step.isComplete ? "text-emerald-900" : step.isError ? "text-rose-900" : step.isCurrent ? "text-blue-950" : "text-slate-500"
-                  }`}>
+                  <p
+                    className={`text-[11px] font-bold truncate ${
+                      step.isComplete
+                        ? "text-emerald-900"
+                        : step.isError
+                          ? "text-rose-900"
+                          : step.isCurrent
+                            ? "text-blue-950"
+                            : "text-slate-500"
+                    }`}
+                  >
                     {step.name}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-semibold truncate">{step.subtitle}</p>
+                  <p className="text-[10px] text-slate-500 font-semibold truncate">
+                    {step.subtitle}
+                  </p>
                 </div>
               </div>
             </div>
@@ -362,50 +409,86 @@ export default function ApplicationTracker({ initialData }) {
         {/* Business Details Grid — 4 columns on lg */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Business Name</span>
-            <span className="font-bold text-slate-900 block truncate text-[11px]">{businessName}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Business Name
+            </span>
+            <span className="font-bold text-slate-900 block truncate text-[11px]">
+              {businessName}
+            </span>
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Category</span>
-            <span className="font-bold text-blue-700 block truncate text-[11px]">{category}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Category
+            </span>
+            <span className="font-bold text-blue-700 block truncate text-[11px]">
+              {category}
+            </span>
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Liaison Representative</span>
-            <span className="font-bold text-slate-900 block truncate text-[11px]">{ownerName}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Liaison Representative
+            </span>
+            <span className="font-bold text-slate-900 block truncate text-[11px]">
+              {ownerName}
+            </span>
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Contact Email</span>
-            <span className="font-bold text-slate-800 block truncate text-[11px]">{email}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Contact Email
+            </span>
+            <span className="font-bold text-slate-800 block truncate text-[11px]">
+              {email}
+            </span>
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Phone Number</span>
-            <span className="font-bold text-slate-900 font-mono block text-[11px]">{phone}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Phone Number
+            </span>
+            <span className="font-bold text-slate-900 font-mono block text-[11px]">
+              {phone}
+            </span>
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Location</span>
-            <span className="font-bold text-slate-800 block truncate text-[11px]">{city}, {state}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Location
+            </span>
+            <span className="font-bold text-slate-800 block truncate text-[11px]">
+              {city}, {state}
+            </span>
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">GSTIN</span>
-            <span className="font-mono font-bold text-slate-900 block text-[11px]">{gstin}</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              GSTIN
+            </span>
+            <span className="font-mono font-bold text-slate-900 block text-[11px]">
+              {gstin}
+            </span>
           </div>
 
           {docType && (
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-slate-400 block">Identity Document</span>
-              <span className="font-bold text-slate-900 block truncate text-[11px]">{docType}</span>
+              <span className="text-[9px] uppercase font-bold text-slate-400 block">
+                Identity Document
+              </span>
+              <span className="font-bold text-slate-900 block truncate text-[11px]">
+                {docType}
+              </span>
             </div>
           )}
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">Review Desk</span>
-            <span className="font-bold text-slate-800 block text-[11px]">Vouchiqo Audit Desk #4</span>
+            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+              Review Desk
+            </span>
+            <span className="font-bold text-slate-800 block text-[11px]">
+              Vouchiqo Audit Desk #4
+            </span>
           </div>
         </div>
 
@@ -493,6 +576,17 @@ export default function ApplicationTracker({ initialData }) {
             queryKey: ["merchant-application-status"],
           });
         }}
+      />
+      {/* Process-Based Onboarding Wizard Feedback */}
+      <ProcessFeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={closeFeedback}
+        onSubmit={submitFeedback}
+        onDismiss={dismissFeedback}
+        isSubmitting={isSubmittingFeedback}
+        title="How was your registration & onboarding experience?"
+        subtitle="Help us make merchant application and store verification even smoother!"
+        merchantName={businessName}
       />
     </div>
   );

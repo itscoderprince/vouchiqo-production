@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   LogOut,
+  ShieldCheck,
   Store,
   Ticket,
   User,
@@ -144,15 +145,8 @@ export const UserMenu = () => {
     }
   };
 
-  // Render a consistent loading skeleton during SSR and initial client hydration
-  if (!mounted || isPending) {
-    return (
-      <div className="h-9 w-20 button-shimmer rounded-lg border border-slate-300/40 shrink-0" />
-    );
-  }
-
-  // Guest State: Render Sign In Button
-  if (!session) {
+  // Guest State: If not logged in, render the Login button immediately without loading delays
+  if (!session?.user) {
     return (
       <Link
         href="/login"
@@ -166,6 +160,8 @@ export const UserMenu = () => {
 
   // Use effectiveRole (DB-verified) if resolved, fall back to session role
   const role = effectiveRole ?? session.user.role ?? "customer";
+  const isAdmin = role === "admin";
+  const isMerchant = role === "merchant";
 
   const getMenuItems = () => {
     switch (role) {
@@ -217,15 +213,31 @@ export const UserMenu = () => {
     return name.slice(0, 2).toUpperCase();
   };
 
-  // Role badge shown in dropdown header
-  const roleBadgeLabel =
-    role === "admin" ? "Admin" : role === "merchant" ? "Merchant" : "Customer";
-  const roleBadgeColor =
-    role === "admin"
-      ? "bg-purple-100 text-purple-700"
-      : role === "merchant"
-        ? "bg-blue-100 text-blue-700"
-        : "bg-slate-100 text-slate-600";
+  const renderNavAvatar = () => {
+    if (session.user.image) {
+      return (
+        <img
+          src={session.user.image}
+          alt={session.user.name || "User profile"}
+          className="h-7 w-7 rounded-full object-cover shadow-2xs border border-slate-200"
+        />
+      );
+    }
+    // Plain rounded avatar with initials for all roles
+    const initials = getInitials(session.user.name);
+    const avatarClass = isAdmin
+      ? "bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white border-purple-200"
+      : isMerchant
+        ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white border-blue-200"
+        : "bg-slate-100 text-slate-800 border-slate-200";
+    return (
+      <div
+        className={`h-7 w-7 rounded-full font-bold text-[11px] flex items-center justify-center uppercase border shadow-2xs ${avatarClass}`}
+      >
+        {initials}
+      </div>
+    );
+  };
 
   return (
     <div className="relative shrink-0" ref={ref}>
@@ -240,18 +252,7 @@ export const UserMenu = () => {
         aria-haspopup="true"
         aria-expanded={open}
       >
-        {session.user.image ? (
-          // biome-ignore lint/performance/noImgElement: user avatar img
-          <img
-            src={session.user.image}
-            alt={session.user.name || "User profile"}
-            className="h-7 w-7 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-7 w-7 rounded-full bg-[#f1f5f9] text-[#475569] font-bold text-[11px] flex items-center justify-center uppercase">
-            {getInitials(session.user.name)}
-          </div>
-        )}
+        {renderNavAvatar()}
       </button>
 
       {open && (
@@ -259,14 +260,22 @@ export const UserMenu = () => {
           {/* User Profile Header */}
           <div className="px-4 py-2.5 border-b border-slate-100 bg-[#f8fafc]">
             <div className="flex items-center justify-between gap-2 mb-0.5">
-              <p className="text-[12px] font-black text-brand-navy truncate">
-                {session.user.name || "Member"}
+              <p className="text-[12px] font-bold text-slate-900 truncate">
+                {isAdmin ? "Super Admin" : session.user.name || "Member"}
               </p>
-              <span
-                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${roleBadgeColor}`}
-              >
-                {roleBadgeLabel}
-              </span>
+              {isAdmin ? (
+                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-purple-50 text-purple-700 border border-purple-200/80 inline-flex items-center gap-1">
+                  <ShieldCheck className="w-2.5 h-2.5 text-purple-600" /> ADMIN
+                </span>
+              ) : isMerchant ? (
+                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-blue-50 text-blue-700 border border-blue-200/80 inline-flex items-center gap-1">
+                  <Store className="w-2.5 h-2.5 text-blue-600" /> MERCHANT
+                </span>
+              ) : (
+                <span className="text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
+                  <User className="w-2.5 h-2.5 text-slate-500" /> MEMBER
+                </span>
+              )}
             </div>
             <p className="text-[10px] text-slate-400 font-semibold truncate">
               {session.user.email}

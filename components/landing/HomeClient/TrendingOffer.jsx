@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export const TrendingOffer = ({ banners: initialBanners = [] }) => {
   const [banners, setBanners] = useState(initialBanners);
@@ -113,12 +114,14 @@ export const TrendingOffer = ({ banners: initialBanners = [] }) => {
           );
 
           const innerContent = (
-            <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
+            <div className="relative w-full h-full flex items-center justify-center bg-slate-950 overflow-hidden">
               {/* Background image matching 1400x300 aspect ratio */}
-              <img
+              <SafeImage
                 src={s.image}
                 alt={s.title || "Trending Banner"}
-                className="w-full h-full object-cover transition-transform duration-700"
+                fill
+                sizes="(max-width: 1440px) 100vw, 1440px"
+                className="object-cover transition-transform duration-700"
                 style={{
                   transform: idx === current ? "scale(1.01)" : "scale(1)",
                 }}

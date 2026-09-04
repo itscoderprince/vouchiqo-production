@@ -3,6 +3,25 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
   transpilePackages: ["react-icons"],
+  compress: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
+      { protocol: "https", hostname: "*.cloudinary.com", pathname: "/**" },
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      { protocol: "https", hostname: "cdn.grabon.in", pathname: "/**" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "upload.wikimedia.org", pathname: "/**" },
+      { protocol: "https", hostname: "commons.wikimedia.org", pathname: "/**" },
+      { protocol: "https", hostname: "companieslogo.com", pathname: "/**" },
+      { protocol: "https", hostname: "ui-avatars.com", pathname: "/**" },
+    ],
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts", "react-icons"],
+  },
   async headers() {
     // In development mode, disable custom headers to avoid blocking dev webviews or popups
     if (!isProd) {

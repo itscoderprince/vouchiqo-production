@@ -46,7 +46,13 @@ export const errorResponse = error;
  * @param {unknown} err - The caught error
  */
 export function handleError(err) {
-  console.error("API Route Error Caught:", err);
+  // Only log unexpected internal errors (500+) to keep terminal clean of expected 404s/401s
+  if (
+    !err?.isOperational &&
+    (err?.statusCode === undefined || err?.statusCode >= 500)
+  ) {
+    console.error("API Route Error Caught:", err);
+  }
 
   // Known operational errors — safe to expose
   if (err instanceof AppError) {
@@ -56,12 +62,20 @@ export function handleError(err) {
   // Mongoose duplicate key (e.g. unique email / phone / gstin)
   if (err?.code === 11000) {
     const field = Object.keys(err.keyValue ?? {})[0] ?? "field";
-    return error(`${field} is already registered to another account`, HTTP.CONFLICT, "DUPLICATE_KEY");
+    return error(
+      `${field} is already registered to another account`,
+      HTTP.CONFLICT,
+      "DUPLICATE_KEY",
+    );
   }
 
   // Mongoose CastError (invalid ObjectId format)
   if (err?.name === "CastError") {
-    return error(`Invalid identifier: ${err.value}`, HTTP.BAD_REQUEST, "INVALID_ID");
+    return error(
+      `Invalid identifier: ${err.value}`,
+      HTTP.BAD_REQUEST,
+      "INVALID_ID",
+    );
   }
 
   // Mongoose document validation errors
@@ -84,6 +98,7 @@ export function handleError(err) {
 
   // Unknown errors — log internally and return actual error message
   logger.error({ err }, "Unhandled server error");
-  const message = err?.message || "An unexpected error occurred while processing request.";
+  const message =
+    err?.message || "An unexpected error occurred while processing request.";
   return error(message, HTTP.INTERNAL_ERROR, "INTERNAL_ERROR");
 }

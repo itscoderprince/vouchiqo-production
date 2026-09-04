@@ -1,5 +1,6 @@
 "use client";
 
+import SafeImage from "@/components/shared/SafeImage";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -72,15 +73,12 @@ function PopularOfferCard({ coupon }) {
     >
       {/* 1920x1080 (16:9) Aspect Ratio Image Header */}
       <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 shrink-0">
-        <img
+        <SafeImage
           src={coverImage}
-          alt={coupon.title || "Offer"}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none"
-          draggable={false}
-          onError={(e) => {
-            e.target.src =
-              "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop";
-          }}
+          alt={coupon.title || "Offer Banner"}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
       </div>
@@ -98,15 +96,12 @@ function PopularOfferCard({ coupon }) {
             zIndex: 10,
           }}
         >
-          <img
+          <SafeImage
             src={logoUrl}
-            referrerPolicy="no-referrer"
-            alt={merchantName}
+            alt={merchantName || "Logo"}
+            width={38}
+            height={38}
             className="w-full h-full object-contain rounded-full select-none pointer-events-none"
-            onError={(e) => {
-              e.currentTarget.src =
-                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23F72853' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-            }}
           />
         </div>
 

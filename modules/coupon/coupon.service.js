@@ -115,7 +115,7 @@ export async function getCouponById(couponId) {
     const dbCoupon = await Coupon.findById(couponId)
       .populate(
         "merchantId",
-        "businessName slug logo website location contactEmail contactPhone status plan",
+        "businessName slug logo banner category description shortDescription website location contactEmail contactPhone status plan",
       )
       .lean();
 

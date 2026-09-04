@@ -9,6 +9,7 @@ import {
 } from "@/lib/email/user-email";
 import { connectDB } from "@/lib/mongodb";
 import { ROLES } from "@/utils/constants";
+import { isDisposableEmail } from "@/utils/disposable-emails";
 
 const handler = toNextJsHandler(auth);
 
@@ -95,11 +96,23 @@ export async function POST(request) {
         );
       }
 
-      // Check duplicate email & mobile on sign-up
+      // Check disposable and duplicate email on sign-up
       if (pathname.endsWith("/sign-up/email") && body.email) {
+        const normalizedEmail = body.email.toLowerCase().trim();
+
+        if (isDisposableEmail(normalizedEmail)) {
+          return Response.json(
+            {
+              error: "Invalid Email",
+              message:
+                "Temporary or disposable email addresses are not permitted. Please use a valid personal or business email address.",
+            },
+            { status: 400 },
+          );
+        }
+
         await connectDB();
         const db = mongoose.connection.db;
-        const normalizedEmail = body.email.toLowerCase().trim();
         const existingEmailUser = await db.collection("user").findOne({ email: normalizedEmail });
         if (existingEmailUser) {
           return Response.json(
@@ -169,11 +182,7 @@ export async function POST(request) {
         const adminEmail = `${adminUsername}@vouchiqo.com`;
         const adminPassword = process.env.ADMIN_PASSWORD;
 
-        if (
-          adminPassword &&
-          email === adminEmail &&
-          password === adminPassword
-        ) {
+        if (adminPassword && email === adminEmail && password === adminPassword) {
           await connectDB();
           const db = mongoose.connection.db;
 
@@ -199,10 +208,18 @@ export async function POST(request) {
                 .collection("user")
                 .updateOne(
                   { _id: adminUser._id },
-                  { $set: { role: ROLES.ADMIN } },
+                  { $set: { role: ROLES.ADMIN, emailVerified: true } },
                 );
-              console.log(`[Admin Sync] Admin role elevated to ${ROLES.ADMIN}`);
+              console.log(`[Admin Sync] Admin role elevated to ${ROLES.ADMIN} and emailVerified`);
             }
+          } else if (!existingAdmin.emailVerified || existingAdmin.role !== ROLES.ADMIN) {
+            // Ensure existing admin is always verified and has admin role
+            await db
+              .collection("user")
+              .updateOne(
+                { _id: existingAdmin._id },
+                { $set: { role: ROLES.ADMIN, emailVerified: true } },
+              );
           }
         }
       }

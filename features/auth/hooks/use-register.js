@@ -10,8 +10,8 @@ export function useRegister() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ email, password, name, role, phoneNumber }) =>
-      signUp.email({
+    mutationFn: async ({ email, password, name, role, phoneNumber }) => {
+      const res = await signUp.email({
         email,
         password,
         name,
@@ -19,11 +19,17 @@ export function useRegister() {
           role,
           phoneNumber,
         },
-      }),
+      });
 
-    onSuccess: async ({ data, error }, variables) => {
-      if (error) {
-        toast.error(error.message ?? "Registration failed");
+      if (res?.error) {
+        throw new Error(res.error.message || "Registration failed");
+      }
+      return res;
+    },
+
+    onSuccess: async (res, variables) => {
+      if (res?.error) {
+        toast.error(res.error.message ?? "Registration failed");
         return;
       }
       toast.success("Account created! Welcome to Vouchiqo 🎉");
@@ -42,6 +48,6 @@ export function useRegister() {
     },
 
     onError: (err) =>
-      toast.error(err?.message ?? "Something went wrong. Try again."),
+      toast.error(err?.message ?? "Registration failed. Try again."),
   });
 }

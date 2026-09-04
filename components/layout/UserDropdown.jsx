@@ -2,7 +2,6 @@
 
 import {
   Bookmark,
-  ChevronDown,
   Home,
   IndianRupee,
   LayoutDashboard,
@@ -10,6 +9,7 @@ import {
   MapPin,
   Settings,
   ShieldCheck,
+  Store,
   Tag,
   TrendingUp,
   User,
@@ -119,8 +119,7 @@ export default function UserDropdown({
 
     if (!targetQuery) {
       return (
-        !searchParams.get("tab") ||
-        normalizedTarget === "/customer/dashboard"
+        !searchParams.get("tab") || normalizedTarget === "/customer/dashboard"
       );
     }
 
@@ -133,7 +132,13 @@ export default function UserDropdown({
 
   const currentName = user?.name || authUser?.name || "User";
   const currentEmail = user?.email || authUser?.email || "";
-  const currentImage = user?.image || authUser?.image;
+  const currentImage =
+    user?.image ||
+    authUser?.image ||
+    user?.logo ||
+    user?.logoUrl ||
+    authUser?.logo ||
+    authUser?.logoUrl;
 
   const initials = currentName
     ? currentName
@@ -143,6 +148,36 @@ export default function UserDropdown({
         .slice(0, 2)
         .toUpperCase()
     : "U";
+
+  // Per-role avatar styles
+  const roleAvatarStyle =
+    effectiveRole === "admin"
+      ? "bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white border-purple-300"
+      : effectiveRole === "merchant"
+        ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white border-blue-300"
+        : "bg-slate-100 text-slate-800 border-slate-200";
+
+  const renderAvatarFallback = () => {
+    if (effectiveRole === "admin") {
+      return (
+        <AvatarFallback className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center">
+          <ShieldCheck className="w-4 h-4 text-white stroke-[2.2]" />
+        </AvatarFallback>
+      );
+    }
+    if (effectiveRole === "merchant") {
+      return (
+        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-xs flex items-center justify-center">
+          <Store className="w-4 h-4 text-white stroke-[2]" />
+        </AvatarFallback>
+      );
+    }
+    return (
+      <AvatarFallback className="bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 uppercase flex items-center justify-center">
+        {initials}
+      </AvatarFallback>
+    );
+  };
 
   const customerLinks = [
     { title: "Dashboard", url: "/customer/dashboard", icon: LayoutDashboard },
@@ -158,14 +193,14 @@ export default function UserDropdown({
       <div className="space-y-3 font-sans text-left">
         <div className="flex items-center gap-2.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
           <Avatar className="h-9 w-9 rounded-xl border border-slate-200 shrink-0">
-            <AvatarImage src={currentImage} alt={currentName} />
-            <AvatarFallback className="bg-rose-50 text-[#F72853] font-medium text-xs">
-              {initials}
-            </AvatarFallback>
+            {currentImage ? (
+              <AvatarImage src={currentImage} alt={currentName} />
+            ) : null}
+            {renderAvatarFallback()}
           </Avatar>
           <div className="text-left min-w-0 flex-1">
-            <h4 className="text-xs font-medium text-slate-800 truncate">
-              {currentName}
+            <h4 className="text-xs font-semibold text-slate-800 truncate">
+              {effectiveRole === "admin" ? "Super Admin" : currentName}
             </h4>
             <p className="text-[10px] text-slate-400 truncate">
               {currentEmail || `${effectiveRole}@vouchiqo.com`}
@@ -190,15 +225,23 @@ export default function UserDropdown({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1.5 focus:outline-none cursor-pointer group select-none p-0.5 rounded-xl hover:bg-slate-50 transition-colors border-0 bg-transparent"
+          aria-label="User menu"
+          className="flex items-center justify-center focus:outline-none cursor-pointer select-none rounded-full transition-colors border-0 bg-transparent outline-none"
         >
-          <Avatar className="h-8 w-8 rounded-full border border-slate-200 group-hover:border-rose-200 transition-colors shrink-0 shadow-2xs">
-            <AvatarImage src={currentImage} alt={currentName} />
-            <AvatarFallback className="bg-rose-50 text-[#F72853] font-medium text-xs">
-              {initials}
-            </AvatarFallback>
+          <Avatar
+            className={`h-8 w-8 rounded-full border-2 shrink-0 shadow-sm transition-all ${
+              effectiveRole === "admin"
+                ? "border-purple-300 hover:border-purple-400"
+                : effectiveRole === "merchant"
+                  ? "border-blue-300 hover:border-blue-400"
+                  : "border-slate-200 hover:border-slate-300"
+            }`}
+          >
+            {currentImage ? (
+              <AvatarImage src={currentImage} alt={currentName} />
+            ) : null}
+            {renderAvatarFallback()}
           </Avatar>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -210,14 +253,14 @@ export default function UserDropdown({
         <DropdownMenuLabel className="p-2 font-normal select-none">
           <div className="flex items-center gap-2.5 text-left">
             <Avatar className="h-9 w-9 rounded-xl border border-slate-200 shrink-0">
-              <AvatarImage src={currentImage} alt={currentName} />
-              <AvatarFallback className="bg-rose-50 text-[#F72853] font-medium text-xs">
-                {initials}
-              </AvatarFallback>
+              {currentImage ? (
+                <AvatarImage src={currentImage} alt={currentName} />
+              ) : null}
+              {renderAvatarFallback()}
             </Avatar>
             <div className="flex flex-col text-left min-w-0 flex-1 leading-tight">
-              <span className="text-xs font-medium text-slate-900 truncate">
-                {currentName}
+              <span className="text-xs font-semibold text-slate-900 truncate">
+                {effectiveRole === "admin" ? "Super Admin" : currentName}
               </span>
               {currentEmail ? (
                 <span className="text-[10px] text-slate-400 truncate mt-0.5">
@@ -225,9 +268,21 @@ export default function UserDropdown({
                 </span>
               ) : null}
               <div className="mt-1">
-                <span className="bg-rose-50 text-[#F72853] border border-rose-200/70 text-[8px] font-medium px-1.5 py-0.2 rounded-full inline-block">
-                  {effectiveRole.toUpperCase()}
-                </span>
+                {effectiveRole === "admin" ? (
+                  <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <ShieldCheck className="w-2.5 h-2.5 text-purple-600" />{" "}
+                    SUPER ADMIN
+                  </span>
+                ) : effectiveRole === "merchant" ? (
+                  <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <Store className="w-2.5 h-2.5 text-blue-600" /> MERCHANT
+                    PARTNER
+                  </span>
+                ) : (
+                  <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <User className="w-2.5 h-2.5 text-slate-500" /> MEMBER
+                  </span>
+                )}
               </div>
             </div>
           </div>

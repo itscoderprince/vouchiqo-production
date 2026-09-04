@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { requireAuth } from "@/modules/auth/auth.middleware";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -19,7 +20,11 @@ export const dynamic = "force-dynamic";
  */
 export const GET = asyncHandler(async (request) => {
   await connectDB();
-  const { user } = await requireAuth(request);
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session?.user) {
+    return ok({ notifications: [], total: 0, unreadCount: 0 });
+  }
+  const user = session.user;
   const { searchParams } = new URL(request.url);
 
   const result = await getUserNotifications(user.id, searchParams);

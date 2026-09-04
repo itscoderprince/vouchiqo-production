@@ -7,14 +7,16 @@ import {
   Clock,
   Loader2,
   MapPin,
+  MessageSquareHeart,
   Shield,
   Store,
   X,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
-
+import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import Step1Identity from "./components/Step1Identity";
 import Step2Location from "./components/Step2Location";
 import Step3KYC from "./components/Step3KYC";
@@ -46,6 +48,14 @@ export default function MerchantBusinessProfile() {
     isPending,
     isAdmin,
   } = useMerchantProfileForm();
+  const {
+    isOpen: isFeedbackOpen,
+    openFeedback,
+    closeFeedback,
+    submitFeedback,
+    isSubmitting: isSubmittingFeedback,
+    dismissFeedback,
+  } = useProcessFeedback("profile_completion");
 
   if (isLoading) {
     return (
@@ -60,6 +70,14 @@ export default function MerchantBusinessProfile() {
       <DashboardLayout title="Business Profile" user={{ role: "merchant" }}>
         <div className="text-center py-20 text-rose-600 font-semibold">
           Error loading profile. Please refresh the page.
+          <ProcessFeedbackModal
+            isOpen={isFeedbackOpen}
+            onClose={closeFeedback}
+            onSubmit={submitFeedback}
+            onDismiss={dismissFeedback}
+            isSubmitting={isSubmittingFeedback}
+            merchantName={merchant?.businessName}
+          />
         </div>
       </DashboardLayout>
     );
@@ -131,6 +149,14 @@ export default function MerchantBusinessProfile() {
                 className="border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer"
               >
                 Edit Profile Details
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => openFeedback()}
+                className="border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 text-xs font-bold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5"
+              >
+                <MessageSquareHeart className="w-3.5 h-3.5 text-blue-600" />
+                <span>Rate Setup Process</span>
               </Button>
             </div>
           </div>
@@ -223,10 +249,7 @@ export default function MerchantBusinessProfile() {
         </div>
 
         {/* Multi-Step Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           {step === 1 && (
             <Step1Identity
               register={register}
@@ -276,34 +299,30 @@ export default function MerchantBusinessProfile() {
               <span>Back</span>
             </Button>
 
-            {step < 3 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
-              >
-                <span>Next Step</span>
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Submitting Profile...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Submit Profile Details</span>
-                    <CheckCircle2 className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
-            )}
+            {step < 3
+              ? <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+                >
+                  <span>Next Step</span>
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              : <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
+                >
+                  {isPending
+                    ? <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting Profile...</span>
+                      </>
+                    : <>
+                        <span>Submit Profile Details</span>
+                        <CheckCircle2 className="w-4 h-4" />
+                      </>}
+                </Button>}
           </div>
         </form>
       </div>

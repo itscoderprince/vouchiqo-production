@@ -27,7 +27,7 @@ export function useMerchantLoginForm() {
       typeof window !== "undefined" &&
       sessionStorage.getItem("vouchiqo_is_merchant") === "true";
 
-    if (user || role === "merchant" || isMerchantFlag) {
+    if (user && (role === "merchant" || isMerchantFlag)) {
       fetch("/api/merchants/me")
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
@@ -37,14 +37,12 @@ export function useMerchantLoginForm() {
             router.replace("/merchant/dashboard");
           } else if (merchant && (merchant._id || merchant.status || merchant.businessName)) {
             router.replace("/merchant/application-status");
-          } else if (role === "merchant" || isMerchantFlag) {
+          } else {
             router.replace("/merchant/dashboard");
           }
         })
         .catch(() => {
-          if (role === "merchant" || isMerchantFlag) {
-            router.replace("/merchant/dashboard");
-          }
+          router.replace("/merchant/dashboard");
         });
     }
   }, [user, role, isLoaded, router]);

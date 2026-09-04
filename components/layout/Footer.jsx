@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { FaBlogger, FaInstagram, FaLinkedin, FaMedium } from "react-icons/fa";
 
@@ -12,10 +13,11 @@ export default function Footer() {
               href="/"
               className="inline-block bg-white p-2 rounded-lg hover:opacity-90 transition-opacity"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/navbarlogovouchiqo.webp"
                 alt="Vouchiqo Logo"
+                width={120}
+                height={32}
                 className="h-8 w-auto object-contain"
               />
             </Link>

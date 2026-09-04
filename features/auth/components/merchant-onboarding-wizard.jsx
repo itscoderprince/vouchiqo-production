@@ -4,6 +4,7 @@ import {
   Building,
   Building2,
   Check,
+  CheckCheck,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -863,6 +864,157 @@ export function MerchantOnboardingWizard() {
       setFieldErrors({});
     }
     setCurrentStep((prev) => Math.min(6, prev + 1));
+  };
+
+  // Step 6: 1-Click Agreement Acceptance Calculations & Handlers
+  const allCommitmentsChecked =
+    commitmentItems.length > 0 &&
+    commitmentItems.every((c, idx) => {
+      const itemKey = c.key || `commit${idx + 1}`;
+      return !!formData[itemKey] || !!formData.commitmentsAccepted?.[c.id];
+    });
+
+  const allPoliciesChecked =
+    policyItems.length > 0 &&
+    policyItems.every((p, idx) => {
+      const itemKey = p.key || `policy${idx + 1}`;
+      return !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
+    });
+
+  const areAllAgreementsChecked =
+    allCommitmentsChecked && allPoliciesChecked;
+
+  const totalAgreementsCount = commitmentItems.length + policyItems.length;
+  const acceptedAgreementsCount =
+    commitmentItems.filter((c, idx) => {
+      const itemKey = c.key || `commit${idx + 1}`;
+      return !!formData[itemKey] || !!formData.commitmentsAccepted?.[c.id];
+    }).length +
+    policyItems.filter((p, idx) => {
+      const itemKey = p.key || `policy${idx + 1}`;
+      return !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
+    }).length;
+
+  const handleToggleAllAgreements = (shouldAccept) => {
+    const targetState =
+      typeof shouldAccept === "boolean"
+        ? shouldAccept
+        : !areAllAgreementsChecked;
+
+    const updatedCommitments = { ...(formData.commitmentsAccepted || {}) };
+    const updatedPolicies = { ...(formData.policiesAccepted || {}) };
+    const fieldUpdates = {};
+
+    commitmentItems.forEach((c, idx) => {
+      const itemKey = c.key || `commit${idx + 1}`;
+      fieldUpdates[itemKey] = targetState;
+      if (c.id) {
+        updatedCommitments[c.id] = targetState;
+      }
+    });
+
+    policyItems.forEach((p, idx) => {
+      const itemKey = p.key || `policy${idx + 1}`;
+      fieldUpdates[itemKey] = targetState;
+      if (p.id) {
+        updatedPolicies[p.id] = targetState;
+      }
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      ...fieldUpdates,
+      commitmentsAccepted: updatedCommitments,
+      policiesAccepted: updatedPolicies,
+    }));
+
+    if (targetState) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        commitmentItems.forEach((c, idx) => {
+          const itemKey = c.key || `commit${idx + 1}`;
+          delete next[itemKey];
+        });
+        policyItems.forEach((p, idx) => {
+          const itemKey = p.key || `policy${idx + 1}`;
+          delete next[itemKey];
+        });
+        return next;
+      });
+      toast.success("All declarations & policy agreements accepted!");
+    } else {
+      toast("Deselected all agreements", { icon: "ℹ️" });
+    }
+  };
+
+  const handleToggleCommitmentsOnly = (shouldAccept) => {
+    const targetState =
+      typeof shouldAccept === "boolean"
+        ? shouldAccept
+        : !allCommitmentsChecked;
+    const updatedCommitments = { ...(formData.commitmentsAccepted || {}) };
+    const fieldUpdates = {};
+
+    commitmentItems.forEach((c, idx) => {
+      const itemKey = c.key || `commit${idx + 1}`;
+      fieldUpdates[itemKey] = targetState;
+      if (c.id) {
+        updatedCommitments[c.id] = targetState;
+      }
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      ...fieldUpdates,
+      commitmentsAccepted: updatedCommitments,
+    }));
+
+    if (targetState) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        commitmentItems.forEach((c, idx) => {
+          const itemKey = c.key || `commit${idx + 1}`;
+          delete next[itemKey];
+        });
+        return next;
+      });
+      toast.success("All merchant commitments accepted!");
+    }
+  };
+
+  const handleTogglePoliciesOnly = (shouldAccept) => {
+    const targetState =
+      typeof shouldAccept === "boolean"
+        ? shouldAccept
+        : !allPoliciesChecked;
+    const updatedPolicies = { ...(formData.policiesAccepted || {}) };
+    const fieldUpdates = {};
+
+    policyItems.forEach((p, idx) => {
+      const itemKey = p.key || `policy${idx + 1}`;
+      fieldUpdates[itemKey] = targetState;
+      if (p.id) {
+        updatedPolicies[p.id] = targetState;
+      }
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      ...fieldUpdates,
+      policiesAccepted: updatedPolicies,
+    }));
+
+    if (targetState) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        policyItems.forEach((p, idx) => {
+          const itemKey = p.key || `policy${idx + 1}`;
+          delete next[itemKey];
+        });
+        return next;
+      });
+      toast.success("All policy agreements accepted!");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -2707,7 +2859,7 @@ export function MerchantOnboardingWizard() {
       {/* SECTION 6: DECLARATIONS & SUBMIT */}
       {currentStep === 6 && (
         <Card className="border border-slate-200/90 shadow-xs rounded-xl bg-white p-3.5 sm:p-5 space-y-3.5">
-          <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
+          <div className="border-b border-slate-100 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Section F: Declarations, Agreements &amp; Submission
@@ -2716,18 +2868,33 @@ export function MerchantOnboardingWizard() {
                 Final merchant commitments, policy agreements &amp; digital signature
               </p>
             </div>
-            <Badge
-              variant="outline"
-              className="text-[10px] font-medium border-slate-200 text-slate-600"
-            >
-              Section 6 of 6
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="text-[10px] font-medium border-slate-200 text-slate-600"
+              >
+                Section 6 of 6
+              </Badge>
+            </div>
           </div>
 
           <div className="space-y-3">
-            <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-              Merchant Commitments ({commitmentItems.length})
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
+                Merchant Commitments ({commitmentItems.length})
+              </Label>
+              <button
+                type="button"
+                onClick={() =>
+                  handleToggleCommitmentsOnly(!allCommitmentsChecked)
+                }
+                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-transparent border-0 p-0"
+              >
+                {allCommitmentsChecked
+                  ? "Deselect Commitments"
+                  : "Tick All Commitments"}
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {commitmentItems.map((c, idx) => {
                 const itemKey = c.key || `commit${idx + 1}`;
@@ -2772,9 +2939,22 @@ export function MerchantOnboardingWizard() {
             </div>
 
             <div className="space-y-2 pt-2 border-t border-slate-100">
-              <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-                Policy Agreements
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
+                  Policy Agreements ({policyItems.length})
+                </Label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleTogglePoliciesOnly(!allPoliciesChecked)
+                  }
+                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-transparent border-0 p-0"
+                >
+                  {allPoliciesChecked
+                    ? "Deselect Policies"
+                    : "Tick All Policies"}
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {policyItems.map((p, idx) => {
                   const itemKey = p.key || `policy${idx + 1}`;
@@ -2905,10 +3085,30 @@ export function MerchantOnboardingWizard() {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-[11px] font-medium text-slate-500 hidden sm:inline-block">
             Section {currentStep} of 6
           </span>
+          {currentStep === 6 && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleToggleAllAgreements(!areAllAgreementsChecked)}
+              className={`text-xs font-semibold h-9.5 px-3 sm:px-4 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                areAllAgreementsChecked
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                  : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+              }`}
+            >
+              <CheckCheck className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {areAllAgreementsChecked ? "✓ All Ticked" : "Tick All Agreements"}
+              </span>
+              <span className="sm:hidden">
+                {areAllAgreementsChecked ? "✓ All" : "Tick All"}
+              </span>
+            </Button>
+          )}
           {currentStep < 6 ? (
             <Button
               onClick={handleNext}

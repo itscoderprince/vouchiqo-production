@@ -1,14 +1,23 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowRight, Clock, Info, Lock, ShoppingCart, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Clock,
+  Info,
+  Lock,
+  Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
 import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import KpiCards from "./components/KpiCards";
@@ -106,6 +115,25 @@ export default function MerchantDashboard() {
 
   const trendData = analyticsData?.trend ?? [];
   const merchant = analyticsData?.merchant ?? merchantProfile;
+
+  const {
+    isOpen: isFeedbackOpen,
+    openFeedback,
+    closeFeedback,
+    submitFeedback,
+    isSubmitting: isSubmittingFeedback,
+    dismissFeedback,
+    hasResponded: hasRespondedFeedback,
+  } = useProcessFeedback("profile_completion");
+
+  useEffect(() => {
+    if (merchant && !hasRespondedFeedback && !isProfileIncomplete) {
+      const timer = setTimeout(() => {
+        openFeedback();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [merchant, hasRespondedFeedback, isProfileIncomplete, openFeedback]);
   const overviewStats = analyticsData?.overview ?? {};
 
   // KPI computations from real DB
@@ -180,7 +208,9 @@ export default function MerchantDashboard() {
           id: c._id || c.id,
           title: c.title || "Offer Listing",
           code: c.code || "N/A",
-          discount: c.discount || (c.discountValue ? `${c.discountValue}% OFF` : "Deal"),
+          discount:
+            c.discount ||
+            (c.discountValue ? `${c.discountValue}% OFF` : "Deal"),
           category: c.category || "General",
           clicks: Number(c.clickCount ?? c.views ?? c.viewCount) || 0,
           views: Number(c.viewCount) || 0,
@@ -255,7 +285,9 @@ export default function MerchantDashboard() {
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                  Your store profile is currently incomplete. Complete all 15 required details to unlock your listings, analytics, and partner controls.
+                  Your store profile is currently incomplete. Complete all 15
+                  required details to unlock your listings, analytics, and
+                  partner controls.
                 </p>
               </div>
 
@@ -396,6 +428,15 @@ export default function MerchantDashboard() {
             recentActivities={recentActivities}
           />
         </div>
+        {/* Process-Based Profile Completion Feedback */}
+        <ProcessFeedbackModal
+          isOpen={isFeedbackOpen}
+          onClose={closeFeedback}
+          onSubmit={submitFeedback}
+          onDismiss={dismissFeedback}
+          isSubmitting={isSubmittingFeedback}
+          merchantName={merchant?.businessName}
+        />
       </div>
     </DashboardLayout>
   );

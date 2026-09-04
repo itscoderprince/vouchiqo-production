@@ -11,7 +11,15 @@ export function AdminLoginForm() {
 
   return (
     <AuthCard title="Admin Log In">
-      <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+      <form
+        method="POST"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(e);
+        }}
+        className="space-y-3.5"
+        noValidate
+      >
         {/* Username/Email */}
         <FormInput
           prefix={User}
