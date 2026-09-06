@@ -5,7 +5,7 @@ import {
   checkMerchantDuplicates,
   generateUniqueSlug,
 } from "@/modules/merchant/merchant.service";
-import { ok } from "@/utils/api-response";
+import { ok, error } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 
 export const dynamic = "force-dynamic";

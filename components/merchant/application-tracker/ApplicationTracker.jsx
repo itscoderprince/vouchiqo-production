@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import ErrorState from "@/components/shared/feedback/ErrorState";
