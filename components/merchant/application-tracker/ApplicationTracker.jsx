@@ -18,7 +18,6 @@ import { useState, useEffect } from "react";
 import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import ErrorState from "@/components/shared/feedback/ErrorState";
-import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -218,7 +217,6 @@ export default function ApplicationTracker({ initialData }) {
               <Badge className="bg-white/10 text-white border-white/20 font-medium text-[11px] px-2.5 py-0.5 rounded-md">
                 Application #{applicationId}
               </Badge>
-              <LiveIndicator />
               {isApproved && (
                 <Badge className="bg-emerald-500 text-white font-medium text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
