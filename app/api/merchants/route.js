@@ -46,17 +46,20 @@ export const POST = asyncHandler(async (request) => {
     createdAt: merchant.createdAt,
   };
 
-  // Dispatch Welcome Credentials Email to merchant if not sent during sign-up/email in last 60 seconds
+  // Dispatch Welcome & Credentials Confirmation Email to merchant and notification to admin
   const lastSent = user.lastWelcomeEmailSentAt ? new Date(user.lastWelcomeEmailSentAt).getTime() : 0;
   const isRecentlySent = Date.now() - lastSent < 60000;
 
-  if (!isRecentlySent) {
+  // Send if not recently sent, OR if a explicit password was provided with this application submission
+  if (!isRecentlySent || body.password) {
     sendMerchantWelcomeEmail({
       to: merchant.contactEmail || user.email,
       email: merchant.contactEmail || user.email,
       password: body.password || undefined,
       businessName: merchant.businessName,
       liaisonName: merchant.liaisonName,
+      phone: merchant.contactPhone || merchant.liaisonPhone,
+      category: merchant.category,
     }).catch((err) => console.error("[Merchant Welcome Email Error]:", err));
   }
 

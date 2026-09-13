@@ -62,6 +62,7 @@ const backendResetPasswordSchema = z.object({
 export async function POST(request) {
   const url = new URL(request.url);
   const pathname = url.pathname;
+  let parsedBody = null;
 
   try {
     // Perform validation depending on endpoint
@@ -73,6 +74,7 @@ export async function POST(request) {
     ) {
       const clone = request.clone();
       const body = await clone.json().catch(() => ({}));
+      parsedBody = body;
 
       let result;
       if (pathname.endsWith("/sign-in/email")) {
@@ -233,8 +235,7 @@ export async function POST(request) {
   // Post-process /sign-up/email to send Welcome Email & promote merchant role
   if (pathname.endsWith("/sign-up/email") && response.ok) {
     try {
-      const clone = request.clone();
-      const body = await clone.json().catch(() => ({}));
+      const body = parsedBody || {};
       const referer = request.headers.get("referer") || "";
       const requestedRole = body.role || body.data?.role;
       const isMerchantSignup =
@@ -298,8 +299,7 @@ export async function POST(request) {
   // Post-process /sign-in/email to send Welcome Email on FIRST LOGIN or Welcome Back on returning logins
   if (pathname.endsWith("/sign-in/email") && response.ok) {
     try {
-      const clone = request.clone();
-      const body = await clone.json().catch(() => ({}));
+      const body = parsedBody || {};
       if (body.email) {
         await connectDB();
         const db = mongoose.connection.db;
