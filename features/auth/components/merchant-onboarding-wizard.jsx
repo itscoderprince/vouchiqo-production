@@ -2883,17 +2883,14 @@ export function MerchantOnboardingWizard() {
               <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
                 Merchant Commitments ({commitmentItems.length})
               </Label>
-              <button
-                type="button"
-                onClick={() =>
-                  handleToggleCommitmentsOnly(!allCommitmentsChecked)
-                }
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-transparent border-0 p-0"
-              >
-                {allCommitmentsChecked
-                  ? "Deselect Commitments"
-                  : "Tick All Commitments"}
-              </button>
+              <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 cursor-pointer select-none">
+                <Checkbox
+                  checked={allCommitmentsChecked}
+                  onCheckedChange={(val) => handleToggleCommitmentsOnly(!!val)}
+                  className="w-3.5 h-3.5 rounded-sm"
+                />
+                <span>Select All</span>
+              </label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {commitmentItems.map((c, idx) => {
@@ -2943,17 +2940,14 @@ export function MerchantOnboardingWizard() {
                 <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
                   Policy Agreements ({policyItems.length})
                 </Label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleTogglePoliciesOnly(!allPoliciesChecked)
-                  }
-                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-transparent border-0 p-0"
-                >
-                  {allPoliciesChecked
-                    ? "Deselect Policies"
-                    : "Tick All Policies"}
-                </button>
+                <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 cursor-pointer select-none">
+                  <Checkbox
+                    checked={allPoliciesChecked}
+                    onCheckedChange={(val) => handleTogglePoliciesOnly(!!val)}
+                    className="w-3.5 h-3.5 rounded-sm"
+                  />
+                  <span>Select All</span>
+                </label>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {policyItems.map((p, idx) => {
@@ -3102,10 +3096,10 @@ export function MerchantOnboardingWizard() {
             >
               <CheckCheck className="w-4 h-4" />
               <span className="hidden sm:inline">
-                {areAllAgreementsChecked ? "✓ All Ticked" : "Tick All Agreements"}
+                {areAllAgreementsChecked ? "✓ All Accepted" : "Accept All Agreements"}
               </span>
               <span className="sm:hidden">
-                {areAllAgreementsChecked ? "✓ All" : "Tick All"}
+                {areAllAgreementsChecked ? "✓ Accepted" : "Accept All"}
               </span>
             </Button>
           )}

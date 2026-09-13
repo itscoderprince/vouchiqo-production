@@ -46,15 +46,15 @@ export default function ApplicationSummary({
         {/* Header */}
         <DialogHeader className="space-y-1.5 pb-4 border-b border-slate-100">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <DialogTitle className="text-base sm:text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <DialogTitle className="text-base sm:text-lg font-semibold text-slate-900 flex items-center gap-2">
               <Store className="w-5 h-5 text-blue-600 shrink-0" />
               Submitted Business Profile &amp; Application Details
             </DialogTitle>
-            <Badge className="bg-slate-900 text-white font-mono text-xs px-3 py-1 rounded-md shrink-0">
+            <Badge className="bg-slate-900 text-white font-medium text-xs px-3 py-1 rounded-md shrink-0">
               #{applicationId}
             </Badge>
           </div>
-          <DialogDescription className="text-xs sm:text-sm text-slate-500 font-medium">
+          <DialogDescription className="text-xs sm:text-sm text-slate-500 font-normal">
             Full business information and verification documents submitted to Vouchiqo
           </DialogDescription>
         </DialogHeader>
@@ -64,38 +64,38 @@ export default function ApplicationSummary({
           {/* Business Core Specs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block">
+              <span className="text-[10px] uppercase font-medium tracking-wider text-slate-400 block">
                 Legal Business Name
               </span>
-              <span className="font-bold text-sm sm:text-base text-slate-900 block leading-tight">
+              <span className="font-medium text-sm text-slate-900 block leading-tight">
                 {businessName}
               </span>
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block">
+              <span className="text-[10px] uppercase font-medium tracking-wider text-slate-400 block">
                 Primary Business Category
               </span>
-              <span className="font-bold text-xs sm:text-sm text-blue-700 flex items-center gap-1.5 leading-tight">
+              <span className="font-medium text-xs sm:text-sm text-blue-700 flex items-center gap-1.5 leading-tight">
                 <Tag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>{category}</span>
               </span>
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block">
+              <span className="text-[10px] uppercase font-medium tracking-wider text-slate-400 block">
                 Owner / Authorized Representative
               </span>
-              <span className="font-bold text-xs sm:text-sm text-slate-800 block">
+              <span className="font-medium text-xs sm:text-sm text-slate-800 block">
                 {ownerName}
               </span>
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block">
+              <span className="text-[10px] uppercase font-medium tracking-wider text-slate-400 block">
                 Submitted Date
               </span>
-              <span className="font-medium text-xs sm:text-sm text-slate-600 block">
+              <span className="font-normal text-xs sm:text-sm text-slate-600 block">
                 {submittedAt
                   ? new Date(submittedAt).toLocaleString("en-US", {
                       dateStyle: "medium",
@@ -108,7 +108,7 @@ export default function ApplicationSummary({
 
           {/* Contact & Location Credentials */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-800">
               Contact &amp; Address Credentials
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -117,10 +117,10 @@ export default function ApplicationSummary({
                   <Mail className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <span className="text-[10px] uppercase font-medium text-slate-400 block">
                     Official Email
                   </span>
-                  <span className="font-bold text-xs text-slate-900 break-all block">
+                  <span className="font-medium text-xs text-slate-800 break-all block">
                     {email}
                   </span>
                 </div>
@@ -131,10 +131,10 @@ export default function ApplicationSummary({
                   <Phone className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <span className="text-[10px] uppercase font-medium text-slate-400 block">
                     Phone Number
                   </span>
-                  <span className="font-bold text-xs text-slate-900 block font-mono">
+                  <span className="font-medium text-xs text-slate-800 block">
                     {phone}
                   </span>
                 </div>
@@ -145,10 +145,10 @@ export default function ApplicationSummary({
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <span className="text-[10px] uppercase font-medium text-slate-400 block">
                     Store Location
                   </span>
-                  <span className="font-bold text-xs text-slate-900 block truncate">
+                  <span className="font-medium text-xs text-slate-800 block truncate">
                     {city}, {state}, India
                   </span>
                 </div>
@@ -158,15 +158,15 @@ export default function ApplicationSummary({
 
           {/* Tax & Identity Credentials */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-800">
               Tax &amp; Identity Credentials
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 sm:col-span-2">
-                <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 block mb-0.5">
+                <span className="text-[10px] uppercase font-medium tracking-wider text-slate-400 block mb-0.5">
                   GSTIN Number
                 </span>
-                <span className="font-mono font-bold text-sm text-slate-900 tracking-wider">
+                <span className="font-medium text-sm text-slate-800 tracking-wide">
                   {gstin || "20AAAAA0000A1Z5"}
                 </span>
               </div>
@@ -175,7 +175,7 @@ export default function ApplicationSummary({
 
           {/* Uploaded Verification Files */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-800">
               Uploaded Verification Files ({documents.length})
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

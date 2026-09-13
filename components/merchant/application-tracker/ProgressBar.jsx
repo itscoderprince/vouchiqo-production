@@ -26,7 +26,7 @@ export default function ProgressBar({
         </span>
         <span
           className={cn(
-            "font-mono font-medium text-xs",
+            "font-medium text-xs",
             isError ? "text-red-600" : isComplete ? "text-blue-600" : "text-blue-600",
           )}
         >

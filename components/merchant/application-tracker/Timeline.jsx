@@ -128,7 +128,7 @@ export default function Timeline({ events = [], progressPercentage = 66 }) {
             <span className="flex items-center gap-1">
               <Activity className="w-3 h-3 text-blue-600" /> Audit Progress
             </span>
-            <span className="text-blue-600 font-mono text-xs font-medium">
+            <span className="text-blue-600 text-xs font-medium">
               {activeProgress}%
             </span>
           </div>
@@ -163,7 +163,7 @@ export default function Timeline({ events = [], progressPercentage = 66 }) {
               )}
 
               {evt.timestamp && (
-                <span className="text-[10px] text-slate-400 font-normal block font-mono">
+                <span className="text-[10px] text-slate-400 font-normal block">
                   {formatTime(evt.timestamp)}
                 </span>
               )}

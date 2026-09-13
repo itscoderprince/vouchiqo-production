@@ -39,7 +39,7 @@ export default function AdminIndicator({
           <span className="block text-[9px] uppercase text-slate-400 font-normal">
             Last Activity
           </span>
-          <span className="font-mono text-slate-800">
+          <span className="font-medium text-slate-800">
             {new Date(lastUpdated).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",

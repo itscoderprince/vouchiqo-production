@@ -47,7 +47,7 @@ export default function SuccessHero({
             <span className="text-[10px] font-normal text-slate-400 block">
               Application Reference ID
             </span>
-            <span className="font-mono text-xs font-medium text-blue-400">
+            <span className="text-xs font-medium text-blue-400">
               #{applicationId}
             </span>
           </div>

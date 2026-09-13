@@ -67,7 +67,7 @@ export default function StatusCard({
             <span className="text-[10px] font-normal text-slate-400 block">
               Application ID
             </span>
-            <span className="font-mono font-medium text-blue-600 text-xs">
+            <span className="font-medium text-blue-600 text-xs">
               #{applicationId}
             </span>
           </div>

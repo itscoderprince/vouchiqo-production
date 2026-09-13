@@ -215,37 +215,37 @@ export default function ApplicationTracker({ initialData }) {
           {/* Left: Title + Badges */}
           <div className="space-y-2 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-white/10 text-white border-white/20 font-mono text-[10px] px-2.5 py-0.5 rounded-md">
+              <Badge className="bg-white/10 text-white border-white/20 font-medium text-[11px] px-2.5 py-0.5 rounded-md">
                 Application #{applicationId}
               </Badge>
               <LiveIndicator />
               {isApproved && (
-                <Badge className="bg-emerald-500 text-white font-bold text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
+                <Badge className="bg-emerald-500 text-white font-medium text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Account Verified & Active
                 </Badge>
               )}
               {isAccepted && !isApproved && (
-                <Badge className="bg-blue-600 text-white font-bold text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
+                <Badge className="bg-blue-600 text-white font-medium text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Form Accepted — Audit Underway
                 </Badge>
               )}
               {!isAccepted && !isRejected && (
-                <Badge className="bg-slate-700 text-slate-100 font-bold text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
+                <Badge className="bg-slate-700 text-slate-100 font-medium text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Form Submitted — Awaiting Acceptance
                 </Badge>
               )}
               {isRejected && (
-                <Badge className="bg-rose-500 text-white font-bold text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
+                <Badge className="bg-rose-500 text-white font-medium text-[10px] px-2.5 py-0.5 border-0 flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
                   Action Required
                 </Badge>
               )}
             </div>
 
-            <h1 className="text-base sm:text-lg font-black tracking-tight text-white leading-snug">
+            <h1 className="text-base sm:text-lg font-semibold tracking-normal text-white leading-snug">
               {isApproved
                 ? `${businessName} is Verified & Live!`
                 : isAccepted
@@ -255,7 +255,7 @@ export default function ApplicationTracker({ initialData }) {
                     : `Form Submitted for ${businessName}`}
             </h1>
 
-            <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
+            <p className="text-xs text-slate-300 font-normal leading-relaxed">
               {isApproved
                 ? "Your business profile, GST credentials, and store details have been verified. You can now create campaigns and publish discount offers."
                 : isAccepted
@@ -271,7 +271,7 @@ export default function ApplicationTracker({ initialData }) {
           <div className="flex sm:flex-col gap-2 shrink-0">
             <Button
               onClick={() => router.push("/merchant/profile?edit=true")}
-              className="bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold h-8 px-4 rounded-xl cursor-pointer shadow-md flex items-center gap-1.5 transition-all border-0"
+              className="bg-white text-slate-900 hover:bg-slate-100 text-xs font-medium h-8 px-4 rounded-xl cursor-pointer shadow-sm flex items-center gap-1.5 transition-all border-0"
             >
               <Edit2 className="w-3.5 h-3.5 text-blue-600" />
               <span>Edit Application</span>
@@ -280,7 +280,7 @@ export default function ApplicationTracker({ initialData }) {
               variant="outline"
               onClick={handleRefresh}
               disabled={isRefetching}
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-bold h-8 px-4 rounded-xl cursor-pointer flex items-center gap-1.5"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-medium h-8 px-4 rounded-xl cursor-pointer flex items-center gap-1.5"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`}
@@ -296,18 +296,18 @@ export default function ApplicationTracker({ initialData }) {
         {/* Header Row */}
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">
               Verification Pipeline & Audit Progress
             </h3>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[11px] text-slate-400 font-normal mt-0.5">
               Track real-time statutory review steps and onboarding milestone.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-bold text-slate-700">
+            <span className="text-xs font-medium text-slate-700">
               {progressPercentage}% Completed
             </span>
-            <Badge className="bg-slate-100 text-slate-600 text-[10px] font-mono border-slate-200">
+            <Badge className="bg-slate-100 text-slate-600 text-[10px] font-medium border-slate-200">
               #{applicationId}
             </Badge>
           </div>
@@ -351,17 +351,17 @@ export default function ApplicationTracker({ initialData }) {
                     <XCircle className="w-4 h-4" />
                   </div>
                 ) : step.isCurrent ? (
-                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 font-extrabold text-xs border-2 border-blue-700">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 font-medium text-xs border-2 border-blue-700">
                     {step.id}
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 border-2 border-slate-200 flex items-center justify-center shrink-0 font-bold text-xs">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 border-2 border-slate-200 flex items-center justify-center shrink-0 font-medium text-xs">
                     {step.id}
                   </div>
                 )}
                 <div className="min-w-0">
                   <p
-                    className={`text-[11px] font-bold truncate ${
+                    className={`text-[11px] font-medium truncate ${
                       step.isComplete
                         ? "text-emerald-900"
                         : step.isError
@@ -373,7 +373,7 @@ export default function ApplicationTracker({ initialData }) {
                   >
                     {step.name}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-semibold truncate">
+                  <p className="text-[10px] text-slate-500 font-normal truncate">
                     {step.subtitle}
                   </p>
                 </div>
@@ -388,18 +388,18 @@ export default function ApplicationTracker({ initialData }) {
         {/* Section Header */}
         <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
           <div>
-            <h3 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
               <Store className="w-3.5 h-3.5 text-blue-600" />
               Submitted Business & KYC Particulars
             </h3>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[11px] text-slate-400 font-normal mt-0.5">
               Summary of business information provided during onboarding.
             </p>
           </div>
           <Button
             size="sm"
             onClick={() => router.push("/merchant/profile?edit=true")}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold h-7 px-3 rounded-lg cursor-pointer flex items-center gap-1 shadow-xs shrink-0"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium h-7 px-3 rounded-lg cursor-pointer flex items-center gap-1 shadow-xs shrink-0"
           >
             <Edit2 className="w-3 h-3" />
             <span>Edit Details</span>
@@ -408,85 +408,85 @@ export default function ApplicationTracker({ initialData }) {
 
         {/* Business Details Grid — 4 columns on lg */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Business Name
             </span>
-            <span className="font-bold text-slate-900 block truncate text-[11px]">
+            <span className="font-medium text-slate-800 block truncate text-xs">
               {businessName}
             </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Category
             </span>
-            <span className="font-bold text-blue-700 block truncate text-[11px]">
+            <span className="font-medium text-blue-600 block truncate text-xs capitalize">
               {category}
             </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Liaison Representative
             </span>
-            <span className="font-bold text-slate-900 block truncate text-[11px]">
+            <span className="font-medium text-slate-800 block truncate text-xs">
               {ownerName}
             </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Contact Email
             </span>
-            <span className="font-bold text-slate-800 block truncate text-[11px]">
+            <span className="font-medium text-slate-800 block truncate text-xs">
               {email}
             </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Phone Number
             </span>
-            <span className="font-bold text-slate-900 font-mono block text-[11px]">
+            <span className="font-medium text-slate-800 block text-xs">
               {phone}
             </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Location
             </span>
-            <span className="font-bold text-slate-800 block truncate text-[11px]">
+            <span className="font-medium text-slate-800 block truncate text-xs">
               {city}, {state}
             </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               GSTIN
             </span>
-            <span className="font-mono font-bold text-slate-900 block text-[11px]">
+            <span className="font-medium text-slate-800 block text-xs">
               {gstin}
             </span>
           </div>
 
           {docType && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-slate-400 block">
+            <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
                 Identity Document
               </span>
-              <span className="font-bold text-slate-900 block truncate text-[11px]">
+              <span className="font-medium text-slate-800 block truncate text-xs">
                 {docType}
               </span>
             </div>
           )}
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-slate-400 block">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
+            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
               Review Desk
             </span>
-            <span className="font-bold text-slate-800 block text-[11px]">
+            <span className="font-medium text-slate-800 block text-xs">
               Vouchiqo Audit Desk #4
             </span>
           </div>
@@ -495,7 +495,7 @@ export default function ApplicationTracker({ initialData }) {
         {/* Uploaded Documents */}
         {documents.length > 0 && (
           <div className="space-y-2 pt-3 mt-3 border-t border-slate-100">
-            <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+            <h4 className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
               Verification Documents ({documents.length})
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -504,12 +504,12 @@ export default function ApplicationTracker({ initialData }) {
                   key={idx}
                   className="p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between text-xs gap-2"
                 >
-                  <span className="font-semibold text-slate-700 truncate flex items-center gap-1">
+                  <span className="font-medium text-slate-700 truncate flex items-center gap-1">
                     <FileCheck className="w-3 h-3 text-blue-600 shrink-0" />
-                    <span className="truncate text-[10px]">{doc.name}</span>
+                    <span className="truncate text-[11px]">{doc.name}</span>
                   </span>
                   <Badge
-                    className={`text-[8px] font-bold border-0 shrink-0 capitalize ${
+                    className={`text-[9px] font-medium border-0 shrink-0 capitalize ${
                       doc.status === "verified"
                         ? "bg-emerald-100 text-emerald-800"
                         : "bg-amber-100 text-amber-800"
@@ -528,7 +528,7 @@ export default function ApplicationTracker({ initialData }) {
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-900 text-white text-xs">
         <div className="flex items-center gap-2">
           <HelpCircle className="w-4 h-4 text-blue-400 shrink-0" />
-          <span className="font-semibold text-slate-200 text-[11px]">
+          <span className="font-normal text-slate-200 text-xs">
             Need help or want to update your submission?
           </span>
         </div>
@@ -536,7 +536,7 @@ export default function ApplicationTracker({ initialData }) {
           <Button
             size="sm"
             onClick={() => router.push("/merchant/profile?edit=true")}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold h-7 px-3.5 rounded-lg cursor-pointer border-0"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-7 px-3.5 rounded-lg cursor-pointer border-0"
           >
             <Edit2 className="w-3 h-3 mr-1" />
             Edit Profile
@@ -550,7 +550,7 @@ export default function ApplicationTracker({ initialData }) {
                 "_blank",
               )
             }
-            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-[11px] font-bold h-7 px-3.5 rounded-lg cursor-pointer"
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-medium h-7 px-3.5 rounded-lg cursor-pointer"
           >
             <MessageSquare className="w-3 h-3 mr-1 text-emerald-400" />
             Contact Support
@@ -559,7 +559,7 @@ export default function ApplicationTracker({ initialData }) {
             size="sm"
             variant="ghost"
             onClick={() => setAdminModalOpen(true)}
-            className="text-slate-400 hover:text-white text-[11px] font-semibold h-7 px-3 rounded-lg cursor-pointer"
+            className="text-slate-400 hover:text-white text-xs font-normal h-7 px-3 rounded-lg cursor-pointer"
           >
             [Dev] Test Status
           </Button>
