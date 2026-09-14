@@ -78,8 +78,13 @@ export function AppSidebar({ ...props }) {
 
   const userRole = authUser?.role;
   const isAdmin = userRole === "admin" || pathname.startsWith("/admin");
-  const isMerchant = !isAdmin && (userRole === "merchant" || pathname.startsWith("/merchant"));
-  const role = isAdmin ? "admin" : isMerchant ? "merchant" : userRole || "customer";
+  const isMerchant =
+    !isAdmin && (userRole === "merchant" || pathname.startsWith("/merchant"));
+  const role = isAdmin
+    ? "admin"
+    : isMerchant
+      ? "merchant"
+      : userRole || "customer";
 
   // Cached live merchant sidebar badges (prevents state flicker on tab navigation)
   const { data: merchantBadgesData } = useQuery({
@@ -160,7 +165,10 @@ export function AppSidebar({ ...props }) {
   }, [isAdmin, isMerchant, fetchAdminBadges, queryClient]);
 
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, handleRealtimeBadgeUpdate);
-  useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, handleRealtimeBadgeUpdate);
+  useRealtime(
+    SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+    handleRealtimeBadgeUpdate,
+  );
   useRealtime(SOCKET_EVENTS.COUPON_SUBMITTED, handleRealtimeBadgeUpdate);
   useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, handleRealtimeBadgeUpdate);
   useRealtime(SOCKET_EVENTS.CAMPAIGN_SUBMITTED, handleRealtimeBadgeUpdate);
@@ -285,7 +293,11 @@ export function AppSidebar({ ...props }) {
     ? {
         name: authUser.businessName || authUser.name,
         email: authUser.email,
-        avatar: authUser.image || authUser.logo || authUser.logoUrl || `/avatars/${role}.jpg`,
+        avatar:
+          authUser.image ||
+          authUser.logo ||
+          authUser.logoUrl ||
+          `/avatars/${role}.jpg`,
         image: authUser.image || authUser.logo || authUser.logoUrl,
       }
     : {
@@ -587,11 +599,6 @@ export function AppSidebar({ ...props }) {
                 ],
               },
               {
-                title: "Affiliate Products",
-                url: "/merchant/affiliate-products",
-                icon: ShoppingBag,
-              },
-              {
                 title: "Post New Listing",
                 url: "/merchant/coupons/new",
                 icon: PlusCircle,
@@ -763,11 +770,16 @@ export function AppSidebar({ ...props }) {
               <div className="flex items-center gap-1 mt-0.5">
                 {role === "admin" ? (
                   <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                    <ShieldCheck className="w-2.5 h-2.5 text-purple-600" /> PLATFORM ADMIN
+                    <ShieldCheck className="w-2.5 h-2.5 text-purple-600" />{" "}
+                    PLATFORM ADMIN
                   </span>
                 ) : role === "merchant" ? (
                   <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                    <Store className="w-2.5 h-2.5 text-blue-600" /> {merchantPlan ? (PLAN_LABELS[merchantPlan] ?? merchantPlan.toUpperCase()) : "MERCHANT PARTNER"}
+                    <Store className="w-2.5 h-2.5 text-blue-600" />{" "}
+                    {merchantPlan
+                      ? (PLAN_LABELS[merchantPlan] ??
+                        merchantPlan.toUpperCase())
+                      : "MERCHANT PARTNER"}
                   </span>
                 ) : (
                   <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full inline-block">
