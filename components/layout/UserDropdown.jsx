@@ -19,9 +19,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useUser } from "@/hooks/use-user";
 
 export default function UserDropdown({
@@ -42,7 +41,7 @@ export default function UserDropdown({
   const pathname = usePathname();
   const [currentSearch, setCurrentSearch] = useState("");
   const { user: authUser, logout } = useUser();
-  const { isLocked, openModal } = useMerchantLock();
+  const { isLocked, openModal, merchant } = useMerchantLock();
 
   useEffect(() => {
     const updateSearch = () => {
@@ -57,9 +56,7 @@ export default function UserDropdown({
       window.removeEventListener("popstate", updateSearch);
       clearInterval(interval);
     };
-  }, [pathname]);
-
-  if (!user && !authUser) return null;
+  }, []);
 
   const [effectiveRole, setEffectiveRole] = useState(
     pathname.startsWith("/admin")
@@ -68,6 +65,10 @@ export default function UserDropdown({
         ? "merchant"
         : user?.role || authUser?.role || "customer",
   );
+
+  const { data: merchantProfile } = useMerchantProfile({
+    enabled: effectiveRole === "merchant",
+  });
 
   useEffect(() => {
     if (pathname.startsWith("/admin")) {
@@ -88,6 +89,17 @@ export default function UserDropdown({
         );
     }
   }, [user?.role, authUser?.role, pathname]);
+
+  const merchantLogo =
+    merchant?.logo ||
+    merchant?.logoUrl ||
+    merchantProfile?.logo ||
+    merchantProfile?.logoUrl ||
+    null;
+  const merchantName =
+    merchant?.businessName || merchantProfile?.businessName || null;
+
+  if (!user && !authUser) return null;
 
   const handleLogoutAction = async () => {
     if (onMobileClose) onMobileClose();
@@ -130,15 +142,22 @@ export default function UserDropdown({
     return true;
   };
 
-  const currentName = user?.name || authUser?.name || "User";
+  const currentName =
+    effectiveRole === "merchant"
+      ? merchantName || user?.name || authUser?.name || "Merchant Partner"
+      : user?.name || authUser?.name || "User";
+
   const currentEmail = user?.email || authUser?.email || "";
   const currentImage =
+    (effectiveRole === "merchant" ? merchantLogo : null) ||
     user?.image ||
-    authUser?.image ||
     user?.logo ||
     user?.logoUrl ||
+    merchantLogo ||
+    authUser?.image ||
     authUser?.logo ||
-    authUser?.logoUrl;
+    authUser?.logoUrl ||
+    null;
 
   const initials = currentName
     ? currentName
@@ -154,28 +173,28 @@ export default function UserDropdown({
     effectiveRole === "admin"
       ? "bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white border-purple-300"
       : effectiveRole === "merchant"
-        ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white border-blue-300"
+        ? "bg-gradient-to-br from-[#F72853] to-rose-600 text-white border-rose-300"
         : "bg-slate-100 text-slate-800 border-slate-200";
 
   const renderAvatarFallback = () => {
     if (effectiveRole === "admin") {
       return (
-        <AvatarFallback className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center">
+        <div className="w-full h-full bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center rounded-[7px]">
           <ShieldCheck className="w-4 h-4 text-white stroke-[2.2]" />
-        </AvatarFallback>
+        </div>
       );
     }
     if (effectiveRole === "merchant") {
       return (
-        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-xs flex items-center justify-center">
+        <div className="w-full h-full bg-gradient-to-br from-[#F72853] to-rose-600 text-white font-medium text-xs flex items-center justify-center rounded-[7px]">
           <Store className="w-4 h-4 text-white stroke-[2]" />
-        </AvatarFallback>
+        </div>
       );
     }
     return (
-      <AvatarFallback className="bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 uppercase flex items-center justify-center">
+      <div className="w-full h-full bg-slate-100 text-slate-800 font-medium text-xs border border-slate-200 uppercase flex items-center justify-center rounded-[7px]">
         {initials}
-      </AvatarFallback>
+      </div>
     );
   };
 
@@ -192,12 +211,17 @@ export default function UserDropdown({
     return (
       <div className="space-y-3 font-sans text-left">
         <div className="flex items-center gap-2.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
-          <Avatar className="h-9 w-9 rounded-xl border border-slate-200 shrink-0">
+          <div className="h-9 w-9 rounded-[7px] border border-slate-200 shrink-0 overflow-hidden bg-white flex items-center justify-center shadow-2xs">
             {currentImage ? (
-              <AvatarImage src={currentImage} alt={currentName} />
-            ) : null}
-            {renderAvatarFallback()}
-          </Avatar>
+              <img
+                src={currentImage}
+                alt={currentName}
+                className="w-full h-full object-contain p-0.5"
+              />
+            ) : (
+              renderAvatarFallback()
+            )}
+          </div>
           <div className="text-left min-w-0 flex-1">
             <h4 className="text-xs font-semibold text-slate-800 truncate">
               {effectiveRole === "admin" ? "Super Admin" : currentName}
@@ -226,22 +250,27 @@ export default function UserDropdown({
         <button
           type="button"
           aria-label="User menu"
-          className="flex items-center justify-center focus:outline-none cursor-pointer select-none rounded-full transition-colors border-0 bg-transparent outline-none"
+          className="flex items-center justify-center focus:outline-none cursor-pointer select-none rounded-[7px] transition-colors border-0 bg-transparent outline-none"
         >
-          <Avatar
-            className={`h-8 w-8 rounded-full border-2 shrink-0 shadow-sm transition-all ${
+          <div
+            className={`h-8 w-8 rounded-[7px] border shrink-0 shadow-2xs transition-all overflow-hidden flex items-center justify-center bg-white ${
               effectiveRole === "admin"
                 ? "border-purple-300 hover:border-purple-400"
                 : effectiveRole === "merchant"
-                  ? "border-blue-300 hover:border-blue-400"
+                  ? "border-slate-200/90 hover:border-rose-300"
                   : "border-slate-200 hover:border-slate-300"
             }`}
           >
             {currentImage ? (
-              <AvatarImage src={currentImage} alt={currentName} />
-            ) : null}
-            {renderAvatarFallback()}
-          </Avatar>
+              <img
+                src={currentImage}
+                alt={currentName}
+                className="w-full h-full object-contain p-0.5"
+              />
+            ) : (
+              renderAvatarFallback()
+            )}
+          </div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -252,12 +281,17 @@ export default function UserDropdown({
         {/* User Card Header */}
         <DropdownMenuLabel className="p-2 font-normal select-none">
           <div className="flex items-center gap-2.5 text-left">
-            <Avatar className="h-9 w-9 rounded-xl border border-slate-200 shrink-0">
+            <div className="h-9 w-9 rounded-[7px] border border-slate-200 shrink-0 overflow-hidden bg-white flex items-center justify-center shadow-2xs">
               {currentImage ? (
-                <AvatarImage src={currentImage} alt={currentName} />
-              ) : null}
-              {renderAvatarFallback()}
-            </Avatar>
+                <img
+                  src={currentImage}
+                  alt={currentName}
+                  className="w-full h-full object-contain p-0.5"
+                />
+              ) : (
+                renderAvatarFallback()
+              )}
+            </div>
             <div className="flex flex-col text-left min-w-0 flex-1 leading-tight">
               <span className="text-xs font-semibold text-slate-900 truncate">
                 {effectiveRole === "admin" ? "Super Admin" : currentName}
@@ -269,17 +303,17 @@ export default function UserDropdown({
               ) : null}
               <div className="mt-1">
                 {effectiveRole === "admin" ? (
-                  <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                  <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1">
                     <ShieldCheck className="w-2.5 h-2.5 text-purple-600" />{" "}
                     SUPER ADMIN
                   </span>
                 ) : effectiveRole === "merchant" ? (
-                  <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                    <Store className="w-2.5 h-2.5 text-blue-600" /> MERCHANT
+                  <span className="bg-rose-50 text-[#F72853] border border-rose-200/90 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
+                    <Store className="w-2.5 h-2.5 text-[#F72853]" /> MERCHANT
                     PARTNER
                   </span>
                 ) : (
-                  <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                  <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-normal px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1">
                     <User className="w-2.5 h-2.5 text-slate-500" /> MEMBER
                   </span>
                 )}

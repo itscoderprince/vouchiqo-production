@@ -7,13 +7,11 @@ import {
   Eye,
   Gift,
   Image as ImageIcon,
-  Info,
   Lock,
   MapPin,
   ShieldCheck,
   Tag,
   Ticket,
-  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,16 +58,16 @@ export default function LivePreviewCard({
       : null;
 
   return (
-    <Card className="border-slate-200/90 shadow-sm rounded-2xl bg-white p-3 space-y-2.5 text-left font-sans relative overflow-hidden">
+    <Card className="border-slate-200/90 shadow-2xs rounded-xl bg-white p-3 space-y-2.5 text-left font-sans relative overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
-          <Eye className="w-4 h-4 text-blue-600" /> Live Offer Preview
+        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-800">
+          <Eye className="w-4 h-4 text-[#F72853]" /> Live Offer Preview
         </span>
         <div className="flex items-center gap-1.5">
           <Badge
             variant="outline"
-            className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-medium px-2 py-0.5"
+            className="bg-rose-50 text-[#F72853] border-rose-200 text-[10px] font-medium px-2 py-0.5"
           >
             2:1 Ratio
           </Badge>
@@ -83,7 +81,7 @@ export default function LivePreviewCard({
       </div>
 
       {/* Main Preview Container */}
-      <div className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs">
+      <div className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
         {/* Banner Image Container with exact 2:1 Aspect Ratio (800x400px) */}
         <div className="w-full aspect-[2/1] bg-slate-900 relative flex items-end p-3 overflow-hidden">
           {formData.image ? (
@@ -93,9 +91,9 @@ export default function LivePreviewCard({
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-rose-950/40 to-slate-900 flex items-center justify-center">
               <div className="text-center p-3">
-                <ImageIcon className="w-7 h-7 text-blue-400/40 mx-auto mb-1" />
+                <ImageIcon className="w-7 h-7 text-rose-300/40 mx-auto mb-1" />
                 <span className="text-[10px] font-medium text-slate-400 block">
                   800×400 Banner Image Preview
                 </span>
@@ -111,7 +109,7 @@ export default function LivePreviewCard({
 
           {/* Top Floating Badges */}
           <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
-            <Badge className="bg-blue-600 text-white font-medium text-[10px] px-2 py-0.5 border-0 shadow-sm">
+            <Badge className="bg-[#F72853] text-white font-medium text-[10px] px-2 py-0.5 border-0 shadow-sm">
               {offerType === "code"
                 ? "Smart Code"
                 : offerType === "deal"
@@ -138,7 +136,7 @@ export default function LivePreviewCard({
         <div className="p-3 space-y-2.5">
           {/* Headline & Description */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-900 leading-snug line-clamp-2">
+            <h4 className="text-xs font-medium text-slate-900 leading-snug line-clamp-2">
               {formData.headline || "Flat 20% off on all Italian Marble Tiles"}
             </h4>
             <p className="text-[11px] text-slate-600 font-normal mt-1 line-clamp-2 leading-relaxed">
@@ -149,17 +147,17 @@ export default function LivePreviewCard({
 
           {/* Offer Mechanics / Pricing Card */}
           {offerType === "code" && (
-            <div className="flex items-center justify-between p-2 bg-blue-50/70 rounded-xl border border-blue-100 text-xs">
+            <div className="flex items-center justify-between p-2 bg-rose-50/40 rounded-xl border border-rose-100 text-xs">
               <div className="flex items-center gap-1.5">
-                <Ticket className="w-4 h-4 text-blue-600 shrink-0" />
+                <Ticket className="w-4 h-4 text-[#F72853] shrink-0" />
                 <span className="text-slate-600 font-normal text-[11px]">
                   Code:{" "}
-                  <span className="font-mono text-slate-900 font-medium uppercase text-xs bg-white px-1.5 py-0.5 rounded border border-blue-200">
+                  <span className="font-mono text-slate-900 font-medium uppercase text-xs bg-white px-1.5 py-0.5 rounded border border-rose-200">
                     {formData.code || "SAVE20"}
                   </span>
                 </span>
               </div>
-              <span className="text-blue-700 font-medium text-xs bg-white px-2 py-0.5 rounded-lg border border-blue-200/80 shadow-2xs">
+              <span className="text-[#F72853] font-medium text-xs bg-white px-2 py-0.5 rounded-lg border border-rose-200/80 shadow-2xs">
                 {discountDisplay}
               </span>
             </div>
@@ -172,7 +170,7 @@ export default function LivePreviewCard({
                   <Tag className="w-3.5 h-3.5 text-emerald-600" /> In-Store
                   Offer Price:
                 </span>
-                <span className="text-emerald-700 font-semibold text-sm">
+                <span className="text-emerald-700 font-medium text-sm">
                   ₹{salePrice || 1499}
                 </span>
               </div>
@@ -218,7 +216,7 @@ export default function LivePreviewCard({
             <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200/80 text-[10px] font-normal text-slate-700">
               {formData.minOrderValue ? (
                 <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-blue-600" />
+                  <ShieldCheck className="w-3 h-3 text-[#F72853]" />
                   Min Purchase:{" "}
                   <span className="text-slate-900 font-medium">
                     ₹{formData.minOrderValue}
@@ -244,11 +242,11 @@ export default function LivePreviewCard({
             formData.endDate ||
             formData.validHours ||
             validDaysList) && (
-            <div className="p-2 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] space-y-1">
+            <div className="p-2 rounded-xl bg-rose-50/30 border border-rose-100/80 text-[10px] space-y-1">
               {(formData.startDate || formData.endDate) && (
                 <div className="flex items-center justify-between text-slate-700 font-normal">
                   <span className="flex items-center gap-1 text-slate-400">
-                    <Calendar className="w-3 h-3 text-blue-600" /> Validity:
+                    <Calendar className="w-3 h-3 text-[#F72853]" /> Validity:
                   </span>
                   <span className="font-medium text-slate-800">
                     {formData.startDate
@@ -271,7 +269,7 @@ export default function LivePreviewCard({
               {validDaysList && (
                 <div className="flex items-center justify-between text-slate-700 font-normal">
                   <span className="text-slate-400">Valid Days:</span>
-                  <span className="font-medium text-blue-800 bg-white px-1.5 py-0.2 rounded border border-blue-200">
+                  <span className="font-medium text-[#F72853] bg-white px-1.5 py-0.2 rounded border border-rose-200">
                     {validDaysList}
                   </span>
                 </div>
@@ -279,9 +277,9 @@ export default function LivePreviewCard({
               {formData.validHours && (
                 <div className="flex items-center justify-between text-slate-700 font-normal">
                   <span className="flex items-center gap-1 text-slate-400">
-                    <Clock className="w-3 h-3 text-blue-600" /> Store Hours:
+                    <Clock className="w-3 h-3 text-[#F72853]" /> Store Hours:
                   </span>
-                  <span className="font-medium text-blue-700">
+                  <span className="font-medium text-slate-800">
                     {formData.validHours}
                   </span>
                 </div>
@@ -292,16 +290,16 @@ export default function LivePreviewCard({
           {/* Demographic & Category Footer */}
           <div className="flex items-center justify-between text-[10px] text-slate-500 font-normal border-t border-slate-100 pt-2">
             <span className="flex items-center gap-1 text-slate-600">
-              <MapPin className="w-3 h-3 text-blue-600" />
+              <MapPin className="w-3 h-3 text-[#F72853]" />
               {merchant?.address?.city || "Ranchi"} (In-Store)
             </span>
             <span className="text-slate-800 font-medium flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/80">
-              <Tag className="w-3 h-3 text-blue-600" />
+              <Tag className="w-3 h-3 text-[#F72853]" />
               {selectedCategoryLabel}
             </span>
           </div>
 
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8.5 rounded-xl shadow-xs cursor-default flex items-center justify-center gap-1.5">
+          <Button className="w-full bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8.5 rounded-xl shadow-xs cursor-default flex items-center justify-center gap-1.5 transition-colors">
             <CheckCircle2 className="w-4 h-4 text-white" />
             <span>Get In-Store Claim Code</span>
           </Button>

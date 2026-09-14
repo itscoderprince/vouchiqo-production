@@ -72,17 +72,17 @@ export default function SectionDiscount({
   const isCustomDeal = !isFlatDiscount && !isPercentageDiscount;
 
   return (
-    <Card className="border-slate-200/90 shadow-sm rounded-2xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans relative overflow-hidden">
+    <Card className="border-slate-200/90 shadow-2xs rounded-xl bg-white p-3.5 sm:p-4 space-y-3.5 text-left font-sans relative overflow-hidden">
       {/* Top Light Accent Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#F72853]" />
 
-      <div className="border-b border-slate-100 pb-2.5 pt-1 flex items-center justify-between gap-3">
+      <div className="border-b border-slate-100 pb-2.5 pt-0.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+          <span className="p-1.5 rounded-lg bg-rose-50 text-[#F72853] shrink-0">
             <Ticket className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
+            <h3 className="text-sm font-medium text-slate-800 tracking-tight">
               Section 3: Discount &amp; In-Store Mechanics
             </h3>
             <p className="text-[11px] text-slate-500 font-normal">
@@ -94,9 +94,9 @@ export default function SectionDiscount({
       </div>
 
       {offerType === "code" && (
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           {/* Offer Code Input Card */}
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-1.5">
+          <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-slate-700 block">
                 Offer Code Configuration
@@ -105,7 +105,7 @@ export default function SectionDiscount({
                 type="button"
                 variant="ghost"
                 onClick={generateRandomCode}
-                className="text-[11px] font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer h-auto p-0 border-0 bg-transparent shadow-none"
+                className="text-[11px] font-medium text-[#F72853] hover:text-[#e01e47] flex items-center gap-1 cursor-pointer h-auto p-0 border-0 bg-transparent shadow-none"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Auto-generate Code
               </Button>
@@ -149,7 +149,7 @@ export default function SectionDiscount({
                       currentVal !== undefined &&
                       currentVal !== null &&
                       currentVal !== "" &&
-                      !isNaN(Number(currentVal));
+                      !Number.isNaN(Number(currentVal));
                     if (val === "% Off" || val === "Flat ₹ Off") {
                       if (!isNum) {
                         setValue("discountValue", "", { shouldValidate: true });
@@ -250,17 +250,17 @@ export default function SectionDiscount({
 
       {/* In-Store Price Drop / Deal Mode */}
       {offerType === "deal" && (
-        <div className="space-y-3.5">
-          <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-800 font-normal flex items-center gap-2">
+        <div className="space-y-3">
+          <div className="p-2.5 bg-rose-50/40 border border-rose-100 rounded-xl text-xs text-slate-700 font-normal flex items-center gap-2">
             <span>💡</span>
             <span>
-              <strong className="font-semibold">In-Store Deal:</strong> Set your
-              original store MRP and discounted offer price for customers
-              visiting your store.
+              <span className="font-medium text-slate-900">In-Store Deal:</span>{" "}
+              Set your original store MRP and discounted offer price for
+              customers visiting your store.
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormInput
               label="Original Price (MRP ₹)"
               icon={DollarSign}
@@ -285,8 +285,8 @@ export default function SectionDiscount({
 
       {/* Special Offer / Gift Mode */}
       {offerType === "special" && (
-        <div className="space-y-3.5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Controller
               name="specialOfferType"
               control={control}
@@ -339,7 +339,7 @@ export default function SectionDiscount({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-3 border-t border-slate-100">
+      <div className="flex justify-between pt-2.5 border-t border-slate-100">
         <Button
           variant="outline"
           onClick={onBack}
@@ -349,7 +349,7 @@ export default function SectionDiscount({
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
+          className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
         >
           <span>Continue to Validity &amp; Limits</span>
           <ArrowRight className="w-3.5 h-3.5" />

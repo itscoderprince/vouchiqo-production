@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
-import { requireAuth } from "@/modules/auth/auth.middleware";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
+import { requireAuth } from "@/modules/auth/auth.middleware";
 import Coupon from "@/modules/coupon/coupon.model";
 import Campaign from "@/modules/merchant/campaign.model";
 import Merchant from "@/modules/merchant/merchant.model";
@@ -22,7 +22,9 @@ export const GET = asyncHandler(async (request) => {
   const merchant = await Merchant.findOne({
     $or: [
       { authId: user.id },
-      ...(user.email ? [{ contactEmail: user.email.toLowerCase().trim() }] : []),
+      ...(user.email
+        ? [{ contactEmail: user.email.toLowerCase().trim() }]
+        : []),
     ],
   }).lean();
 
@@ -51,7 +53,10 @@ export const GET = asyncHandler(async (request) => {
     Coupon.countDocuments({ merchantId: merchant._id }),
     Coupon.countDocuments({ merchantId: merchant._id, status: "active" }),
     Coupon.countDocuments({ merchantId: merchant._id, status: "expired" }),
-    AffiliateProduct.countDocuments({ merchantId: merchant._id, status: { $ne: "deleted" } }),
+    AffiliateProduct.countDocuments({
+      merchantId: merchant._id,
+      status: { $ne: "deleted" },
+    }),
     AffiliateProduct.countDocuments({
       merchantId: merchant._id,
       status: "active",
@@ -65,6 +70,7 @@ export const GET = asyncHandler(async (request) => {
     status: merchant.status || "pending",
     plan: merchant.plan || "starter",
     businessName: merchant.businessName,
+    logo: merchant.logo || merchant.logoUrl || null,
     totalCoupons: couponTotal + affiliateTotal,
     activeCoupons: couponActive + affiliateActive,
     expiredCoupons: couponExpired,

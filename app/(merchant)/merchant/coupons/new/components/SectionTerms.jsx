@@ -53,17 +53,17 @@ export default function SectionTerms({
   const honouredAllDaysValue = useWatch({ control, name: "honouredAllDays" });
 
   return (
-    <Card className="border-slate-200/90 shadow-sm rounded-2xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans relative overflow-hidden">
+    <Card className="border-slate-200/90 shadow-2xs rounded-xl bg-white p-3.5 sm:p-4 space-y-3.5 text-left font-sans relative overflow-hidden">
       {/* Top Light Accent Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#F72853]" />
 
-      <div className="border-b border-slate-100 pb-2.5 pt-1 flex items-center justify-between gap-3">
+      <div className="border-b border-slate-100 pb-2.5 pt-0.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
+          <span className="p-1.5 rounded-lg bg-rose-50 text-[#F72853] shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
+            <h3 className="text-sm font-medium text-slate-800 tracking-tight">
               Section 5: Terms, Rules &amp; Verification Submission
             </h3>
             <p className="text-[11px] text-slate-500 font-normal">
@@ -74,7 +74,7 @@ export default function SectionTerms({
         </div>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {/* Terms & Conditions Textarea */}
         <FormTextarea
           label="Full Terms & Conditions (Numbered)"
@@ -87,7 +87,7 @@ export default function SectionTerms({
         />
 
         {/* Combinability & Honoured All Days in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Controller
             name="combinability"
             control={control}
@@ -136,11 +136,11 @@ export default function SectionTerms({
         />
 
         {/* Mandatory Compliance Checkboxes */}
-        <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
+        <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
           <div className="flex items-center justify-between">
             <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />{" "}
-              Mandatory Merchant Declaration
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#F72853]" /> Mandatory
+              Merchant Declaration
               <span className="text-red-500 font-medium ml-0.5">*</span>
             </Label>
             <button
@@ -157,7 +157,7 @@ export default function SectionTerms({
                 setValue("agreed3", nextVal, { shouldValidate: true });
                 setValue("agreed4", nextVal, { shouldValidate: true });
               }}
-              className="text-[11px] font-medium text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1 transition-colors"
+              className="text-[11px] font-medium text-[#F72853] hover:text-[#e01e47] cursor-pointer flex items-center gap-1 transition-colors"
             >
               {watch("agreed1") &&
               watch("agreed2") &&
@@ -197,7 +197,7 @@ export default function SectionTerms({
                     className={cn(
                       "flex items-start gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-all select-none",
                       isChecked
-                        ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-medium"
+                        ? "bg-rose-50/40 border-rose-200 text-slate-900 font-medium"
                         : hasErr
                           ? "bg-red-50/50 border-red-300 text-red-900 font-normal"
                           : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 font-normal",
@@ -207,7 +207,7 @@ export default function SectionTerms({
                       className={cn(
                         "mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
                         isChecked
-                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          ? "border-[#F72853] bg-[#F72853] text-white"
                           : hasErr
                             ? "border-red-400 bg-white"
                             : "border-slate-300 bg-white",
@@ -232,7 +232,7 @@ export default function SectionTerms({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-3 border-t border-slate-100">
+      <div className="flex justify-between pt-2.5 border-t border-slate-100">
         <Button
           variant="outline"
           onClick={onBack}
@@ -243,7 +243,7 @@ export default function SectionTerms({
         <Button
           onClick={onSubmit}
           disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-5 rounded-xl cursor-pointer shadow-xs"
+          className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8 px-5 rounded-xl cursor-pointer shadow-xs transition-colors"
         >
           {isPending
             ? "Submitting for Verification..."

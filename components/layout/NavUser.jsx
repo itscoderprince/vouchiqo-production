@@ -5,7 +5,6 @@ import {
   Bell,
   ChevronsUpDown,
   CreditCard,
-  Crown,
   LogOut,
   ShieldCheck,
   Store,
@@ -29,6 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useUser } from "@/hooks/use-user";
 
 export function NavUser({ user, role = "admin" }) {
@@ -37,6 +37,9 @@ export function NavUser({ user, role = "admin" }) {
   const isCollapsed = state === "collapsed";
   const isMerchant = role === "merchant";
   const isAdmin = role === "admin";
+  const { data: merchantProfile } = useMerchantProfile({
+    enabled: isMerchant,
+  });
 
   const initials = user?.name
     ? user.name
@@ -59,29 +62,33 @@ export function NavUser({ user, role = "admin" }) {
     }
   };
 
+  const avatarImg =
+    (isMerchant ? merchantProfile?.logo || merchantProfile?.logoUrl : null) ||
+    user?.image ||
+    user?.logo ||
+    user?.logoUrl;
+
   const renderAvatarFallback = () => {
     if (isAdmin) {
       return (
-        <AvatarFallback className="rounded-lg bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center">
+        <AvatarFallback className="rounded-[7px] bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xs flex items-center justify-center">
           <ShieldCheck className="h-4 w-4 text-white stroke-[2.2]" />
         </AvatarFallback>
       );
     }
     if (isMerchant) {
       return (
-        <AvatarFallback className="rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-xs flex items-center justify-center">
+        <AvatarFallback className="rounded-[7px] bg-gradient-to-br from-[#F72853] to-rose-600 text-white font-medium text-xs flex items-center justify-center">
           <Store className="h-4 w-4 text-white stroke-[2]" />
         </AvatarFallback>
       );
     }
     return (
-      <AvatarFallback className="rounded-lg font-bold text-xs bg-slate-100 text-slate-800 border border-slate-200 uppercase flex items-center justify-center">
+      <AvatarFallback className="rounded-[7px] font-bold text-xs bg-slate-100 text-slate-800 border border-slate-200 uppercase flex items-center justify-center">
         {initials}
       </AvatarFallback>
     );
   };
-
-  const avatarImg = user?.image || user?.logo || user?.logoUrl;
 
   return (
     <SidebarMenu className="font-sans">
@@ -90,40 +97,49 @@ export function NavUser({ user, role = "admin" }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="w-full cursor-pointer transition-colors text-slate-800 hover:bg-slate-50 data-[state=open]:bg-slate-100/80 border border-slate-200/80 rounded-xl p-2 bg-slate-50/50 shadow-2xs"
+              className="w-full cursor-pointer transition-colors text-slate-800 hover:bg-slate-50 data-[state=open]:bg-slate-100/80 border border-slate-200/80 rounded-[7px] p-2 bg-slate-50/50 shadow-2xs"
             >
-              <Avatar className="h-8 w-8 rounded-lg shrink-0 border border-slate-200">
+              <Avatar className="h-8 w-8 rounded-[7px] shrink-0 border border-slate-200 overflow-hidden bg-white">
                 {avatarImg ? (
-                  <AvatarImage src={avatarImg} alt={user?.name || "User"} />
+                  <AvatarImage
+                    src={avatarImg}
+                    alt={user?.name || "User"}
+                    className="object-contain p-0.5"
+                  />
                 ) : null}
                 {renderAvatarFallback()}
               </Avatar>
               {!isCollapsed && (
                 <>
                   <div className="grid flex-1 text-left text-xs leading-tight min-w-0">
-                    <span className="truncate font-semibold text-sm text-slate-800 flex items-center gap-1.5">
+                    <span className="truncate font-medium text-sm text-slate-900 flex items-center gap-1.5">
                       {isAdmin ? "Super Admin" : user?.name || "User"}
                     </span>
                     <span className="truncate text-[11px] text-slate-400 font-normal">
-                      {user?.email || (isAdmin ? "admin@vouchiqo.com" : "user@vouchiqo.com")}
+                      {user?.email ||
+                        (isAdmin ? "admin@vouchiqo.com" : "user@vouchiqo.com")}
                     </span>
                   </div>
-                  <ChevronsUpDown className="ml-auto h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <ChevronsUpDown className="ml-auto size-4 text-slate-400" />
                 </>
               )}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[240px] min-w-56 rounded-xl p-1.5 shadow-xl font-sans"
+            className="w-56 rounded-xl border border-slate-200/90 shadow-xl p-1 bg-white text-slate-800 font-sans animate-in fade-in zoom-in-95 duration-100"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={6}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2.5 px-2 py-2 text-left text-xs">
-                <Avatar className="h-8 w-8 rounded-lg shrink-0 border border-slate-200">
+                <Avatar className="h-8 w-8 rounded-[7px] shrink-0 border border-slate-200 overflow-hidden bg-white">
                   {avatarImg ? (
-                    <AvatarImage src={avatarImg} alt={user?.name || "User"} />
+                    <AvatarImage
+                      src={avatarImg}
+                      alt={user?.name || "User"}
+                      className="object-contain p-0.5"
+                    />
                   ) : null}
                   {renderAvatarFallback()}
                 </Avatar>
@@ -132,20 +148,24 @@ export function NavUser({ user, role = "admin" }) {
                     {isAdmin ? "Super Admin" : user?.name || "User"}
                   </span>
                   <span className="truncate text-[11px] text-slate-400 font-normal">
-                    {user?.email || (isAdmin ? "admin@vouchiqo.com" : "user@vouchiqo.com")}
+                    {user?.email ||
+                      (isAdmin ? "admin@vouchiqo.com" : "user@vouchiqo.com")}
                   </span>
                   <div className="mt-1">
                     {isAdmin ? (
-                      <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                        <ShieldCheck className="w-2.5 h-2.5 text-purple-600" /> SUPER ADMIN
+                      <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1">
+                        <ShieldCheck className="w-2.5 h-2.5 text-purple-600" />{" "}
+                        SUPER ADMIN
                       </span>
                     ) : isMerchant ? (
-                      <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                        <Store className="w-2.5 h-2.5 text-blue-600" /> MERCHANT PARTNER
+                      <span className="bg-rose-50 text-[#F72853] border border-rose-200/90 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
+                        <Store className="w-2.5 h-2.5 text-[#F72853]" />{" "}
+                        MERCHANT PARTNER
                       </span>
                     ) : (
-                      <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                        <UserIcon className="w-2.5 h-2.5 text-slate-500" /> MEMBER
+                      <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-normal px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1">
+                        <UserIcon className="w-2.5 h-2.5 text-slate-500" />{" "}
+                        MEMBER
                       </span>
                     )}
                   </div>

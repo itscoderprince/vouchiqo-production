@@ -57,18 +57,18 @@ export default function SectionBasic({
   const categoryLabel = categoryObj?.label || registeredCategoryId;
 
   return (
-    <Card className="border-slate-200/90 shadow-sm rounded-2xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans relative overflow-hidden">
+    <Card className="border-slate-200/90 shadow-2xs rounded-xl bg-white p-3.5 sm:p-4 space-y-3.5 text-left font-sans relative overflow-hidden">
       {/* Top Light Accent Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#F72853]" />
 
       {/* Section Header */}
-      <div className="border-b border-slate-100 pb-2.5 pt-1 flex items-center justify-between gap-3">
+      <div className="border-b border-slate-100 pb-2.5 pt-0.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0">
+          <span className="p-1.5 rounded-lg bg-rose-50 text-[#F72853] shrink-0">
             <FileText className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
+            <h3 className="text-sm font-medium text-slate-800 tracking-tight">
               Section 2: Basic Offer Details
             </h3>
             <p className="text-[11px] text-slate-500 font-normal">
@@ -79,9 +79,9 @@ export default function SectionBasic({
         </div>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {/* Headline & Fixed Merchant Category in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <FormInput
             label="Offer Headline / Title"
             icon={FileText}
@@ -97,17 +97,17 @@ export default function SectionBasic({
           {/* Locked / Fixed Merchant Category Display */}
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              <Layers className="w-3.5 h-3.5 text-[#F72853]" />
               <span>Offer Category</span>
               <span className="text-red-500 font-medium ml-0.5">*</span>
             </Label>
-            <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200/90 bg-blue-50/50 text-slate-900 font-medium text-xs shadow-2xs">
+            <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-rose-200/90 bg-rose-50/30 text-slate-900 font-medium text-xs shadow-2xs">
               <span className="flex items-center gap-2 truncate">
-                <span className="text-blue-600 font-semibold">★</span>
+                <span className="text-[#F72853] font-medium">★</span>
                 <span>{categoryLabel}</span>
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0 shadow-2xs">
-                <Lock className="w-3 h-3 text-blue-600" /> Locked to Merchant
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#F72853] bg-white border border-rose-200 px-2 py-0.5 rounded-md shrink-0 shadow-2xs">
+                <Lock className="w-3 h-3 text-[#F72853]" /> Locked to Merchant
                 Industry
               </span>
             </div>
@@ -132,10 +132,10 @@ export default function SectionBasic({
         />
 
         {/* Offer Banner Image Upload Card */}
-        <div className="space-y-2 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 shadow-2xs">
+        <div className="space-y-2 p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
-              <ImageIcon className="w-4 h-4 text-blue-600" /> Banner Image
+              <ImageIcon className="w-3.5 h-3.5 text-[#F72853]" /> Banner Image
               Upload
               <span className="text-[10px] text-slate-400 font-normal">
                 (Optional)
@@ -143,12 +143,10 @@ export default function SectionBasic({
             </Label>
 
             {/* Prominent Image Ratio Callout Badge */}
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200/90 px-2 py-0.5 rounded-lg shadow-2xs">
-              <span className="text-blue-600 font-medium">
-                Aspect Ratio: 2:1
-              </span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#F72853] bg-rose-50 border border-rose-200/90 px-2 py-0.5 rounded-lg shadow-2xs">
+              <span className="font-medium">Aspect Ratio: 2:1</span>
               <span className="text-slate-400 font-normal">•</span>
-              <span className="text-slate-700 font-medium">
+              <span className="text-slate-700 font-normal">
                 800×400px Landscape
               </span>
             </span>
@@ -183,11 +181,11 @@ export default function SectionBasic({
 
           <div className="p-2 bg-white rounded-lg border border-slate-200/70 text-[11px] text-slate-600 font-normal flex items-center justify-between flex-wrap gap-1">
             <span>
-              💡 <strong className="font-semibold">Banner Tip:</strong> 2:1
-              Horizontal ratio (800px width × 400px height, PNG/JPG max 5MB)
+              💡 <span className="font-medium text-slate-800">Banner Tip:</span>{" "}
+              2:1 Horizontal ratio (800px width × 400px height, PNG/JPG max 5MB)
               renders cleanly on all devices.
             </span>
-            <span className="text-blue-600 font-medium text-[10px] bg-blue-50 px-2 py-0.5 rounded">
+            <span className="text-[#F72853] font-medium text-[10px] bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
               2:1 Ratio
             </span>
           </div>
@@ -195,7 +193,7 @@ export default function SectionBasic({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-3 border-t border-slate-100">
+      <div className="flex justify-between pt-2.5 border-t border-slate-100">
         <Button
           variant="outline"
           onClick={onBack}
@@ -205,7 +203,7 @@ export default function SectionBasic({
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
+          className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
         >
           <span>Continue to Discount &amp; Code</span>
           <ArrowRight className="w-3.5 h-3.5" />

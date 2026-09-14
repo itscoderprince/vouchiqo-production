@@ -1,16 +1,16 @@
 "use client";
 
-import { Bell, BellOff, ChevronDown, LogOut, Search, User } from "lucide-react";
-import Link from "next/link";
+import { Bell, BellOff, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useMerchantProfile } from "@/hooks/use-merchant";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
 import UserDropdown from "./UserDropdown";
 
 export default function Topbar({ title = "Dashboard", user: propUser = null }) {
@@ -35,19 +35,28 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
   const [loadingNotifs, setLoadingNotifs] = useState(true);
 
   // Fetch real database notifications
-  const fetchRealNotifications = async () => {
+  const fetchRealNotifications = useCallback(async () => {
     try {
       setLoadingNotifs(true);
       const res = await fetch("/api/notifications");
       if (res.ok) {
         const json = await res.json();
-        const raw = json.data?.notifications || (Array.isArray(json.data) ? json.data : []);
+        const raw =
+          json.data?.notifications ||
+          (Array.isArray(json.data) ? json.data : []);
         const formatted = raw.map((item) => ({
           id: item._id || item.id,
           message: item.message || item.title,
-          time: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recently",
+          time: item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString("en-IN", {
+                month: "short",
+                day: "numeric",
+              })
+            : "Recently",
           read: Boolean(item.isRead || item.read),
-          timestamp: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
+          timestamp: item.createdAt
+            ? new Date(item.createdAt).getTime()
+            : Date.now(),
         }));
         formatted.sort((a, b) => b.timestamp - a.timestamp);
         setNotifications(formatted);
@@ -57,7 +66,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
     } finally {
       setLoadingNotifs(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -67,7 +76,7 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
     if (mounted && authUser) {
       fetchRealNotifications();
     }
-  }, [mounted, authUser]);
+  }, [mounted, authUser, fetchRealNotifications]);
 
   // Real-time Socket.IO Listeners for Topbar Bell Badge Updates
   useRealtime(SOCKET_EVENTS.NOTIFICATION_NEW, () => {
@@ -119,25 +128,43 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
       ? "merchant"
       : authUser?.role || propUser?.role || "customer";
 
+  const isMerchant = displayRole === "merchant";
+  const { data: merchantProfile } = useMerchantProfile({ enabled: isMerchant });
+  const merchantLogo =
+    merchantProfile?.logo ||
+    merchantProfile?.logoUrl ||
+    authUser?.image ||
+    authUser?.logo ||
+    authUser?.logoUrl ||
+    null;
+  const merchantName =
+    merchantProfile?.businessName || authUser?.businessName || authUser?.name;
+
   const user =
     mounted && authUser
       ? {
           ...authUser,
-          name: authUser.name,
+          name: isMerchant ? merchantName || authUser.name : authUser.name,
           email: authUser.email,
           role: displayRole,
-          image: authUser.image,
+          image: isMerchant ? merchantLogo || authUser.image : authUser.image,
+          logo: merchantLogo,
         }
       : propUser
         ? {
             ...propUser,
+            name: isMerchant ? merchantName || propUser.name : propUser.name,
             email: propUser.email || authUser?.email,
             role: displayRole,
+            image: isMerchant ? merchantLogo || propUser.image : propUser.image,
+            logo: merchantLogo,
           }
         : {
-            name: "User",
+            name: isMerchant ? merchantName || "Merchant Partner" : "User",
             email: authUser?.email,
             role: displayRole,
+            image: merchantLogo || null,
+            logo: merchantLogo || null,
           };
 
   return (

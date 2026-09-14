@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   BarChart2,
@@ -20,13 +21,13 @@ import {
   Mail,
   MapPin,
   Megaphone,
-  PlusCircle,
   Percent,
+  PlusCircle,
   Settings,
   ShieldCheck,
+  ShoppingBag,
   Sliders,
   Store,
-  ShoppingBag,
   Tag,
   Ticket,
   TrendingUp,
@@ -36,10 +37,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavMain } from "@/components/layout/NavMain";
 import { NavUser } from "@/components/layout/NavUser";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -49,7 +49,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -86,6 +86,8 @@ export function AppSidebar({ ...props }) {
       ? "merchant"
       : userRole || "customer";
 
+  const { data: merchantProfile } = useMerchantProfile({ enabled: isMerchant });
+
   // Cached live merchant sidebar badges (prevents state flicker on tab navigation)
   const { data: merchantBadgesData } = useQuery({
     queryKey: ["merchant-badges"],
@@ -102,20 +104,40 @@ export function AppSidebar({ ...props }) {
     refetchOnWindowFocus: true,
   });
 
-  const merchantBadges = {
-    status: merchantBadgesData?.status || "pending",
-    totalCoupons: merchantBadgesData?.totalCoupons || 0,
-    activeCoupons: merchantBadgesData?.activeCoupons || 0,
-    expiredCoupons: merchantBadgesData?.expiredCoupons || 0,
-    totalCampaigns: merchantBadgesData?.totalCampaigns || 0,
-    unreadNotifications: merchantBadgesData?.unreadNotifications || 0,
-  };
+  const merchantLogo =
+    merchantProfile?.logo ||
+    merchantProfile?.logoUrl ||
+    merchantBadgesData?.logo ||
+    authUser?.image ||
+    authUser?.logo ||
+    authUser?.logoUrl ||
+    null;
+
+  const merchantName =
+    merchantProfile?.businessName ||
+    merchantBadgesData?.businessName ||
+    authUser?.businessName ||
+    authUser?.name ||
+    "Merchant Partner";
+
+  const merchantBadges = useMemo(
+    () => ({
+      status: merchantBadgesData?.status || "pending",
+      totalCoupons: merchantBadgesData?.totalCoupons || 0,
+      activeCoupons: merchantBadgesData?.activeCoupons || 0,
+      expiredCoupons: merchantBadgesData?.expiredCoupons || 0,
+      totalCampaigns: merchantBadgesData?.totalCampaigns || 0,
+      unreadNotifications: merchantBadgesData?.unreadNotifications || 0,
+    }),
+    [merchantBadgesData],
+  );
 
   useEffect(() => {
-    if (merchantBadgesData?.plan) {
-      setMerchantPlan(merchantBadgesData.plan);
+    const plan = merchantBadgesData?.plan || merchantProfile?.plan;
+    if (plan) {
+      setMerchantPlan(plan);
     }
-  }, [merchantBadgesData?.plan]);
+  }, [merchantBadgesData?.plan, merchantProfile?.plan]);
 
   // Activity Seen tracking state (stored in localStorage)
   const [seenState, setSeenState] = useState(() => {
@@ -291,20 +313,30 @@ export function AppSidebar({ ...props }) {
 
   const user = authUser
     ? {
-        name: authUser.businessName || authUser.name,
+        name: isMerchant
+          ? merchantName
+          : authUser.businessName || authUser.name,
         email: authUser.email,
         avatar:
+          (isMerchant ? merchantLogo : null) ||
           authUser.image ||
           authUser.logo ||
           authUser.logoUrl ||
           `/avatars/${role}.jpg`,
-        image: authUser.image || authUser.logo || authUser.logoUrl,
+        image:
+          (isMerchant ? merchantLogo : null) ||
+          authUser.image ||
+          authUser.logo ||
+          authUser.logoUrl ||
+          null,
+        logo: merchantLogo || null,
       }
     : {
-        name: isMerchant ? "Merchant Partner" : "Super Admin",
+        name: isMerchant ? merchantName : "Super Admin",
         email: isMerchant ? "merchant@vouchiqo.com" : "admin@vouchiqo.com",
-        avatar: `/avatars/${role}.jpg`,
-        image: null,
+        avatar: (isMerchant ? merchantLogo : null) || `/avatars/${role}.jpg`,
+        image: merchantLogo || null,
+        logo: merchantLogo || null,
       };
 
   const getNavGroups = () => {
@@ -731,25 +763,25 @@ export function AppSidebar({ ...props }) {
           className={`flex items-center gap-2.5 flex-1 min-w-0 ${isCollapsed ? "justify-center" : ""}`}
         >
           {/* Logo & Identity in Left */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-2xs">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-slate-200/90 bg-white overflow-hidden shadow-2xs">
             {role === "admin" ? (
-              <div className="w-full h-full bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center rounded-[7px]">
                 <ShieldCheck className="w-5 h-5 text-white stroke-[2.2]" />
               </div>
             ) : role === "merchant" ? (
-              user?.image ? (
+              merchantLogo ? (
                 <img
-                  src={user.image}
-                  alt="Merchant Logo"
-                  className="w-full h-full object-cover"
+                  src={merchantLogo}
+                  alt={merchantName || "Merchant Logo"}
+                  className="w-full h-full object-contain p-0.5 bg-white"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <Store className="w-5 h-5 text-white stroke-[2]" />
+                <div className="w-full h-full bg-gradient-to-br from-[#F72853] to-rose-600 flex items-center justify-center rounded-[7px]">
+                  <Store className="w-4.5 h-4.5 text-white stroke-[2]" />
                 </div>
               )
             ) : (
-              <div className="w-full h-full bg-rose-50 border border-rose-200/80 flex items-center justify-center">
+              <div className="w-full h-full bg-rose-50 border border-rose-200/80 flex items-center justify-center rounded-[7px]">
                 <Image
                   src="/favicon.ico"
                   alt="Vouchiqo Logo"
@@ -764,25 +796,25 @@ export function AppSidebar({ ...props }) {
           {/* User Name & Role Badge in Middle */}
           {!isCollapsed && (
             <div className="flex flex-col text-left leading-tight min-w-0 flex-1">
-              <span className="text-[13.5px] font-semibold tracking-tight truncate text-slate-800">
-                {role === "admin" ? "Super Admin" : user.name}
+              <span className="text-[13px] font-medium tracking-tight truncate text-slate-900">
+                {role === "admin" ? "Super Admin" : merchantName}
               </span>
               <div className="flex items-center gap-1 mt-0.5">
                 {role === "admin" ? (
-                  <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                  <span className="bg-purple-50 text-purple-700 border border-purple-200/80 text-[8.5px] font-medium px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1">
                     <ShieldCheck className="w-2.5 h-2.5 text-purple-600" />{" "}
                     PLATFORM ADMIN
                   </span>
                 ) : role === "merchant" ? (
-                  <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                    <Store className="w-2.5 h-2.5 text-blue-600" />{" "}
+                  <span className="bg-rose-50 text-[#F72853] border border-rose-200/90 text-[8.5px] font-medium px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
+                    <Store className="w-2.5 h-2.5 text-[#F72853]" />{" "}
                     {merchantPlan
                       ? (PLAN_LABELS[merchantPlan] ??
                         merchantPlan.toUpperCase())
-                      : "MERCHANT PARTNER"}
+                      : "STARTER"}
                   </span>
                 ) : (
-                  <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full inline-block">
+                  <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-normal px-1.5 py-0.5 rounded-[7px] inline-block">
                     MEMBER
                   </span>
                 )}
