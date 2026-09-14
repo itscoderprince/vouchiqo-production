@@ -1,17 +1,26 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Edit, Plus, Search, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Edit,
+  Plus,
+  Search,
+  Tag,
+  Ticket,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable from "@/components/shared/data/DataTable";
 import StatusBadge from "@/components/shared/data/StatusBadge";
-import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   InputGroup,
   InputGroupAddon,
@@ -30,22 +39,36 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 
 /**
- * Reusable summary stat card
+ * Compact summary stat card with clean typography
  */
-function StatCard({ title, count, description, colorClass }) {
+function StatCard({
+  title,
+  count,
+  description,
+  colorClass,
+  icon: Icon,
+  iconBg,
+}) {
   return (
-    <Card className="border border-slate-200/90 shadow-xs bg-white rounded-2xl p-4 transition-all hover:border-blue-200">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
-        <CardTitle className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className={`text-xl font-extrabold ${colorClass}`}>{count}</div>
-        <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+    <Card className="border border-slate-200/80 shadow-2xs bg-white rounded-xl p-3 sm:p-3.5 transition-all hover:border-slate-300">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-slate-600">{title}</span>
+        {Icon && (
+          <div
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg || "bg-slate-100 text-slate-500"}`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+          </div>
+        )}
+      </div>
+      <div className="mt-2">
+        <div className={`text-lg sm:text-xl font-semibold ${colorClass}`}>
+          {count}
+        </div>
+        <p className="text-[11px] text-slate-400 font-normal mt-0.5">
           {description}
         </p>
-      </CardContent>
+      </div>
     </Card>
   );
 }
@@ -60,7 +83,7 @@ function formatDiscount(coupon) {
     val !== null &&
     val !== undefined &&
     val !== "" &&
-    !isNaN(Number(val));
+    !Number.isNaN(Number(val));
 
   if (coupon.offerType === "deal" && coupon.salePrice) {
     return `₹${coupon.salePrice} Deal`;
@@ -158,15 +181,17 @@ function MerchantCouponsContent() {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
-        (coupon.title && coupon.title.toLowerCase().includes(q)) ||
-        (coupon.code && coupon.code.toLowerCase().includes(q)) ||
-        (coupon.category && coupon.category.toLowerCase().includes(q));
+        coupon.title?.toLowerCase().includes(q) ||
+        coupon.code?.toLowerCase().includes(q) ||
+        coupon.category?.toLowerCase().includes(q);
 
       let matchesStatus = true;
       if (statusFilter === "active" || statusFilter === "approved") {
-        matchesStatus = coupon.status === "active" || coupon.status === "approved";
+        matchesStatus =
+          coupon.status === "active" || coupon.status === "approved";
       } else if (statusFilter === "expired") {
-        const isPastDate = coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now();
+        const isPastDate =
+          coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now();
         matchesStatus = coupon.status === "expired" || isPastDate;
       } else if (statusFilter === "pending") {
         matchesStatus = coupon.status === "pending";
@@ -183,9 +208,12 @@ function MerchantCouponsContent() {
     return {
       total: couponsData.length,
       pending: couponsData.filter((c) => c.status === "pending").length,
-      active: couponsData.filter((c) => c.status === "active" || c.status === "approved").length,
+      active: couponsData.filter(
+        (c) => c.status === "active" || c.status === "approved",
+      ).length,
       expired: couponsData.filter((c) => {
-        const isPastDate = c.expiresAt && new Date(c.expiresAt).getTime() < Date.now();
+        const isPastDate =
+          c.expiresAt && new Date(c.expiresAt).getTime() < Date.now();
         return c.status === "expired" || isPastDate;
       }).length,
     };
@@ -199,11 +227,20 @@ function MerchantCouponsContent() {
         header: "Offer Detail",
         sortable: true,
         cell: (r) => (
-          <div className="flex flex-col">
-            <span className="font-bold text-slate-900 text-xs">{r.title}</span>
-            <span className="text-[9px] text-slate-400 font-semibold mt-0.5 font-mono">
-              ID: {r._id}
+          <div className="flex flex-col gap-0.5">
+            <span className="font-medium text-slate-900 text-xs">
+              {r.title}
             </span>
+            <div className="flex items-center gap-1.5">
+              {r.code && (
+                <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium uppercase">
+                  {r.code}
+                </span>
+              )}
+              <span className="text-[10px] text-slate-400 font-normal font-mono">
+                #{String(r._id).slice(-6)}
+              </span>
+            </div>
           </div>
         ),
       },
@@ -212,7 +249,7 @@ function MerchantCouponsContent() {
         header: "Discount",
         sortable: true,
         cell: (r) => (
-          <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/80">
+          <span className="text-[10px] font-medium text-[#F72853] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/80">
             {formatDiscount(r)}
           </span>
         ),
@@ -222,7 +259,9 @@ function MerchantCouponsContent() {
         header: "Claims",
         sortable: true,
         cell: (r) => (
-          <span className="font-bold text-slate-800">{r.totalClaims || 0}</span>
+          <span className="font-normal text-xs text-slate-700">
+            {r.totalClaims || 0}
+          </span>
         ),
       },
       {
@@ -230,7 +269,7 @@ function MerchantCouponsContent() {
         header: "Redemptions",
         sortable: true,
         cell: (r) => (
-          <span className="font-bold text-slate-800">
+          <span className="font-normal text-xs text-slate-700">
             {r.totalRedemptions || 0}
           </span>
         ),
@@ -252,7 +291,7 @@ function MerchantCouponsContent() {
         header: "Expiry Date",
         sortable: true,
         cell: (r) => (
-          <span className="text-slate-500 font-medium text-xs font-mono">
+          <span className="text-slate-500 font-normal text-xs font-mono">
             {formatDateSafe(r.expiresAt)}
           </span>
         ),
@@ -267,7 +306,8 @@ function MerchantCouponsContent() {
               variant="ghost"
               size="icon"
               onClick={() => router.push(`/merchant/coupons/${r._id}`)}
-              className="w-7 h-7 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-100 cursor-pointer shadow-none"
+              className="w-7 h-7 rounded-lg text-slate-500 hover:text-[#F72853] hover:bg-rose-50/50 cursor-pointer shadow-none"
+              title="Edit Offer"
             >
               <Edit className="w-3.5 h-3.5" />
             </Button>
@@ -276,7 +316,8 @@ function MerchantCouponsContent() {
               size="icon"
               onClick={() => setDeleteId(r._id)}
               disabled={deleteMutation.isPending}
-              className="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 cursor-pointer shadow-none disabled:opacity-50"
+              className="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50/50 cursor-pointer shadow-none disabled:opacity-50"
+              title="Delete Offer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
@@ -295,42 +336,50 @@ function MerchantCouponsContent() {
         role: "merchant",
       }}
     >
-      <div className="space-y-4 text-left font-sans">
+      <div className="space-y-3.5 text-left font-sans">
         {/* Stats Summary Cards Row */}
         <div
           data-tour="coupons-list"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3"
         >
           <StatCard
             title="Total Offers"
             count={stats.total}
             description="All posted deals in your account"
             colorClass="text-slate-900"
+            icon={Tag}
+            iconBg="bg-rose-50 text-[#F72853]"
           />
           <StatCard
             title="Pending Approval"
             count={stats.pending}
             description="Offers awaiting admin audit"
             colorClass="text-amber-600"
+            icon={Clock}
+            iconBg="bg-amber-50 text-amber-600"
           />
           <StatCard
             title="Active Offers"
             count={stats.active}
             description="Deals currently live and claimable"
             colorClass="text-emerald-600"
+            icon={CheckCircle2}
+            iconBg="bg-emerald-50 text-emerald-600"
           />
           <StatCard
             title="Expired Offers"
             count={stats.expired}
-            description="Deals past their expiration date"
-            colorClass="text-rose-600"
+            description="Deals past expiration date"
+            colorClass="text-slate-600"
+            icon={AlertCircle}
+            iconBg="bg-slate-100 text-slate-500"
           />
         </div>
 
         {/* Header Controls (Search & Status Filter) */}
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
-            <InputGroup className="bg-white border border-slate-200 rounded-xl h-9 px-2 w-full sm:w-64 shadow-2xs">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <InputGroup className="bg-white border border-slate-200 rounded-xl h-8 sm:h-9 px-2 w-full sm:w-64 shadow-2xs">
               <InputGroupAddon>
                 <Search className="w-3.5 h-3.5 text-slate-400" />
               </InputGroupAddon>
@@ -339,7 +388,7 @@ function MerchantCouponsContent() {
                 placeholder="Search my offers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="text-xs placeholder:text-slate-400 h-full font-medium"
+                className="text-xs placeholder:text-slate-400 h-full font-normal"
               />
             </InputGroup>
 
@@ -351,48 +400,72 @@ function MerchantCouponsContent() {
                 else router.push(`/merchant/coupons?status=${val}`);
               }}
             >
-              <SelectTrigger className="bg-white border border-slate-200 text-xs rounded-xl h-9 px-3 font-semibold text-slate-800 shadow-2xs focus:ring-0 w-full sm:w-auto sm:min-w-[160px]">
+              <SelectTrigger className="bg-white border border-slate-200 text-xs rounded-xl h-8 sm:h-9 px-3 font-medium text-slate-700 shadow-2xs focus:ring-0 w-full sm:w-auto sm:min-w-[150px]">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-slate-200 z-[300]">
-                <SelectItem value="all" className="text-xs font-semibold">
+                <SelectItem value="all" className="text-xs font-medium">
                   All Status
                 </SelectItem>
-                <SelectItem value="active" className="text-xs font-semibold">
+                <SelectItem value="active" className="text-xs font-medium">
                   Active
                 </SelectItem>
-                <SelectItem value="expired" className="text-xs font-semibold">
+                <SelectItem value="expired" className="text-xs font-medium">
                   Expired
                 </SelectItem>
-                <SelectItem value="pending" className="text-xs font-semibold">
-                  Pending
+                <SelectItem value="pending" className="text-xs font-medium">
+                  Pending Audit
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <LiveIndicator />
             <Link
               href="/merchant/coupons/new"
               data-tour="create-coupon-btn"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 flex items-center gap-1.5 shadow-md shadow-blue-500/20 w-full sm:w-auto justify-center rounded-xl border-0 h-9 cursor-pointer transition-all"
+              className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium py-1.5 px-3.5 flex items-center gap-1.5 shadow-xs w-full sm:w-auto justify-center rounded-xl border-0 h-8 sm:h-9 cursor-pointer transition-all"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span>Create Offer</span>
             </Link>
           </div>
         </div>
 
         {/* Offers Table using Shared DataTable */}
-        <Card className="border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden bg-white p-4">
+        <Card className="border border-slate-200/90 rounded-xl shadow-xs overflow-hidden bg-white p-3 sm:p-4">
           <DataTable
             columns={columns}
             data={filteredCoupons}
             loading={isLoading}
             searchable={false}
             defaultPageSize={10}
-            emptyState="No offers found. Click 'Create Offer' to add your first offer."
+            emptyState={
+              <div className="py-12 px-4 flex flex-col items-center justify-center text-center space-y-2.5">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#F72853] flex items-center justify-center border border-rose-100/80">
+                  <Ticket className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-sm font-semibold text-slate-800">
+                    No offer listings found
+                  </h4>
+                  <p className="text-xs text-slate-500 font-normal max-w-sm">
+                    {searchQuery || statusFilter !== "all"
+                      ? "No offers match your current search or status filter."
+                      : "Create your first discount coupon, voucher, or promotional deal to start attracting customers."}
+                  </p>
+                </div>
+                {!searchQuery && statusFilter === "all" && (
+                  <Link
+                    href="/merchant/coupons/new"
+                    className="inline-flex items-center gap-1.5 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium px-3.5 py-1.5 rounded-xl transition-all shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Create Your First Offer</span>
+                  </Link>
+                )}
+              </div>
+            }
           />
         </Card>
       </div>

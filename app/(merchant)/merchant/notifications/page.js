@@ -194,84 +194,58 @@ export default function MerchantNotifications() {
         role: "merchant",
       }}
     >
-      <div className="space-y-3.5 text-left font-sans w-full max-w-4xl pb-8">
-        {/* COMPACT HEADER CARD WITH BRAND PINK ACCENT */}
-        <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white p-3.5 sm:p-4 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-[#F72853] to-rose-600" />
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#F72853] flex items-center justify-center border border-rose-100/80 shrink-0">
-                <Bell className="w-4 h-4" />
-              </div>
-              <div>
-                <h1 className="text-sm sm:text-base font-semibold text-slate-800 tracking-tight flex items-center gap-2">
-                  <span>Merchant Notifications</span>
-                  {unreadCount > 0 && (
-                    <span className="bg-[#F72853] text-white font-medium text-[10px] rounded-full px-2 py-0.5 shadow-2xs">
-                      {unreadCount} Unread
-                    </span>
-                  )}
-                  {isConnected && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                      Live
-                    </span>
-                  )}
-                </h1>
-                <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                  Real-time alerts for approvals, redemptions, campaigns &amp;
-                  account updates.
-                </p>
-              </div>
-            </div>
+      <div className="space-y-3 text-left font-sans w-full max-w-4xl pb-8">
+        {/* COMPACT FILTER TABS WITH ACTIONS */}
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full space-y-2.5"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <TabsList className="bg-slate-100/90 p-1 rounded-xl border border-slate-200/90 flex flex-wrap gap-1 justify-start h-auto w-fit">
+              <TabsTrigger
+                value="all"
+                className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
+              >
+                All ({notifications.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="unread"
+                className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
+              >
+                Unread ({unreadCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="system"
+                className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
+              >
+                Account &amp; Status
+              </TabsTrigger>
+              <TabsTrigger
+                value="campaign"
+                className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
+              >
+                Offers &amp; Campaigns
+              </TabsTrigger>
+              <TabsTrigger
+                value="billing"
+                className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
+              >
+                Billing
+              </TabsTrigger>
+            </TabsList>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => markAllRead()}
               disabled={unreadCount === 0 || isMarkingRead}
-              className="text-xs h-8 font-medium rounded-xl border-slate-200 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-slate-700 hover:text-[#F72853] hover:bg-rose-50/40 transition-colors shadow-2xs shrink-0"
+              className="text-xs h-8 font-medium rounded-xl border-slate-200 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-slate-700 hover:text-[#F72853] hover:bg-rose-50/40 transition-colors shadow-2xs shrink-0 self-end sm:self-auto"
             >
               <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
               <span>Mark All as Read</span>
             </Button>
           </div>
-        </Card>
-
-        {/* COMPACT FILTER TABS WITH NORMAL FONTS */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-slate-100/90 p-1 rounded-xl border border-slate-200/90 flex flex-wrap gap-1 justify-start h-auto w-fit">
-            <TabsTrigger
-              value="all"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
-            >
-              All ({notifications.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="unread"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
-            >
-              Unread ({unreadCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="system"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
-            >
-              Account &amp; Status
-            </TabsTrigger>
-            <TabsTrigger
-              value="campaign"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
-            >
-              Offers &amp; Campaigns
-            </TabsTrigger>
-            <TabsTrigger
-              value="billing"
-              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
-            >
-              Billing
-            </TabsTrigger>
-          </TabsList>
 
           {/* NOTIFICATION FEED LIST */}
           <div className="pt-2">
