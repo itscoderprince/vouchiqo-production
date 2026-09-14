@@ -128,7 +128,7 @@ export default function MerchantCampaigns() {
         role: "merchant",
       }}
     >
-      <div className="space-y-6 text-left font-sans">
+      <div className="space-y-4 text-left font-sans">
         <CampaignsHeader
           campaignsCount={dbCampaigns.length}
           isPro={isPro}

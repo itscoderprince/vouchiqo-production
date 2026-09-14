@@ -23,19 +23,19 @@ export default function StepBasics({
   const headlineValue = useWatch({ control, name: "headline" }) ?? "";
 
   return (
-    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6 text-left font-sans">
-      <div className="border-b border-slate-100 pb-3">
-        <h3 className="text-base font-bold text-slate-900">
+    <Card className="border-slate-200/80 shadow-xs rounded-xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans">
+      <div className="border-b border-slate-100 pb-2.5">
+        <h3 className="text-sm font-semibold text-slate-900">
           Step 1: Campaign Basics
         </h3>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">
+        <p className="text-[11px] text-slate-500 font-normal mt-0.5">
           Specify campaign name, objective, format &amp; public headline
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Campaign Name & Campaign Type in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormInput
             label="Campaign Name"
             icon={FileText}
@@ -63,7 +63,7 @@ export default function StepBasics({
         </div>
 
         {/* Target Objective & Festival Template in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormSelect
             label="Primary Campaign Objective"
             icon={Target}
@@ -148,17 +148,17 @@ export default function StepBasics({
       </div>
 
       {/* Step 1 Actions */}
-      <div className="flex justify-between pt-4 border-t border-slate-100">
+      <div className="flex justify-between pt-3.5 border-t border-slate-100">
         <Button
           variant="outline"
           onClick={onCancel}
-          className="text-slate-700 border-slate-200 text-xs font-bold rounded-xl h-9 px-4 cursor-pointer"
+          className="text-slate-600 border-slate-200 text-xs font-medium rounded-xl h-8 sm:h-9 px-4 cursor-pointer hover:bg-slate-50"
         >
           Cancel
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-9 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8 sm:h-9 px-5 rounded-xl cursor-pointer shadow-xs"
         >
           Next
         </Button>

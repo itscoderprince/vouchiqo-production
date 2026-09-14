@@ -73,14 +73,14 @@ export default function EditCampaignModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white p-6 rounded-2xl border border-slate-200 text-left shadow-xl">
-        <form onSubmit={handleSave} className="space-y-4">
-          <DialogHeader className="space-y-1 pb-3 border-b border-slate-100">
-            <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Edit3 className="w-5 h-5 text-blue-600" />
+      <DialogContent className="max-w-md bg-white p-4 sm:p-5 rounded-xl border border-slate-200 text-left shadow-lg">
+        <form onSubmit={handleSave} className="space-y-3.5">
+          <DialogHeader className="space-y-1 pb-2.5 border-b border-slate-100">
+            <DialogTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Edit3 className="w-4 h-4 text-[#F72853]" />
               Edit Campaign Details
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 font-medium">
+            <DialogDescription className="text-xs text-slate-500 font-normal">
               Update the details for "{campaign.name}"
             </DialogDescription>
           </DialogHeader>
@@ -108,14 +108,14 @@ export default function EditCampaignModal({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="text-xs font-bold rounded-xl shadow-none cursor-pointer"
+              className="text-xs font-medium text-slate-600 rounded-xl h-8 sm:h-9 px-4 cursor-pointer hover:bg-slate-50"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+              className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8 sm:h-9 px-5 rounded-xl cursor-pointer shadow-xs"
             >
               {loading ? "Saving..." : "Save Changes"}
             </Button>

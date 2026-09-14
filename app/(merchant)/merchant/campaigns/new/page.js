@@ -132,7 +132,7 @@ export default function CreateNewCampaignPage() {
         role: "merchant",
       }}
     >
-      <div className="flex flex-col gap-6 text-left font-sans w-full">
+      <div className="flex flex-col gap-4 text-left font-sans w-full">
         <CampaignStepper
           steps={WIZARD_STEPS}
           currentStep={currentStep}
@@ -142,9 +142,9 @@ export default function CreateNewCampaignPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start"
         >
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4">
             {currentStep === 1 && (
               <StepBasics
                 control={control}

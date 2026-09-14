@@ -34,24 +34,24 @@ export default function StepPromotion({
   const pushSendTime = useWatch({ control, name: "pushSendTime" });
 
   return (
-    <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-6 space-y-6 text-left font-sans">
-      <div className="border-b border-slate-100 pb-3">
-        <h3 className="text-base font-bold text-slate-900">
+    <Card className="border-slate-200/80 shadow-xs rounded-xl bg-white p-4 sm:p-5 space-y-4 text-left font-sans">
+      <div className="border-b border-slate-100 pb-2.5">
+        <h3 className="text-sm font-semibold text-slate-900">
           Step 3: Schedule &amp; Promotion Add-Ons
         </h3>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">
+        <p className="text-[11px] text-slate-500 font-normal mt-0.5">
           Define campaign schedule, pre-launch teasers &amp; optional promotion
           boost add-ons
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Schedule dates using DatePicker in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
-              <Clock className="w-3.5 h-3.5 text-blue-600" /> Start Date
-              <span className="text-red-500 font-bold ml-0.5">*</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
+              <Clock className="w-3.5 h-3.5 text-[#F72853]" /> Start Date
+              <span className="text-red-500 font-normal ml-0.5">*</span>
             </Label>
             <DatePicker
               value={startDate}
@@ -59,7 +59,7 @@ export default function StepPromotion({
                 setValue("startDate", val, { shouldValidate: true })
               }
               placeholder="Select start date"
-              iconColor="text-blue-600"
+              iconColor="text-[#F72853]"
             />
             {errors.startDate && (
               <p className="text-[11px] text-red-500 font-medium pt-0.5">
@@ -68,10 +68,10 @@ export default function StepPromotion({
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
-              <Clock className="w-3.5 h-3.5 text-rose-500" /> End Date
-              <span className="text-red-500 font-bold ml-0.5">*</span>
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
+              <Clock className="w-3.5 h-3.5 text-[#F72853]" /> End Date
+              <span className="text-red-500 font-normal ml-0.5">*</span>
             </Label>
             <DatePicker
               value={endDate}
@@ -79,7 +79,7 @@ export default function StepPromotion({
                 setValue("endDate", val, { shouldValidate: true })
               }
               placeholder="Select end date"
-              iconColor="text-rose-500"
+              iconColor="text-[#F72853]"
             />
             {errors.endDate && (
               <p className="text-[11px] text-red-500 font-medium pt-0.5">
@@ -90,13 +90,13 @@ export default function StepPromotion({
         </div>
 
         {/* Campaign Toggles in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="p-4 border border-slate-200/80 rounded-2xl flex items-center justify-between bg-slate-50/50">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3 sm:p-3.5 border border-slate-200/80 rounded-xl flex items-center justify-between bg-slate-50/50">
             <div>
-              <span className="text-xs font-bold text-slate-900 block flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-blue-600" /> Countdown Timer
+              <span className="text-xs font-semibold text-slate-900 block flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#F72853]" /> Countdown Timer
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[11px] text-slate-500 font-normal">
                 Show live ticking countdown timer
               </span>
             </div>
@@ -108,13 +108,13 @@ export default function StepPromotion({
             />
           </div>
 
-          <div className="p-4 border border-slate-200/80 rounded-2xl flex items-center justify-between bg-slate-50/50">
+          <div className="p-3 sm:p-3.5 border border-slate-200/80 rounded-xl flex items-center justify-between bg-slate-50/50">
             <div>
-              <span className="text-xs font-bold text-slate-900 block flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-blue-600" /> Pre-Launch
+              <span className="text-xs font-semibold text-slate-900 block flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#F72853]" /> Pre-Launch
                 Teaser
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[11px] text-slate-500 font-normal">
                 Show 48hr pre-launch teaser banner
               </span>
             </div>
@@ -128,33 +128,33 @@ export default function StepPromotion({
         </div>
 
         {/* Paid Add-On Promotions Section */}
-        <div className="pt-2 space-y-4">
+        <div className="pt-1 space-y-3">
           <div className="border-b border-slate-100 pb-2">
-            <h4 className="text-sm font-bold text-slate-900">
+            <h4 className="text-xs font-semibold text-slate-900">
               Optional Promotion Boost Add-Ons
             </h4>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <p className="text-[11px] text-slate-500 font-normal">
               Amplify campaign reach with email blasts, push notifications &amp;
               ticker priority
             </p>
           </div>
 
           {/* Add-on Cards */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {/* Targeted Email Blast */}
-            <div className="p-4 border border-slate-200/80 rounded-2xl flex items-center justify-between bg-white hover:border-slate-300 transition-all">
+            <div className="p-3 sm:p-3.5 border border-slate-200/80 rounded-xl flex items-center justify-between bg-white hover:border-slate-300 transition-all">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 text-[#F72853] flex items-center justify-center shrink-0">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-900 block flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-900 block flex items-center gap-2">
                     Targeted Email Blast
-                    <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-bold text-[9px]">
+                    <Badge className="bg-rose-50 text-[#F72853] border-rose-200 font-medium text-[9px]">
                       ₹799 / blast
                     </Badge>
                   </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
+                  <span className="text-[11px] text-slate-500 font-normal">
                     Send dedicated offer email to verified subscribers
                   </span>
                 </div>
@@ -170,20 +170,20 @@ export default function StepPromotion({
             </div>
 
             {/* Push Notification Alert */}
-            <div className="p-4 border border-slate-200/80 rounded-2xl space-y-3 bg-white hover:border-slate-300 transition-all">
+            <div className="p-3 sm:p-3.5 border border-slate-200/80 rounded-xl space-y-2.5 bg-white hover:border-slate-300 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-[#F72853] flex items-center justify-center shrink-0">
                     <Bell className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-900 block flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-900 block flex items-center gap-2">
                       Push Notification Broadcast
-                      <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 font-bold text-[9px]">
+                      <Badge className="bg-rose-50 text-[#F72853] border-rose-200 font-medium text-[9px]">
                         ₹599 / broadcast
                       </Badge>
                     </span>
-                    <span className="text-[11px] text-slate-500 font-medium">
+                    <span className="text-[11px] text-slate-500 font-normal">
                       Instant mobile &amp; desktop web push alert to active
                       users
                     </span>
@@ -239,19 +239,19 @@ export default function StepPromotion({
             </div>
 
             {/* Homepage Ticker Priority */}
-            <div className="p-4 border border-slate-200/80 rounded-2xl flex items-center justify-between bg-white hover:border-slate-300 transition-all">
+            <div className="p-3 sm:p-3.5 border border-slate-200/80 rounded-xl flex items-center justify-between bg-white hover:border-slate-300 transition-all">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0 border border-blue-100">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 text-[#F72853] flex items-center justify-center shrink-0 border border-rose-100">
                   <Tag className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-900 block flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-900 block flex items-center gap-2">
                     Homepage Hero Priority
-                    <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-bold text-[9px]">
+                    <Badge className="bg-rose-50 text-[#F72853] border-rose-200 font-medium text-[9px]">
                       ₹999 / 3-day window
                     </Badge>
                   </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
+                  <span className="text-[11px] text-slate-500 font-normal">
                     Top priority slot on homepage hero carousel for 72 hours
                   </span>
                 </div>
@@ -283,17 +283,17 @@ export default function StepPromotion({
         />
       </div>
 
-      <div className="flex justify-between pt-4 border-t border-slate-100">
+      <div className="flex justify-between pt-3.5 border-t border-slate-100">
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-9 px-4"
+          className="text-xs font-medium rounded-xl border-slate-200 text-slate-600 cursor-pointer h-8 sm:h-9 px-4 hover:bg-slate-50"
         >
           Back
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-[#F72853] hover:bg-[#e01e47] text-white font-medium text-xs h-8 sm:h-9 px-5 rounded-xl cursor-pointer shadow-xs"
         >
           Next
         </Button>

@@ -22,29 +22,92 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMerchantNotifications } from "@/hooks/use-merchant-notifications";
 
+function formatNotificationType(type) {
+  if (!type) return "System Notice";
+  const map = {
+    merchant_approved: "Account Approved",
+    application_status_changed: "Status Updated",
+    application_submitted: "Profile Submitted",
+    coupon_approved: "Offer Approved",
+    coupon_rejected: "Offer Rejected",
+    coupon_expiring: "Expiring Soon",
+    coupon_claimed: "Offer Claimed",
+    coupon_redeemed: "Offer Redeemed",
+    campaign_submitted: "Campaign Submitted",
+    campaign_approved: "Campaign Approved",
+    campaign_status_changed: "Campaign Update",
+    billing_confirmed: "Billing Invoice",
+    payout_processed: "Payout Settled",
+  };
+  if (map[type]) return map[type];
+  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function getNotificationIcon(type, category) {
-  if (type === "Listing Approved" || type === "coupon_approved" || type === "merchant_approved") {
-    return { icon: CheckCircle2, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+  const t = String(type || "").toLowerCase();
+  const c = String(category || "").toLowerCase();
+
+  if (
+    t.includes("approved") ||
+    t.includes("success") ||
+    t.includes("live") ||
+    t === "merchant_approved"
+  ) {
+    return {
+      icon: CheckCircle2,
+      color: "text-emerald-600 bg-emerald-50 border-emerald-200/80",
+    };
   }
-  if (type === "Listing Rejected" || type === "coupon_rejected" || type === "merchant_rejected") {
-    return { icon: XCircle, color: "text-rose-600 bg-rose-50 border-rose-200" };
+  if (
+    t.includes("rejected") ||
+    t.includes("declined") ||
+    t.includes("failed") ||
+    t === "merchant_rejected"
+  ) {
+    return {
+      icon: XCircle,
+      color: "text-rose-600 bg-rose-50 border-rose-200/80",
+    };
   }
-  if (type === "Expiring Soon" || type === "coupon_expiring") {
-    return { icon: Clock, color: "text-amber-600 bg-amber-50 border-amber-200" };
+  if (t.includes("expir") || t.includes("warning")) {
+    return {
+      icon: Clock,
+      color: "text-amber-600 bg-amber-50 border-amber-200/80",
+    };
   }
-  if (type === "Billing confirmed" || category === "billing") {
-    return { icon: CreditCard, color: "text-purple-600 bg-purple-50 border-purple-200" };
+  if (
+    c === "billing" ||
+    t.includes("invoice") ||
+    t.includes("payout") ||
+    t.includes("payment")
+  ) {
+    return {
+      icon: CreditCard,
+      color: "text-purple-600 bg-purple-50 border-purple-200/80",
+    };
   }
-  if (type === "Milestone reached" || type === "coupon_redeemed") {
-    return { icon: Trophy, color: "text-amber-500 bg-amber-50 border-amber-200" };
+  if (t.includes("redeem") || t.includes("claim") || t.includes("milestone")) {
+    return {
+      icon: Trophy,
+      color: "text-amber-600 bg-amber-50 border-amber-200/80",
+    };
   }
-  if (type === "Action Required") {
-    return { icon: AlertTriangle, color: "text-red-600 bg-red-50 border-red-200" };
+  if (t.includes("action") || t.includes("alert")) {
+    return {
+      icon: AlertTriangle,
+      color: "text-rose-600 bg-rose-50 border-rose-200/80",
+    };
   }
-  if (category === "campaign" || type === "Campaign ended" || type === "campaign_submitted" || type === "campaign_approved") {
-    return { icon: Zap, color: "text-orange-600 bg-orange-50 border-orange-200" };
+  if (c === "campaign" || t.includes("campaign")) {
+    return {
+      icon: Zap,
+      color: "text-[#F72853] bg-rose-50 border-rose-200/80",
+    };
   }
-  return { icon: Bell, color: "text-blue-600 bg-blue-50 border-blue-200" };
+  return {
+    icon: Bell,
+    color: "text-[#F72853] bg-rose-50 border-rose-200/80",
+  };
 }
 
 function formatRelativeTime(dateInput) {
@@ -53,13 +116,17 @@ function formatRelativeTime(dateInput) {
   const diffMs = Date.now() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins} mins ago`;
+  if (diffMins < 60) return `${diffMins}m ago`;
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+  if (diffHours < 24)
+    return `${diffHours} ${diffHours === 1 ? "hr" : "hrs"} ago`;
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-IN", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export default function MerchantNotifications() {
@@ -83,6 +150,7 @@ export default function MerchantNotifications() {
     isLoading,
     markItemRead,
     markAllRead,
+    isMarkingRead,
     isConnected,
   } = useMerchantNotifications(merchant?.authId);
 
@@ -95,6 +163,7 @@ export default function MerchantNotifications() {
         title: item.title,
         message: item.message,
         type: item.type || "Notification",
+        typeFormatted: formatNotificationType(item.type),
         category: item.category || "system",
         icon,
         iconColor: color,
@@ -108,7 +177,12 @@ export default function MerchantNotifications() {
     return notifications.filter((n) => {
       if (activeTab === "all") return true;
       if (activeTab === "unread") return !n.read;
-      return n.category === activeTab;
+      if (activeTab === "system")
+        return n.category === "system" || n.category === "verification";
+      if (activeTab === "campaign")
+        return n.category === "campaign" || n.category === "offer";
+      if (activeTab === "billing") return n.category === "billing";
+      return true;
     });
   }, [notifications, activeTab]);
 
@@ -120,141 +194,184 @@ export default function MerchantNotifications() {
         role: "merchant",
       }}
     >
-      <div className="space-y-4 text-left font-sans w-full max-w-[1100px] mx-auto pb-8">
-        {/* Header Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white border border-slate-200/90 p-3.5 rounded-2xl shadow-2xs">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
-              <Bell className="w-4 h-4" />
+      <div className="space-y-3.5 text-left font-sans w-full max-w-4xl pb-8">
+        {/* COMPACT HEADER CARD WITH BRAND PINK ACCENT */}
+        <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white p-3.5 sm:p-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-[#F72853] to-rose-600" />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#F72853] flex items-center justify-center border border-rose-100/80 shrink-0">
+                <Bell className="w-4 h-4" />
+              </div>
+              <div>
+                <h1 className="text-sm sm:text-base font-semibold text-slate-800 tracking-tight flex items-center gap-2">
+                  <span>Merchant Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="bg-[#F72853] text-white font-medium text-[10px] rounded-full px-2 py-0.5 shadow-2xs">
+                      {unreadCount} Unread
+                    </span>
+                  )}
+                  {isConnected && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
+                      Live
+                    </span>
+                  )}
+                </h1>
+                <p className="text-[11px] text-slate-500 font-normal mt-0.5">
+                  Real-time alerts for approvals, redemptions, campaigns &amp;
+                  account updates.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                Merchant Notifications
-                {unreadCount > 0 && (
-                  <Badge className="bg-blue-600 text-white font-bold text-[9px] rounded-full px-2 py-0.5 border-0">
-                    {unreadCount} Unread
-                  </Badge>
-                )}
-                {isConnected && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Live Socket
-                  </span>
-                )}
-              </h1>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Real-time WebSocket alerts for approvals, campaigns, reports &amp; billing from live database
-              </p>
-            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => markAllRead()}
+              disabled={unreadCount === 0 || isMarkingRead}
+              className="text-xs h-8 font-medium rounded-xl border-slate-200 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-slate-700 hover:text-[#F72853] hover:bg-rose-50/40 transition-colors shadow-2xs shrink-0"
+            >
+              <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+              <span>Mark All as Read</span>
+            </Button>
           </div>
+        </Card>
 
-          <Button
-            variant="outline"
-            onClick={() => markAllRead()}
-            disabled={unreadCount === 0}
-            className="text-xs h-8 font-bold rounded-xl border-slate-200 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-slate-700 hover:bg-slate-50 shadow-none"
-          >
-            <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
-            <span>Mark All as Read</span>
-          </Button>
-        </div>
-
-        {/* 5 TABS: All, Unread, System, Campaign, Billing */}
+        {/* COMPACT FILTER TABS WITH NORMAL FONTS */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 flex flex-wrap gap-1 justify-start h-auto w-full sm:w-auto">
+          <TabsList className="bg-slate-100/90 p-1 rounded-xl border border-slate-200/90 flex flex-wrap gap-1 justify-start h-auto w-fit">
             <TabsTrigger
               value="all"
-              className="text-[11px] font-bold rounded-lg px-3 py-1.5 cursor-pointer"
+              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
             >
               All ({notifications.length})
             </TabsTrigger>
             <TabsTrigger
               value="unread"
-              className="text-[11px] font-bold rounded-lg px-3 py-1.5 cursor-pointer"
+              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
             >
               Unread ({unreadCount})
             </TabsTrigger>
             <TabsTrigger
               value="system"
-              className="text-[11px] font-bold rounded-lg px-3 py-1.5 cursor-pointer"
+              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
             >
-              System &amp; Verification
+              Account &amp; Status
             </TabsTrigger>
             <TabsTrigger
               value="campaign"
-              className="text-[11px] font-bold rounded-lg px-3 py-1.5 cursor-pointer"
+              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
             >
-              Campaigns &amp; Reports
+              Offers &amp; Campaigns
             </TabsTrigger>
             <TabsTrigger
               value="billing"
-              className="text-[11px] font-bold rounded-lg px-3 py-1.5 cursor-pointer"
+              className="text-xs font-medium rounded-lg px-3 py-1.5 cursor-pointer transition-all text-slate-600 hover:text-[#F72853] hover:bg-rose-50/50 data-[state=active]:!bg-[#F72853] data-[state=active]:!text-white data-[state=active]:shadow-xs"
             >
-              Billing &amp; Invoices
+              Billing
             </TabsTrigger>
           </TabsList>
 
-          <div className="pt-3">
-            <Card className="border-slate-200/90 shadow-2xs rounded-2xl bg-white overflow-hidden divide-y divide-slate-100">
-              {isLoading ? (
-                <div className="p-10 flex items-center justify-center text-slate-500 text-xs font-medium gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                  <span>Loading live notifications from DB...</span>
-                </div>
-              ) : filteredNotifications.length > 0 ? (
-                filteredNotifications.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => markItemRead(item.id)}
-                      className={`p-3.5 sm:p-4 flex items-start gap-3 transition-all cursor-pointer hover:bg-blue-50/30 ${
-                        !item.read ? "bg-blue-50/40" : "bg-white"
-                      }`}
-                    >
-                      <div
-                        className={`p-2 rounded-xl border shrink-0 ${item.iconColor}`}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </div>
-
-                      <div className="flex-1 space-y-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                            {item.title}
-                            {!item.read && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />
-                            )}
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400">
-                            {item.time}
-                          </span>
-                        </div>
-
-                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                          {item.message}
-                        </p>
-
-                        <div className="pt-0.5 flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className="text-[9px] font-bold border-slate-200 text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md"
+          {/* NOTIFICATION FEED LIST */}
+          <div className="pt-2">
+            <Card className="border border-slate-200/90 shadow-2xs rounded-2xl bg-white overflow-hidden divide-y divide-slate-100">
+              {isLoading
+                ? <div className="p-8 flex items-center justify-center text-slate-500 text-xs font-normal gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#F72853]" />
+                    <span>Loading live notifications from database...</span>
+                  </div>
+                : filteredNotifications.length > 0
+                  ? filteredNotifications.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            if (!item.read) markItemRead(item.id);
+                          }}
+                          className={`p-3 sm:p-3.5 flex items-start gap-3 transition-all cursor-pointer select-none group ${
+                            !item.read
+                              ? "bg-rose-50/20 hover:bg-rose-50/40"
+                              : "bg-white hover:bg-slate-50/70"
+                          }`}
+                        >
+                          {/* Compact Icon */}
+                          <div
+                            className={`w-8 h-8 rounded-xl border shrink-0 flex items-center justify-center ${item.iconColor}`}
                           >
-                            {item.type}
-                          </Badge>
+                            <Icon className="w-4 h-4" />
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 truncate">
+                                <span className="text-xs font-semibold text-slate-800 truncate">
+                                  {item.title}
+                                </span>
+                                {!item.read && (
+                                  <span
+                                    className="w-2 h-2 rounded-full bg-[#F72853] shrink-0"
+                                    title="Unread"
+                                  />
+                                )}
+                              </div>
+                              <span className="text-[10px] font-normal text-slate-400 shrink-0">
+                                {item.time}
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-slate-600 font-normal leading-relaxed">
+                              {item.message}
+                            </p>
+
+                            <div className="pt-0.5 flex items-center justify-between">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] font-medium border-slate-200/80 text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md shadow-none"
+                              >
+                                {item.typeFormatted}
+                              </Badge>
+
+                              {!item.read && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markItemRead(item.id);
+                                  }}
+                                  className="text-[10px] font-medium text-[#F72853] hover:underline opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-0 bg-transparent"
+                                >
+                                  Mark as read
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="p-8">
-                  <EmptyState
-                    icon={Bell}
-                    title="No Notifications Found"
-                    description="No live notifications exist in this category right now. Real-time Socket.IO alerts and approvals will appear here automatically."
-                  />
-                </div>
-              )}
+                      );
+                    })
+                  : <div className="p-8">
+                      <EmptyState
+                        icon={Bell}
+                        title="No Notifications"
+                        description={
+                          activeTab === "unread"
+                            ? "You've read all your notifications! New real-time alerts will appear here."
+                            : "No alerts recorded in this category yet. System approvals and redemption updates will appear automatically."
+                        }
+                        actionLabel={
+                          activeTab !== "all"
+                            ? "View All Notifications"
+                            : undefined
+                        }
+                        onAction={
+                          activeTab !== "all"
+                            ? () => setActiveTab("all")
+                            : undefined
+                        }
+                      />
+                    </div>}
             </Card>
           </div>
         </Tabs>
