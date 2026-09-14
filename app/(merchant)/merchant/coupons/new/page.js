@@ -113,14 +113,14 @@ export default function CreateCoupon() {
                     onClick={() => goToSection(sec.key)}
                     className={`flex items-center gap-1.5 text-[11px] transition-all cursor-pointer shrink-0 ${
                       isActive
-                        ? "text-slate-900 font-extrabold"
+                        ? "text-slate-900 font-semibold"
                         : isPast
-                          ? "text-emerald-700 font-bold"
-                          : "text-slate-400 font-medium"
+                          ? "text-emerald-700 font-medium"
+                          : "text-slate-400 font-normal"
                     }`}
                   >
                     <span
-                      className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
+                      className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-medium transition-all ${
                         isActive
                           ? "bg-blue-600 text-white shadow-2xs"
                           : isPast
@@ -128,11 +128,9 @@ export default function CreateCoupon() {
                             : "bg-slate-100 text-slate-400"
                       }`}
                     >
-                      {isPast ? (
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      ) : (
-                        sec.number
-                      )}
+                      {isPast
+                        ? <Check className="w-2.5 h-2.5 stroke-[2.5]" />
+                        : sec.number}
                     </span>
                     <span className="hidden sm:inline whitespace-nowrap">
                       S{sec.number}: {sec.name}

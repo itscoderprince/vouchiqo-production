@@ -178,6 +178,20 @@ const merchantSchema = new Schema(
     gstin: { type: String, uppercase: true, trim: true },
     isGstExempt: { type: Boolean, default: false },
     shopImage: { type: String }, // Cloudinary URL for storefront photo
+
+    // Bank & Payout Details
+    bankDetails: {
+      holderName: { type: String, trim: true },
+      bankName: { type: String, trim: true },
+      accountNumber: { type: String, trim: true },
+      ifsc: { type: String, trim: true, uppercase: true },
+      accountType: {
+        type: String,
+        enum: ["savings", "current", ""],
+        default: "current",
+      },
+      isVerified: { type: Boolean, default: false },
+    },
   },
   {
     timestamps: true,

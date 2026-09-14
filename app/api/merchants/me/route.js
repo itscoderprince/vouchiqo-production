@@ -188,6 +188,14 @@ export const PUT = asyncHandler(async (request) => {
     merchant.markModified("operatingHours");
   }
 
+  if (body.bankDetails && typeof body.bankDetails === "object") {
+    merchant.bankDetails = {
+      ...merchant.bankDetails,
+      ...body.bankDetails,
+    };
+    merchant.markModified("bankDetails");
+  }
+
   await merchant.save();
   return ok(merchant);
 });

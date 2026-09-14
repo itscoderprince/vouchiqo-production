@@ -82,29 +82,30 @@ export default function SectionDiscount({
             <Ticket className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
               Section 3: Discount &amp; In-Store Mechanics
             </h3>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Configure codes, discount values, caps &amp; in-store pricing structure
+            <p className="text-[11px] text-slate-500 font-normal">
+              Configure codes, discount values, caps &amp; in-store pricing
+              structure
             </p>
           </div>
         </div>
       </div>
 
       {offerType === "code" && (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {/* Offer Code Input Card */}
-          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+              <span className="text-xs font-medium text-slate-700 block">
                 Offer Code Configuration
               </span>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={generateRandomCode}
-                className="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer h-auto p-0 border-0 bg-transparent shadow-none"
+                className="text-[11px] font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer h-auto p-0 border-0 bg-transparent shadow-none"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Auto-generate Code
               </Button>
@@ -124,12 +125,12 @@ export default function SectionDiscount({
                 )
               }
               error={errors.code}
-              className="font-mono uppercase font-bold text-sm bg-white h-9"
+              className="font-mono uppercase font-medium text-sm bg-white h-9"
             />
           </div>
 
           {/* Discount Type & Value in 2-column grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <Controller
               name="discountType"
               control={control}
@@ -154,16 +155,32 @@ export default function SectionDiscount({
                         setValue("discountValue", "", { shouldValidate: true });
                       }
                     } else if (val === "BOGO") {
-                      if (isNum || !currentVal || currentVal === "20" || currentVal === "200") {
-                        setValue("discountValue", "Buy 1 Get 1", { shouldValidate: true });
+                      if (
+                        isNum ||
+                        !currentVal ||
+                        currentVal === "20" ||
+                        currentVal === "200"
+                      ) {
+                        setValue("discountValue", "Buy 1 Get 1", {
+                          shouldValidate: true,
+                        });
                       }
                     } else if (val === "Free Gift") {
-                      if (isNum || !currentVal || currentVal === "20" || currentVal === "200") {
-                        setValue("discountValue", "Free Gift with Purchase", { shouldValidate: true });
+                      if (
+                        isNum ||
+                        !currentVal ||
+                        currentVal === "20" ||
+                        currentVal === "200"
+                      ) {
+                        setValue("discountValue", "Free Gift with Purchase", {
+                          shouldValidate: true,
+                        });
                       }
                     } else if (val === "Other") {
                       if (isNum) {
-                        setValue("discountValue", "Special In-Store Offer", { shouldValidate: true });
+                        setValue("discountValue", "Special In-Store Offer", {
+                          shouldValidate: true,
+                        });
                       }
                     }
                   }}
@@ -209,7 +226,7 @@ export default function SectionDiscount({
           </div>
 
           {/* Max Cap & Min Order Value in 2-column grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <FormInput
               label="Maximum Discount Cap (₹)"
               icon={ShieldCheck}
@@ -233,15 +250,17 @@ export default function SectionDiscount({
 
       {/* In-Store Price Drop / Deal Mode */}
       {offerType === "deal" && (
-        <div className="space-y-4">
-          <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-800 font-medium flex items-center gap-2">
+        <div className="space-y-3.5">
+          <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-800 font-normal flex items-center gap-2">
             <span>💡</span>
             <span>
-              <strong>In-Store Deal:</strong> Set your original store MRP and discounted offer price for customers visiting your store.
+              <strong className="font-semibold">In-Store Deal:</strong> Set your
+              original store MRP and discounted offer price for customers
+              visiting your store.
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <FormInput
               label="Original Price (MRP ₹)"
               icon={DollarSign}
@@ -258,7 +277,7 @@ export default function SectionDiscount({
               placeholder="e.g. 1499"
               {...register("salePrice")}
               error={errors.salePrice}
-              className="font-bold text-emerald-700"
+              className="font-medium text-emerald-700"
             />
           </div>
         </div>
@@ -266,8 +285,8 @@ export default function SectionDiscount({
 
       {/* Special Offer / Gift Mode */}
       {offerType === "special" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <Controller
               name="specialOfferType"
               control={control}
@@ -324,13 +343,13 @@ export default function SectionDiscount({
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
+          className="text-xs font-medium rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-8 px-5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           <span>Continue to Validity &amp; Limits</span>
           <ArrowRight className="w-3.5 h-3.5" />

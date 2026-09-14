@@ -74,11 +74,13 @@ export default function FormSelect({
       {label && (
         <Label
           htmlFor={name}
-          className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1.5"
+          className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
         >
           {Icon && <Icon className="w-3.5 h-3.5 text-brand-blue" />}
           <span>{label}</span>
-          {required && <span className="text-red-500 font-bold ml-0.5">*</span>}
+          {required && (
+            <span className="text-red-500 font-medium ml-0.5">*</span>
+          )}
         </Label>
       )}
 

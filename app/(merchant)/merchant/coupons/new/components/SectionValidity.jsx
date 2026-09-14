@@ -86,23 +86,23 @@ export default function SectionValidity({
             <CalendarIcon className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
               Section 4: Validity, Limits &amp; Target Restrictions
             </h3>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <p className="text-[11px] text-slate-500 font-normal">
               Dates, redemption caps, target demographic &amp; location rules
             </p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {/* Start Date & End Date Pickers in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
+            <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
               <Clock className="w-3.5 h-3.5 text-blue-600" /> Start Date
-              <span className="text-red-500 font-bold ml-0.5">*</span>
+              <span className="text-red-500 font-medium ml-0.5">*</span>
             </Label>
             <DatePicker
               value={startDate}
@@ -120,9 +120,9 @@ export default function SectionValidity({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
+            <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
               <Clock className="w-3.5 h-3.5 text-rose-500" /> End Date
-              <span className="text-red-500 font-bold ml-0.5">*</span>
+              <span className="text-red-500 font-medium ml-0.5">*</span>
             </Label>
             <DatePicker
               value={endDate}
@@ -141,7 +141,7 @@ export default function SectionValidity({
         </div>
 
         {/* Usage Limits in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <FormInput
             label="Total Usage Limit"
             icon={Users}
@@ -171,7 +171,7 @@ export default function SectionValidity({
         </div>
 
         {/* Target Audience & Geographic Restrictions in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <Controller
             name="targetAudience"
             control={control}
@@ -201,7 +201,9 @@ export default function SectionValidity({
                 value={field.value}
                 onValueChange={(val) => {
                   field.onChange(val);
-                  setValue("geographicRestriction", val, { shouldValidate: true });
+                  setValue("geographicRestriction", val, {
+                    shouldValidate: true,
+                  });
                 }}
                 error={errors.geographicRestriction}
               />
@@ -210,12 +212,13 @@ export default function SectionValidity({
         </div>
 
         {/* Day Restrictions & Store Operating Hours */}
-        <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-3">
-          <div className="space-y-2">
+        <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2.5">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
-                <CalendarIcon className="w-3.5 h-3.5 text-emerald-600" /> Valid Offer Days
-                <span className="text-[10px] text-slate-400 font-normal normal-case ml-1">
+              <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
+                <CalendarIcon className="w-3.5 h-3.5 text-emerald-600" /> Valid
+                Offer Days
+                <span className="text-[10px] text-slate-400 font-normal ml-1">
                   (Optional)
                 </span>
               </Label>
@@ -229,7 +232,7 @@ export default function SectionValidity({
                       shouldValidate: true,
                     })
                   }
-                  className="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer px-1 py-0.5 rounded"
+                  className="text-[10px] font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer px-1 py-0.5 rounded"
                 >
                   All 7 Days
                 </button>
@@ -243,7 +246,7 @@ export default function SectionValidity({
                       { shouldValidate: true },
                     )
                   }
-                  className="text-[10px] font-bold text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5 rounded"
+                  className="text-[10px] font-medium text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5 rounded"
                 >
                   Mon–Fri
                 </button>
@@ -255,7 +258,7 @@ export default function SectionValidity({
                       shouldValidate: true,
                     })
                   }
-                  className="text-[10px] font-bold text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5 rounded"
+                  className="text-[10px] font-medium text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5 rounded"
                 >
                   Sat–Sun
                 </button>
@@ -272,7 +275,7 @@ export default function SectionValidity({
                     onClick={() => toggleDay(day)}
                     variant={isSelected ? "default" : "outline"}
                     className={cn(
-                      "px-2.5 py-1 h-7 text-xs font-bold rounded-lg border transition-all cursor-pointer shadow-none",
+                      "px-2.5 py-1 h-7 text-xs font-medium rounded-lg border transition-all cursor-pointer shadow-none",
                       isSelected
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50",
@@ -288,8 +291,9 @@ export default function SectionValidity({
           {/* Store Operating Hours */}
           <div className="space-y-1.5 pt-2 border-t border-slate-200/60">
             <div className="flex items-center justify-between flex-wrap gap-1">
-              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 uppercase tracking-wider">
-                <Clock className="w-3.5 h-3.5 text-blue-600" /> Store Operating / Valid Hours
+              <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
+                <Clock className="w-3.5 h-3.5 text-blue-600" /> Store Operating
+                / Valid Hours
               </Label>
 
               {/* Operating Hours Presets */}
@@ -301,7 +305,7 @@ export default function SectionValidity({
                       shouldValidate: true,
                     })
                   }
-                  className="text-[10px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
+                  className="text-[10px] font-medium bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
                 >
                   Regular (10 AM–9 PM)
                 </button>
@@ -312,7 +316,7 @@ export default function SectionValidity({
                       shouldValidate: true,
                     })
                   }
-                  className="text-[10px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
+                  className="text-[10px] font-medium bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
                 >
                   Lunch (12 PM–4 PM)
                 </button>
@@ -323,7 +327,7 @@ export default function SectionValidity({
                       shouldValidate: true,
                     })
                   }
-                  className="text-[10px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
+                  className="text-[10px] font-medium bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
                 >
                   Evening (5 PM–10 PM)
                 </button>
@@ -338,8 +342,9 @@ export default function SectionValidity({
               error={errors.validHours}
               className="bg-white"
             />
-            <span className="text-[10px] text-slate-400 font-medium block">
-              💡 Specify when customers can visit your physical store or claim this deal during store operating hours.
+            <span className="text-[10px] text-slate-400 font-normal block">
+              💡 Specify when customers can visit your physical store or claim
+              this deal during store operating hours.
             </span>
           </div>
         </div>
@@ -350,13 +355,13 @@ export default function SectionValidity({
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
+          className="text-xs font-medium rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-8 px-5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           <span>Continue to Terms &amp; Submit</span>
           <ArrowRight className="w-3.5 h-3.5" />

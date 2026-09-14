@@ -68,19 +68,20 @@ export default function SectionBasic({
             <FileText className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
               Section 2: Basic Offer Details
             </h3>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Specify headline, short description, merchant category &amp; banner image
+            <p className="text-[11px] text-slate-500 font-normal">
+              Specify headline, short description, merchant category &amp;
+              banner image
             </p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {/* Headline & Fixed Merchant Category in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <FormInput
             label="Offer Headline / Title"
             icon={FileText}
@@ -95,22 +96,24 @@ export default function SectionBasic({
 
           {/* Locked / Fixed Merchant Category Display */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-semibold text-slate-700 uppercase flex items-center gap-1.5">
+            <Label className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-blue-600" />
               <span>Offer Category</span>
-              <span className="text-red-500 font-bold ml-0.5">*</span>
+              <span className="text-red-500 font-medium ml-0.5">*</span>
             </Label>
-            <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200/90 bg-blue-50/50 text-slate-900 font-bold text-xs shadow-2xs">
+            <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200/90 bg-blue-50/50 text-slate-900 font-medium text-xs shadow-2xs">
               <span className="flex items-center gap-2 truncate">
-                <span className="text-blue-600 font-extrabold">★</span>
+                <span className="text-blue-600 font-semibold">★</span>
                 <span>{categoryLabel}</span>
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0 shadow-2xs">
-                <Lock className="w-3 h-3 text-blue-600" /> Locked to Merchant Industry
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0 shadow-2xs">
+                <Lock className="w-3 h-3 text-blue-600" /> Locked to Merchant
+                Industry
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">
-              Offers are automatically fixed to your registered business category.
+            <p className="text-[11px] text-slate-400 font-normal">
+              Offers are automatically fixed to your registered business
+              category.
             </p>
           </div>
         </div>
@@ -129,20 +132,25 @@ export default function SectionBasic({
         />
 
         {/* Offer Banner Image Upload Card */}
-        <div className="space-y-2.5 p-4 bg-slate-50/90 rounded-xl border border-slate-200/90 shadow-2xs">
+        <div className="space-y-2 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-900 uppercase tracking-wider">
-              <ImageIcon className="w-4 h-4 text-blue-600" /> Banner Image Upload
-              <span className="text-[10px] text-slate-400 font-normal normal-case">
+            <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
+              <ImageIcon className="w-4 h-4 text-blue-600" /> Banner Image
+              Upload
+              <span className="text-[10px] text-slate-400 font-normal">
                 (Optional)
               </span>
             </Label>
 
             {/* Prominent Image Ratio Callout Badge */}
-            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200/90 px-2.5 py-1 rounded-lg shadow-2xs">
-              <span className="text-blue-600 font-black">📷 Aspect Ratio: 2:1</span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200/90 px-2 py-0.5 rounded-lg shadow-2xs">
+              <span className="text-blue-600 font-medium">
+                Aspect Ratio: 2:1
+              </span>
               <span className="text-slate-400 font-normal">•</span>
-              <span className="text-slate-800 font-bold">800×400px Landscape</span>
+              <span className="text-slate-700 font-medium">
+                800×400px Landscape
+              </span>
             </span>
           </div>
 
@@ -152,14 +160,16 @@ export default function SectionBasic({
               placeholder="Paste image URL (https://...) or upload below"
               {...register("image")}
               error={errors.image}
-              className="flex-1 bg-white h-10 text-xs"
+              className="flex-1 bg-white h-9 text-xs"
             />
 
             {/* Upload Button with prominent ratio text */}
-            <label className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-4 h-10 rounded-xl cursor-pointer shrink-0 transition-all shadow-md shadow-slate-900/10">
-              <Upload className="w-4 h-4 text-white" />
+            <label className="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs px-3.5 h-9 rounded-xl cursor-pointer shrink-0 transition-all shadow-xs">
+              <Upload className="w-3.5 h-3.5 text-white" />
               <span>
-                {uploadingImage ? "Uploading..." : "Upload 800×400 Banner (2:1)"}
+                {uploadingImage
+                  ? "Uploading..."
+                  : "Upload 800×400 Banner (2:1)"}
               </span>
               <input
                 type="file"
@@ -171,9 +181,15 @@ export default function SectionBasic({
             </label>
           </div>
 
-          <div className="p-2 bg-white rounded-lg border border-slate-200/70 text-[11px] text-slate-600 font-medium flex items-center justify-between flex-wrap gap-1">
-            <span>💡 <strong>Banner Tip:</strong> 2:1 Horizontal ratio (800px width × 400px height, PNG/JPG max 5MB) renders perfectly on all devices.</span>
-            <span className="text-blue-600 font-bold text-[10px] uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">2:1 Ratio</span>
+          <div className="p-2 bg-white rounded-lg border border-slate-200/70 text-[11px] text-slate-600 font-normal flex items-center justify-between flex-wrap gap-1">
+            <span>
+              💡 <strong className="font-semibold">Banner Tip:</strong> 2:1
+              Horizontal ratio (800px width × 400px height, PNG/JPG max 5MB)
+              renders cleanly on all devices.
+            </span>
+            <span className="text-blue-600 font-medium text-[10px] bg-blue-50 px-2 py-0.5 rounded">
+              2:1 Ratio
+            </span>
           </div>
         </div>
       </div>
@@ -183,13 +199,13 @@ export default function SectionBasic({
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
+          className="text-xs font-medium rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
         </Button>
         <Button
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-8 px-5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           <span>Continue to Discount &amp; Code</span>
           <ArrowRight className="w-3.5 h-3.5" />

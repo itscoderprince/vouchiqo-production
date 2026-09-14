@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
-import AddOnsGrid from "./components/AddOnsGrid";
 import BillingHistoryTable from "./components/BillingHistoryTable";
 import CheckoutModal from "./components/CheckoutModal";
 import CurrentPlanCard from "./components/CurrentPlanCard";
@@ -149,51 +148,6 @@ export default function MerchantSubscription() {
     return [];
   }, [plansData]);
 
-  const addOns = [
-    {
-      id: "revival_pack",
-      name: "Expired Offer Revival Pack",
-      price: 499,
-      unit: "/ 25 revivals",
-      desc: "Add 25 Expired Coupon Revival processing credits to your account.",
-    },
-    {
-      id: "campaign_boost",
-      name: "Flash Campaign Boost",
-      price: 799,
-      unit: "/ campaign",
-      desc: "Spotlight placement, ticker priority + dedicated email & push alert per campaign.",
-    },
-    {
-      id: "ticker_featured",
-      name: "Homepage Featured Slot",
-      price: 999,
-      unit: "/ 3 days",
-      desc: "Your offer pins first in the Hot Deals ticker and banner slot for 3 consecutive days.",
-    },
-    {
-      id: "push_notification",
-      name: "Targeted Push Notification",
-      price: 599,
-      unit: "/ send",
-      desc: "Instant push alert send targeted directly to users interested in your category.",
-    },
-    {
-      id: "festival_package",
-      name: "Festival Campaign Package",
-      price: 2999,
-      unit: "/ event",
-      desc: "Full 7-day festival event promotion (pre-teaser banner, email blast & social sharing).",
-    },
-    {
-      id: "analytics_report",
-      name: "Performance Analytics Report",
-      price: 799,
-      unit: "/ report",
-      desc: "Deep monthly PDF analytical report with ROI and customer conversion breakdown.",
-    },
-  ];
-
   const currentPlanId = merchant?.plan || "starter";
   const planExpiry = merchant?.planExpiry;
   const revivalCredits = merchant?.revivalCredits || 0;
@@ -277,12 +231,7 @@ export default function MerchantSubscription() {
     setIsCheckoutOpen(true);
   };
 
-  const handleOpenAddOn = (addOn) => {
-    setSelectedAddOn(addOn);
-    setSelectedPlan(null);
-    setIsCheckoutOpen(true);
-  };
-
+  // biome-ignore lint/correctness/useExhaustiveDependencies: autoPay initialization on mount
   useEffect(() => {
     if (typeof window === "undefined" || !plans || plans.length === 0) return;
     const urlParams = new URLSearchParams(window.location.search);
@@ -391,7 +340,7 @@ export default function MerchantSubscription() {
         theme: {
           color: "#2563eb",
         },
-        handler: async function (response) {
+        handler: async (response) => {
           setIsRazorpayLoading(true);
           toast.loading("Verifying Razorpay transaction...", {
             id: "rzp-verify",
@@ -418,7 +367,9 @@ export default function MerchantSubscription() {
               );
             }
 
-            await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+            await queryClient.invalidateQueries({
+              queryKey: ["merchant-profile"],
+            });
             queryClient.invalidateQueries({
               queryKey: ["merchant-coupons-count"],
             });
@@ -448,7 +399,7 @@ export default function MerchantSubscription() {
           }
         },
         modal: {
-          ondismiss: function () {
+          ondismiss: () => {
             setIsRazorpayLoading(false);
             toast.error("Razorpay payment cancelled.");
           },
@@ -524,7 +475,9 @@ export default function MerchantSubscription() {
       await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
       queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
       queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
-      await queryClient.invalidateQueries({ queryKey: ["merchant-payment-history"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["merchant-payment-history"],
+      });
       await refetchMerchant();
       await refetchPaymentHistory();
     } catch (err) {
@@ -554,58 +507,56 @@ export default function MerchantSubscription() {
     >
       <div className="space-y-4 text-left font-sans w-full pb-8">
         <div data-tour="billing-plan">
-            <CurrentPlanCard
-              merchant={merchant}
-              currentPlanId={currentPlanId}
-              plans={plans}
-              billingCycle={billingCycle}
-              planExpiry={planExpiry}
-              revivalCredits={revivalCredits}
-              activeListingsCount={activeListingsCount}
-              planListingsLimit={planListingsLimit}
-              campaignsUsedCount={campaignsUsedCount}
-              planCampaignsLimit={planCampaignsLimit}
-              onOpenUpgrade={handleOpenUpgrade}
-            />
-          </div>
-
-          <PlanComparisonGrid
-            plans={plans}
+          <CurrentPlanCard
+            merchant={merchant}
             currentPlanId={currentPlanId}
+            plans={plans}
             billingCycle={billingCycle}
-            setBillingCycle={setBillingCycle}
+            planExpiry={planExpiry}
+            revivalCredits={revivalCredits}
+            activeListingsCount={activeListingsCount}
+            planListingsLimit={planListingsLimit}
+            campaignsUsedCount={campaignsUsedCount}
+            planCampaignsLimit={planCampaignsLimit}
             onOpenUpgrade={handleOpenUpgrade}
-            isPaymentCompleted={
-              merchant?.paymentStatus === "completed" ||
-              merchant?.subscriptionStatus === "active" ||
-              (merchant?.planExpiry &&
-                new Date(merchant.planExpiry).getTime() > Date.now())
-            }
-            isLoading={isLoadingPlans || !plansData}
-          />
-
-          <AddOnsGrid addOns={addOns} onOpenAddOn={handleOpenAddOn} />
-
-          <BillingHistoryTable invoices={invoices} />
-
-          <CheckoutModal
-            isOpen={isCheckoutOpen}
-            onClose={() => setIsCheckoutOpen(false)}
-            selectedPlan={selectedPlan}
-            selectedAddOn={selectedAddOn}
-            billingCycle={billingCycle}
-            basePrice={basePrice}
-            gst={gst}
-            totalPrice={totalPrice}
-            gstin={gstin}
-            setGstin={setGstin}
-            onPayWithRazorpay={() =>
-              triggerRazorpayDirect(selectedPlan, selectedAddOn)
-            }
-            onSimulatePayment={handleSimulateDevPayment}
-            isPending={isRazorpayLoading}
           />
         </div>
-      </DashboardLayout>
-    );
-  }
+
+        <PlanComparisonGrid
+          plans={plans}
+          currentPlanId={currentPlanId}
+          billingCycle={billingCycle}
+          setBillingCycle={setBillingCycle}
+          onOpenUpgrade={handleOpenUpgrade}
+          isPaymentCompleted={
+            merchant?.paymentStatus === "completed" ||
+            merchant?.subscriptionStatus === "active" ||
+            (merchant?.planExpiry &&
+              new Date(merchant.planExpiry).getTime() > Date.now())
+          }
+          isLoading={isLoadingPlans || !plansData}
+        />
+
+        <BillingHistoryTable invoices={invoices} />
+
+        <CheckoutModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          selectedPlan={selectedPlan}
+          selectedAddOn={selectedAddOn}
+          billingCycle={billingCycle}
+          basePrice={basePrice}
+          gst={gst}
+          totalPrice={totalPrice}
+          gstin={gstin}
+          setGstin={setGstin}
+          onPayWithRazorpay={() =>
+            triggerRazorpayDirect(selectedPlan, selectedAddOn)
+          }
+          onSimulatePayment={handleSimulateDevPayment}
+          isPending={isRazorpayLoading}
+        />
+      </div>
+    </DashboardLayout>
+  );
+}

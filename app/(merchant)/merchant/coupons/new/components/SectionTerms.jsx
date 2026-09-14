@@ -63,17 +63,18 @@ export default function SectionTerms({
             <ShieldCheck className="w-4 h-4" />
           </span>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-sm font-semibold text-slate-800 tracking-tight">
               Section 5: Terms, Rules &amp; Verification Submission
             </h3>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Disclose terms, stackability rules &amp; complete merchant confirmation
+            <p className="text-[11px] text-slate-500 font-normal">
+              Disclose terms, stackability rules &amp; complete merchant
+              confirmation
             </p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {/* Terms & Conditions Textarea */}
         <FormTextarea
           label="Full Terms & Conditions (Numbered)"
@@ -86,7 +87,7 @@ export default function SectionTerms({
         />
 
         {/* Combinability & Honoured All Days in 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <Controller
             name="combinability"
             control={control}
@@ -135,12 +136,38 @@ export default function SectionTerms({
         />
 
         {/* Mandatory Compliance Checkboxes */}
-        <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2.5">
-          <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-900 uppercase tracking-wider">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Mandatory Merchant Declaration
-            <span className="text-red-500 font-bold ml-0.5">*</span>
-          </Label>
-          <div className="space-y-2">
+        <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-1.5 font-medium text-xs text-slate-700">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />{" "}
+              Mandatory Merchant Declaration
+              <span className="text-red-500 font-medium ml-0.5">*</span>
+            </Label>
+            <button
+              type="button"
+              onClick={() => {
+                const allChecked =
+                  watch("agreed1") &&
+                  watch("agreed2") &&
+                  watch("agreed3") &&
+                  watch("agreed4");
+                const nextVal = !allChecked;
+                setValue("agreed1", nextVal, { shouldValidate: true });
+                setValue("agreed2", nextVal, { shouldValidate: true });
+                setValue("agreed3", nextVal, { shouldValidate: true });
+                setValue("agreed4", nextVal, { shouldValidate: true });
+              }}
+              className="text-[11px] font-medium text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1 transition-colors"
+            >
+              {watch("agreed1") &&
+              watch("agreed2") &&
+              watch("agreed3") &&
+              watch("agreed4")
+                ? "Deselect All"
+                : "Select All"}
+            </button>
+          </div>
+          <div className="space-y-1.5">
             {[
               {
                 key: "agreed1",
@@ -168,12 +195,12 @@ export default function SectionTerms({
                       setValue(chk.key, !isChecked, { shouldValidate: true })
                     }
                     className={cn(
-                      "flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all select-none",
+                      "flex items-start gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-all select-none",
                       isChecked
-                        ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                        ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-medium"
                         : hasErr
-                          ? "bg-red-50/50 border-red-300 text-red-900 font-medium"
-                          : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 font-medium",
+                          ? "bg-red-50/50 border-red-300 text-red-900 font-normal"
+                          : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 font-normal",
                     )}
                   >
                     <span
@@ -186,7 +213,9 @@ export default function SectionTerms({
                             : "border-slate-300 bg-white",
                       )}
                     >
-                      {isChecked && <Check className="h-2.5 w-2.5 stroke-[3]" />}
+                      {isChecked && (
+                        <Check className="h-2.5 w-2.5 stroke-[2.5]" />
+                      )}
                     </span>
                     <span className="leading-snug text-[11px]">{chk.text}</span>
                   </div>
@@ -207,14 +236,14 @@ export default function SectionTerms({
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-xs font-bold rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
+          className="text-xs font-medium rounded-xl border-slate-200 cursor-pointer h-8 px-3.5"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
         </Button>
         <Button
           onClick={onSubmit}
           disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-8 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium h-8 px-5 rounded-xl cursor-pointer shadow-xs"
         >
           {isPending
             ? "Submitting for Verification..."

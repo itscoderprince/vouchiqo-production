@@ -210,9 +210,7 @@ export function useCreateCouponForm() {
       formData.discountValue !== "" &&
       !Number.isNaN(rawDiscountNum);
 
-    const parsedDiscount = isNum
-      ? rawDiscountNum
-      : formData.discountValue || 0;
+    const parsedDiscount = isNum ? rawDiscountNum : formData.discountValue || 0;
 
     const rawOriginal = Number(formData.originalPrice);
     const parsedOriginal =
