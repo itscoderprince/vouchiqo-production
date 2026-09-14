@@ -1,14 +1,8 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Clock,
-  Info,
-  Lock,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Clock, Lock, Plus, Zap } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -21,10 +15,7 @@ import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import KpiCards from "./components/KpiCards";
-import OnboardingCard from "./components/OnboardingCard";
 import PerformanceChart from "./components/PerformanceChart";
-import PlanUsageCard from "./components/PlanUsageCard";
-import QuickActionsCard from "./components/QuickActionsCard";
 import RecentOrdersAndActivity from "./components/RecentOrdersAndActivity";
 import TopCouponsTable from "./components/TopCouponsTable";
 import TrafficAndGoals from "./components/TrafficAndGoals";
@@ -33,16 +24,7 @@ export default function MerchantDashboard() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activeRange, setActiveRange] = useState("30 Days");
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const { isProfileIncomplete, health, openModal } = useMerchantLock();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOnboardingDismissed(
-        localStorage.getItem("onboarding_dismissed") === "true",
-      );
-    }
-  }, []);
 
   // Listen for real-time customer coupon claims
   useRealtime(SOCKET_EVENTS.COUPON_CLAIMED, (data) => {
@@ -171,28 +153,13 @@ export default function MerchantDashboard() {
   const activeCoupons =
     merchant?.totalCoupons ?? Object.keys(overviewStats).length;
 
-  // Contextual alerts
+  // Contextual alerts - only show genuine capacity limit warning
   const alerts = [];
-  if (activeCoupons >= planLimit * 0.9) {
+  if (planLimit > 0 && activeCoupons >= planLimit * 0.9) {
     alerts.push({
       type: "orange",
       icon: Zap,
-      msg: `You're using ${activeCoupons}/${planLimit} listings. Consider upgrading your plan.`,
-    });
-  }
-  // Check for any expiring coupons (from overviewStats keys count as proxy)
-  if (trendData.length > 0 && totalRedemptions === 0) {
-    alerts.push({
-      msg: "No redemptions yet. Share your offer codes with customers to drive your first sale.",
-      type: "info",
-      icon: Info,
-    });
-  }
-  if (totalClaims > 0 && totalRedemptions / totalClaims < 0.1) {
-    alerts.push({
-      type: "amber",
-      icon: AlertTriangle,
-      msg: `Low redemption rate (${Math.round((totalRedemptions / totalClaims) * 100)}%). Try adjusting your offer discount to convert more claims.`,
+      msg: `You're using ${activeCoupons}/${planLimit} listings. Consider upgrading your plan for unlimited active deals.`,
     });
   }
 
@@ -263,41 +230,41 @@ export default function MerchantDashboard() {
       title="Dashboard"
       user={{ name: merchant?.businessName || "Merchant", role: "merchant" }}
     >
-      <div className="relative space-y-4 text-left font-sans min-h-[75vh]">
+      <div className="relative space-y-3.5 text-left font-sans min-h-[75vh]">
         {/* Full Dashboard Blur Overlay when Profile is Incomplete */}
         {isProfileIncomplete && (
           <div
             onClick={openModal}
-            className="absolute inset-0 z-30 bg-slate-900/50 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-hidden"
+            className="absolute inset-0 z-30 bg-slate-900/50 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all animate-in fade-in duration-300 select-none overflow-hidden"
           >
-            <div className="max-w-md w-full bg-slate-900/90 text-white rounded-3xl p-8 border border-slate-700/80 shadow-2xl space-y-5 backdrop-blur-xl">
-              <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700/90 flex items-center justify-center mx-auto text-slate-300 shadow-inner">
-                <Lock className="w-8 h-8 text-slate-300" />
+            <div className="max-w-md w-full bg-slate-900/90 text-white rounded-2xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl space-y-4 backdrop-blur-xl">
+              <div className="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto text-slate-300 shadow-inner">
+                <Lock className="w-7 h-7 text-slate-300" />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-center gap-2">
-                  <h3 className="text-lg font-black text-white tracking-tight">
+                  <h3 className="text-base font-semibold text-white tracking-tight">
                     Dashboard Locked
                   </h3>
-                  <Badge className="bg-red-500/20 text-red-300 border-red-500/30 text-[10px] font-bold">
+                  <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/30 text-[10px] font-medium">
                     {health?.percentage || 0}% Complete
                   </Badge>
                 </div>
-                <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                <p className="text-xs text-slate-300 font-normal leading-relaxed">
                   Your store profile is currently incomplete. Complete all 15
                   required details to unlock your listings, analytics, and
                   partner controls.
                 </p>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     router.push("/merchant/profile?edit=true");
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl h-11 shadow-lg shadow-blue-600/30 cursor-pointer flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                  className="w-full bg-[#F72853] hover:bg-[#e01e47] text-white font-medium text-xs rounded-xl h-10 shadow-sm cursor-pointer flex items-center justify-center gap-2 transition-all"
                 >
                   <span>Complete Profile Now</span>
                   <ArrowRight className="w-4 h-4" />
@@ -309,54 +276,50 @@ export default function MerchantDashboard() {
 
         {/* Application Under Review Overlay Banner */}
         {merchant?.status === "pending" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-3 shadow-2xs">
-            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-amber-600">
-              <Clock className="w-6 h-6 animate-pulse" />
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center space-y-2.5 shadow-2xs">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-amber-600">
+              <Clock className="w-5 h-5 animate-pulse" />
             </div>
-            <div className="space-y-1">
-              <h2 className="text-lg font-bold text-amber-950 uppercase tracking-wide">
-                APPLICATION UNDER REVIEW
+            <div className="space-y-0.5">
+              <h2 className="text-sm font-semibold text-amber-950">
+                Application Under Review
               </h2>
-              <p className="text-xs text-amber-800 max-w-lg mx-auto font-medium">
+              <p className="text-xs text-amber-800 max-w-lg mx-auto font-normal">
                 Your merchant profile &amp; KYC verification are currently under
                 review by our super admin team. Account features will be
                 activated upon approval (usually 24–48 hours).
               </p>
             </div>
-            <div className="flex items-center justify-center gap-3 pt-1">
+            <div className="flex items-center justify-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => router.push("/merchant/profile")}
-                className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold h-8 px-4 rounded-lg shadow-2xs cursor-pointer"
+                className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium h-7.5 px-3 rounded-lg shadow-2xs cursor-pointer"
               >
-                Modify Business Profile &amp; Documents
+                Modify Profile &amp; Documents
               </button>
               <button
                 type="button"
                 onClick={() => router.push("/merchant/application-status")}
-                className="border border-amber-300 text-amber-900 bg-white hover:bg-amber-50 text-xs font-semibold h-8 px-4 rounded-lg cursor-pointer"
+                className="border border-amber-300 text-amber-900 bg-white hover:bg-amber-50 text-xs font-medium h-7.5 px-3 rounded-lg cursor-pointer"
               >
-                Track Live Application Status
+                Track Status
               </button>
             </div>
           </div>
         )}
-        {/* Contextual Alert Cards */}
+
+        {/* Capacity Warning Alert if near limit */}
         {alerts.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {alerts.map((alert, idx) => {
               const Icon = alert.icon;
-              const styles = {
-                amber: "bg-blue-50 border-blue-200 text-blue-900",
-                blue: "bg-blue-50 border-blue-200 text-blue-900",
-                orange: "bg-blue-50 border-blue-200 text-blue-900",
-              };
               return (
                 <div
                   key={idx}
-                  className={`flex items-start gap-2 border rounded-xl px-3.5 py-2.5 text-xs font-semibold font-sans ${styles[alert.type]}`}
+                  className="flex items-center gap-2 border border-rose-200/80 bg-rose-50/50 text-slate-800 rounded-xl px-3.5 py-2 text-xs font-normal font-sans"
                 >
-                  <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0 text-blue-600" />
+                  <Icon className="w-3.5 h-3.5 shrink-0 text-[#F72853]" />
                   <span>{alert.msg}</span>
                 </div>
               );
@@ -364,12 +327,32 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* Onboarding Welcome Card */}
-        <OnboardingCard
-          totalCoupons={merchant?.totalCoupons}
-          onboardingDismissed={onboardingDismissed}
-          setOnboardingDismissed={setOnboardingDismissed}
-        />
+        {/* Compact Header Bar with Quick Action */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-0.5">
+          <div>
+            <h1 className="text-base sm:text-lg font-semibold text-slate-900 leading-tight">
+              Dashboard Overview
+            </h1>
+            <p className="text-xs text-slate-500 font-normal">
+              Track real-time performance, shopper visits, and deal redemptions.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/merchant/coupons/new"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium rounded-lg shadow-xs transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Post New Listing</span>
+            </Link>
+            <Link
+              href="/merchant/affiliate-products/new"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            >
+              <span>+ Affiliate Deal</span>
+            </Link>
+          </div>
+        </div>
 
         {/* 4 KPI Cards */}
         <div data-tour="kpi-cards">
@@ -387,7 +370,7 @@ export default function MerchantDashboard() {
         </div>
 
         {/* Main Chart + Right Sidebar */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
           {/* Dual Line Chart: Clicks vs Redemptions */}
           <PerformanceChart
             trendData={trendData}
@@ -410,16 +393,6 @@ export default function MerchantDashboard() {
           <TopCouponsTable coupons={topCoupons} />
         </div>
 
-        {/* Bottom Row: Quick Actions + Plan Usage */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <QuickActionsCard plan={plan} />
-          <PlanUsageCard
-            plan={plan}
-            activeCoupons={activeCoupons}
-            planLimit={planLimit}
-          />
-        </div>
-
         {/* Recent Orders & Activity Feed */}
         <div data-tour="recent-orders">
           <RecentOrdersAndActivity
@@ -428,6 +401,7 @@ export default function MerchantDashboard() {
             recentActivities={recentActivities}
           />
         </div>
+
         {/* Process-Based Profile Completion Feedback */}
         <ProcessFeedbackModal
           isOpen={isFeedbackOpen}

@@ -1,6 +1,6 @@
 "use client";
 
-import { MousePointerClick, TicketCheck } from "lucide-react";
+import { MousePointerClick } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -10,13 +10,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 const TIME_RANGES = ["7 Days", "30 Days", "90 Days"];
 
@@ -25,7 +18,6 @@ export default function PerformanceChart({
   activeRange = "30 Days",
   setActiveRange,
 }) {
-  // Build chart data exclusively from real DB trendData — no fake/demo fallback
   const chartData =
     trendData && trendData.length > 0
       ? trendData.map((t) => ({
@@ -39,25 +31,25 @@ export default function PerformanceChart({
   const hasData = chartData.some((c) => c.clicks > 0 || c.redemptions > 0);
 
   return (
-    <Card className="col-span-full xl:col-span-8 bg-white border border-slate-200/90 rounded-2xl shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-all duration-200 p-0 gap-0 font-sans">
-      <CardHeader className="px-4 py-3 sm:px-4 sm:py-3 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50/50 min-h-[48px]">
+    <div className="col-span-full xl:col-span-8 bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden flex flex-col h-full font-sans">
+      <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50/40">
         <div>
-          <CardTitle className="font-sans text-xs sm:text-[12px] font-bold text-[#08214d] tracking-wider uppercase m-0 leading-none">
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-800 m-0 leading-tight">
             Clicks vs Redemptions
-          </CardTitle>
-          <CardDescription className="text-[10px] font-semibold text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+          </h3>
+          <p className="text-[11px] text-slate-500 font-normal mt-0.5 leading-none">
             Performance trend — last {activeRange ?? "30 Days"}
-          </CardDescription>
+          </p>
         </div>
-        <div className="flex items-center border border-slate-200/80 rounded-lg p-0.5 bg-slate-100/90 shrink-0 select-none">
+        <div className="flex items-center border border-slate-200/80 rounded-lg p-0.5 bg-slate-100/80 shrink-0 select-none">
           {TIME_RANGES.map((range) => (
             <button
               key={range}
               type="button"
               onClick={() => setActiveRange(range)}
-              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md transition-all uppercase cursor-pointer border-0 ${
+              className={`text-[11px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer border-0 ${
                 (activeRange ?? "30 Days") === range
-                  ? "bg-white text-[#08214d] shadow-2xs"
+                  ? "bg-white text-slate-900 shadow-2xs"
                   : "text-slate-500 hover:text-slate-800 bg-transparent"
               }`}
             >
@@ -65,43 +57,38 @@ export default function PerformanceChart({
             </button>
           ))}
         </div>
-      </CardHeader>
-      <CardContent className="p-4 sm:p-4 pt-3 flex-1 flex flex-col justify-between">
+      </div>
+
+      <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
         {/* Chart legend & summary */}
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-md bg-[#2563eb] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <MousePointerClick className="w-2.5 h-2.5 stroke-[2.5]" />
-              </div>
-              <span className="text-[11px] font-bold text-slate-800">
-                Clicks
-              </span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F72853] shrink-0" />
+              <span className="text-xs font-normal text-slate-700">Clicks</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-md bg-[#0f2137] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <TicketCheck className="w-2.5 h-2.5 stroke-[2.5]" />
-              </div>
-              <span className="text-[11px] font-bold text-slate-800">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="text-xs font-normal text-slate-700">
                 Redemptions
               </span>
             </div>
           </div>
-          <span className="text-[11px] font-semibold text-slate-500">
+          <span className="text-xs font-normal text-slate-500">
             Period Clicks:{" "}
-            <strong className="text-slate-900">
+            <span className="font-semibold text-slate-900">
               {totalClicksInView.toLocaleString()}
-            </strong>
+            </span>
           </span>
         </div>
 
-        {/* Full-Height Dynamic Chart Container */}
-        <div className="h-56 sm:h-64 w-full flex-1 pt-1">
+        {/* Dynamic Chart Container */}
+        <div className="h-48 sm:h-52 w-full flex-1 pt-1">
           {hasData ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
-                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                margin={{ top: 8, right: 10, left: -20, bottom: 0 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -128,47 +115,48 @@ export default function PerformanceChart({
                     borderRadius: "8px",
                     border: "none",
                     color: "#fff",
-                    fontSize: "12px",
+                    fontSize: "11px",
+                    padding: "6px 10px",
                   }}
                   labelStyle={{ fontSize: "10px", color: "#94a3b8" }}
-                  itemStyle={{ fontSize: "12px", color: "#fff" }}
+                  itemStyle={{ fontSize: "11px", color: "#fff" }}
                 />
                 <Line
                   type="monotone"
                   dataKey="clicks"
-                  stroke="#2563eb"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, fill: "#2563eb" }}
-                  activeDot={{ r: 5 }}
+                  stroke="#F72853"
+                  strokeWidth={2}
+                  dot={{ r: 2.5, fill: "#F72853" }}
+                  activeDot={{ r: 4.5 }}
                   name="Clicks"
                 />
                 <Line
                   type="monotone"
                   dataKey="redemptions"
-                  stroke="#0f2137"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, fill: "#0f2137" }}
-                  activeDot={{ r: 5 }}
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ r: 2.5, fill: "#10b981" }}
+                  activeDot={{ r: 4.5 }}
                   name="Redemptions"
                 />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                <MousePointerClick className="w-6 h-6 text-slate-400" />
+            <div className="h-full flex flex-col items-center justify-center gap-1.5 text-center py-6">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#F72853] flex items-center justify-center">
+                <MousePointerClick className="w-4 h-4" />
               </div>
-              <p className="text-[12px] font-semibold text-slate-500">
+              <p className="text-xs font-medium text-slate-700">
                 No activity yet
               </p>
-              <p className="text-[11px] text-slate-400 max-w-[220px]">
-                Clicks and redemptions will appear here once customers interact
-                with your offers.
+              <p className="text-[11px] text-slate-400 max-w-[240px] font-normal leading-normal">
+                Clicks and redemptions will graph here in real-time as customers
+                interact with your deals.
               </p>
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

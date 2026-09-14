@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, CreditCard, ShieldAlert, X } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  CreditCard,
+  ShieldAlert,
+  X,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +85,8 @@ export default function PaymentPendingModal({ merchant }) {
                 <span>Subscription Payment Pending</span>
               </h3>
               <p className="text-[11px] text-slate-400 font-normal">
-                {merchant.businessName || "Merchant Partner"} • Complete payment to activate your plan
+                {merchant.businessName || "Merchant Partner"} • Complete payment
+                to activate your plan
               </p>
             </div>
           </div>
@@ -106,7 +113,9 @@ export default function PaymentPendingModal({ merchant }) {
               </Badge>
             </div>
             <p className="text-xs text-blue-800 font-normal leading-relaxed">
-              You selected the <strong>{planName}</strong> plan during onboarding. Complete your subscription payment now to unlock full listings, campaigns, and expired offer revivals.
+              You selected the <strong>{planName}</strong> plan during
+              onboarding. Complete your subscription payment now to unlock full
+              listings, campaigns, and expired offer revivals.
             </p>
           </div>
 

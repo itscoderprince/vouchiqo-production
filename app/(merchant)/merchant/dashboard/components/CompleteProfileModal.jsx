@@ -33,12 +33,32 @@ export function calculateProfileHealth(merchant) {
   }
 
   const fields = [
-    { name: "Business Name", isFilled: Boolean(merchant.businessName), isRequired: true },
+    {
+      name: "Business Name",
+      isFilled: Boolean(merchant.businessName),
+      isRequired: true,
+    },
     { name: "Brand Slug", isFilled: Boolean(merchant.slug), isRequired: true },
-    { name: "Primary Category", isFilled: Boolean(merchant.category), isRequired: true },
-    { name: "Contact Email", isFilled: Boolean(merchant.contactEmail), isRequired: true },
-    { name: "Contact Phone", isFilled: Boolean(merchant.contactPhone), isRequired: true },
-    { name: "Store Address", isFilled: Boolean(merchant.location?.address || merchant.address), isRequired: true },
+    {
+      name: "Primary Category",
+      isFilled: Boolean(merchant.category),
+      isRequired: true,
+    },
+    {
+      name: "Contact Email",
+      isFilled: Boolean(merchant.contactEmail),
+      isRequired: true,
+    },
+    {
+      name: "Contact Phone",
+      isFilled: Boolean(merchant.contactPhone),
+      isRequired: true,
+    },
+    {
+      name: "Store Address",
+      isFilled: Boolean(merchant.location?.address || merchant.address),
+      isRequired: true,
+    },
     {
       name: "City & State",
       isFilled: Boolean(
@@ -47,17 +67,46 @@ export function calculateProfileHealth(merchant) {
       ),
       isRequired: true,
     },
-    { name: "Pincode", isFilled: Boolean(merchant.location?.pincode || merchant.pincode), isRequired: true },
-    { name: "Google Maps Link (Optional)", isFilled: Boolean(merchant.location?.gmapsLink || merchant.gmapsLink), isRequired: false },
-    { name: "Store Logo (Optional)", isFilled: Boolean(merchant.logo || merchant.logoUrl), isRequired: false },
-    { name: "Store Banner Image (Optional)", isFilled: Boolean(merchant.banner || merchant.bannerUrl), isRequired: false },
-    { name: "Shop Storefront Photo (Optional)", isFilled: Boolean(merchant.shopImage || merchant.shopImageUrl), isRequired: false },
-    { name: "Identity Document Type (Optional)", isFilled: Boolean(merchant.docType), isRequired: false },
-    { name: "Identity Document Image (Optional)", isFilled: Boolean(merchant.docImage), isRequired: false },
+    {
+      name: "Pincode",
+      isFilled: Boolean(merchant.location?.pincode || merchant.pincode),
+      isRequired: true,
+    },
+    {
+      name: "Google Maps Link (Optional)",
+      isFilled: Boolean(merchant.location?.gmapsLink || merchant.gmapsLink),
+      isRequired: false,
+    },
+    {
+      name: "Store Logo (Optional)",
+      isFilled: Boolean(merchant.logo || merchant.logoUrl),
+      isRequired: false,
+    },
+    {
+      name: "Store Banner Image (Optional)",
+      isFilled: Boolean(merchant.banner || merchant.bannerUrl),
+      isRequired: false,
+    },
+    {
+      name: "Shop Storefront Photo (Optional)",
+      isFilled: Boolean(merchant.shopImage || merchant.shopImageUrl),
+      isRequired: false,
+    },
+    {
+      name: "Identity Document Type (Optional)",
+      isFilled: Boolean(merchant.docType),
+      isRequired: false,
+    },
+    {
+      name: "Identity Document Image (Optional)",
+      isFilled: Boolean(merchant.docImage),
+      isRequired: false,
+    },
     {
       name: "Store Operating Hours (Optional)",
       isFilled: Boolean(
-        merchant.operatingHours && Object.keys(merchant.operatingHours).length > 0,
+        merchant.operatingHours &&
+          Object.keys(merchant.operatingHours).length > 0,
       ),
       isRequired: false,
     },
@@ -66,8 +115,12 @@ export function calculateProfileHealth(merchant) {
   const completedCount = fields.filter((f) => f.isFilled).length;
   const totalCount = fields.length;
   const percentage = Math.round((completedCount / totalCount) * 100);
-  const missingFields = fields.filter((f) => !f.isFilled && f.isRequired).map((f) => f.name);
-  const isCoreComplete = fields.filter((f) => f.isRequired).every((f) => f.isFilled);
+  const missingFields = fields
+    .filter((f) => !f.isFilled && f.isRequired)
+    .map((f) => f.name);
+  const isCoreComplete = fields
+    .filter((f) => f.isRequired)
+    .every((f) => f.isFilled);
 
   let color = "red";
   if (percentage >= 85 || isCoreComplete) {
@@ -201,7 +254,8 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                 <span>Complete Your Profile to List Offers</span>
               </h3>
               <p className="text-[11px] text-slate-400 font-normal">
-                {merchant.businessName || "Merchant Partner"} • Fill details to unlock deals, offers &amp; campaigns
+                {merchant.businessName || "Merchant Partner"} • Fill details to
+                unlock deals, offers &amp; campaigns
               </p>
             </div>
           </div>
@@ -212,7 +266,9 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
           <div className="bg-slate-100/80 px-5 py-2 flex items-center justify-between border-b border-slate-200/80 text-xs">
             <span className="font-bold text-slate-700 text-[11px]">
               Slide {currentSlide + 1} of {totalSlides}:{" "}
-              {currentSlide === 0 ? "Profile Health Score" : "Subscription Billing Setup"}
+              {currentSlide === 0
+                ? "Profile Health Score"
+                : "Subscription Billing Setup"}
             </span>
 
             <div className="flex items-center gap-2">
@@ -305,7 +361,8 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                         Action Required: Rejected
                       </Badge>
                       <p className="text-[11px] text-red-900/90 font-medium truncate mt-0.5">
-                        {merchant.rejectionReason || "Please update your details and resubmit."}
+                        {merchant.rejectionReason ||
+                          "Please update your details and resubmit."}
                       </p>
                     </div>
                   </div>
@@ -331,7 +388,8 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                         Profile Completion Required
                       </Badge>
                       <p className="text-[11px] text-blue-900/90 font-medium truncate mt-0.5">
-                        Fill remaining details to publish offers &amp; unlock dashboard
+                        Fill remaining details to publish offers &amp; unlock
+                        dashboard
                       </p>
                     </div>
                   </div>
@@ -389,7 +447,10 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
 
                 <div className="space-y-1 flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 ${badgeBg}`}>
+                    <Badge
+                      variant="outline"
+                      className={`text-[9px] font-bold px-1.5 py-0 ${badgeBg}`}
+                    >
                       {health.percentage < 50
                         ? "Basic Profile"
                         : health.percentage < 85
@@ -445,10 +506,21 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
               <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
                 <Button
                   type="button"
-                  onClick={isPending ? () => { handleClose(); router.push("/merchant/application-status"); } : handleGoToProfile}
+                  onClick={
+                    isPending
+                      ? () => {
+                          handleClose();
+                          router.push("/merchant/application-status");
+                        }
+                      : handleGoToProfile
+                  }
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-9.5 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>{isPending ? "Track Live Application Status" : "Complete Profile Details"}</span>
+                  <span>
+                    {isPending
+                      ? "Track Live Application Status"
+                      : "Complete Profile Details"}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
 
@@ -477,7 +549,9 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                 </div>
 
                 <p className="text-xs text-blue-800 font-medium">
-                  You selected the <strong>{planName}</strong> plan. Complete your subscription billing setup to unlock unlimited campaign features &amp; expired offer revivals.
+                  You selected the <strong>{planName}</strong> plan. Complete
+                  your subscription billing setup to unlock unlimited campaign
+                  features &amp; expired offer revivals.
                 </p>
               </div>
 
@@ -518,4 +592,3 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
     </div>
   );
 }
-

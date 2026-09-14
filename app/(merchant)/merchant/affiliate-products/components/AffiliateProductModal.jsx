@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
-  X,
-  Loader2,
-  UploadCloud,
   Eye,
-  ShoppingBag,
   IndianRupee,
   Link as LinkIcon,
+  Loader2,
   Lock,
+  ShoppingBag,
+  UploadCloud,
+  X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import AffiliateProductPreviewCard, { CATEGORIES } from "./AffiliateProductPreviewCard";
+import AffiliateProductPreviewCard, {
+  CATEGORIES,
+} from "./AffiliateProductPreviewCard";
 
 export default function AffiliateProductModal({
   isOpen,
@@ -152,7 +154,9 @@ export default function AffiliateProductModal({
       }
     } else {
       if (!form.discountPercentage && !form.discountText.trim()) {
-        toast.error("Please enter discount percentage or discount text (e.g. 20% OFF).");
+        toast.error(
+          "Please enter discount percentage or discount text (e.g. 20% OFF).",
+        );
         return;
       }
     }
@@ -165,14 +169,25 @@ export default function AffiliateProductModal({
     const payload = {
       ...form,
       originalPrice: pricingMode === "exact" ? Number(form.originalPrice) : 0,
-      discountPrice: pricingMode === "exact" || pricingMode === "fixed" ? Number(form.discountPrice) : 0,
+      discountPrice:
+        pricingMode === "exact" || pricingMode === "fixed"
+          ? Number(form.discountPrice)
+          : 0,
       discountPercentage: Number(form.discountPercentage) || 0,
-      discountText: form.discountText || (pricingMode === "fixed" && form.discountPrice ? `Get Deal @ ₹${form.discountPrice}` : form.discountPercentage ? `${form.discountPercentage}% OFF` : ""),
+      discountText:
+        form.discountText ||
+        (pricingMode === "fixed" && form.discountPrice
+          ? `Get Deal @ ₹${form.discountPrice}`
+          : form.discountPercentage
+            ? `${form.discountPercentage}% OFF`
+            : ""),
     };
 
     setLoading(true);
     try {
-      const baseUrl = isAdmin ? "/api/admin/affiliate-products" : "/api/merchant/affiliate-products";
+      const baseUrl = isAdmin
+        ? "/api/admin/affiliate-products"
+        : "/api/merchant/affiliate-products";
       const url = isEdit ? `${baseUrl}/${initialData._id}` : baseUrl;
       const method = isEdit ? "PUT" : "POST";
 
@@ -186,7 +201,7 @@ export default function AffiliateProductModal({
         toast.success(
           isEdit
             ? "Affiliate product updated successfully!"
-            : "Affiliate product created successfully!"
+            : "Affiliate product created successfully!",
         );
         if (onSuccess) onSuccess();
         onClose();
@@ -220,10 +235,13 @@ export default function AffiliateProductModal({
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
-                {isEdit ? "Edit Affiliate Product / Deal" : "Add Affiliate Product / Deal"}
+                {isEdit
+                  ? "Edit Affiliate Product / Deal"
+                  : "Add Affiliate Product / Deal"}
               </h2>
               <p className="text-xs text-slate-500 font-normal">
-                Fill details on the left — live preview card updates in real-time on the right.
+                Fill details on the left — live preview card updates in
+                real-time on the right.
               </p>
             </div>
           </div>
@@ -257,7 +275,9 @@ export default function AffiliateProductModal({
                     type="text"
                     placeholder="e.g. Office Space & Meal Deal or Nike Sneakers"
                     value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
                     required
                   />
@@ -275,9 +295,12 @@ export default function AffiliateProductModal({
 
                   {merchantCategory && !isAdmin ? (
                     <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/60 text-slate-900 font-semibold text-xs shadow-2xs">
-                      <span className="truncate">{form.category || merchantCategory}</span>
+                      <span className="truncate">
+                        {form.category || merchantCategory}
+                      </span>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0">
-                        <Lock className="w-3 h-3 text-blue-600" /> Locked to Profile
+                        <Lock className="w-3 h-3 text-blue-600" /> Locked to
+                        Profile
                       </span>
                     </div>
                   ) : (
@@ -396,7 +419,9 @@ export default function AffiliateProductModal({
                           setForm({
                             ...form,
                             discountPrice: val,
-                            discountText: val ? `Get Deal @ ₹${val}` : form.discountText,
+                            discountText: val
+                              ? `Get Deal @ ₹${val}`
+                              : form.discountText,
                           });
                         }}
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
@@ -570,7 +595,8 @@ export default function AffiliateProductModal({
               </div>
 
               <p className="text-xs text-slate-500 text-center font-normal bg-white p-2 rounded-xl border border-slate-200/80">
-                This is an exact preview of how your offer appears on brand pages &amp; homepage.
+                This is an exact preview of how your offer appears on brand
+                pages &amp; homepage.
               </p>
             </div>
           </div>
@@ -598,7 +624,11 @@ export default function AffiliateProductModal({
                 <span>Saving...</span>
               </>
             ) : (
-              <span>{isEdit ? "Update Affiliate Product" : "Publish Affiliate Product"}</span>
+              <span>
+                {isEdit
+                  ? "Update Affiliate Product"
+                  : "Publish Affiliate Product"}
+              </span>
             )}
           </button>
         </div>

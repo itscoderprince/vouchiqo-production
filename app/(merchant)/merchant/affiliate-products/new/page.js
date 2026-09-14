@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ArrowLeft,
-  Loader2,
-  UploadCloud,
   Eye,
   IndianRupee,
   Link as LinkIcon,
+  Loader2,
   Lock,
+  UploadCloud,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import AffiliateProductPreviewCard, {
@@ -114,7 +114,9 @@ export default function NewAffiliateProductPage() {
       }
     } else {
       if (!form.discountPercentage && !form.discountText.trim()) {
-        toast.error("Please enter discount percentage or discount tag text (e.g. 20% OFF).");
+        toast.error(
+          "Please enter discount percentage or discount tag text (e.g. 20% OFF).",
+        );
         return;
       }
     }
@@ -127,9 +129,18 @@ export default function NewAffiliateProductPage() {
     const payload = {
       ...form,
       originalPrice: pricingMode === "exact" ? Number(form.originalPrice) : 0,
-      discountPrice: pricingMode === "exact" || pricingMode === "fixed" ? Number(form.discountPrice) : 0,
+      discountPrice:
+        pricingMode === "exact" || pricingMode === "fixed"
+          ? Number(form.discountPrice)
+          : 0,
       discountPercentage: Number(form.discountPercentage) || 0,
-      discountText: form.discountText || (pricingMode === "fixed" && form.discountPrice ? `Get Deal @ ₹${form.discountPrice}` : form.discountPercentage ? `${form.discountPercentage}% OFF` : ""),
+      discountText:
+        form.discountText ||
+        (pricingMode === "fixed" && form.discountPrice
+          ? `Get Deal @ ₹${form.discountPrice}`
+          : form.discountPercentage
+            ? `${form.discountPercentage}% OFF`
+            : ""),
     };
 
     setLoading(true);
@@ -159,36 +170,37 @@ export default function NewAffiliateProductPage() {
     <DashboardLayout title="Add Affiliate Product" user={{ role: "merchant" }}>
       <div className="w-full max-w-full space-y-4 font-sans text-left">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/merchant/affiliate-products"
-              className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+              className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
-                Add New Affiliate Product / Service Deal
+              <h1 className="text-lg sm:text-xl font-semibold text-slate-900 leading-tight">
+                Add New Affiliate Product / Deal
               </h1>
               <p className="text-xs text-slate-500 font-normal">
-                Upload product details and affiliate URL — live preview updates on the right.
+                Upload product details and affiliate URL — live preview updates
+                in real-time.
               </p>
             </div>
           </div>
         </div>
 
-        {/* 2-Column Split View Layout - Full Width */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
+        {/* 2-Column Split View Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start w-full">
           {/* Left Form (7 columns) */}
           <form
             onSubmit={handleSubmit}
-            className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-5 space-y-4"
+            className="lg:col-span-7 bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 space-y-3.5 shadow-2xs"
           >
             {/* Title & Category */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
               <div className="sm:col-span-7 space-y-1">
-                <label className="text-xs font-semibold text-slate-700 block">
+                <label className="text-xs font-medium text-slate-700 block">
                   Product / Deal Title *
                 </label>
                 <input
@@ -196,63 +208,63 @@ export default function NewAffiliateProductPage() {
                   placeholder="e.g. Office Space & Meal Deal or Nike Sneakers"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
+                  className="w-full bg-slate-50/60 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20 focus:bg-white transition-all font-normal placeholder:text-slate-400"
                   required
                 />
               </div>
 
               <div className="sm:col-span-5 space-y-1">
-                <label className="text-xs font-semibold text-slate-700 block flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-700 block flex items-center justify-between">
                   <span>Category *</span>
                   {merchantCategory && (
-                    <span className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5">
-                      <Lock className="w-3 h-3" /> Locked
+                    <span className="text-[10px] font-medium text-[#F72853] flex items-center gap-0.5">
+                      <Lock className="w-2.5 h-2.5" /> Locked
                     </span>
                   )}
                 </label>
 
-                {merchantCategory ? (
-                  <div className="h-9 px-3 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/60 text-slate-900 font-semibold text-xs shadow-2xs">
-                    <span className="truncate">{form.category || merchantCategory}</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md shrink-0">
-                      <Lock className="w-3 h-3 text-blue-600" /> Locked to Profile
-                    </span>
-                  </div>
-                ) : (
-                  <select
-                    value={form.category}
-                    onChange={(e) =>
-                      setForm({ ...form, category: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal cursor-pointer"
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                {merchantCategory
+                  ? <div className="h-8.5 px-2.5 flex items-center justify-between rounded-lg border border-rose-200/70 bg-rose-50/40 text-slate-800 font-medium text-xs">
+                      <span className="truncate">
+                        {form.category || merchantCategory}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#F72853] bg-white border border-rose-200/80 px-1.5 py-0.5 rounded-md shrink-0">
+                        <Lock className="w-2.5 h-2.5" /> Locked to Profile
+                      </span>
+                    </div>
+                  : <select
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm({ ...form, category: e.target.value })
+                      }
+                      className="w-full bg-slate-50/60 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#F72853] focus:bg-white transition-all font-normal cursor-pointer"
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>}
               </div>
             </div>
 
             {/* Pricing & Offer Mode Tabs (% Off, Deal @ Price, MRP & Sale) */}
-            <div className="bg-blue-50/50 border border-blue-100 p-3.5 rounded-xl space-y-3">
+            <div className="bg-rose-50/30 border border-rose-100/90 p-3 rounded-xl space-y-2.5">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="text-xs font-bold text-blue-900 flex items-center gap-1">
-                  <IndianRupee className="w-3.5 h-3.5 text-blue-600" />
-                  Pricing & Deal Type
+                <span className="text-xs font-medium text-slate-800 flex items-center gap-1">
+                  <IndianRupee className="w-3.5 h-3.5 text-[#F72853]" />
+                  Pricing &amp; Deal Type
                 </span>
 
                 {/* Mode Selector Tabs */}
-                <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-xs">
+                <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-slate-200 text-xs">
                   <button
                     type="button"
                     onClick={() => setPricingMode("percent")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer ${
                       pricingMode === "percent"
-                        ? "bg-blue-600 text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-[#F72853] text-white font-medium shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 font-normal"
                     }`}
                   >
                     % Off Only
@@ -260,10 +272,10 @@ export default function NewAffiliateProductPage() {
                   <button
                     type="button"
                     onClick={() => setPricingMode("fixed")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer ${
                       pricingMode === "fixed"
-                        ? "bg-blue-600 text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-[#F72853] text-white font-medium shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 font-normal"
                     }`}
                   >
                     Deal @ Price
@@ -271,157 +283,155 @@ export default function NewAffiliateProductPage() {
                   <button
                     type="button"
                     onClick={() => setPricingMode("exact")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer ${
                       pricingMode === "exact"
-                        ? "bg-blue-600 text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-[#F72853] text-white font-medium shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 font-normal"
                     }`}
                   >
-                    MRP & Sale Price
+                    MRP &amp; Sale Price
                   </button>
                 </div>
               </div>
 
-              {pricingMode === "percent" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Discount Percentage (%) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 20"
-                      value={form.discountPercentage || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({
-                          ...form,
-                          discountPercentage: val,
-                          discountText: val ? `${val}% OFF` : "",
-                        });
-                      }}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
+              {pricingMode === "percent"
+                ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="space-y-1">
+                      <label className="text-xs font-normal text-slate-600 block">
+                        Discount Percentage (%) *
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 20"
+                        value={form.discountPercentage || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm({
+                            ...form,
+                            discountPercentage: val,
+                            discountText: val ? `${val}% OFF` : "",
+                          });
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20"
+                      />
+                    </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Discount Tag Display
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 20% OFF or FLAT ₹500 OFF"
-                      value={form.discountText || ""}
-                      onChange={(e) =>
-                        setForm({ ...form, discountText: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600"
-                    />
+                    <div className="space-y-1">
+                      <label className="text-xs font-normal text-slate-600 block">
+                        Discount Tag Display
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 20% OFF or FLAT ₹500 OFF"
+                        value={form.discountText || ""}
+                        onChange={(e) =>
+                          setForm({ ...form, discountText: e.target.value })
+                        }
+                        className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20"
+                      />
+                    </div>
                   </div>
-                </div>
-              ) : pricingMode === "fixed" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Offer / Deal Price (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 200"
-                      value={form.discountPrice || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({
-                          ...form,
-                          discountPrice: val,
-                          discountText: val ? `Get Deal @ ₹${val}` : form.discountText,
-                        });
-                      }}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
+                : pricingMode === "fixed"
+                  ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="space-y-1">
+                        <label className="text-xs font-normal text-slate-600 block">
+                          Offer / Deal Price (₹) *
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 200"
+                          value={form.discountPrice || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setForm({
+                              ...form,
+                              discountPrice: val,
+                              discountText: val
+                                ? `Get Deal @ ₹${val}`
+                                : form.discountText,
+                            });
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20"
+                        />
+                      </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Deal Tagline / Promotion Text
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Office Space + Meal @ ₹200"
-                      value={form.discountText || ""}
-                      onChange={(e) =>
-                        setForm({ ...form, discountText: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Actual MRP (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 39999"
-                      value={form.originalPrice}
-                      onChange={(e) =>
-                        setForm({ ...form, originalPrice: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-normal text-slate-600 block">
+                          Deal Tagline / Promotion Text
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Office Space + Meal @ ₹200"
+                          value={form.discountText || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, discountText: e.target.value })
+                          }
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20"
+                        />
+                      </div>
+                    </div>
+                  : <div className="grid grid-cols-2 gap-2.5">
+                      <div className="space-y-1">
+                        <label className="text-xs font-normal text-slate-600 block">
+                          Actual MRP (₹) *
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 39999"
+                          value={form.originalPrice}
+                          onChange={(e) =>
+                            setForm({ ...form, originalPrice: e.target.value })
+                          }
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20"
+                        />
+                      </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600 block">
-                      Offer Sale Price (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 2999"
-                      value={form.discountPrice}
-                      onChange={(e) =>
-                        setForm({ ...form, discountPrice: e.target.value })
-                      }
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                </div>
-              )}
+                      <div className="space-y-1">
+                        <label className="text-xs font-normal text-slate-600 block">
+                          Offer Sale Price (₹) *
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 2999"
+                          value={form.discountPrice}
+                          onChange={(e) =>
+                            setForm({ ...form, discountPrice: e.target.value })
+                          }
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20"
+                        />
+                      </div>
+                    </div>}
             </div>
 
             {/* Destination URL */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 block flex items-center gap-1">
-                <LinkIcon className="w-3.5 h-3.5 text-blue-600" />
+              <label className="text-xs font-medium text-slate-700 block flex items-center gap-1">
+                <LinkIcon className="w-3.5 h-3.5 text-[#F72853]" />
                 Destination Affiliate Link URL *
               </label>
               <input
                 type="url"
-                placeholder="https://webitya.com"
+                placeholder="https://affiliate.example.com/deal..."
                 value={form.affiliateUrl}
                 onChange={(e) =>
                   setForm({ ...form, affiliateUrl: e.target.value })
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
+                className="w-full bg-slate-50/60 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20 focus:bg-white transition-all font-normal placeholder:text-slate-400"
                 required
               />
             </div>
 
             {/* Product Image */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 block">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-700 block">
                 Product / Offer Image
               </label>
 
-              <div className="flex items-center gap-3">
-                <label className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 cursor-pointer transition-colors inline-flex items-center gap-1.5 shrink-0">
-                  {uploadingImage ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
-                  ) : (
-                    <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
-                  )}
+              <div className="flex items-center gap-2">
+                <label className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 cursor-pointer transition-colors inline-flex items-center gap-1.5 shrink-0">
+                  {uploadingImage
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#F72853]" />
+                    : <UploadCloud className="w-3.5 h-3.5 text-[#F72853]" />}
                   <span>Upload Image</span>
                   <input
                     type="file"
@@ -439,14 +449,14 @@ export default function NewAffiliateProductPage() {
                   onChange={(e) =>
                     setForm({ ...form, imageUrl: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-normal"
+                  className="w-full bg-slate-50/60 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20 focus:bg-white font-normal placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Description */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 block">
+              <label className="text-xs font-medium text-slate-700 block">
                 Description / Key Specs (Optional)
               </label>
               <textarea
@@ -456,23 +466,23 @@ export default function NewAffiliateProductPage() {
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-normal"
+                className="w-full bg-slate-50/60 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#F72853] focus:ring-1 focus:ring-[#F72853]/20 focus:bg-white transition-all font-normal placeholder:text-slate-400"
               />
             </div>
 
             {/* Status Select */}
             <div className="flex items-center justify-between pt-1">
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-medium text-slate-700">
                 Product Status
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, status: "active" })}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all border cursor-pointer ${
                     form.status === "active"
                       ? "bg-emerald-600 border-emerald-600 text-white"
-                      : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Active
@@ -480,10 +490,10 @@ export default function NewAffiliateProductPage() {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, status: "paused" })}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all border cursor-pointer ${
                     form.status === "paused"
-                      ? "bg-amber-500 border-amber-500 text-slate-950"
-                      : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                      ? "bg-amber-500 border-amber-500 text-white"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Paused
@@ -492,45 +502,45 @@ export default function NewAffiliateProductPage() {
             </div>
 
             {/* Form Submit */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
               <Link
                 href="/merchant/affiliate-products"
-                className="px-4 py-2 text-slate-600 font-semibold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
+                className="px-3.5 py-1.5 text-slate-600 font-medium text-xs rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={loading || uploadingImage}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
+                className="px-5 py-2 bg-[#F72853] hover:bg-[#e01e47] text-white font-medium text-xs rounded-lg transition-all cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5 shadow-xs"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Publishing...</span>
-                  </>
-                ) : (
-                  <span>Publish Affiliate Product</span>
-                )}
+                {loading
+                  ? <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  : <span>Publish Affiliate Product</span>}
               </button>
             </div>
           </form>
 
           {/* Right Live Preview Card Section (5 columns) */}
-          <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-5 space-y-4 sticky top-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                <Eye className="w-4 h-4 text-blue-600" /> Live Product Preview
+          <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-xl p-4 space-y-3 sticky top-6 shadow-2xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                <Eye className="w-3.5 h-3.5 text-[#F72853]" /> Live Product
+                Preview
               </span>
-              <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+              <span className="bg-rose-50 text-[#F72853] border border-rose-200/70 text-[10px] font-medium px-2 py-0.5 rounded-full">
                 Interactive Preview
               </span>
             </div>
 
             <AffiliateProductPreviewCard product={form} isPreview={true} />
 
-            <p className="text-xs text-slate-500 text-center font-normal bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 leading-relaxed">
-              This is an exact preview of how your offer appears on brand pages &amp; homepage.
+            <p className="text-[11px] text-slate-400 text-center font-normal bg-slate-50/80 p-2 rounded-lg border border-slate-100 leading-normal">
+              Exact preview of how your offer appears on the public site &amp;
+              brand pages.
             </p>
           </div>
         </div>
