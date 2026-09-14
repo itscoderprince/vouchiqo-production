@@ -37,7 +37,15 @@ function MerchantLockModalRenderer() {
 function MerchantPageLockOverlay() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isLocked, isProfileIncomplete, isPending, isRejected, health, openModal, merchant } = useMerchantLock();
+  const {
+    isLocked,
+    isProfileIncomplete,
+    isPending,
+    isRejected,
+    health,
+    openModal,
+    merchant,
+  } = useMerchantLock();
 
   if (
     !isLocked ||
@@ -53,11 +61,7 @@ function MerchantPageLockOverlay() {
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const strokeColor =
-    percentage >= 85
-      ? "#10b981"
-      : percentage >= 50
-        ? "#ea580c"
-        : "#ef4444";
+    percentage >= 85 ? "#10b981" : percentage >= 50 ? "#ea580c" : "#ef4444";
 
   return (
     <div
@@ -70,7 +74,10 @@ function MerchantPageLockOverlay() {
       >
         {/* Circular Profile Health Gauge */}
         <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
-          <svg className="w-full h-full transform -rotate-90 origin-center" viewBox="0 0 100 100">
+          <svg
+            className="w-full h-full transform -rotate-90 origin-center"
+            viewBox="0 0 100 100"
+          >
             <circle
               cx="50"
               cy="50"
@@ -138,7 +145,8 @@ function MerchantPageLockOverlay() {
             {isPending
               ? "Your merchant profile & KYC verification are currently under review by our super admin team. Account features will be activated upon approval."
               : isRejected
-                ? merchant?.rejectionReason || "Your merchant profile was rejected. Please update your details and resubmit."
+                ? merchant?.rejectionReason ||
+                  "Your merchant profile was rejected. Please update your details and resubmit."
                 : "Your store profile is currently incomplete. Complete your required store details to unlock your listings, analytics, and partner controls."}
           </p>
         </div>
@@ -179,9 +187,7 @@ function MerchantNoticeBanner() {
 
   const rawPlan = String(merchant.plan || "starter").toLowerCase();
   const isStarter =
-    rawPlan.includes("starter") ||
-    rawPlan.includes("free") ||
-    !merchant.plan;
+    rawPlan.includes("starter") || rawPlan.includes("free") || !merchant.plan;
 
   const planName = isStarter
     ? "Starter Free"
@@ -203,7 +209,9 @@ function MerchantNoticeBanner() {
     hasExpiry = true;
   } else if (!isStarter && merchant.createdAt) {
     const createdTime = new Date(merchant.createdAt).getTime();
-    const elapsedDays = Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24));
+    const elapsedDays = Math.floor(
+      (Date.now() - createdTime) / (1000 * 60 * 60 * 24),
+    );
     daysRemaining = Math.max(0, 14 - elapsedDays);
     hasExpiry = true;
   }
@@ -216,7 +224,8 @@ function MerchantNoticeBanner() {
     !isCancelled &&
     merchant.paymentStatus !== "completed" &&
     merchant.subscriptionStatus !== "active" &&
-    (!merchant.planExpiry || new Date(merchant.planExpiry).getTime() < Date.now());
+    (!merchant.planExpiry ||
+      new Date(merchant.planExpiry).getTime() < Date.now());
 
   return (
     <div className="bg-blue-50/80 border-b border-blue-200/60 px-4 py-2.5 flex items-center justify-between text-xs font-normal text-blue-900 font-sans">
@@ -229,14 +238,29 @@ function MerchantNoticeBanner() {
           ) : isCancelled ? (
             <span>Your subscription has been cancelled.</span>
           ) : isPendingPayment ? (
-            <span>Payment is pending for your <strong>{planName}</strong> plan.</span>
+            <span>
+              Payment is pending for your <strong>{planName}</strong> plan.
+            </span>
           ) : isStarter ? (
-            <span>You are on <strong>Starter Free</strong> plan (Up to 3 active listings included). Upgrade to Growth or Pro to unlock up to 15+ listings.</span>
+            <span>
+              You are on <strong>Starter Free</strong> plan (Up to 3 active
+              listings included). Upgrade to Growth or Pro to unlock up to 15+
+              listings.
+            </span>
           ) : (
             <span>
-              Your 14-day free trial on <strong>{planName}</strong> plan is active
+              Your 14-day free trial on <strong>{planName}</strong> plan is
+              active
               {hasExpiry ? (
-                <span> (<strong>{daysRemaining} day{daysRemaining === 1 ? "" : "s"} remaining</strong>)</span>
+                <span>
+                  {" "}
+                  (
+                  <strong>
+                    {daysRemaining} day{daysRemaining === 1 ? "" : "s"}{" "}
+                    remaining
+                  </strong>
+                  )
+                </span>
               ) : null}
               . Rate lock guaranteed for 6 months.
             </span>
@@ -312,7 +336,8 @@ export default function DashboardLayout({ title, user, children }) {
         }
       }
 
-      if (role === "merchant" || role === "admin" || isRegisteredMerchant) return;
+      if (role === "merchant" || role === "admin" || isRegisteredMerchant)
+        return;
 
       // Session says "customer" — verify against DB before redirecting
       if (authUser?.id || authUser?.email) {
@@ -333,7 +358,18 @@ export default function DashboardLayout({ title, user, children }) {
         router.push("/customer/dashboard");
       }
     }
-  }, [isLoaded, isLoggedIn, role, isLocked, isPending, isProfileIncomplete, authUser?.id, authUser?.email, pathname, router]);
+  }, [
+    isLoaded,
+    isLoggedIn,
+    role,
+    isLocked,
+    isPending,
+    isProfileIncomplete,
+    authUser?.id,
+    authUser?.email,
+    pathname,
+    router,
+  ]);
 
   const [mounted, setMounted] = useState(false);
 
@@ -383,5 +419,3 @@ export default function DashboardLayout({ title, user, children }) {
     </MerchantLockProvider>
   );
 }
-
-

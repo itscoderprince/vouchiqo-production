@@ -8,6 +8,7 @@ export const merchantProfileSchema = z.object({
   businessName: z.string().optional(),
   slug: z.string().optional(),
   category: z.string().optional(),
+  customCategoryNotes: z.string().optional(),
   description: z.string().optional(),
   contactEmail: z
     .string()
@@ -49,7 +50,9 @@ export const merchantProfileSchema = z.object({
         if (!val || typeof val !== "string") return true;
         const clean = val.trim().toUpperCase();
         if (clean.length === 0) return true;
-        return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(clean);
+        return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+          clean,
+        );
       },
       {
         message:

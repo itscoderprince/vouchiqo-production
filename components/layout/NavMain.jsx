@@ -4,7 +4,6 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
 import {
   SidebarGroup,
@@ -46,7 +45,7 @@ export function NavMain({ groups, isMerchant = false }) {
       window.removeEventListener("vouchiqo_nav_change", updateSearch);
       clearInterval(interval);
     };
-  }, [pathname]);
+  }, []);
 
   const [openSubMenus, setOpenSubMenus] = useState({});
 
@@ -78,13 +77,15 @@ export function NavMain({ groups, isMerchant = false }) {
 
   return (
     <div className="space-y-1.5 font-sans text-left">
-      {groups.map((group) => (
-        <SidebarGroup key={group.title} className="p-0">
-          {!isCollapsed && group.title !== "Navigation" && (
-            <SidebarGroupLabel className="px-2.5 py-1 text-[9.5px] font-medium uppercase tracking-wider block h-auto text-slate-400">
-              {group.title}
-            </SidebarGroupLabel>
-          )}
+      {groups.map((group, groupIdx) => (
+        <SidebarGroup key={group.title || `group-${groupIdx}`} className="p-0">
+          {!isCollapsed &&
+            group.title &&
+            group.title.trim().toLowerCase() !== "navigation" && (
+              <SidebarGroupLabel className="px-2.5 py-1 text-[9.5px] font-medium uppercase tracking-wider block h-auto text-slate-400">
+                {group.title}
+              </SidebarGroupLabel>
+            )}
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               {group.items.map((item) => {

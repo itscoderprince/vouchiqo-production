@@ -245,12 +245,12 @@ export default function UserDropdown({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
           aria-label="User menu"
-          className="flex items-center justify-center focus:outline-none cursor-pointer select-none rounded-[7px] transition-colors border-0 bg-transparent outline-none"
+          className="flex items-center justify-center focus:outline-none cursor-pointer select-none rounded-[7px] transition-transform hover:scale-105 active:scale-95 border-0 bg-transparent outline-none"
         >
           <div
             className={`h-8 w-8 rounded-[7px] border shrink-0 shadow-2xs transition-all overflow-hidden flex items-center justify-center bg-white ${
@@ -276,7 +276,8 @@ export default function UserDropdown({
       <DropdownMenuContent
         align="end"
         sideOffset={6}
-        className="w-60 bg-white text-slate-800 border border-slate-200/90 shadow-xl rounded-2xl p-1.5 font-sans animate-in fade-in zoom-in-95 duration-100"
+        collisionPadding={12}
+        className="w-60 bg-white text-slate-800 border border-slate-200/90 shadow-xl rounded-2xl p-1.5 font-sans animate-in fade-in zoom-in-95 duration-100 z-50"
       >
         {/* User Card Header */}
         <DropdownMenuLabel className="p-2 font-normal select-none">

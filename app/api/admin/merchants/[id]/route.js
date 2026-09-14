@@ -1,5 +1,6 @@
 import { sendMerchantSubscriptionAdminUpdateEmail } from "@/lib/email/merchant-email";
 import { connectDB } from "@/lib/mongodb";
+import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Claim from "@/modules/claim/claim.model";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -10,7 +11,7 @@ import UserProfile from "@/modules/user/user.model";
 import { ok } from "@/utils/api-response";
 import { NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
-import { ROLES } from "@/utils/constants";
+import { normalizeCategory, ROLES } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -98,7 +99,8 @@ export const PUT = asyncHandler(async (request, { params }) => {
 
   if (typeof body.extendDays === "number") {
     const baseDate =
-      existingMerchant.planExpiry && new Date(existingMerchant.planExpiry) > new Date()
+      existingMerchant.planExpiry &&
+      new Date(existingMerchant.planExpiry) > new Date()
         ? new Date(existingMerchant.planExpiry)
         : new Date();
     baseDate.setDate(baseDate.getDate() + body.extendDays);
@@ -120,6 +122,10 @@ export const PUT = asyncHandler(async (request, { params }) => {
     }
   }
 
+  if (body.category !== undefined && body.category !== null) {
+    body.category = normalizeCategory(body.category);
+  }
+
   const merchant = await Merchant.findByIdAndUpdate(
     id,
     { $set: body },
@@ -130,13 +136,34 @@ export const PUT = asyncHandler(async (request, { params }) => {
     throw new NotFoundError("Merchant");
   }
 
+  // Cascade category change to all coupons and affiliate products
+  if (
+    body.category &&
+    normalizeCategory(body.category) !==
+      normalizeCategory(existingMerchant.category)
+  ) {
+    const newCat = normalizeCategory(body.category);
+    const mIds = [existingMerchant._id, String(existingMerchant._id)];
+    Promise.allSettled([
+      Coupon.updateMany(
+        { merchantId: { $in: mIds } },
+        { $set: { category: newCat } },
+      ),
+      AffiliateProduct.updateMany(
+        { merchantId: { $in: mIds } },
+        { $set: { category: newCat } },
+      ),
+    ]).catch((err) => console.error("[Admin Category Cascade Error]:", err));
+  }
+
   // Dispatch Email Notification to Merchant if subscription control action was performed
   const targetEmail = merchant.contactEmail || merchant.email;
   if (targetEmail && (actionTitle || body.plan)) {
     sendMerchantSubscriptionAdminUpdateEmail({
       to: targetEmail,
       businessName: merchant.businessName,
-      actionTitle: actionTitle || `Subscription Update for ${merchant.businessName}`,
+      actionTitle:
+        actionTitle || `Subscription Update for ${merchant.businessName}`,
       statusBadgeText: statusBadgeText || "⚡ Subscription Update",
       planName: merchant.plan,
       planExpiry: merchant.planExpiry,

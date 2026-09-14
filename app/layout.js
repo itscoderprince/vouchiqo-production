@@ -1,10 +1,10 @@
 import { Geist, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-import QueryProvider from "@/components/shared/QueryProvider";
-import PushNotificationPrompt from "@/components/shared/PushNotificationPrompt";
 import PublicMobileBottomNav from "@/components/layout/PublicMobileBottomNav";
 import GoogleOneTapPrompt from "@/components/shared/GoogleOneTapPrompt";
+import PushNotificationPrompt from "@/components/shared/PushNotificationPrompt";
+import QueryProvider from "@/components/shared/QueryProvider";
 import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 
 const inter = Inter({
@@ -32,11 +32,11 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistSans.variable} antialiased`}
       suppressHydrationWarning
     >
       <body
-        className="min-h-full flex flex-col bg-brand-surface text-brand-text w-full pb-16 md:pb-0"
+        className="min-h-screen flex flex-col bg-brand-surface text-brand-text w-full pb-16 md:pb-0"
         suppressHydrationWarning
       >
         <SmoothScrollProvider>

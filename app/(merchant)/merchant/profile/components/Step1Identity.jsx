@@ -4,6 +4,7 @@ import { Briefcase, Link2, Mail, Phone, Store, User } from "lucide-react";
 import { FormInput, FormSelect } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { normalizeCategory } from "@/utils/constants";
 
 const CATEGORIES = [
   { value: "fashion", label: "Fashion & Clothing" },
@@ -127,9 +128,12 @@ export default function Step1Identity({
           label="Primary Industry Vertical"
           icon={Store}
           options={CATEGORIES}
-          value={selectedCategory || "food"}
+          value={normalizeCategory(selectedCategory || "food")}
           onValueChange={(val) =>
-            setValue("category", val, { shouldValidate: true })
+            setValue("category", normalizeCategory(val), {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
           }
           error={errors.category}
         />

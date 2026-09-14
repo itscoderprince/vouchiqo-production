@@ -18,13 +18,62 @@ import {
  * step navigation guards, image uploads, and profile save mutations.
  */
 export const DEFAULT_OPERATING_HOURS = {
-  Monday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
-  Tuesday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
-  Wednesday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
-  Thursday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
-  Friday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
-  Saturday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: false, isOpen: true },
-  Sunday: { open: "10:00 AM", close: "08:00 PM", openTime: "10:00 AM", closeTime: "08:00 PM", closed: true, isOpen: false },
+  Monday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: false,
+    isOpen: true,
+  },
+  Tuesday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: false,
+    isOpen: true,
+  },
+  Wednesday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: false,
+    isOpen: true,
+  },
+  Thursday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: false,
+    isOpen: true,
+  },
+  Friday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: false,
+    isOpen: true,
+  },
+  Saturday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: false,
+    isOpen: true,
+  },
+  Sunday: {
+    open: "10:00 AM",
+    close: "08:00 PM",
+    openTime: "10:00 AM",
+    closeTime: "08:00 PM",
+    closed: true,
+    isOpen: false,
+  },
 };
 
 export function useMerchantProfileForm() {
@@ -108,11 +157,24 @@ export function useMerchantProfileForm() {
         country: merchant.location?.country ?? "IN",
         lat: merchant.location?.coordinates?.lat ?? "",
         lng: merchant.location?.coordinates?.lng ?? "",
-        contactPhone: merchant.contactPhone ?? merchant.liaisonPhone ?? merchant.mobile ?? "",
+        contactPhone:
+          merchant.contactPhone ??
+          merchant.liaisonPhone ??
+          merchant.mobile ??
+          "",
         constitution: merchant.constitution ?? "proprietorship",
-        liaisonName: merchant.liaisonName ?? merchant.contactName ?? merchant.signatoryName ?? "",
-        liaisonDesignation: merchant.liaisonDesignation ?? merchant.designation ?? "owner",
-        liaisonPhone: merchant.liaisonPhone ?? merchant.contactPhone ?? merchant.mobile ?? "",
+        liaisonName:
+          merchant.liaisonName ??
+          merchant.contactName ??
+          merchant.signatoryName ??
+          "",
+        liaisonDesignation:
+          merchant.liaisonDesignation ?? merchant.designation ?? "owner",
+        liaisonPhone:
+          merchant.liaisonPhone ??
+          merchant.contactPhone ??
+          merchant.mobile ??
+          "",
         gmapsLink: merchant.gmapsLink ?? merchant.googleUrl ?? "",
         docType: merchant.docType ?? "GST Registration Certificate",
         docImage: merchant.docImage ?? merchant.docFileUrl ?? "",
@@ -255,10 +317,24 @@ export function useMerchantProfileForm() {
       queryClient.invalidateQueries({
         queryKey: ["merchant-application-status"],
       });
-      showSuccess("Profile & KYC details saved successfully!");
+      queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
+      queryClient.invalidateQueries({
+        queryKey: ["merchant-affiliate-products"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["affiliate-products"] });
+      queryClient.invalidateQueries({ queryKey: ["merchant-analytics"] });
+      queryClient.invalidateQueries({
+        queryKey: ["merchant-active-coupons"],
+      });
+
+      showSuccess(
+        "Category & Profile details updated successfully across all listings!",
+      );
       setIsEditing(false);
-      if (merchant?.status === "approved") {
-        router.push("/merchant/dashboard");
+
+      if (merchant) {
+        router.replace("/merchant/profile");
       } else {
         router.push("/merchant/application-status");
       }
@@ -271,6 +347,7 @@ export function useMerchantProfileForm() {
   const onSubmit = (formData) => {
     saveMutation.mutate({
       ...formData,
+      category: normalizeCategory(formData.category),
       location: {
         address: formData.address,
         pincode: formData.pincode,

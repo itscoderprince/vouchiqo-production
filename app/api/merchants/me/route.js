@@ -1,12 +1,15 @@
 import { connectDB } from "@/lib/mongodb";
+import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import { requireAuth } from "@/modules/auth/auth.middleware";
+import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import {
   checkMerchantDuplicates,
   generateUniqueSlug,
 } from "@/modules/merchant/merchant.service";
-import { ok, error } from "@/utils/api-response";
+import { error, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
+import { normalizeCategory } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -66,23 +69,48 @@ export const GET = asyncHandler(async (request) => {
 
 /**
  * PUT /api/merchants/me
- * Updates merchant profile details.
+ * Updates merchant profile details with category propagation to all coupons & affiliate products.
  */
 export const PUT = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireAuth(request);
   const body = await request.json();
 
-  const merchant = await Merchant.findOne({ authId: user.id });
+  const authIdStr = user.id ? String(user.id) : null;
+  let merchant = null;
+  if (authIdStr) {
+    merchant = await Merchant.findOne({ authId: authIdStr });
+  }
+  if (!merchant && user.email) {
+    merchant = await Merchant.findOne({
+      contactEmail: user.email.toLowerCase().trim(),
+    });
+  }
+
   if (!merchant) {
-    return ok({ message: "Merchant profile not found" }, 404);
+    return error("Merchant profile not found", 404, "NOT_FOUND");
+  }
+
+  // Auto-link authId if it was missing or different
+  if (authIdStr && (!merchant.authId || merchant.authId !== authIdStr)) {
+    merchant.authId = authIdStr;
+  }
+
+  const oldCategory = merchant.category;
+  let newCategory = null;
+  if (
+    body.category !== undefined &&
+    body.category !== null &&
+    String(body.category).trim() !== ""
+  ) {
+    newCategory = normalizeCategory(body.category);
   }
 
   const city =
     body.location?.city || body.city || merchant.location?.city || "";
   const state =
     body.location?.state || body.state || merchant.location?.state || "";
-  const category = body.category || merchant.category || "";
+  const categoryForSlug = newCategory || merchant.category || "";
 
   // Auto-clean legacy random suffixes like "-g7y6" from existing merchant slugs
   const currentSlug = merchant.slug || "";
@@ -97,7 +125,7 @@ export const PUT = asyncHandler(async (request) => {
       cleanBase,
       city,
       state,
-      category,
+      categoryForSlug,
       merchant._id,
     );
   } else if (
@@ -109,7 +137,7 @@ export const PUT = asyncHandler(async (request) => {
       body.slug,
       city,
       state,
-      category,
+      categoryForSlug,
       merchant._id,
     );
   }
@@ -162,7 +190,11 @@ export const PUT = asyncHandler(async (request) => {
 
   allowedFields.forEach((field) => {
     if (body[field] !== undefined) {
-      merchant[field] = body[field];
+      if (field === "category") {
+        if (newCategory) merchant.category = newCategory;
+      } else {
+        merchant[field] = body[field];
+      }
     }
   });
 
@@ -197,5 +229,40 @@ export const PUT = asyncHandler(async (request) => {
   }
 
   await merchant.save();
-  return ok(merchant);
+
+  // Cascade category change to all listings (coupons) and affiliate products
+  const hasCategoryChanged = Boolean(
+    newCategory &&
+      (!oldCategory || normalizeCategory(oldCategory) !== newCategory),
+  );
+
+  if (hasCategoryChanged) {
+    const merchantIds = [merchant._id];
+    if (merchant._id) {
+      merchantIds.push(String(merchant._id));
+    }
+
+    try {
+      const [couponRes, affiliateRes] = await Promise.allSettled([
+        Coupon.updateMany(
+          { merchantId: { $in: merchantIds } },
+          { $set: { category: newCategory } },
+        ),
+        AffiliateProduct.updateMany(
+          { merchantId: { $in: merchantIds } },
+          { $set: { category: newCategory } },
+        ),
+      ]);
+
+      console.log(
+        `[Category Cascade] Successfully propagated category "${newCategory}" for merchant ${merchant._id}:`,
+        `Coupons modified: ${couponRes.status === "fulfilled" ? couponRes.value?.modifiedCount : "error"}`,
+        `Affiliate products modified: ${affiliateRes.status === "fulfilled" ? affiliateRes.value?.modifiedCount : "error"}`,
+      );
+    } catch (cascadeErr) {
+      console.error("[Category Cascade Error]:", cascadeErr);
+    }
+  }
+
+  return ok(merchant, "Profile updated successfully");
 });

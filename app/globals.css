@@ -204,11 +204,13 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  max-width: 100%;
+}
+
 body {
   max-width: 100%;
-  overflow-x: clip;
-  position: relative;
+  min-height: 100vh;
 }
 
 /* Custom Scrollbar for Sidebar & Panes */

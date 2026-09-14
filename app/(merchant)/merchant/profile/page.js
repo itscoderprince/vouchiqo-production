@@ -182,17 +182,50 @@ export default function MerchantBusinessProfile() {
       <div className="flex flex-col gap-6 text-left font-sans w-full">
         {/* Stepper Header */}
         <div className="w-full flex flex-col gap-3 py-1">
-          {merchant && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="text-xs font-bold text-slate-500 hover:text-slate-900 cursor-pointer"
-              >
-                Cancel Edit
-              </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-slate-800">
+                {isEditing
+                  ? "Edit Business Profile"
+                  : "Complete Merchant Profile"}
+              </span>
+              {isEditing && (
+                <span className="text-[10px] font-semibold bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-200">
+                  Editing Mode
+                </span>
+              )}
             </div>
-          )}
+            {merchant && isEditing && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(false)}
+                  className="text-xs font-semibold text-slate-600 hover:text-slate-900 border-slate-200 cursor-pointer h-8 px-3 rounded-lg"
+                >
+                  Cancel Edit
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={handleSubmit}
+                  className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold h-8 px-4 rounded-lg cursor-pointer shadow-xs flex items-center gap-1.5"
+                >
+                  {isPending
+                    ? <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    : <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Save Changes</span>
+                      </>}
+                </Button>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center w-full gap-3 sm:gap-6 pt-1">
             {steps.map((s, idx) => {
@@ -299,30 +332,54 @@ export default function MerchantBusinessProfile() {
               <span>Back</span>
             </Button>
 
-            {step < 3
-              ? <Button
-                  type="button"
-                  onClick={handleNext}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
-                >
-                  <span>Next Step</span>
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              : <Button
+            <div className="flex items-center gap-2.5">
+              {merchant && isEditing && (
+                <Button
                   type="submit"
                   disabled={isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
+                  className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer shadow-md shadow-rose-500/20 flex items-center gap-2"
                 >
                   {isPending
                     ? <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Submitting Profile...</span>
+                        <span>Saving...</span>
                       </>
                     : <>
-                        <span>Submit Profile Details</span>
                         <CheckCircle2 className="w-4 h-4" />
+                        <span>Save Changes</span>
                       </>}
-                </Button>}
+                </Button>
+              )}
+
+              {step < 3
+                ? <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20 flex items-center gap-1"
+                  >
+                    <span>Next Step</span>
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                : <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-8 rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-2"
+                  >
+                    {isPending
+                      ? <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Saving Profile...</span>
+                        </>
+                      : <>
+                          <span>
+                            {merchant
+                              ? "Save All Details"
+                              : "Submit Profile Details"}
+                          </span>
+                          <CheckCircle2 className="w-4 h-4" />
+                        </>}
+                  </Button>}
+            </div>
           </div>
         </form>
       </div>

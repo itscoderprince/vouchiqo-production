@@ -590,7 +590,7 @@ export function AppSidebar({ ...props }) {
       case "merchant":
         return [
           {
-            title: "NAVIGATION",
+            title: "",
             items: [
               {
                 title: "Dashboard Overview",
@@ -758,12 +758,12 @@ export function AppSidebar({ ...props }) {
       className="bg-white text-slate-900 border-r border-slate-200 shadow-sm font-sans"
       {...props}
     >
-      <SidebarHeader className="!flex-row !gap-0 h-16 flex items-center justify-between border-b border-slate-100 bg-white px-3.5 py-0 shrink-0">
+      <SidebarHeader className="!flex-row !gap-0 h-14 sm:h-[60px] flex items-center justify-between border-b border-rose-100/90 bg-rose-50/70 px-3.5 py-0 shrink-0">
         <div
           className={`flex items-center gap-2.5 flex-1 min-w-0 ${isCollapsed ? "justify-center" : ""}`}
         >
           {/* Logo & Identity in Left */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-slate-200/90 bg-white overflow-hidden shadow-2xs">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-rose-200/80 bg-white overflow-hidden shadow-2xs">
             {role === "admin" ? (
               <div className="w-full h-full bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center rounded-[7px]">
                 <ShieldCheck className="w-5 h-5 text-white stroke-[2.2]" />
@@ -806,7 +806,7 @@ export function AppSidebar({ ...props }) {
                     PLATFORM ADMIN
                   </span>
                 ) : role === "merchant" ? (
-                  <span className="bg-rose-50 text-[#F72853] border border-rose-200/90 text-[8.5px] font-medium px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
+                  <span className="bg-white/95 text-[#F72853] border border-rose-200/90 text-[8.5px] font-medium px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
                     <Store className="w-2.5 h-2.5 text-[#F72853]" />{" "}
                     {merchantPlan
                       ? (PLAN_LABELS[merchantPlan] ??

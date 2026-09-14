@@ -1,14 +1,14 @@
 import { connectDB } from "@/lib/mongodb";
-import { requireRole } from "@/modules/auth/auth.middleware";
-import Merchant from "@/modules/merchant/merchant.model";
 import {
   createAffiliateProduct,
   getMerchantAffiliateProducts,
 } from "@/modules/affiliate-product/affiliate-product.service";
+import { requireRole } from "@/modules/auth/auth.middleware";
+import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
 import { NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
-import { ROLES } from "@/utils/constants";
+import { normalizeCategory, ROLES } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,16 @@ export const dynamic = "force-dynamic";
 export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
-  const merchant = await Merchant.findOne({ authId: user.id }).lean();
+  const authIdStr = user.id ? String(user.id) : null;
+  let merchant = null;
+  if (authIdStr) {
+    merchant = await Merchant.findOne({ authId: authIdStr }).lean();
+  }
+  if (!merchant && user.email) {
+    merchant = await Merchant.findOne({
+      contactEmail: user.email.toLowerCase().trim(),
+    }).lean();
+  }
   if (!merchant) throw new NotFoundError("Merchant profile");
 
   const { searchParams } = new URL(request.url);
@@ -41,10 +50,23 @@ export const GET = asyncHandler(async (request) => {
 export const POST = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
-  const merchant = await Merchant.findOne({ authId: user.id }).lean();
+  const authIdStr = user.id ? String(user.id) : null;
+  let merchant = null;
+  if (authIdStr) {
+    merchant = await Merchant.findOne({ authId: authIdStr }).lean();
+  }
+  if (!merchant && user.email) {
+    merchant = await Merchant.findOne({
+      contactEmail: user.email.toLowerCase().trim(),
+    }).lean();
+  }
   if (!merchant) throw new NotFoundError("Merchant profile");
 
   const body = await request.json();
+  body.category = normalizeCategory(
+    body.category || merchant.category || "food",
+  );
+
   const product = await createAffiliateProduct(merchant._id, body);
 
   return created(product, "Affiliate product created successfully");

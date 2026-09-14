@@ -168,7 +168,10 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
           };
 
   return (
-    <header className="h-14 sm:h-[60px] bg-white border-b border-slate-200 shadow-xs flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40 font-sans">
+    <header
+      className="h-14 sm:h-[60px] w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40 font-sans shrink-0"
+      style={{ position: "sticky", top: 0, zIndex: 40 }}
+    >
       {/* Left section: Sidebar Trigger (Hamburger) and title */}
       <div className="flex items-center gap-2.5 sm:gap-3">
         <SidebarTrigger className="text-slate-700 hover:text-[#F72853]" />
