@@ -32,6 +32,16 @@ export async function claimCoupon(userId, couponId) {
     );
   }
 
+  // Check if user already claimed this coupon
+  const existingClaim = await Claim.findOne({ userId, couponId: coupon._id });
+  if (existingClaim) {
+    throw new AppError(
+      "You have already saved/claimed this coupon",
+      400,
+      "ALREADY_CLAIMED"
+    );
+  }
+
   // Fetch user details from database
   const dbUser = await mongoose.connection.db
     .collection("user")

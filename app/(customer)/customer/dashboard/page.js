@@ -132,13 +132,23 @@ export default function CustomerDashboard() {
   const savedItemsCount = savedCoupons.length;
   const totalVotesCount = revivalsData?.totalVotesCast || 0;
 
-  const handleRedeemConfirm = async (coupon) => {
+  const handleRedeemConfirm = async (couponIdOrObj) => {
+    const couponId = typeof couponIdOrObj === "object" ? couponIdOrObj._id : couponIdOrObj;
+    const clmId =
+      selectedCoupon?.claimId ||
+      (claimsData || []).find((c) => {
+        const cId = c.couponId?._id || c.couponId?.id || c.couponId;
+        return String(cId) === String(couponId);
+      })?._id;
+
+    if (!clmId) throw new Error("Claim ID not found for this offer");
+
     const res = await fetch("/api/redemptions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        couponId: coupon._id,
-        savingsAmount: coupon.discountValue || 0,
+        claimId: String(clmId),
+        couponId: String(couponId),
       }),
     });
 
