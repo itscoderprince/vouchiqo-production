@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/payments/verify
- * Standard payment verification endpoint
+ * Standard payment verification endpoint with idempotent execution
  */
 export const POST = asyncHandler(async (request) => {
   await connectDB();
@@ -41,6 +41,14 @@ export const POST = asyncHandler(async (request) => {
   const payment = await Payment.findOne({ gatewayOrderId: orderId });
   if (!payment) {
     throw new NotFoundError("Payment transaction");
+  }
+
+  // Idempotency check: if payment was already captured, return existing state
+  if (payment.status === "CAPTURED") {
+    return ok(
+      payment,
+      "Payment already verified and processed",
+    );
   }
 
   if (payment.type !== "SUBSCRIPTION") {
