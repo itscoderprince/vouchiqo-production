@@ -32,6 +32,7 @@ export function useUser() {
       // Clear any merchant session flags so redirect guards don't fire after logout
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("vouchiqo_is_merchant");
+        sessionStorage.removeItem("vouchiqo_is_not_merchant");
       }
       await signOut();
     } catch (e) {

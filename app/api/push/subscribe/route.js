@@ -1,5 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
-import { auth } from "@/lib/auth";
+import { requireAuth } from "@/modules/auth/auth.middleware";
 import PushSubscription from "@/modules/push-subscription/push-subscription.model";
 import { ok, created } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
@@ -29,9 +29,9 @@ export const POST = asyncHandler(async (request) => {
   // Attempt to get authenticated user (optional — guests are fine)
   let userId = null;
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (session?.user?.id) {
-      userId = session.user.id;
+    const authRes = await requireAuth(request);
+    if (authRes?.user?.id) {
+      userId = authRes.user.id;
     }
   } catch {
     // Not authenticated — treat as guest

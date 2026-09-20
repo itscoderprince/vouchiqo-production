@@ -19,12 +19,17 @@ export const dynamic = "force-dynamic";
  * Returns live in-app notifications for the authenticated user from DB.
  */
 export const GET = asyncHandler(async (request) => {
-  await connectDB();
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user) {
+  let user = null;
+  try {
+    const authRes = await requireAuth(request);
+    user = authRes?.user;
+  } catch {
+    // Unauthenticated request
+  }
+  if (!user) {
     return ok({ notifications: [], total: 0, unreadCount: 0 });
   }
-  const user = session.user;
+  await connectDB();
   const { searchParams } = new URL(request.url);
 
   const result = await getUserNotifications(user.id, searchParams);

@@ -131,6 +131,7 @@ export const UserMenu = () => {
     try {
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("vouchiqo_is_merchant");
+        sessionStorage.removeItem("vouchiqo_is_not_merchant");
       }
       await signOut({
         fetchOptions: {

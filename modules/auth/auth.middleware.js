@@ -14,30 +14,28 @@ import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 
 /**
  * Extract the Better Auth session token from the Cookie header.
+ * Strips the HMAC signature if the cookie is signed (e.g. "token.sig").
  * Returns null if no session cookie is present.
  *
- * @param {Request} request
+ * @param {Request|string} request
  * @returns {string|null}
  */
 function extractSessionToken(request) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  // Better Auth uses "better-auth.session_token" in production
-  // and "__Secure-better-auth.session_token" on HTTPS
+  const cookieHeader =
+    (typeof request === "string" ? request : request?.headers?.get?.("cookie")) || "";
+  if (!cookieHeader) return null;
+
   const match =
     cookieHeader.match(/(?:^|;\s*)better-auth\.session_token=([^;]+)/) ||
     cookieHeader.match(/(?:^|;\s*)__Secure-better-auth\.session_token=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
+  if (!match) return null;
 
-/**
- * SHA-256 hash of the raw session token.
- * We NEVER store the raw token in Redis — only its hash.
- *
- * @param {string} token
- * @returns {string}
- */
-function hashToken(token) {
-  return crypto.createHash("sha256").update(token).digest("hex");
+  const rawValue = decodeURIComponent(match[1].trim());
+  const dotIndex = rawValue.lastIndexOf(".");
+  if (dotIndex > 0) {
+    return rawValue.substring(0, dotIndex);
+  }
+  return rawValue;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,11 +46,10 @@ function hashToken(token) {
  * Get the current session from the request.
  *
  * Performance path:
- *   1. Extract session token from cookie
- *   2. SHA-256 hash it (never store raw tokens in Redis)
- *   3. Check Redis for cached session payload  → HIT: return cached (2–5ms)
- *   4. MISS: call auth.api.getSession()        → ~80–300ms MongoDB lookup
- *   5. Cache the result in Redis for AUTH_SESSION TTL (5 min)
+ *   1. Extract raw session token from cookie (strip HMAC signature)
+ *   2. Check Redis for cached session payload  → HIT: return cached (< 1ms)
+ *   3. MISS: call auth.api.getSession()        → fallback to DB via secondaryStorage
+ *   4. Cache the resolved session in Redis with TTL
  *
  * Throws UnauthorizedError if not authenticated.
  *
@@ -62,20 +59,28 @@ function hashToken(token) {
 export async function requireAuth(request) {
   const token = extractSessionToken(request);
 
-  // Fast path: check Redis cache first
+  // Fast path: check Redis cache first (< 1ms)
   if (token) {
     try {
-      const tokenHash = hashToken(token);
-      const cacheKey = REDIS_KEYS.session(tokenHash);
+      const cacheKey = REDIS_KEYS.session(token);
       const cached = await redis.get(cacheKey);
 
       if (cached) {
         const parsed = JSON.parse(cached);
-        // Reconstruct the minimal session shape expected by callers
-        return {
-          session: { token },
-          user: parsed,
-        };
+        const sessionData = parsed.session
+          ? parsed
+          : { session: { token, id: parsed.id }, user: parsed };
+
+        const expiresAt = sessionData.session?.expiresAt
+          ? new Date(sessionData.session.expiresAt).getTime()
+          : Infinity;
+
+        if (expiresAt > Date.now()) {
+          return {
+            session: sessionData.session,
+            user: sessionData.user,
+          };
+        }
       }
     } catch (redisErr) {
       // Redis miss or error — fall through to DB lookup silently
@@ -85,21 +90,20 @@ export async function requireAuth(request) {
 
   // Slow path: real DB session lookup via Better Auth
   const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) throw new UnauthorizedError();
+  if (!session?.user) throw new UnauthorizedError();
 
   // Cache the resolved session in Redis for subsequent calls
   if (token && session?.user) {
     try {
-      const tokenHash = hashToken(token);
-      const cacheKey = REDIS_KEYS.session(tokenHash);
-      const payload = {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        role: session.user.role,
-        isActive: session.user.isActive ?? true,
-      };
-      await redis.setex(cacheKey, REDIS_TTL.AUTH_SESSION, JSON.stringify(payload));
+      const cacheKey = REDIS_KEYS.session(token);
+      const ttl = session.session?.expiresAt
+        ? Math.max(
+            60,
+            Math.floor((new Date(session.session.expiresAt).getTime() - Date.now()) / 1000),
+          )
+        : REDIS_TTL.AUTH_SESSION;
+
+      await redis.set(cacheKey, JSON.stringify(session), "EX", Math.min(ttl, 604800));
     } catch (cacheErr) {
       // Non-critical: caching failure should not break auth
       console.warn("[Auth Cache] Failed to cache session:", cacheErr?.message);
@@ -139,8 +143,7 @@ export async function invalidateSessionCache(request) {
   try {
     const token = extractSessionToken(request);
     if (!token) return;
-    const tokenHash = hashToken(token);
-    await redis.del(REDIS_KEYS.session(tokenHash));
+    await redis.del(REDIS_KEYS.session(token));
   } catch (err) {
     console.warn("[Auth Cache] Failed to invalidate session cache:", err?.message);
   }

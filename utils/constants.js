@@ -246,6 +246,7 @@ export const REDIS_TTL = {
   AUTH_SESSION: 300,   // 5 minutes -- cached session token lookup
   AUTH_USER: 300,      // 5 minutes -- cached user role lookup
   MERCHANT_PROFILE: 300, // 5 minutes -- cached merchant profile lookup
+  MERCHANT_BADGES: 30,   // 30 seconds -- cached merchant badge counts
 };
 
 export const REDIS_KEYS = {
@@ -259,9 +260,10 @@ export const REDIS_KEYS = {
   paymentIntent: (idempotencyKey) => `payment:intent:${idempotencyKey}`,
   paymentState: (orderId) => `payment:state:${orderId}`,
   // Auth session cache keys
-  session: (tokenHash) => `auth:session:${tokenHash}`,
+  session: (token) => `auth:session:${token}`,
   userRole: (userId) => `auth:user:${userId}`,
   merchantProfile: (authId) => `auth:merchant:${authId}`,
+  merchantBadges: (merchantId) => `auth:badges:${merchantId}`,
 };
 
 // ─────────────────────────────────────────────

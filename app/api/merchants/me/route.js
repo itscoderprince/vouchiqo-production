@@ -9,7 +9,8 @@ import {
 } from "@/modules/merchant/merchant.service";
 import { error, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
-import { normalizeCategory } from "@/utils/constants";
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL, normalizeCategory } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,10 +20,27 @@ export const revalidate = 0;
  * Returns the authenticated user's merchant profile.
  */
 export const GET = asyncHandler(async (request) => {
-  await connectDB();
   const { user } = await requireAuth(request);
-
   const authIdStr = user.id ? String(user.id) : null;
+
+  // Fast path: Redis cache check (< 1ms)
+  if (authIdStr) {
+    try {
+      const cacheKey = REDIS_KEYS.merchantProfile(authIdStr);
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        if (cached === "__NOT_FOUND__") {
+          return error("Merchant profile not found", 404, "NOT_FOUND");
+        }
+        return ok(JSON.parse(cached));
+      }
+    } catch (cacheErr) {
+      console.warn("[Merchant Cache] Lookup failed:", cacheErr?.message);
+    }
+  }
+
+  await connectDB();
+
   let merchant = null;
   if (authIdStr) {
     merchant = await Merchant.findOne({ authId: authIdStr }).lean();
@@ -34,6 +52,11 @@ export const GET = asyncHandler(async (request) => {
   }
 
   if (!merchant) {
+    if (authIdStr) {
+      try {
+        await redis.set(REDIS_KEYS.merchantProfile(authIdStr), "__NOT_FOUND__", "EX", 60);
+      } catch {}
+    }
     return error("Merchant profile not found", 404, "NOT_FOUND");
   }
 
@@ -61,6 +84,20 @@ export const GET = asyncHandler(async (request) => {
       }
     } catch (err) {
       console.error("[Slug Auto-Clean Error]:", err);
+    }
+  }
+
+  // Cache resolved merchant profile in Redis (5 min TTL)
+  if (authIdStr) {
+    try {
+      await redis.set(
+        REDIS_KEYS.merchantProfile(authIdStr),
+        JSON.stringify(merchant),
+        "EX",
+        REDIS_TTL.MERCHANT_PROFILE,
+      );
+    } catch (cacheErr) {
+      console.warn("[Merchant Cache] Save failed:", cacheErr?.message);
     }
   }
 
@@ -269,5 +306,6 @@ export const PUT = asyncHandler(async (request) => {
     }
   }
 
+  await invalidateMerchantCache(authIdStr);
   return ok(merchant, "Profile updated successfully");
 });

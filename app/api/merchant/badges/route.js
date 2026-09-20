@@ -5,6 +5,8 @@ import Coupon from "@/modules/coupon/coupon.model";
 import Campaign from "@/modules/merchant/campaign.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import Notification from "@/modules/notification/notification.model";
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
 
@@ -16,8 +18,20 @@ export const revalidate = 0;
  * Returns real-time sidebar badges & application status for the authenticated merchant.
  */
 export const GET = asyncHandler(async (request) => {
-  await connectDB();
   const { user } = await requireAuth(request);
+  const cacheKey = REDIS_KEYS.merchantBadges(user.id);
+
+  // Fast path: Redis cache (< 1ms)
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return ok(JSON.parse(cached));
+    }
+  } catch (err) {
+    console.warn("[Badges Cache] Lookup failed:", err?.message);
+  }
+
+  await connectDB();
 
   const merchant = await Merchant.findOne({
     $or: [
@@ -29,14 +43,18 @@ export const GET = asyncHandler(async (request) => {
   }).lean();
 
   if (!merchant) {
-    return ok({
+    const emptyBadges = {
       status: "not_submitted",
       totalCoupons: 0,
       activeCoupons: 0,
       expiredCoupons: 0,
       totalCampaigns: 0,
       unreadNotifications: 0,
-    });
+    };
+    try {
+      await redis.set(cacheKey, JSON.stringify(emptyBadges), "EX", 60);
+    } catch {}
+    return ok(emptyBadges);
   }
 
   const now = new Date();
@@ -66,7 +84,7 @@ export const GET = asyncHandler(async (request) => {
     Notification.countDocuments({ userId: user.id, isRead: false }),
   ]);
 
-  return ok({
+  const badges = {
     status: merchant.status || "pending",
     plan: merchant.plan || "starter",
     businessName: merchant.businessName,
@@ -76,5 +94,13 @@ export const GET = asyncHandler(async (request) => {
     expiredCoupons: couponExpired,
     totalCampaigns,
     unreadNotifications,
-  });
+  };
+
+  try {
+    await redis.set(cacheKey, JSON.stringify(badges), "EX", REDIS_TTL.MERCHANT_BADGES);
+  } catch (err) {
+    console.warn("[Badges Cache] Save failed:", err?.message);
+  }
+
+  return ok(badges);
 });
