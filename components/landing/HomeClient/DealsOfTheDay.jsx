@@ -7,31 +7,8 @@ import ProductOfferCard from "@/components/shared/cards/ProductOfferCard";
 import { TODAY_PRODUCT_DEALS } from "./constants";
 
 export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
-  const [products, setProducts] = useState(affiliateProducts || []);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-
-  // Sync state if SSR affiliateProducts changes
-  useEffect(() => {
-    if (affiliateProducts && affiliateProducts.length > 0) {
-      setProducts(affiliateProducts);
-    }
-  }, [affiliateProducts]);
-
-  // Client-side fetch fallback if SSR didn't return any
-  useEffect(() => {
-    if (!affiliateProducts || affiliateProducts.length === 0) {
-      fetch("/api/affiliate-products")
-        .then((res) => res.json())
-        .then((json) => {
-          const list = json?.data || json;
-          if (Array.isArray(list) && list.length > 0) {
-            setProducts(list);
-          }
-        })
-        .catch((err) => console.error("Failed to load affiliate products:", err));
-    }
-  }, [affiliateProducts]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -41,10 +18,10 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
     return () => media.removeEventListener("change", listener);
   }, []);
 
-  // Format products list
+  // Format products list directly from props (fallback to curated deals if prop is empty)
   const displayItems = useMemo(() => {
-    if (products && products.length > 0) {
-      return products.map((p) => ({
+    if (affiliateProducts && affiliateProducts.length > 0) {
+      return affiliateProducts.map((p) => ({
         _id: p._id,
         title: typeof p.title === "string" ? p.title : p.title?.title || "Special Deal",
         originalPrice: p.originalPrice || 0,
@@ -59,7 +36,7 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
       }));
     }
     return TODAY_PRODUCT_DEALS;
-  }, [products]);
+  }, [affiliateProducts]);
 
   const itemsPerPage = isMobile ? 2 : 4;
   const totalSlides = Math.ceil(displayItems.length / itemsPerPage);
@@ -203,4 +180,3 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
 };
 
 export default DealsOfTheDay;
-
