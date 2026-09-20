@@ -4,31 +4,10 @@ import SafeImage from "@/components/shared/SafeImage";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export const TrendingOffer = ({ banners: initialBanners = [] }) => {
-  const [banners, setBanners] = useState(initialBanners);
+export const TrendingOffer = ({ banners = [] }) => {
   const [current, setCurrent] = useState(0);
   const dragStart = useRef(0);
   const isDragging = useRef(false);
-
-  useEffect(() => {
-    if (initialBanners && initialBanners.length > 0) {
-      setBanners(initialBanners);
-    }
-  }, [initialBanners]);
-
-  // Client-side fetch from /api/banners if no banners provided via props
-  useEffect(() => {
-    if (!initialBanners || initialBanners.length === 0) {
-      fetch("/api/banners")
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setBanners(json.data);
-          }
-        })
-        .catch((err) => console.error("Failed to fetch trending banners:", err));
-    }
-  }, [initialBanners]);
 
   const slides = useMemo(() => {
     const dbTrending = (banners || []).filter(

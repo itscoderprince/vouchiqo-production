@@ -2,8 +2,7 @@ import { Geist, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import PublicMobileBottomNav from "@/components/layout/PublicMobileBottomNav";
-import GoogleOneTapPrompt from "@/components/shared/GoogleOneTapPrompt";
-import PushNotificationPrompt from "@/components/shared/PushNotificationPrompt";
+import ClientPrompts from "@/components/shared/ClientPrompts";
 import QueryProvider from "@/components/shared/QueryProvider";
 import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 
@@ -52,8 +51,7 @@ export default function RootLayout({ children }) {
         <SmoothScrollProvider>
           <QueryProvider>
             {children}
-            <GoogleOneTapPrompt />
-            <PushNotificationPrompt />
+            <ClientPrompts />
             <PublicMobileBottomNav />
             <Toaster
               position="bottom-right"

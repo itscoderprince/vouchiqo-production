@@ -4,7 +4,30 @@ import dynamicImport from "next/dynamic";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-// Defer static loads of heavy below-the-fold and modal overlay components
+// Core components & layout
+import Navbar from "@/components/layout/navbar";
+import { useInterests } from "@/hooks/use-interests";
+import { useSession } from "@/lib/auth-client";
+import { HeroSection } from "../HeroSection";
+import PopularOffers from "../PopularOffers";
+import PopularStores from "../PopularStores";
+import LeadingTaglineBar from "./LeadingTaglineBar";
+
+// Defer loads of below-the-fold and modal overlay components
+const Footer = dynamicImport(() =>
+  import("@/components/layout/Footer").then((mod) => mod.default || mod),
+);
+const TrendingOffer = dynamicImport(() =>
+  import("./TrendingOffer").then((mod) => mod.TrendingOffer || mod.default),
+);
+const DealsOfTheDay = dynamicImport(() =>
+  import("./DealsOfTheDay").then((mod) => mod.DealsOfTheDay || mod.default),
+);
+const NewsletterSubscription = dynamicImport(() =>
+  import("./NewsletterSubscription").then(
+    (mod) => mod.NewsletterSubscription || mod.default,
+  ),
+);
 const FaqSection = dynamicImport(() =>
   import("../FAQSection").then((mod) => mod.FaqSection || mod.default),
 );
@@ -34,21 +57,6 @@ const InterestSheet = dynamicImport(
     import("./InterestSheet").then((mod) => mod.InterestSheet || mod.default),
   { ssr: false },
 );
-
-// Layout elements
-import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/navbar";
-import { useInterests } from "@/hooks/use-interests";
-import { useSession } from "@/lib/auth-client";
-// Core components
-import { HeroSection } from "../HeroSection";
-import PopularOffers from "../PopularOffers";
-import PopularStores from "../PopularStores";
-import DealsOfTheDay from "./DealsOfTheDay";
-// Component page sections
-import LeadingTaglineBar from "./LeadingTaglineBar";
-import NewsletterSubscription from "./NewsletterSubscription";
-import TrendingOffer from "./TrendingOffer";
 
 export function HomeClient({
   initialCoupons = [],

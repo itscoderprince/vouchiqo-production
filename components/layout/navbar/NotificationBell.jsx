@@ -50,10 +50,11 @@ export const NotificationBell = () => {
       setReadIds(Array.isArray(savedRead) ? savedRead : []);
       setClearedIds(Array.isArray(savedCleared) ? savedCleared : []);
     } catch (_) {}
-  }, []);
+  }, [open]);
 
   // Fetch 100% REAL database activities (Coupons, Merchants, Notifications)
   useEffect(() => {
+    if (!open) return;
     let isCancelled = false;
 
     async function fetchRealActivities() {

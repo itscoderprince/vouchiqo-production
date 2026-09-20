@@ -19,7 +19,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "recharts"],
+    optimizePackageImports: ["lucide-react", "recharts", "radix-ui", "@tanstack/react-query"],
   },
   async headers() {
     // In development mode, disable custom headers to avoid blocking dev webviews or popups

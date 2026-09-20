@@ -56,7 +56,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
     const sorted = [...dbBanners].sort(
       (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
     );
-    return sorted.map((b, idx) => ({ id: b._id || idx, ...b }));
+    return sorted.slice(0, 8).map((b, idx) => ({ id: b._id || idx, ...b }));
   }, [banners]);
 
   useEffect(() => {
@@ -274,6 +274,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                       alt={slide.title || slide.name || "Banner slide"}
                       fill
                       priority={sIdx === 0}
+                      loading={sIdx === 0 ? "eager" : "lazy"}
                       sizes="(max-width: 1440px) 100vw, 1440px"
                       className="object-cover cursor-pointer select-none pointer-events-none"
                     />

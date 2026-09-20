@@ -3,48 +3,46 @@
 
 import { ChevronLeft, ChevronRight, Percent, Tag } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
 
 export default function PopularStores({ merchants = [] }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [dbMerchants, setDbMerchants] = useState(merchants || []);
-
-  useEffect(() => {
-    if (merchants && merchants.length > 0) {
-      setDbMerchants(merchants);
-    }
-  }, [merchants]);
 
   // Map database merchants into standard structure
-  const finalStoresList = (dbMerchants || []).map((m) => {
-    const rawCat = m.category || "Deals";
-    const cleanCat =
-      rawCat.charAt(0).toUpperCase() + rawCat.slice(1).toLowerCase();
+  const finalStoresList = useMemo(() => {
+    return (merchants || []).map((m) => {
+      const rawCat = m.category || "Deals";
+      const cleanCat =
+        rawCat.charAt(0).toUpperCase() + rawCat.slice(1).toLowerCase();
 
-    return {
-      name: m.businessName || m.name || "Store Partner",
-      logo: m.logo || "/placeholder-brand.png",
-      href: `/brand/${m.slug}`,
-      coupons: m.totalCoupons || 0,
-      banner: m.banner,
-      category: cleanCat,
-      discount: m.maxDiscount
-        ? `Up to ${m.maxDiscount}% OFF`
-        : m.totalCoupons > 0
-          ? `${m.totalCoupons} LIVE ${m.totalCoupons === 1 ? "OFFER" : "OFFERS"}`
-          : null,
-      isVerified: m.isVerified ?? m.status === "approved",
-      totalOffers: (m.totalCoupons || 0) + (m.totalRedemptions || 0),
-    };
-  });
+      return {
+        name: m.businessName || m.name || "Store Partner",
+        logo: m.logo || "/placeholder-brand.png",
+        href: `/brand/${m.slug}`,
+        coupons: m.totalCoupons || 0,
+        banner: m.banner,
+        category: cleanCat,
+        discount: m.maxDiscount
+          ? `Up to ${m.maxDiscount}% OFF`
+          : m.totalCoupons > 0
+            ? `${m.totalCoupons} LIVE ${m.totalCoupons === 1 ? "OFFER" : "OFFERS"}`
+            : null,
+        isVerified: m.isVerified ?? m.status === "approved",
+        totalOffers: (m.totalCoupons || 0) + (m.totalRedemptions || 0),
+      };
+    });
+  }, [merchants]);
 
   // Store of the Month (Prioritize merchant with active coupons and complete branding)
-  const storeOfTheMonth =
-    dbMerchants.find((m) => (m.totalCoupons || 0) > 0 && m.logo) ||
-    dbMerchants.find((m) => (m.totalCoupons || 0) > 0) ||
-    dbMerchants.find((m) => (m.totalRedemptions || 0) > 0) ||
-    dbMerchants[0];
+  const storeOfTheMonth = useMemo(() => {
+    return (
+      merchants.find((m) => (m.totalCoupons || 0) > 0 && m.logo) ||
+      merchants.find((m) => (m.totalCoupons || 0) > 0) ||
+      merchants.find((m) => (m.totalRedemptions || 0) > 0) ||
+      merchants[0]
+    );
+  }, [merchants]);
 
   const somName =
     storeOfTheMonth?.businessName ||

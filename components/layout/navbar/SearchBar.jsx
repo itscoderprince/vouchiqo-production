@@ -65,79 +65,15 @@ export const SearchBar = () => {
   const inputRef = useRef(null);
 
   // Typewriter animation states
-  const [placeholderPhrases, setPlaceholderPhrases] = useState([
-    "Search for 'Fashion & Clothing'...",
-    "Search for 'Food & Dining'...",
-    "Search for 'Electronics & Gadgets'...",
-    "Search for 'Beauty & Wellness'...",
-    "Search for brands, categories...",
-  ]);
   const [placeholderText, setPlaceholderText] = useState("");
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch real public data for typewriter placeholder (only use public endpoints)
-  useEffect(() => {
-    let isCancelled = false;
-    async function loadRealPlaceholderData() {
-      try {
-        const resCoupons = await fetch("/api/coupons?limit=20").then((r) =>
-          r.ok ? r.json() : null,
-        );
-
-        if (isCancelled) return;
-
-        const dbCoupons =
-          resCoupons?.data?.coupons || resCoupons?.coupons || [];
-
-        const realPhrases = [];
-
-        // Extract real merchant/store names from coupon data
-        const seenBrands = new Set();
-        dbCoupons.forEach((c) => {
-          const brand = c.merchantName || c.brandName || c.storeName;
-          if (brand && typeof brand === "string" && !seenBrands.has(brand)) {
-            seenBrands.add(brand);
-            realPhrases.push(`Search for '${brand.trim()}'...`);
-          }
-        });
-
-        // Extract real active categories
-        const seenCategories = new Set();
-        dbCoupons.forEach((c) => {
-          if (
-            c.category &&
-            typeof c.category === "string" &&
-            !seenCategories.has(c.category)
-          ) {
-            seenCategories.add(c.category);
-            const catName =
-              c.category.charAt(0).toUpperCase() + c.category.slice(1);
-            realPhrases.push(`Search for '${catName}'...`);
-          }
-        });
-
-        if (realPhrases.length > 0) {
-          realPhrases.push("Search for brands, categories...");
-          setPlaceholderPhrases(realPhrases);
-        }
-      } catch (err) {
-        console.error("Error fetching real placeholder data:", err);
-      }
-    }
-
-    loadRealPlaceholderData();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
-
 
   // Smooth Typewriter Effect for Search Placeholder
   useEffect(() => {
-    const currentPhrase = placeholderPhrases[phraseIndex % placeholderPhrases.length] || "Search for brands, categories...";
+    const currentPhrase = PLACEHOLDER_PHRASES[phraseIndex % PLACEHOLDER_PHRASES.length] || "Search for brands, categories...";
 
     let typingSpeed = isDeleting ? 35 : 75;
 
@@ -145,7 +81,7 @@ export const SearchBar = () => {
       typingSpeed = 1800; // Pause at end of full phrase
     } else if (isDeleting && charIndex === 0) {
       setIsDeleting(false);
-      setPhraseIndex((prev) => (prev + 1) % placeholderPhrases.length);
+      setPhraseIndex((prev) => (prev + 1) % PLACEHOLDER_PHRASES.length);
       typingSpeed = 250;
     }
 
@@ -162,7 +98,7 @@ export const SearchBar = () => {
     }, typingSpeed);
 
     return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, phraseIndex, placeholderPhrases]);
+  }, [charIndex, isDeleting, phraseIndex]);
 
   // Close dropdown on outside click
   useEffect(() => {
