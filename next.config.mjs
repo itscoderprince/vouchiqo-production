@@ -2,7 +2,6 @@
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
-  transpilePackages: ["react-icons"],
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -20,7 +19,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "recharts", "react-icons"],
+    optimizePackageImports: ["lucide-react", "recharts"],
   },
   async headers() {
     // In development mode, disable custom headers to avoid blocking dev webviews or popups
@@ -125,6 +124,5 @@ const nextConfig = {
     ];
   },
 };
-
 
 export default nextConfig;

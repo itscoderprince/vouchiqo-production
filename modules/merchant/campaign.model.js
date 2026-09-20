@@ -93,6 +93,14 @@ const campaignSchema = new Schema(
   },
 );
 
+/**
+ * Compound Indexes (Engineered per Rule 28 & 29)
+ * 1. merchantId + createdAt: Supports merchant dashboard listing and active campaign lookups
+ * 2. status + createdAt: Supports admin review queue, moderation facet, and counts
+ */
+campaignSchema.index({ merchantId: 1, createdAt: -1 });
+campaignSchema.index({ status: 1, createdAt: -1 });
+
 const Campaign =
   mongoose.models.Campaign ?? mongoose.model("Campaign", campaignSchema);
 export default Campaign;

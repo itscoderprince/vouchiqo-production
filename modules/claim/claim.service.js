@@ -3,6 +3,7 @@ import Claim from "@/modules/claim/claim.model";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import { sendUserCouponClaimedEmail } from "@/lib/email/user-email";
+import { logger } from "@/lib/logger";
 import { AppError, NotFoundError } from "@/utils/app-error";
 import { CLAIM_STATUS, COUPON_STATUS } from "@/utils/constants";
 import { buildMeta, parsePagination } from "@/utils/pagination";
@@ -33,19 +34,32 @@ export async function claimCoupon(userId, couponId) {
   }
 
   // Check if user already claimed this coupon
-  const existingClaim = await Claim.findOne({ userId, couponId: coupon._id });
+  const existingClaim = await Claim.findOne({ userId, couponId: coupon._id }).select("_id").lean();
   if (existingClaim) {
     throw new AppError(
       "You have already saved/claimed this coupon",
       400,
-      "ALREADY_CLAIMED"
+      "ALREADY_CLAIMED",
     );
   }
 
   // Fetch user details from database
-  const dbUser = await mongoose.connection.db
-    .collection("user")
-    .findOne({ _id: new mongoose.Types.ObjectId(userId) });
+  const userCol = mongoose.connection.db?.collection("user");
+  let dbUser = null;
+  if (userCol) {
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      dbUser = await userCol.findOne(
+        { _id: new mongoose.Types.ObjectId(userId) },
+        { projection: { name: 1, email: 1 } },
+      );
+    }
+    if (!dbUser) {
+      dbUser = await userCol.findOne(
+        { _id: String(userId) },
+        { projection: { name: 1, email: 1 } },
+      );
+    }
+  }
   const userName = dbUser?.name || "Customer User";
   const userEmail = dbUser?.email || "";
 
@@ -59,7 +73,7 @@ export async function claimCoupon(userId, couponId) {
   });
 
   // Fetch Merchant for email details
-  const merchant = await Merchant.findById(coupon.merchantId).lean();
+  const merchant = await Merchant.findById(coupon.merchantId).select("businessName").lean();
 
   // Trigger Coupon Claimed Email to Customer
   if (userEmail) {
@@ -69,9 +83,14 @@ export async function claimCoupon(userId, couponId) {
       couponTitle: coupon.title,
       merchantName: merchant?.businessName || "Vouchiqo Partner",
       couponCode: coupon.code,
-      discountText: coupon.discountType === "percentage" ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`,
+      discountText:
+        coupon.discountType === "percentage"
+          ? `${coupon.discountValue}% OFF`
+          : `₹${coupon.discountValue} OFF`,
       validTill: coupon.expiresAt,
-    }).catch((err) => console.error("[Claim Email Error]:", err));
+    }).catch((err) =>
+      logger.error({ err, userId, couponId }, "Coupon claimed email dispatch error"),
+    );
   }
 
   // Increment claim counters atomically (coupon + merchant)

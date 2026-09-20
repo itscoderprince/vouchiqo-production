@@ -50,6 +50,13 @@ const claimSchema = new Schema(
 claimSchema.index({ userId: 1, couponId: 1 }, { unique: true });
 claimSchema.index({ userId: 1, status: 1 });
 
+/**
+ * Compound Index (Engineered per Rule 28 & 29)
+ * Query: getMerchantClaims (Claim.aggregate matching merchantId and sorting by createdAt: -1)
+ * Why: Allows IXSCAN on merchant's claims and pipeline sort without in-memory sort or COLLSCAN
+ */
+claimSchema.index({ merchantId: 1, createdAt: -1 });
+
 const Claim = mongoose.models.Claim ?? mongoose.model("Claim", claimSchema);
 
 export default Claim;

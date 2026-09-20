@@ -1,10 +1,11 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 import Merchant from "./merchant.model.js";
 import UserProfile from "../user/user.model.js";
 import {
   sendMerchantApprovedEmail,
   sendMerchantRejectedEmail,
 } from "../../lib/email/merchant-email.js";
+import { logger } from "../../lib/logger.js";
 import {
   ConflictError,
   ForbiddenError,
@@ -30,7 +31,7 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
 
   const emailStr = typeof contactEmail === "string" ? contactEmail.trim().toLowerCase() : "";
   if (emailStr) {
-    const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailStr });
+    const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailStr }).select("_id").lean();
     if (dupEmail) throw new ConflictError("Email address is already registered to another merchant.");
   }
 
@@ -39,13 +40,13 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
     const dupPhone = await Merchant.findOne({
       ...baseFilter,
       $or: [{ contactPhone: phoneStr }, { liaisonPhone: phoneStr }],
-    });
+    }).select("_id").lean();
     if (dupPhone) throw new ConflictError("Mobile / Contact phone number is already registered to another merchant.");
   }
 
   const cleanGstin = String(gstin || "").trim().toUpperCase();
   if (cleanGstin) {
-    const dupGstin = await Merchant.findOne({ ...baseFilter, gstin: cleanGstin });
+    const dupGstin = await Merchant.findOne({ ...baseFilter, gstin: cleanGstin }).select("_id").lean();
     if (dupGstin) throw new ConflictError("GSTIN is already registered to another merchant.");
   }
 }
@@ -98,7 +99,7 @@ export async function generateUniqueSlug(
   const filterBase = excludeId ? { _id: { $ne: excludeId } } : {};
 
   // 1. Try cleanBase directly (e.g., "aditya-cars")
-  const existingExact = await Merchant.findOne({ ...filterBase, slug: cleanBase });
+  const existingExact = await Merchant.findOne({ ...filterBase, slug: cleanBase }).select("_id").lean();
   if (!existingExact) return cleanBase;
 
   // 2. Try cleanBase + city suffix (e.g., "aditya-cars-ranchi")
@@ -110,7 +111,7 @@ export async function generateUniqueSlug(
 
   if (cleanCity) {
     const citySlug = `${cleanBase}-${cleanCity}`.slice(0, 80);
-    const existingCity = await Merchant.findOne({ ...filterBase, slug: citySlug });
+    const existingCity = await Merchant.findOne({ ...filterBase, slug: citySlug }).select("_id").lean();
     if (!existingCity) return citySlug;
   }
 
@@ -123,28 +124,28 @@ export async function generateUniqueSlug(
 
   if (cleanState && cleanState !== cleanCity) {
     const stateSlug = `${cleanBase}-${cleanState}`.slice(0, 80);
-    const existingState = await Merchant.findOne({ ...filterBase, slug: stateSlug });
+    const existingState = await Merchant.findOne({ ...filterBase, slug: stateSlug }).select("_id").lean();
     if (!existingState) return stateSlug;
   }
 
   // 4. Try cleanBase + city + state (e.g., "aditya-cars-ranchi-jharkhand")
   if (cleanCity && cleanState && cleanState !== cleanCity) {
     const cityStateSlug = `${cleanBase}-${cleanCity}-${cleanState}`.slice(0, 80);
-    const existingCityState = await Merchant.findOne({ ...filterBase, slug: cityStateSlug });
+    const existingCityState = await Merchant.findOne({ ...filterBase, slug: cityStateSlug }).select("_id").lean();
     if (!existingCityState) return cityStateSlug;
   }
 
   // 5. Try cleanBase + category (e.g., "aditya-cars-automotive")
   if (cleanCategory) {
     const categorySlug = `${cleanBase}-${cleanCategory}`.slice(0, 80);
-    const existingCategory = await Merchant.findOne({ ...filterBase, slug: categorySlug });
+    const existingCategory = await Merchant.findOne({ ...filterBase, slug: categorySlug }).select("_id").lean();
     if (!existingCategory) return categorySlug;
   }
 
   // 6. Try cleanBase + city + category (e.g., "aditya-cars-ranchi-automotive")
   if (cleanCity && cleanCategory) {
     const cityCatSlug = `${cleanBase}-${cleanCity}-${cleanCategory}`.slice(0, 80);
-    const existingCityCat = await Merchant.findOne({ ...filterBase, slug: cityCatSlug });
+    const existingCityCat = await Merchant.findOne({ ...filterBase, slug: cityCatSlug }).select("_id").lean();
     if (!existingCityCat) return cityCatSlug;
   }
 
@@ -155,10 +156,26 @@ export async function generateUniqueSlug(
       ? `${cleanBase}-${cleanState}`
       : cleanBase;
 
+  const prefixEscaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+  const prefixRegex = new RegExp(`^${prefixEscaped}-(\\d+)$`);
+  const existingMatches = await Merchant.find(
+    { ...filterBase, slug: prefixRegex },
+    { slug: 1 },
+  ).lean();
+
+  const takenNumbers = new Set(
+    existingMatches
+      .map((m) => {
+        const match = m.slug.match(prefixRegex);
+        return match ? parseInt(match[1], 10) : null;
+      })
+      .filter(Boolean),
+  );
+
   for (let num = 2; num <= 50; num++) {
-    const numberedSlug = `${prefix}-${num}`.slice(0, 80);
-    const exists = await Merchant.findOne({ ...filterBase, slug: numberedSlug });
-    if (!exists) return numberedSlug;
+    if (!takenNumbers.has(num)) {
+      return `${prefix}-${num}`.slice(0, 80);
+    }
   }
 
   return `${prefix}-1`;
@@ -356,6 +373,7 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
 
 /**
  * Admin: list all merchants with pagination and filters.
+ * Uses batch lookup for user profiles to eliminate N+1 database queries.
  */
 export async function listMerchants(searchParams) {
   const { page, limit, skip } = parsePagination(searchParams);
@@ -374,23 +392,34 @@ export async function listMerchants(searchParams) {
   ]);
 
   const userCol = mongoose.connection.db?.collection("user");
-  const merchants = await Promise.all(
-    merchantsRaw.map(async (m) => {
-      let uDoc = null;
-      if (userCol && m.authId) {
-        uDoc = await userCol.findOne({ _id: m.authId }).catch(() => null);
-        if (!uDoc && mongoose.Types.ObjectId.isValid(m.authId)) {
-          uDoc = await userCol
-            .findOne({ _id: new mongoose.Types.ObjectId(m.authId) })
-            .catch(() => null);
-        }
-      }
-      return {
-        ...m,
-        userId: uDoc ? { name: uDoc.name, email: uDoc.email } : null,
-      };
-    }),
-  );
+  const userMap = new Map();
+
+  if (userCol && merchantsRaw.length > 0) {
+    const rawIds = merchantsRaw.map((m) => m.authId).filter(Boolean);
+    const validObjectIds = rawIds
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
+
+    const users = await userCol
+      .find(
+        { _id: { $in: [...rawIds, ...validObjectIds] } },
+        { projection: { name: 1, email: 1 } },
+      )
+      .toArray()
+      .catch(() => []);
+
+    for (const u of users) {
+      userMap.set(String(u._id), u);
+    }
+  }
+
+  const merchants = merchantsRaw.map((m) => {
+    const uDoc = m.authId ? userMap.get(String(m.authId)) : null;
+    return {
+      ...m,
+      userId: uDoc ? { name: uDoc.name, email: uDoc.email } : null,
+    };
+  });
 
   return { merchants, meta: buildMeta(total, page, limit) };
 }
@@ -451,18 +480,22 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
           to: targetEmail,
           businessName: merchant.businessName,
           liaisonName: merchant.liaisonName,
-        }).catch((err) => console.error("[Merchant Approved Email Error]:", err));
+        }).catch((err) =>
+          logger.error({ err, merchantId }, "Merchant approved email dispatch error"),
+        );
       } else if (status === MERCHANT_STATUS.REJECTED) {
         sendMerchantRejectedEmail({
           to: targetEmail,
           businessName: merchant.businessName,
           liaisonName: merchant.liaisonName,
           rejectionReason: merchant.rejectionReason || rejectionReason,
-        }).catch((err) => console.error("[Merchant Rejected Email Error]:", err));
+        }).catch((err) =>
+          logger.error({ err, merchantId }, "Merchant rejected email dispatch error"),
+        );
       }
     }
   } catch (err) {
-    console.error("[Review Merchant Email Dispatch Error]:", err);
+    logger.error({ err, merchantId }, "Review merchant email dispatch failure");
   }
 
   return merchant;
