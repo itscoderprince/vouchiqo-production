@@ -12,9 +12,17 @@
  *  - RECORD_UNIQUE_CODE_GEN: increments uniqueCodeGenCount on coupon + upserts daily AnalyticsEvent
  */
 
+import nextEnv from "@next/env";
+if (typeof process !== "undefined" && process.cwd) {
+  try {
+    const { loadEnvConfig } = nextEnv;
+    loadEnvConfig(process.cwd());
+  } catch (_) {}
+}
+
 import { Worker } from "bullmq";
 import mongoose from "mongoose";
-import { redis } from "../lib/redis.js";
+import { createQueueConnection } from "../lib/redis.js";
 import { JOB_NAMES, QUEUE_NAMES } from "../utils/constants.js";
 
 // ─────────────────────────────────────────────
@@ -115,7 +123,9 @@ async function recordDailyEvent({
 // Worker
 // ─────────────────────────────────────────────
 
-const worker = new Worker(
+const connection = createQueueConnection();
+
+export const worker = new Worker(
   QUEUE_NAMES.ANALYTICS,
   async (job) => {
     await connectDB();
@@ -147,6 +157,16 @@ const worker = new Worker(
             eventType: "impression",
             source,
           });
+        } else if (merchantId) {
+          await Merchant.findByIdAndUpdate(merchantId, {
+            $inc: { totalImpressions: 1 },
+          });
+          await recordDailyEvent({
+            merchantId,
+            couponId: null,
+            eventType: "impression",
+            source,
+          });
         }
         break;
       }
@@ -170,6 +190,16 @@ const worker = new Worker(
             eventType: "click",
             source,
           });
+        } else if (merchantId) {
+          await Merchant.findByIdAndUpdate(merchantId, {
+            $inc: { totalClicks: 1 },
+          });
+          await recordDailyEvent({
+            merchantId,
+            couponId: null,
+            eventType: "click",
+            source,
+          });
         }
         break;
       }
@@ -181,9 +211,8 @@ const worker = new Worker(
             { $inc: { copyCodeCount: 1 } },
             { new: true },
           );
-          const derivedMerchantId = merchantId || coupon?.merchantId;
           await recordDailyEvent({
-            merchantId: derivedMerchantId,
+            merchantId: merchantId || coupon?.merchantId,
             couponId,
             eventType: "copy_code",
             source,
@@ -239,7 +268,7 @@ const worker = new Worker(
     }
   },
   {
-    connection: redis,
+    connection,
     concurrency: 10,
   },
 );
@@ -258,6 +287,19 @@ worker.on("failed", (job, err) => {
 worker.on("error", (err) => {
   console.error("[analytics-worker] Worker error:", err);
 });
+
+async function shutdown(signal) {
+  console.log(`[analytics-worker] ${signal} received, closing worker...`);
+  await worker.close();
+  await connection.quit();
+  if (mongoose.connection.readyState >= 1) {
+    await mongoose.disconnect();
+  }
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 console.log(
   "[analytics-worker] Analytics worker started with multi-event tracking",

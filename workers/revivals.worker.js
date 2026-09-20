@@ -7,9 +7,17 @@
  * Start with: node workers/revivals.worker.js
  */
 
+import nextEnv from "@next/env";
+if (typeof process !== "undefined" && process.cwd) {
+  try {
+    const { loadEnvConfig } = nextEnv;
+    loadEnvConfig(process.cwd());
+  } catch (_) {}
+}
+
 import { Queue, Worker } from "bullmq";
 import mongoose from "mongoose";
-import { redis } from "../lib/redis.js";
+import { createQueueConnection } from "../lib/redis.js";
 import { JOB_NAMES, QUEUE_NAMES } from "../utils/constants.js";
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -39,8 +47,11 @@ const CustomerRevival =
   mongoose.models.CustomerRevival ??
   mongoose.model("CustomerRevival", customerRevivalSchema);
 
+const queueConnection = createQueueConnection();
+const workerConnection = createQueueConnection();
+
 // 1. Initialize queue to schedule repeatable job
-const queue = new Queue(QUEUE_NAMES.REVIVALS, { connection: redis });
+export const queue = new Queue(QUEUE_NAMES.REVIVALS, { connection: queueConnection });
 
 async function scheduleRepeatableJob() {
   await queue.add(
@@ -61,7 +72,7 @@ scheduleRepeatableJob().catch((err) => {
 });
 
 // 2. Start Worker
-const worker = new Worker(
+export const worker = new Worker(
   QUEUE_NAMES.REVIVALS,
   async (job) => {
     await connectDB();
@@ -92,7 +103,7 @@ const worker = new Worker(
     }
   },
   {
-    connection: redis,
+    connection: workerConnection,
     concurrency: 1,
   },
 );
@@ -108,5 +119,20 @@ worker.on("failed", (job, err) => {
 worker.on("error", (err) => {
   console.error("[revivals-worker] Worker error:", err);
 });
+
+async function shutdown(signal) {
+  console.log(`[revivals-worker] ${signal} received, closing worker...`);
+  await worker.close();
+  await queue.close();
+  await workerConnection.quit();
+  await queueConnection.quit();
+  if (mongoose.connection.readyState >= 1) {
+    await mongoose.disconnect();
+  }
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 console.log("[revivals-worker] Revivals worker started");

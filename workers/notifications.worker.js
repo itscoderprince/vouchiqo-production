@@ -6,16 +6,26 @@
  * Start with: node workers/notifications.worker.js
  */
 
+import nextEnv from "@next/env";
+if (typeof process !== "undefined" && process.cwd) {
+  try {
+    const { loadEnvConfig } = nextEnv;
+    loadEnvConfig(process.cwd());
+  } catch (_) {}
+}
+
 import { Worker } from "bullmq";
 import { Resend } from "resend";
-import { redis } from "../lib/redis.js";
+import { createQueueConnection } from "../lib/redis.js";
 import { JOB_NAMES, QUEUE_NAMES } from "../utils/constants.js";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 const FROM_EMAIL = process.env.EMAIL_FROM || "Vouchiqo <noreply@vouchiqo.com>";
 
-const worker = new Worker(
+const connection = createQueueConnection();
+
+export const worker = new Worker(
   QUEUE_NAMES.NOTIFICATIONS,
   async (job) => {
     if (job.name === JOB_NAMES.SEND_EMAIL) {
@@ -64,7 +74,7 @@ const worker = new Worker(
     }
   },
   {
-    connection: redis,
+    connection,
     concurrency: 5,
   },
 );
@@ -80,5 +90,15 @@ worker.on("failed", (job, err) => {
 worker.on("error", (err) => {
   console.error("[notifications-worker] Worker error:", err);
 });
+
+async function shutdown(signal) {
+  console.log(`[notifications-worker] ${signal} received, closing worker...`);
+  await worker.close();
+  await connection.quit();
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 console.log("[notifications-worker] Notifications worker started");

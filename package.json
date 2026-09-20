@@ -8,7 +8,12 @@
     "build": "next build",
     "start": "node --no-deprecation --max-old-space-size=8192 server.js",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "workers": "node workers/index.js",
+    "worker:analytics": "node workers/analytics.worker.js",
+    "worker:coupons": "node workers/coupons.worker.js",
+    "worker:notifications": "node workers/notifications.worker.js",
+    "worker:revivals": "node workers/revivals.worker.js"
   },
   "imports": {
     "@/*": "./*"
