@@ -82,16 +82,14 @@ export const SearchBar = () => {
     let isCancelled = false;
     async function loadRealPlaceholderData() {
       try {
-        const [resCoupons1, resCoupons2] = await Promise.all([
-          fetch("/api/coupons?limit=10").then((r) => (r.ok ? r.json() : null)),
-          fetch("/api/coupons?limit=30").then((r) => (r.ok ? r.json() : null)),
-        ]);
+        const resCoupons = await fetch("/api/coupons?limit=20").then((r) =>
+          r.ok ? r.json() : null,
+        );
 
         if (isCancelled) return;
 
         const dbCoupons =
-          resCoupons2?.data?.coupons || resCoupons2?.coupons ||
-          resCoupons1?.data?.coupons || resCoupons1?.coupons || [];
+          resCoupons?.data?.coupons || resCoupons?.coupons || [];
 
         const realPhrases = [];
 

@@ -22,6 +22,19 @@ const SORTABLE_FIELDS = [
   "discountValue",
 ];
 
+async function invalidateCouponCaches() {
+  try {
+    await Promise.all([
+      redis.del(REDIS_KEYS.FEATURED_DEALS),
+      redis.del(REDIS_KEYS.TRENDING_DEALS),
+    ]);
+    const keys = await redis.keys("vouchiqo:coupons:list:*");
+    if (keys && keys.length > 0) {
+      await redis.del(...keys);
+    }
+  } catch (_) {}
+}
+
 /**
  * Create a new coupon for a merchant.
  * Merchant must be approved to create coupons.
@@ -82,6 +95,7 @@ export async function createCoupon(authId, data) {
   });
 
   await Merchant.findByIdAndUpdate(merchant._id, { $inc: { totalCoupons: 1 } });
+  invalidateCouponCaches().catch(() => {});
 
   // Trigger Merchant Offer Created Email Notification
   const targetEmail = merchant.contactEmail || merchant.email;
@@ -210,7 +224,7 @@ export async function getCouponById(couponId) {
     }
   }
 
-  // 4. Dynamic Mock Fallback for mock coupon string IDs or generated hex IDs (e.g. 6a7c312d4be3aa2adfb964ab for brand 'maa')
+  // 4. Dynamic Mock Fallback for mock coupon string IDs or generated hex IDs
   let slug = "maa";
   let isExpired = false;
   let couponIndex = 1;
@@ -321,11 +335,24 @@ export async function listCoupons(searchParams) {
   const { page, limit, skip } = parsePagination(searchParams);
   const sort = parseSort(searchParams, SORTABLE_FIELDS);
 
-  const filter = {};
-
   const status = searchParams.get("status");
   const merchantId = searchParams.get("merchantId");
   const isMerchantSelfQuery = searchParams.get("isMerchantSelf") === "true";
+  const search = searchParams.get("search");
+
+  // Fast Redis Cache for repeated public queries (e.g. navbar search, notifications, deals)
+  const cacheKey = !isMerchantSelfQuery && !search
+    ? `vouchiqo:coupons:list:${searchParams.toString() || "default"}`
+    : null;
+
+  if (cacheKey) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch (_) {}
+  }
+
+  const filter = {};
 
   if (status && status !== "all") {
     filter.status = status;
@@ -343,7 +370,6 @@ export async function listCoupons(searchParams) {
       filter.$or = [
         { expiresAt: { $gt: new Date() } },
         { expiresAt: null },
-        { expiryDate: { $gt: new Date() } },
       ];
     }
   }
@@ -352,7 +378,6 @@ export async function listCoupons(searchParams) {
   const city = searchParams.get("city");
   const pincode = searchParams.get("pincode");
   const discountType = searchParams.get("discountType");
-  const search = searchParams.get("search");
 
   if (category) filter.category = category;
   if (city) filter["location.city"] = new RegExp(escapeRegex(city), "i");
@@ -388,14 +413,11 @@ export async function listCoupons(searchParams) {
 
   if (searchParams.get("includeAllBrands") === "true") {
     const allMerchants = await Merchant.find({
-      $or: [
-        { status: "approved" },
-        { status: "active" },
-        { applicationStatus: "approved" },
-        { isVerified: true },
-        { status: { $ne: "rejected" } },
-      ],
-    }).lean();
+      status: { $in: ["approved", "active"] },
+    })
+      .select("businessName slug logo location category address createdAt")
+      .limit(50)
+      .lean();
 
     const existingMerchantIds = new Set(
       coupons
@@ -437,7 +459,15 @@ export async function listCoupons(searchParams) {
     coupons.push(...extraMerchantDeals);
   }
 
-  return { coupons, meta: buildMeta(total, page, limit) };
+  const result = { coupons, meta: buildMeta(total, page, limit) };
+
+  if (cacheKey) {
+    try {
+      await redis.setex(cacheKey, 60, JSON.stringify(result));
+    } catch (_) {}
+  }
+
+  return result;
 }
 
 /**
@@ -541,12 +571,7 @@ export async function updateCoupon(couponId, authId, data) {
   if (data.expiresAt) coupon.expiresAt = new Date(data.expiresAt);
   await coupon.save();
 
-  // Always bust both caches on update — a coupon may be transitioning
-  // to/from featured or hot, and the pre-update state is unreliable here.
-  await Promise.all([
-    redis.del(REDIS_KEYS.FEATURED_DEALS),
-    redis.del(REDIS_KEYS.TRENDING_DEALS),
-  ]);
+  invalidateCouponCaches().catch(() => {});
 
   return coupon;
 }
@@ -569,8 +594,7 @@ export async function deleteCoupon(couponId, authId) {
 
   if (!coupon) throw new NotFoundError("Coupon");
 
-  await redis.del(REDIS_KEYS.FEATURED_DEALS);
-  await redis.del(REDIS_KEYS.TRENDING_DEALS);
+  invalidateCouponCaches().catch(() => {});
 }
 
 /**
@@ -591,6 +615,7 @@ export async function setCouponStatus(couponId, authId, newStatus) {
   );
 
   if (!coupon) throw new NotFoundError("Coupon");
+  invalidateCouponCaches().catch(() => {});
   return coupon;
 }
 
