@@ -8,13 +8,16 @@
 importScripts("https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js");
 
+// NOTE: In production, /firebase-messaging-sw.js is rewritten to /api/push/sw
+// which injects environment variables dynamically at runtime.
+// The static config below provides safe empty defaults for offline/static fallbacks.
 var firebaseConfig = {
-  "apiKey": "AIzaSyASl4daS8a3xQGX0bCgu6KJFXuHRXDNBog",
-  "authDomain": "vouchiqo-webitya.firebaseapp.com",
-  "projectId": "vouchiqo-webitya",
-  "storageBucket": "vouchiqo-webitya.firebasestorage.app",
-  "messagingSenderId": "633063138703",
-  "appId": "1:633063138703:web:48548b5449fb0135dfd7fa"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
 };
 
 firebase.initializeApp(firebaseConfig);

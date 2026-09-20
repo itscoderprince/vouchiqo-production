@@ -63,6 +63,22 @@ const envSchema = z.object({
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
+
+  // Razorpay Payments
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().optional(),
+
+  // Admin Portal & Seeding Credentials
+  ADMIN_USERNAME: z.string().optional().default("admin"),
+  ADMIN_PASSWORD: z.string().optional(),
+  SEED_SECRET: z.string().optional(),
+
+  // Initial Merchant Setup (Optional script variables)
+  INITIAL_MERCHANT_EMAIL: z.string().optional(),
+  INITIAL_MERCHANT_PASSWORD: z.string().optional(),
+  INITIAL_MERCHANT_NAME: z.string().optional(),
 });
 
 const isBuild =
@@ -99,6 +115,12 @@ if (isBuild) {
   }
   if (!envToValidate.RESEND_API_KEY) {
     envToValidate.RESEND_API_KEY = "re_dummy_key_for_build";
+  }
+  if (!envToValidate.RAZORPAY_KEY_ID) {
+    envToValidate.RAZORPAY_KEY_ID = "rzp_test_dummy_key_id";
+  }
+  if (!envToValidate.RAZORPAY_KEY_SECRET) {
+    envToValidate.RAZORPAY_KEY_SECRET = "dummy_razorpay_secret";
   }
 }
 

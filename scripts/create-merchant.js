@@ -9,9 +9,9 @@ async function createMerchant() {
   await connectDB();
   const db = mongoose.connection.db;
 
-  const email = "merchant@vouchiqo.com";
-  const password = "Merchant@123!";
-  const name = "Vouchiqo Prime Store";
+  const email = process.env.INITIAL_MERCHANT_EMAIL || "merchant@vouchiqo.com";
+  const password = process.env.INITIAL_MERCHANT_PASSWORD || "Merchant@123!";
+  const name = process.env.INITIAL_MERCHANT_NAME || "Vouchiqo Prime Store";
 
   console.log(`Creating auth user: ${email}...`);
 

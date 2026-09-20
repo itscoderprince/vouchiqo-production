@@ -324,7 +324,7 @@ export default function MerchantSubscription() {
 
       // 2. Open official Razorpay Native Popup window
       const options = {
-        key: keyId || "rzp_live_TITo8u45hFpoaE",
+        key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
         amount: amount || totalPrice * 100,
         currency: currency || "INR",
         name: "Vouchiqo Merchant Portal",
