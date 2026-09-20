@@ -1,22 +1,68 @@
 "use client";
 
-import { Edit2, Pause, Play, Tag, Ticket, Trash2 } from "lucide-react";
+import { Edit2, ExternalLink, Pause, Play, ShoppingBag, Tag, Ticket, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DataTable, StatusBadge } from "@/components/shared/data";
 import { ConfirmDeleteModal } from "@/components/shared/modals";
-import { showSuccess } from "@/lib/toast";
+import { showSuccess, showError } from "@/lib/toast";
 
-export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
+export default function TopCouponsTable({
+  coupons: initialCoupons = [],
+  affiliates: initialAffiliates = [],
+}) {
+  const [activeTab, setActiveTab] = useState("all");
   const [couponsList, setCouponsList] = useState(initialCoupons);
+  const [affiliatesList, setAffiliatesList] = useState(initialAffiliates);
 
   useEffect(() => {
-    setCouponsList(initialCoupons);
+    setCouponsList(
+      initialCoupons.map((c) => ({
+        ...c,
+        type: "coupon",
+      })),
+    );
   }, [initialCoupons]);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [couponToDelete, setCouponToDelete] = useState(null);
 
-  const handleToggleStatus = (id) => {
+  useEffect(() => {
+    setAffiliatesList(
+      initialAffiliates.map((a) => ({
+        ...a,
+        type: "affiliate",
+      })),
+    );
+  }, [initialAffiliates]);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  const handleToggleStatus = async (id, type) => {
+    if (type === "affiliate") {
+      const target = affiliatesList.find((a) => (a.id || a._id) === id);
+      if (!target) return;
+      const next = target.status === "active" ? "paused" : "active";
+
+      try {
+        const res = await fetch(`/api/merchant/affiliate-products/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next }),
+        });
+        if (res.ok) {
+          setAffiliatesList((prev) =>
+            prev.map((a) => ((a.id || a._id) === id ? { ...a, status: next } : a)),
+          );
+          showSuccess(`Affiliate deal "${target.title}" ${next === "active" ? "resumed" : "paused"} successfully.`);
+        } else {
+          showError("Failed to update affiliate product status.");
+        }
+      } catch (err) {
+        showError("Network error updating status.");
+      }
+      return;
+    }
+
+    // Coupon status toggle
     const target = couponsList.find((c) => (c.id || c._id) === id);
     if (!target) return;
 
@@ -26,51 +72,119 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
     );
 
     showSuccess(
-      `Offer "${target.code}" ${next === "active" ? "resumed" : "paused"} successfully.`,
+      `Offer "${target.code || target.title}" ${next === "active" ? "resumed" : "paused"} successfully.`,
     );
   };
 
-  const confirmDelete = (coupon) => {
-    setCouponToDelete(coupon);
+  const confirmDelete = (item) => {
+    setItemToDelete(item);
     setDeleteModalOpen(true);
   };
 
-  const handleDelete = () => {
-    if (!couponToDelete) return;
-    const targetId = couponToDelete.id || couponToDelete._id;
-    setCouponsList((prev) => prev.filter((c) => (c.id || c._id) !== targetId));
-    showSuccess(`Offer "${couponToDelete.code}" deleted.`);
-    setCouponToDelete(null);
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+    const targetId = itemToDelete.id || itemToDelete._id;
+
+    if (itemToDelete.type === "affiliate") {
+      try {
+        const res = await fetch(`/api/merchant/affiliate-products/${targetId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setAffiliatesList((prev) => prev.filter((a) => (a.id || a._id) !== targetId));
+          showSuccess(`Affiliate product "${itemToDelete.title}" deleted.`);
+        } else {
+          showError("Failed to delete affiliate product.");
+        }
+      } catch (err) {
+        showError("Error deleting affiliate product.");
+      }
+    } else {
+      setCouponsList((prev) => prev.filter((c) => (c.id || c._id) !== targetId));
+      showSuccess(`Offer "${itemToDelete.code || itemToDelete.title}" deleted.`);
+    }
+
+    setItemToDelete(null);
     setDeleteModalOpen(false);
   };
+
+  // Filtered items based on activeTab
+  const displayedItems = useMemo(() => {
+    if (activeTab === "coupons") return couponsList;
+    if (activeTab === "affiliates") return affiliatesList;
+
+    // Combined "all"
+    return [...couponsList, ...affiliatesList].sort((a, b) => {
+      const aScore = (a.redemptions || 0) + (a.clicks || 0);
+      const bScore = (b.redemptions || 0) + (b.clicks || 0);
+      return bScore - aScore;
+    });
+  }, [activeTab, couponsList, affiliatesList]);
 
   /** @type {import("@/components/shared/data/DataTable").Column[]} */
   const columns = [
     {
       key: "title",
-      header: "Offer",
+      header: "Listing / Deal",
       sortable: true,
       cell: (row) => (
-        <span className="font-medium text-slate-800 truncate block max-w-[180px]">
-          {row?.title || "Offer Listing"}
-        </span>
+        <div className="flex flex-col gap-0.5 max-w-[200px]">
+          <span className="font-medium text-slate-800 truncate block text-xs" title={row?.title}>
+            {row?.title || "Listing"}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {row?.type === "affiliate" ? (
+              <span className="inline-flex items-center gap-0.5 text-[9.5px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.2 rounded">
+                <ShoppingBag className="w-2.5 h-2.5 text-emerald-600" />
+                <span>Affiliate Deal</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-0.5 text-[9.5px] font-medium text-blue-700 bg-blue-50 border border-blue-200/70 px-1.5 py-0.2 rounded">
+                <Ticket className="w-2.5 h-2.5 text-blue-600" />
+                <span>Voucher</span>
+              </span>
+            )}
+          </div>
+        </div>
       ),
     },
     {
       key: "code",
-      header: "Code",
-      cell: (row) => (
-        <span className="font-mono text-[11px] font-medium text-slate-600 flex items-center gap-1">
-          <Ticket className="w-3 h-3 text-slate-400" />
-          {row?.code || "N/A"}
-        </span>
-      ),
+      header: "Code / Link",
+      cell: (row) => {
+        if (row?.type === "affiliate") {
+          return (
+            <a
+              href={row?.affiliateUrl || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 hover:text-emerald-800 hover:underline max-w-[130px] truncate"
+              title={row?.affiliateUrl}
+            >
+              <span>Affiliate Link</span>
+              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+            </a>
+          );
+        }
+        return (
+          <span className="font-mono text-[11px] font-medium text-slate-600 flex items-center gap-1">
+            <Ticket className="w-3 h-3 text-slate-400" />
+            {row?.code || "N/A"}
+          </span>
+        );
+      },
     },
     {
       key: "discount",
-      header: "Discount",
+      header: "Discount / Deal",
       cell: (row) => (
-        <span className="text-[11px] font-medium text-[#F72853] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 font-sans">
+        <span
+          className={`text-[11px] font-medium px-2 py-0.5 rounded-md border font-sans ${
+            row?.type === "affiliate"
+              ? "text-emerald-700 bg-emerald-50 border-emerald-100"
+              : "text-[#F72853] bg-rose-50 border-rose-100"
+          }`}
+        >
           {row?.discount || "Offer"}
         </span>
       ),
@@ -79,7 +193,7 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       key: "category",
       header: "Category",
       cell: (row) => (
-        <span className="text-[11px] font-normal px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 flex items-center gap-1 font-sans">
+        <span className="text-[11px] font-normal px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 flex items-center gap-1 font-sans capitalize">
           <Tag className="w-2.5 h-2.5 text-slate-400" />
           {row?.category || "General"}
         </span>
@@ -101,24 +215,11 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       sortable: true,
       cell: (row) => (
         <span className="font-medium text-slate-800">
-          {(Number(row?.redemptions) || 0).toLocaleString()}
+          {row?.type === "affiliate"
+            ? `${(Number(row?.clicks) || 0).toLocaleString()} visits`
+            : (Number(row?.redemptions) || 0).toLocaleString()}
         </span>
       ),
-    },
-    {
-      key: "successRate",
-      header: "Success %",
-      sortable: true,
-      cell: (row) => {
-        const rate = Number(row?.successRate ?? row?.conversion) || 0;
-        return (
-          <span
-            className={`font-medium ${rate >= 10 ? "text-emerald-600" : rate >= 5 ? "text-blue-600" : "text-slate-500"}`}
-          >
-            {rate}%
-          </span>
-        );
-      },
     },
     {
       key: "status",
@@ -128,73 +229,146 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
     {
       key: "actions",
       header: "Actions",
-      cell: (row) => (
-        <div className="flex items-center gap-1">
-          <Link
-            href={`/merchant/coupons/${row.id || row._id}`}
-            className="w-6.5 h-6.5 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-            title="Edit Coupon"
-          >
-            <Edit2 className="w-3 h-3" />
-          </Link>
-          <button
-            type="button"
-            onClick={() => handleToggleStatus(row.id || row._id)}
-            className="w-6.5 h-6.5 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-          >
-            {row.status === "active" ? (
-              <Pause className="w-3 h-3" />
-            ) : (
-              <Play className="w-3 h-3" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => confirmDelete(row)}
-            className="w-6.5 h-6.5 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      ),
+      cell: (row) => {
+        const isAffiliate = row?.type === "affiliate";
+        const editUrl = isAffiliate
+          ? `/merchant/affiliate-products/${row.id || row._id}`
+          : `/merchant/coupons/${row.id || row._id}`;
+
+        return (
+          <div className="flex items-center gap-1">
+            <Link
+              href={editUrl}
+              className="w-6.5 h-6.5 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+              title={isAffiliate ? "Edit Affiliate Deal" : "Edit Coupon"}
+            >
+              <Edit2 className="w-3 h-3" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleToggleStatus(row.id || row._id, row.type)}
+              className="w-6.5 h-6.5 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              title={row.status === "active" ? "Pause Listing" : "Resume Listing"}
+            >
+              {row.status === "active" ? (
+                <Pause className="w-3 h-3" />
+              ) : (
+                <Play className="w-3 h-3" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => confirmDelete(row)}
+              className="w-6.5 h-6.5 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+              title="Delete Listing"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
+  const viewAllHref =
+    activeTab === "affiliates"
+      ? "/merchant/affiliate-products"
+      : "/merchant/coupons";
+
   return (
     <div className="bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden flex flex-col text-left font-sans">
-      <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 flex flex-row items-center justify-between gap-3 bg-slate-50/40">
+      {/* Header Bar with Filter Tabs */}
+      <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40">
         <div>
           <h3 className="text-xs sm:text-sm font-semibold text-slate-800 m-0 leading-tight">
-            Top Performing Offers
+            Store Listings &amp; Offers
           </h3>
           <p className="text-[11px] text-slate-500 font-normal mt-0.5 leading-none">
-            Your best listings ranked by redemptions and engagement
+            All active promotional vouchers and affiliate product deals
           </p>
         </div>
-        <Link
-          href="/merchant/coupons"
-          className="text-xs font-medium text-[#F72853] hover:underline underline-offset-2 shrink-0"
-        >
-          View all →
-        </Link>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter Tabs */}
+          <div className="inline-flex p-0.5 bg-slate-200/60 rounded-lg text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setActiveTab("all")}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                activeTab === "all"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              All Listings ({couponsList.length + affiliatesList.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("coupons")}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                activeTab === "coupons"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Coupons ({couponsList.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("affiliates")}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                activeTab === "affiliates"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Affiliate Products ({affiliatesList.length})
+            </button>
+          </div>
+
+          <Link
+            href={viewAllHref}
+            className="text-xs font-medium text-[#F72853] hover:underline underline-offset-2 shrink-0 ml-1"
+          >
+            View all →
+          </Link>
+        </div>
       </div>
+
+      {/* Table Content */}
       <div className="p-3.5 sm:p-4 pt-2">
         <DataTable
           columns={columns}
-          data={couponsList}
+          data={displayedItems}
           searchable={false}
           defaultPageSize={5}
           emptyState={
-            <div className="space-y-1.5 py-6 text-center">
+            <div className="space-y-2.5 py-8 text-center">
               <p className="text-xs text-slate-500 font-normal">
-                No active coupons found yet.
+                {activeTab === "affiliates"
+                  ? "No affiliate products listed yet."
+                  : activeTab === "coupons"
+                  ? "No coupon offers found yet."
+                  : "No listings found yet."}
               </p>
-              <Link
-                href="/merchant/coupons/new"
-                className="text-xs font-medium text-[#F72853] hover:underline underline-offset-2 inline-block"
-              >
-                + Post your first coupon
-              </Link>
+              <div className="flex items-center justify-center gap-2 pt-1">
+                {(activeTab === "all" || activeTab === "coupons") && (
+                  <Link
+                    href="/merchant/coupons/new"
+                    className="text-xs font-medium text-white bg-[#F72853] hover:bg-[#e01e47] px-3 py-1.5 rounded-lg shadow-2xs transition-colors"
+                  >
+                    + Post Coupon Deal
+                  </Link>
+                )}
+                {(activeTab === "all" || activeTab === "affiliates") && (
+                  <Link
+                    href="/merchant/affiliate-products/new"
+                    className="text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs transition-colors"
+                  >
+                    + Add Affiliate Deal
+                  </Link>
+                )}
+              </div>
             </div>
           }
         />
@@ -204,7 +378,7 @@ export default function TopCouponsTable({ coupons: initialCoupons = [] }) {
       <ConfirmDeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
-        itemName={couponToDelete?.code || couponToDelete?.title}
+        itemName={itemToDelete?.code || itemToDelete?.title}
         onConfirm={handleDelete}
       />
     </div>

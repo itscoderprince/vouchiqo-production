@@ -4,6 +4,7 @@ import { Mail, MessageCircle, RefreshCw, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { showSuccess } from "@/lib/toast";
+import { getWhatsAppDeepLink, VOUCHIQO_SUPPORT_WHATSAPP } from "@/lib/whatsapp";
 
 /**
  * ActionButtons — compact action buttons bar using black, blue, and white theme.
@@ -24,10 +25,11 @@ export default function ActionButtons({
   };
 
   const handleContactWhatsApp = () => {
-    window.open(
-      "https://wa.me/919876543210?text=Hi%20Vouchiqo%20Support%2C%20I%20am%20tracking%20my%20Merchant%20Application.",
-      "_blank",
-    );
+    const link = getWhatsAppDeepLink({
+      phone: VOUCHIQO_SUPPORT_WHATSAPP,
+      message: "Hi Vouchiqo Support, I am tracking my Merchant Application.",
+    });
+    window.open(link, "_blank");
   };
 
   return (

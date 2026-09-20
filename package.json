@@ -4,11 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --max-old-space-size=8192 server.js",
+    "dev": "node --no-deprecation --max-old-space-size=8192 server.js",
     "build": "next build",
-    "start": "node --max-old-space-size=8192 server.js",
+    "start": "node --no-deprecation --max-old-space-size=8192 server.js",
     "lint": "biome check",
     "format": "biome format --write"
+  },
+  "imports": {
+    "@/*": "./*"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

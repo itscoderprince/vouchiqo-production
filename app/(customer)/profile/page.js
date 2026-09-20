@@ -358,10 +358,15 @@ function ProfileContent() {
   const handleShareSavings = () => {
     const saved = Number(savingsData?.kpis?.totalSavedMonth) || 0;
     const shareText = `I saved ₹${saved.toLocaleString("en-IN")} this month using Vouchiqo! 🔴 Find verified offer codes and save. https://vouchiqo.com`;
-    navigator.clipboard.writeText(shareText);
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(shareText).catch(() => {});
+    }
     setCopiedShareCard(true);
-    toast.success("Copied to clipboard!");
+    toast.success("Copied & opening WhatsApp!");
     setTimeout(() => setCopiedShareCard(false), 3000);
+    if (typeof window !== "undefined") {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, "_blank");
+    }
   };
 
   // CSV Exporter

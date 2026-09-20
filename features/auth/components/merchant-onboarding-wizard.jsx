@@ -15,6 +15,7 @@ import {
   FileText,
   Globe,
   Hash,
+  Home,
   Image as ImageIcon,
   Loader2,
   Lock,
@@ -59,6 +60,8 @@ const FacebookIcon = (props) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -76,7 +79,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
 import { authClient, signUp } from "@/lib/auth-client";
 import {
@@ -84,10 +86,7 @@ import {
   lookupByPincode,
   lookupStateByCity,
 } from "@/utils/indianGeoLookup";
-import {
-  STANDARD_TIME_OPTIONS,
-  normalizeTimeFormat,
-} from "@/utils/timeUtils";
+import { normalizeTimeFormat, STANDARD_TIME_OPTIONS } from "@/utils/timeUtils";
 
 const CATEGORIES = [
   { id: "fashion", label: "Fashion & Clothing" },
@@ -360,139 +359,353 @@ export function MerchantOnboardingWizard() {
     };
   }, []);
 
-  const merchantPlans = plansFromDb || publicSettings?.merchant_plans || [
-    {
-      id: "starter",
-      name: "STARTER FREE",
-      badge: "Popular",
-      priceText: "₹0",
-      priceSuffix: "/ month free forever",
-      originalPrice: "",
-      subCaption: "Start listing. Pay only when a customer visits.",
-      features: [
-        "Up to 3 active verified listings",
-        "Smart Code redemption at your counter",
-        "Vouchiqo Verified badge on all listings",
-        "Basic dashboard — views and Smart Codes",
-        "Founding Partner badge if within first 100",
-        "No campaigns — No push sends",
-      ],
-      footerNote:
-        "Commission charged only on confirmed customer transactions — never on views or clicks.",
-      buttonText: "Select Starter",
-      theme: "blue",
-      active: true,
-    },
-    {
-      id: "growth",
-      name: "GROWTH PARTNER",
-      badge: "Founding Rate -33%",
-      priceText: "₹999",
-      originalPrice: "₹1,499",
-      priceSuffix: "/ month",
-      subCaption:
-        "More listings. Campaigns. Revival included. 14-day free trial.",
-      features: [
-        "Up to 15 active listings (5× Starter)",
-        "4 platform campaigns per year",
-        "5 Expired Offer Revivals / month",
-        "Analytics — redemptions, clicks, category rank",
-        "Founding badge + 12 month commission rate lock",
-        "14 day free trial — no charge until Day 15",
-      ],
-      footerNote:
-        "No payment collected today. Trial starts on account activation.",
-      buttonText: "Select Growth — ₹999/mo",
-      theme: "orange",
-      active: true,
-    },
-    {
-      id: "pro",
-      name: "PRO PARTNER",
-      badge: "Best Value",
-      priceText: "₹2,999",
-      originalPrice: "₹3,999",
-      priceSuffix: "/ month",
-      subCaption:
-        "Unlimited listings, campaigns, and push sends. Full power.",
-      features: [
-        "Unlimited active listings",
-        "Unlimited campaigns — no annual cap",
-        "50 Expired Offer Revivals / month",
-        "Push notifications to customer segments",
-        "Advanced analytics — revenue attribution, heatmap",
-        "Priority 24h support • 14-day free trial",
-      ],
-      footerNote:
-        "Commission rate locked for 12 months under Founding Program.",
-      buttonText: "Select Pro — ₹2,999/mo",
-      theme: "emerald",
-      active: true,
-    },
-    {
-      id: "enterprise",
-      name: "ENTERPRISE",
-      badge: "Scale",
-      priceText: "Custom pricing",
-      originalPrice: "",
-      priceSuffix: "",
-      subCaption:
-        "Dedicated manager. API access. Multi-location. Custom SLA.",
-      features: [
-        "Everything in Pro, all limits removed",
-        "Dedicated named account manager",
-        "Direct API access — POS and CRM integration",
-        "Multi-location under one dashboard",
-        "Custom SLA and guaranteed response times",
-        "10% Year 1 discount under Founding Program",
-      ],
-      footerNote:
-        "No self-serve signup. Our team contacts you within 24 hours.",
-      buttonText: "Contact us — partners@vouchiqo.com",
-      theme: "indigo",
-      active: true,
-    },
-  ];
+  const merchantPlans = plansFromDb ||
+    publicSettings?.merchant_plans || [
+      {
+        id: "starter",
+        name: "STARTER FREE",
+        badge: "Popular",
+        priceText: "₹0",
+        priceSuffix: "/ month free forever",
+        originalPrice: "",
+        subCaption: "Start listing. Pay only when a customer visits.",
+        features: [
+          "Up to 3 active verified listings",
+          "Smart Code redemption at your counter",
+          "Vouchiqo Verified badge on all listings",
+          "Basic dashboard — views and Smart Codes",
+          "Founding Partner badge if within first 100",
+          "No campaigns — No push sends",
+        ],
+        footerNote:
+          "Commission charged only on confirmed customer transactions — never on views or clicks.",
+        buttonText: "Select Starter",
+        theme: "blue",
+        active: true,
+      },
+      {
+        id: "growth",
+        name: "GROWTH PARTNER",
+        badge: "Founding Rate -33%",
+        priceText: "₹999",
+        originalPrice: "₹1,499",
+        priceSuffix: "/ month",
+        subCaption:
+          "More listings. Campaigns. Revival included. 14-day free trial.",
+        features: [
+          "Up to 15 active listings (5× Starter)",
+          "4 platform campaigns per year",
+          "5 Expired Offer Revivals / month",
+          "Analytics — redemptions, clicks, category rank",
+          "Founding badge + 12 month commission rate lock",
+          "14 day free trial — no charge until Day 15",
+        ],
+        footerNote:
+          "No payment collected today. Trial starts on account activation.",
+        buttonText: "Select Growth — ₹999/mo",
+        theme: "orange",
+        active: true,
+      },
+      {
+        id: "pro",
+        name: "PRO PARTNER",
+        badge: "Best Value",
+        priceText: "₹2,999",
+        originalPrice: "₹3,999",
+        priceSuffix: "/ month",
+        subCaption:
+          "Unlimited listings, campaigns, and push sends. Full power.",
+        features: [
+          "Unlimited active listings",
+          "Unlimited campaigns — no annual cap",
+          "50 Expired Offer Revivals / month",
+          "Push notifications to customer segments",
+          "Advanced analytics — revenue attribution, heatmap",
+          "Priority 24h support • 14-day free trial",
+        ],
+        footerNote:
+          "Commission rate locked for 12 months under Founding Program.",
+        buttonText: "Select Pro — ₹2,999/mo",
+        theme: "emerald",
+        active: true,
+      },
+      {
+        id: "enterprise",
+        name: "ENTERPRISE",
+        badge: "Scale",
+        priceText: "Custom pricing",
+        originalPrice: "",
+        priceSuffix: "",
+        subCaption:
+          "Dedicated manager. API access. Multi-location. Custom SLA.",
+        features: [
+          "Everything in Pro, all limits removed",
+          "Dedicated named account manager",
+          "Direct API access — POS and CRM integration",
+          "Multi-location under one dashboard",
+          "Custom SLA and guaranteed response times",
+          "10% Year 1 discount under Founding Program",
+        ],
+        footerNote:
+          "No self-serve signup. Our team contacts you within 24 hours.",
+        buttonText: "Contact us — partners@vouchiqo.com",
+        theme: "indigo",
+        active: true,
+      },
+    ];
   const masterCpaRates = publicSettings?.master_cpa_rates || COMMISSION_TABLE;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateErrors, setDuplicateErrors] = useState({});
-  const [checkingExistingMerchant, setCheckingExistingMerchant] = useState(true);
+  const [checkingExistingMerchant, setCheckingExistingMerchant] =
+    useState(true);
   const [showMasterCpaTable, setShowMasterCpaTable] = useState(false);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState("");
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
+  const [submissionSuccessData, setSubmissionSuccessData] = useState(null);
+
+  const getLegalDocumentText = (docId, docTitle, data) => {
+    const dateStr = new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const bName =
+      data?.tradingName ||
+      data?.registeredName ||
+      "Merchant Partner Enterprise";
+    const lName =
+      data?.contactName || data?.signatoryName || "Authorized Signatory";
+    const city = data?.city || "Ranchi";
+    const state = data?.state || "Jharkhand";
+
+    const header = `================================================================================
+VOUCHIQO PLATFORM OFFICIAL LEGAL DOCUMENT
+Document: ${(docTitle || "Agreement").toUpperCase()}
+Date: ${dateStr}
+Merchant Business: ${bName}
+Authorized Signatory: ${lName}
+Jurisdiction: ${city}, ${state}, India
+================================================================================\n\n`;
+
+    if (docId === "merchant_agreement" || docId?.includes("merchant")) {
+      return (
+        header +
+        `1. ENGAGEMENT & SCOPE
+This Merchant Agreement governs the partnership between Vouchiqo Technologies Pvt. Ltd. ("Platform") and ${bName} ("Merchant Partner"). The Merchant agrees to list genuine deals, discounts, and promotional offers for consumers on the Vouchiqo platform in Ranchi and Jharkhand.
+
+2. MERCHANT COVENANTS & SERVICE STANDARDS
+- The Merchant agrees to honour all valid, active, and verified vouchers and coupon codes presented by customers without discrimination or hidden surcharges.
+- Counter and billing staff must be trained to verify codes promptly via the Vouchiqo Merchant Portal.
+- The Merchant agrees to record accurate transaction values upon redemption confirmation.
+
+3. COMMISSION & COMMERCIAL TERMS
+- Performance commission is payable strictly upon verified redemptions according to the agreed category rate.
+- Rates and starter benefits are locked for 6 to 12 months under the Founding Merchant Program.
+
+4. TERM & TERMINATION
+- Either party may terminate with 30 days written notice. Immediate suspension applies for willful non-honouring of valid customer vouchers or fraudulent redemption reporting.
+
+Governing Law: Courts of Ranchi, Jharkhand, India.
+Authorized Acceptance: Recorded digitally via Vouchiqo Merchant Onboarding Portal.`
+      );
+    }
+
+    if (docId === "terms_of_service" || docId?.includes("terms")) {
+      return (
+        header +
+        `1. ACCEPTANCE OF TERMS
+By accessing the Vouchiqo Merchant Portal, the Merchant agrees to adhere to these Terms of Service.
+
+2. LISTING GUIDELINES
+- All published coupons, discounts, and flash sales must reflect authentic commercial offerings.
+- Deceptive promotions, false MRP markups, or unavailable stock listings are strictly prohibited.
+
+3. ACCOUNT SECURITY
+The Merchant is solely responsible for maintaining credentials of authorized counter attendants and manager logins.
+
+4. PLATFORM AVAILABILITY
+Vouchiqo maintains high-availability servers for real-time coupon verification with 99.5% uptime commitment.`
+      );
+    }
+
+    if (docId === "privacy_policy" || docId?.includes("privacy")) {
+      return (
+        header +
+        `1. DATA PRIVACY & STEWARDSHIP
+Vouchiqo values merchant confidentiality. Statutory documents (GSTIN/MSME/Trade License), store coordinates, and financial metrics are stored with bank-grade encryption (AES-256).
+
+2. USAGE OF BUSINESS DATA
+Business information, storefront imagery, and operating hours are published across consumer deal channels. Sensitive compliance documents remain restricted to compliance auditors.
+
+3. COMPLIANCE WITH REGULATIONS
+In compliance with the Digital Personal Data Protection Act (DPDPA), 2023 and applicable Indian e-commerce regulations.`
+      );
+    }
+
+    if (docId === "verification_policy" || docId?.includes("verification")) {
+      return (
+        header +
+        `1. STATUTORY AUDIT & STOREFRONT VERIFICATION
+All merchant partners undergo document and location verification by Vouchiqo Compliance Desk #4 (Ranchi Operations).
+
+2. VERIFICATION TIMELINES
+Document review is typically processed within 2 to 4 hours of submission. Merchants receive live SMS and dashboard notifications upon status updates.
+
+3. REJECTION & RECTIFICATION
+If any statutory document is illegible or unverified, merchants are granted immediate access to update details via the Merchant Portal.`
+      );
+    }
+
+    if (docId === "refund_cancellation" || docId?.includes("refund")) {
+      return (
+        header +
+        `1. SUBSCRIPTION TRIAL & CANCELLATION
+Paid merchant tiers (Growth, Pro) include a 14-day zero-risk trial. If cancelled during the trial period, no subscription fees are billed.
+
+2. CONSUMER DISPUTE RESOLUTION
+In the event a customer reports a valid voucher was dishonoured, Vouchiqo mediation team reviews counter records within 24 hours.
+
+3. COMMISSION REVERSALS
+Any performance commission charged on reversed, cancelled, or disputed transactions will be promptly refunded to the merchant ledger.`
+      );
+    }
+
+    return (
+      header +
+      `This document constitutes an official policy agreement between Vouchiqo Technologies and ${bName}. All terms, conditions, and operational guidelines specified in the Vouchiqo Merchant Portal apply in full force.`
+    );
+  };
+
+  const downloadLegalBlob = (filename, textContent) => {
+    const cleanName = (filename || "Agreement")
+      .replace(/[^a-zA-Z0-9_\- ]/g, "")
+      .trim()
+      .replace(/\s+/g, "_");
+    const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Vouchiqo_${cleanName}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      try {
+        if (document.body.contains(link)) document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch {}
+    }, 1000);
+  };
+
+  const handleDownloadAllDocuments = async () => {
+    if (isDownloadingAll) return;
+    setIsDownloadingAll(true);
+    toast.info(`Downloading all ${policyItems.length} legal documents...`, {
+      id: "dl-all-start",
+    });
+
+    for (let i = 0; i < policyItems.length; i++) {
+      const p = policyItems[i];
+      const itemKey = p.id || p.key || `policy${i + 1}`;
+      const title = p.title || p.text || `Document ${i + 1}`;
+      setDownloadingPdfId(itemKey);
+      setDownloadProgress(`(${i + 1}/${policyItems.length})`);
+
+      const isRealExternalUrl =
+        p.link &&
+        p.link.trim() &&
+        !p.link.includes("1_sample_") &&
+        !p.link.includes("sample_") &&
+        !p.link.includes("example.com") &&
+        /^https?:\/\//i.test(p.link.trim());
+
+      if (isRealExternalUrl) {
+        const trimmed = p.link.trim();
+        const m =
+          trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+          trimmed.match(/id=([a-zA-Z0-9_-]+)/);
+        const directUrl =
+          m && m[1]
+            ? `https://drive.google.com/uc?export=download&id=${m[1]}`
+            : trimmed;
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = directUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+          try {
+            if (document.body.contains(iframe))
+              document.body.removeChild(iframe);
+          } catch {}
+        }, 2000);
+      } else {
+        const docText = getLegalDocumentText(itemKey, title, formData);
+        downloadLegalBlob(title, docText);
+      }
+
+      // Stagger downloads by 450ms so browser popup blocker doesn't block multiple files
+      await new Promise((resolve) => setTimeout(resolve, 450));
+    }
+
+    setDownloadingPdfId(null);
+    setIsDownloadingAll(false);
+    setDownloadProgress("");
+    toast.success("All 5 policy documents downloaded successfully!", {
+      id: "dl-all-success",
+    });
+  };
 
   const handleDirectDownload = (link, filename, itemId) => {
-    if (!link || !link.trim()) return;
     setDownloadingPdfId(itemId);
-    const trimmed = link.trim();
-    const m =
-      trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
-      trimmed.match(/id=([a-zA-Z0-9_-]+)/);
-    const directUrl =
-      m && m[1]
-        ? `https://drive.google.com/uc?export=download&id=${m[1]}`
-        : /^https?:\/\//i.test(trimmed)
-          ? trimmed
-          : `https://${trimmed}`;
-
     toast.success(`Starting download: ${filename || "Agreement"}...`, {
       id: `dl-${itemId}`,
     });
 
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    iframe.src = directUrl;
-    document.body.appendChild(iframe);
+    const isRealExternalUrl =
+      link &&
+      link.trim() &&
+      !link.includes("1_sample_") &&
+      !link.includes("sample_") &&
+      !link.includes("example.com") &&
+      /^https?:\/\//i.test(link.trim());
 
-    setTimeout(() => {
-      try {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-        }
-      } catch {}
-      setDownloadingPdfId(null);
-    }, 2500);
+    if (isRealExternalUrl) {
+      const trimmed = link.trim();
+      const m =
+        trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+        trimmed.match(/id=([a-zA-Z0-9_-]+)/);
+      const directUrl =
+        m && m[1]
+          ? `https://drive.google.com/uc?export=download&id=${m[1]}`
+          : trimmed;
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = directUrl;
+      document.body.appendChild(iframe);
+
+      setTimeout(() => {
+        try {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        } catch {}
+        setDownloadingPdfId(null);
+      }, 2500);
+    } else {
+      setTimeout(() => {
+        const docText = getLegalDocumentText(
+          itemId,
+          filename || "Agreement",
+          formData,
+        );
+        downloadLegalBlob(filename || itemId, docText);
+        setDownloadingPdfId(null);
+      }, 300);
+    }
   };
 
   useEffect(() => {
@@ -517,7 +730,10 @@ export function MerchantOnboardingWizard() {
         const json = await res.json();
         const merchant = json?.data?.merchant || json?.data;
 
-        if (merchant && (merchant._id || merchant.status || merchant.businessName)) {
+        if (
+          merchant &&
+          (merchant._id || merchant.status || merchant.businessName)
+        ) {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("vouchiqo_is_merchant", "true");
           }
@@ -723,7 +939,8 @@ export function MerchantOnboardingWizard() {
     setSubCategoryTags(subCategoryTags.filter((t) => t !== tagToRemove));
   };
 
-  const customCategoryCharCount = (formData.customCategoryNotes || "").trim().length;
+  const customCategoryCharCount = (formData.customCategoryNotes || "").trim()
+    .length;
 
   const checkDuplicateField = async (field, value) => {
     if (!value || !value.trim()) {
@@ -881,8 +1098,7 @@ export function MerchantOnboardingWizard() {
       return !!formData[itemKey] || !!formData.policiesAccepted?.[p.id];
     });
 
-  const areAllAgreementsChecked =
-    allCommitmentsChecked && allPoliciesChecked;
+  const areAllAgreementsChecked = allCommitmentsChecked && allPoliciesChecked;
 
   const totalAgreementsCount = commitmentItems.length + policyItems.length;
   const acceptedAgreementsCount =
@@ -949,9 +1165,7 @@ export function MerchantOnboardingWizard() {
 
   const handleToggleCommitmentsOnly = (shouldAccept) => {
     const targetState =
-      typeof shouldAccept === "boolean"
-        ? shouldAccept
-        : !allCommitmentsChecked;
+      typeof shouldAccept === "boolean" ? shouldAccept : !allCommitmentsChecked;
     const updatedCommitments = { ...(formData.commitmentsAccepted || {}) };
     const fieldUpdates = {};
 
@@ -984,9 +1198,7 @@ export function MerchantOnboardingWizard() {
 
   const handleTogglePoliciesOnly = (shouldAccept) => {
     const targetState =
-      typeof shouldAccept === "boolean"
-        ? shouldAccept
-        : !allPoliciesChecked;
+      typeof shouldAccept === "boolean" ? shouldAccept : !allPoliciesChecked;
     const updatedPolicies = { ...(formData.policiesAccepted || {}) };
     const fieldUpdates = {};
 
@@ -1047,12 +1259,15 @@ export function MerchantOnboardingWizard() {
       ""
     ).trim();
     if (!effectiveSignatoryName) {
-      newErrors.contactName = "Please enter Authorized Liaison Name in Section B";
+      newErrors.contactName =
+        "Please enter Authorized Liaison Name in Section B";
     }
 
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors);
-      toast.error("Please accept all mandatory agreements highlighted with red outlines.");
+      toast.error(
+        "Please accept all mandatory agreements highlighted with red outlines.",
+      );
       return;
     }
     setFieldErrors({});
@@ -1108,7 +1323,9 @@ export function MerchantOnboardingWizard() {
             lng: formData.longitude ? Number(formData.longitude) : undefined,
           },
         },
-        contactEmail: (formData.email || authUser?.email || "").toLowerCase().trim(),
+        contactEmail: (formData.email || authUser?.email || "")
+          .toLowerCase()
+          .trim(),
         password: formData.password || undefined,
         contactPhone: cleanPhone(formData.mobile || authUser?.phoneNumber),
         whatsappNumber: cleanPhone(formData.whatsapp || formData.mobile),
@@ -1131,8 +1348,12 @@ export function MerchantOnboardingWizard() {
           const matchedComm = masterCpaRates.find(
             (c) =>
               (c.id && c.id === formData.category) ||
-              c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
-              c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
+              c.category
+                .toLowerCase()
+                .includes(formData.category.toLowerCase()) ||
+              c.category
+                .toLowerCase()
+                .startsWith(formData.category.slice(0, 4).toLowerCase()),
           );
           return matchedComm ? matchedComm.rate : "3% – 5%";
         })(),
@@ -1140,8 +1361,12 @@ export function MerchantOnboardingWizard() {
           const matchedComm = masterCpaRates.find(
             (c) =>
               (c.id && c.id === formData.category) ||
-              c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
-              c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
+              c.category
+                .toLowerCase()
+                .includes(formData.category.toLowerCase()) ||
+              c.category
+                .toLowerCase()
+                .startsWith(formData.category.slice(0, 4).toLowerCase()),
           );
           return matchedComm ? matchedComm.model : "CPA";
         })(),
@@ -1183,7 +1408,11 @@ export function MerchantOnboardingWizard() {
         "Application submitted! Welcome to Vouchiqo for Merchants.",
       );
 
-      router.push("/merchant/application-status");
+      setSubmissionSuccessData({
+        businessName:
+          formData.tradingName || formData.registeredName || "Merchant Partner",
+        applicationId: `VQ-2026-${Date.now().toString().slice(-5)}`,
+      });
     } catch (err) {
       toast.error(err.message || "Registration failed.");
     } finally {
@@ -1209,7 +1438,10 @@ export function MerchantOnboardingWizard() {
   const shadowSelectClass =
     "w-full bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] hover:shadow-[0_3px_10px_rgba(37,99,235,0.14)] hover:border-blue-400 rounded-lg text-xs h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25 focus:shadow-[0_2px_12px_rgba(37,99,235,0.22)] focus:outline-none transition-all duration-150";
 
-  const getLabelClass = (fieldName, defaultClass = "text-xs font-medium text-slate-700") => {
+  const getLabelClass = (
+    fieldName,
+    defaultClass = "text-xs font-medium text-slate-700",
+  ) => {
     if (fieldErrors[fieldName]) {
       return "text-xs font-bold text-slate-900 transition-all";
     }
@@ -1230,7 +1462,10 @@ export function MerchantOnboardingWizard() {
     return defaultClass;
   };
 
-  const getTextareaClass = (fieldName, defaultClass = "bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] text-xs rounded-lg font-normal placeholder:text-slate-400 hover:border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25 transition-all") => {
+  const getTextareaClass = (
+    fieldName,
+    defaultClass = "bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] text-xs rounded-lg font-normal placeholder:text-slate-400 hover:border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25 transition-all",
+  ) => {
     if (fieldErrors[fieldName]) {
       return "bg-rose-50/30 border-2 border-rose-500 text-slate-900 shadow-[0_2px_8px_rgba(244,63,94,0.12)] text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-rose-600 focus:ring-2 focus:ring-rose-500/25 transition-all";
     }
@@ -1252,16 +1487,52 @@ export function MerchantOnboardingWizard() {
               </Badge>
             </div>
             <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Fill in your store details to list offers and reach Ranchi shoppers • Rates locked for 6 months • ₹0 Starter plan available
+              Fill in your store details to list offers and reach Ranchi
+              shoppers • Rates locked for 6 months • ₹0 Starter plan available
             </p>
           </div>
-          <div className="flex items-center gap-2 self-start md:self-auto bg-slate-50 p-1.5 rounded-lg border border-slate-200/80">
-            <span className="text-[11px] font-bold text-blue-700 bg-white px-2.5 py-1 rounded-md shadow-2xs border border-blue-100">
-              Section {currentStep} of 6
-            </span>
-            <span className="text-[11px] font-semibold text-slate-600 px-1">
-              {Math.round((currentStep / 6) * 100)}% Complete
-            </span>
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/")}
+              className="h-8 px-2.5 text-xs font-semibold text-slate-700 hover:text-slate-900 border-slate-200 hover:bg-slate-100 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Home className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Homepage</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/merchant/dashboard")}
+              className="h-8 px-2.5 text-xs font-semibold text-blue-700 hover:text-blue-800 border-blue-200 bg-blue-50/60 hover:bg-blue-100/80 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Store className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Button>
+
+            <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+              <span className="text-[11px] font-bold text-blue-700 bg-white px-2 py-0.5 rounded-md shadow-2xs border border-blue-100">
+                Section {currentStep} of 6
+              </span>
+              <span className="text-[11px] font-semibold text-slate-600 px-1">
+                {Math.round((currentStep / 6) * 100)}%
+              </span>
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowExitConfirmModal(true)}
+              className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+              title="Close & Exit Registration"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
@@ -1273,34 +1544,52 @@ export function MerchantOnboardingWizard() {
 
             const colorThemes = {
               1: {
-                active: "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-md shadow-blue-500/25 border-0 ring-2 ring-blue-500/30",
-                completed: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
-                upcoming: "bg-blue-50/80 border-blue-200/80 text-blue-950 hover:bg-blue-100/70 hover:border-blue-300",
-                numberActive: "bg-white text-blue-700 font-extrabold shadow-2xs",
-                numberCompleted: "bg-white text-emerald-700 font-extrabold shadow-2xs",
-                numberUpcoming: "bg-blue-100/90 text-blue-700 font-bold border border-blue-200/80",
+                active:
+                  "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-md shadow-blue-500/25 border-0 ring-2 ring-blue-500/30",
+                completed:
+                  "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
+                upcoming:
+                  "bg-blue-50/80 border-blue-200/80 text-blue-950 hover:bg-blue-100/70 hover:border-blue-300",
+                numberActive:
+                  "bg-white text-blue-700 font-extrabold shadow-2xs",
+                numberCompleted:
+                  "bg-white text-emerald-700 font-extrabold shadow-2xs",
+                numberUpcoming:
+                  "bg-blue-100/90 text-blue-700 font-bold border border-blue-200/80",
                 labelActive: "text-blue-100 font-semibold",
                 labelCompleted: "text-emerald-100 font-semibold",
                 labelUpcoming: "text-blue-700/80 font-semibold",
               },
               2: {
-                active: "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 text-white shadow-md shadow-purple-500/25 border-0 ring-2 ring-purple-500/30",
-                completed: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
-                upcoming: "bg-purple-50/80 border-purple-200/80 text-purple-950 hover:bg-purple-100/70 hover:border-purple-300",
-                numberActive: "bg-white text-purple-700 font-extrabold shadow-2xs",
-                numberCompleted: "bg-white text-emerald-700 font-extrabold shadow-2xs",
-                numberUpcoming: "bg-purple-100/90 text-purple-700 font-bold border border-purple-200/80",
+                active:
+                  "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 text-white shadow-md shadow-purple-500/25 border-0 ring-2 ring-purple-500/30",
+                completed:
+                  "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
+                upcoming:
+                  "bg-purple-50/80 border-purple-200/80 text-purple-950 hover:bg-purple-100/70 hover:border-purple-300",
+                numberActive:
+                  "bg-white text-purple-700 font-extrabold shadow-2xs",
+                numberCompleted:
+                  "bg-white text-emerald-700 font-extrabold shadow-2xs",
+                numberUpcoming:
+                  "bg-purple-100/90 text-purple-700 font-bold border border-purple-200/80",
                 labelActive: "text-purple-100 font-semibold",
                 labelCompleted: "text-emerald-100 font-semibold",
                 labelUpcoming: "text-purple-700/80 font-semibold",
               },
               3: {
-                active: "bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 text-white shadow-md shadow-orange-500/25 border-0 ring-2 ring-orange-500/30",
-                completed: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
-                upcoming: "bg-amber-50/80 border-amber-200/80 text-amber-950 hover:bg-amber-100/70 hover:border-amber-300",
-                numberActive: "bg-white text-orange-700 font-extrabold shadow-2xs",
-                numberCompleted: "bg-white text-emerald-700 font-extrabold shadow-2xs",
-                numberUpcoming: "bg-amber-100/90 text-amber-800 font-bold border border-amber-200/80",
+                active:
+                  "bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 text-white shadow-md shadow-orange-500/25 border-0 ring-2 ring-orange-500/30",
+                completed:
+                  "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm border-0",
+                upcoming:
+                  "bg-amber-50/80 border-amber-200/80 text-amber-950 hover:bg-amber-100/70 hover:border-amber-300",
+                numberActive:
+                  "bg-white text-orange-700 font-extrabold shadow-2xs",
+                numberCompleted:
+                  "bg-white text-emerald-700 font-extrabold shadow-2xs",
+                numberUpcoming:
+                  "bg-amber-100/90 text-amber-800 font-bold border border-amber-200/80",
                 labelActive: "text-amber-100 font-semibold",
                 labelCompleted: "text-emerald-100 font-semibold",
                 labelUpcoming: "text-amber-700/80 font-semibold",
@@ -1385,10 +1674,13 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <Label className={getLabelClass("registeredName")}>
-                  Registered Business Name <span className="text-rose-500">*</span>
+                  Registered Business Name{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Building2 className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.registeredName ? "text-rose-500" : "text-slate-400"}`} />
+                  <Building2
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.registeredName ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type="text"
                     placeholder="Marbella Tiles & Sanitary Pvt Ltd"
@@ -1404,7 +1696,9 @@ export function MerchantOnboardingWizard() {
                   />
                 </div>
                 {fieldErrors.registeredName ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.registeredName}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.registeredName}
+                  </p>
                 ) : (
                   <FieldTip text="Used for official business verification & tax invoicing." />
                 )}
@@ -1412,7 +1706,8 @@ export function MerchantOnboardingWizard() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Brand / Store Display Name <span className="text-slate-400 font-normal">(Optional)</span>
+                  Brand / Store Display Name{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <div className="relative">
                   <Store className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1476,7 +1771,9 @@ export function MerchantOnboardingWizard() {
                   </SelectContent>
                 </Select>
                 {fieldErrors.category ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.category}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.category}
+                  </p>
                 ) : (
                   <FieldTip text="Places your store in the correct offer section." />
                 )}
@@ -1487,8 +1784,14 @@ export function MerchantOnboardingWizard() {
             {formData.category === "others" && (
               <div className="space-y-3 p-3 bg-blue-50/60 border border-blue-200 rounded-lg">
                 <div className="space-y-1">
-                  <Label className={getLabelClass("customCategoryName", "text-xs font-semibold text-blue-950")}>
-                    Custom Category Name <span className="text-rose-500">*</span>
+                  <Label
+                    className={getLabelClass(
+                      "customCategoryName",
+                      "text-xs font-semibold text-blue-950",
+                    )}
+                  >
+                    Custom Category Name{" "}
+                    <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     type="text"
@@ -1501,17 +1804,28 @@ export function MerchantOnboardingWizard() {
                       });
                       clearFieldError("customCategoryName");
                     }}
-                    className={getInputClass("customCategoryName", "bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25")}
+                    className={getInputClass(
+                      "customCategoryName",
+                      "bg-white border-2 border-blue-300/80 shadow-[0_2px_6px_rgba(37,99,235,0.08)] text-xs rounded-lg h-9 px-3 font-normal text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25",
+                    )}
                   />
                   {fieldErrors.customCategoryName && (
-                    <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.customCategoryName}</p>
+                    <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                      {fieldErrors.customCategoryName}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <Label className={getLabelClass("customCategoryNotes", "text-xs font-semibold text-blue-950")}>
-                      Explain your business in detail <span className="text-rose-500">*</span>
+                    <Label
+                      className={getLabelClass(
+                        "customCategoryNotes",
+                        "text-xs font-semibold text-blue-950",
+                      )}
+                    >
+                      Explain your business in detail{" "}
+                      <span className="text-rose-500">*</span>
                     </Label>
                     <span
                       className={`text-[11px] font-mono ${
@@ -1537,11 +1851,13 @@ export function MerchantOnboardingWizard() {
                     className={getTextareaClass("customCategoryNotes")}
                   />
                   {fieldErrors.customCategoryNotes ? (
-                    <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.customCategoryNotes}</p>
+                    <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                      {fieldErrors.customCategoryNotes}
+                    </p>
                   ) : customCategoryCharCount < 80 ? (
                     <p className="text-[10px] text-amber-700 font-medium">
-                      ⚠️ Please write at least {80 - customCategoryCharCount} more character(s)
-                      explaining your business.
+                      ⚠️ Please write at least {80 - customCategoryCharCount}{" "}
+                      more character(s) explaining your business.
                     </p>
                   ) : null}
                 </div>
@@ -1585,7 +1901,8 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className={getLabelClass("address")}>
-                  Operating Store Address <span className="text-rose-500">*</span>
+                  Operating Store Address{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <Textarea
                   rows={2}
@@ -1598,7 +1915,9 @@ export function MerchantOnboardingWizard() {
                   className={getTextareaClass("address")}
                 />
                 {fieldErrors.address ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.address}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.address}
+                  </p>
                 ) : (
                   <FieldTip text="Customers will visit this exact address to redeem in-store vouchers." />
                 )}
@@ -1606,7 +1925,8 @@ export function MerchantOnboardingWizard() {
 
               <div className="space-y-1">
                 <Label className={getLabelClass("googleUrl")}>
-                  Google Maps / GMB Profile Location Link <span className="text-rose-500">*</span>
+                  Google Maps / GMB Profile Location Link{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <Textarea
                   rows={2}
@@ -1619,7 +1939,9 @@ export function MerchantOnboardingWizard() {
                   className={getTextareaClass("googleUrl")}
                 />
                 {fieldErrors.googleUrl ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.googleUrl}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.googleUrl}
+                  </p>
                 ) : (
                   <FieldTip text="Powers 1-tap Google Maps directions on deal vouchers." />
                 )}
@@ -1633,7 +1955,9 @@ export function MerchantOnboardingWizard() {
                   PIN Code <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Hash className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.pincode ? "text-rose-500" : "text-slate-400"}`} />
+                  <Hash
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.pincode ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type="text"
                     maxLength={6}
@@ -1658,7 +1982,9 @@ export function MerchantOnboardingWizard() {
                   />
                 </div>
                 {fieldErrors.pincode ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.pincode}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.pincode}
+                  </p>
                 ) : (
                   <FieldTip text="Groups your store under pin code offer filters." />
                 )}
@@ -1698,7 +2024,9 @@ export function MerchantOnboardingWizard() {
                   </SelectContent>
                 </Select>
                 {fieldErrors.city ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.city}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.city}
+                  </p>
                 ) : (
                   <FieldTip text="Lists your store under regional city offer hubs." />
                 )}
@@ -1709,7 +2037,9 @@ export function MerchantOnboardingWizard() {
                   State <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Map className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.state ? "text-rose-500" : "text-slate-400"}`} />
+                  <Map
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.state ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type="text"
                     value={formData.state}
@@ -1721,7 +2051,9 @@ export function MerchantOnboardingWizard() {
                   />
                 </div>
                 {fieldErrors.state ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.state}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.state}
+                  </p>
                 ) : (
                   <FieldTip text="Required for state GST & statutory compliance." />
                 )}
@@ -1729,7 +2061,8 @@ export function MerchantOnboardingWizard() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Store GPS Location <span className="text-slate-400 font-normal">(Optional)</span>
+                  Store GPS Location{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <Button
                   type="button"
@@ -1743,11 +2076,15 @@ export function MerchantOnboardingWizard() {
                     <MapPin className="w-3.5 h-3.5 text-blue-600" />
                   )}
                   <span>
-                    {formData.latitude ? "GPS Captured ✓" : "Fetch GPS Coordinates"}
+                    {formData.latitude
+                      ? "GPS Captured ✓"
+                      : "Fetch GPS Coordinates"}
                   </span>
                 </Button>
                 {formData.latitude && formData.longitude ? (
-                  <FieldTip text={`Captured: ${formData.latitude}° N, ${formData.longitude}° E`} />
+                  <FieldTip
+                    text={`Captured: ${formData.latitude}° N, ${formData.longitude}° E`}
+                  />
                 ) : (
                   <FieldTip text="Auto-detect exact lat & lng for maps navigation." />
                 )}
@@ -1782,10 +2119,13 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <Label className={getLabelClass("contactName")}>
-                  Authorized Liaison Name <span className="text-rose-500">*</span>
+                  Authorized Liaison Name{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <User className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.contactName ? "text-rose-500" : "text-slate-400"}`} />
+                  <User
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.contactName ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type="text"
                     placeholder="Rajan Kumar Singh"
@@ -1803,7 +2143,9 @@ export function MerchantOnboardingWizard() {
                   />
                 </div>
                 {fieldErrors.contactName ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.contactName}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.contactName}
+                  </p>
                 ) : (
                   <FieldTip text="Person managing store offers & official updates." />
                 )}
@@ -1832,7 +2174,9 @@ export function MerchantOnboardingWizard() {
                   </SelectContent>
                 </Select>
                 {fieldErrors.designation ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.designation}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.designation}
+                  </p>
                 ) : (
                   <FieldTip text="Signatory privileges for partnership agreements." />
                 )}
@@ -1843,7 +2187,9 @@ export function MerchantOnboardingWizard() {
                   Primary Mobile Number <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Phone className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.mobile ? "text-rose-500" : "text-slate-400"}`} />
+                  <Phone
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.mobile ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type="tel"
                     maxLength={10}
@@ -1857,7 +2203,9 @@ export function MerchantOnboardingWizard() {
                   />
                 </div>
                 {fieldErrors.mobile ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.mobile}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.mobile}
+                  </p>
                 ) : (
                   <FieldTip text="Used for account security OTPs & deal alerts." />
                 )}
@@ -1866,13 +2214,18 @@ export function MerchantOnboardingWizard() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-slate-700">
-                    WhatsApp Number <span className="text-slate-400 font-normal">(Optional)</span>
+                    WhatsApp Number{" "}
+                    <span className="text-slate-400 font-normal">
+                      (Optional)
+                    </span>
                   </Label>
                   <button
                     type="button"
                     onClick={() => {
                       if (!formData.mobile) {
-                        toast.error("Please enter Primary Mobile Number first.");
+                        toast.error(
+                          "Please enter Primary Mobile Number first.",
+                        );
                         return;
                       }
                       setFormData((prev) => ({
@@ -1907,10 +2260,13 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className={getLabelClass("email")}>
-                  Business Email (Login ID) <span className="text-rose-500">*</span>
+                  Business Email (Login ID){" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Mail className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.email ? "text-rose-500" : "text-slate-400"}`} />
+                  <Mail
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.email ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type="email"
                     placeholder="info@marbella.in"
@@ -1923,7 +2279,9 @@ export function MerchantOnboardingWizard() {
                   />
                 </div>
                 {fieldErrors.email ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.email}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.email}
+                  </p>
                 ) : (
                   <FieldTip text="Your primary account login email for accessing Merchant panel." />
                 )}
@@ -1942,7 +2300,9 @@ export function MerchantOnboardingWizard() {
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.password ? "text-rose-500" : "text-slate-400"}`} />
+                  <Lock
+                    className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${fieldErrors.password ? "text-rose-500" : "text-slate-400"}`}
+                  />
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Min 6 characters"
@@ -1966,7 +2326,9 @@ export function MerchantOnboardingWizard() {
                   </button>
                 </div>
                 {fieldErrors.password ? (
-                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">{fieldErrors.password}</p>
+                  <p className="text-[11px] font-normal text-rose-600 mt-0.5">
+                    {fieldErrors.password}
+                  </p>
                 ) : (
                   <FieldTip text="Security password for signing into merchant dashboard." />
                 )}
@@ -2067,7 +2429,8 @@ export function MerchantOnboardingWizard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Primary Identity Document Type <span className="text-slate-400 font-normal">(Optional)</span>
+                  Primary Identity Document Type{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <Select
                   value={formData.docType}
@@ -2079,16 +2442,25 @@ export function MerchantOnboardingWizard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="z-[300]">
-                    <SelectItem value="GST Registration Certificate" className="text-xs">
+                    <SelectItem
+                      value="GST Registration Certificate"
+                      className="text-xs"
+                    >
                       GST Registration Certificate (Preferred)
                     </SelectItem>
-                    <SelectItem value="Udyam / MSME Certificate" className="text-xs">
+                    <SelectItem
+                      value="Udyam / MSME Certificate"
+                      className="text-xs"
+                    >
                       Udyam / MSME Registration Certificate
                     </SelectItem>
                     <SelectItem value="Trade Licence" className="text-xs">
                       Trade Licence (Municipal Corporation)
                     </SelectItem>
-                    <SelectItem value="Shop & Establishment Act" className="text-xs">
+                    <SelectItem
+                      value="Shop & Establishment Act"
+                      className="text-xs"
+                    >
                       Shop &amp; Establishment Act Certificate
                     </SelectItem>
                     <SelectItem value="Owner PAN Card" className="text-xs">
@@ -2101,7 +2473,8 @@ export function MerchantOnboardingWizard() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Upload {formData.docType || "Identity Document"} <span className="text-slate-400 font-normal">(Optional)</span>
+                  Upload {formData.docType || "Identity Document"}{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </Label>
                 <div className="h-9 px-3 bg-white border-2 border-dashed border-blue-300/80 hover:border-blue-400 rounded-lg flex items-center justify-between gap-2 shadow-[0_2px_6px_rgba(37,99,235,0.08)] transition-all">
                   {formData.docFileUrl ? (
@@ -2208,7 +2581,9 @@ export function MerchantOnboardingWizard() {
                         <Upload className="w-3 h-3" />
                       )}
                       <span>
-                        {formData.shopPhotoUrl ? "Change Photo (1200×800)" : "Upload Photo (1200×800)"}
+                        {formData.shopPhotoUrl
+                          ? "Change Photo (1200×800)"
+                          : "Upload Photo (1200×800)"}
                       </span>
                     </Button>
                   </div>
@@ -2268,7 +2643,9 @@ export function MerchantOnboardingWizard() {
                         <Upload className="w-3 h-3" />
                       )}
                       <span>
-                        {formData.logoUrl ? "Change Logo (400×400)" : "Upload Logo (400×400)"}
+                        {formData.logoUrl
+                          ? "Change Logo (400×400)"
+                          : "Upload Logo (400×400)"}
                       </span>
                     </Button>
                   </div>
@@ -2328,7 +2705,9 @@ export function MerchantOnboardingWizard() {
                         <Upload className="w-3 h-3" />
                       )}
                       <span>
-                        {formData.bannerUrl ? "Change Banner (1200×400)" : "Upload Banner (1200×400)"}
+                        {formData.bannerUrl
+                          ? "Change Banner (1200×400)"
+                          : "Upload Banner (1200×400)"}
                       </span>
                     </Button>
                   </div>
@@ -2348,7 +2727,8 @@ export function MerchantOnboardingWizard() {
                 Section D: Select Subscription Plan
               </h3>
               <p className="text-xs text-emerald-700 font-medium">
-                Select your plan below — No payment is initiated today during registration (14-day instant free trial on paid plans)
+                Select your plan below — No payment is initiated today during
+                registration (14-day instant free trial on paid plans)
               </p>
             </div>
             <Badge
@@ -2365,22 +2745,35 @@ export function MerchantOnboardingWizard() {
               .map((plan) => {
                 const isSelected = formData.selectedPlan === plan.id;
 
-                let bgTheme = "bg-sky-50/60 border-sky-200/90 hover:border-sky-300";
+                let bgTheme =
+                  "bg-sky-50/60 border-sky-200/90 hover:border-sky-300";
                 let badgeTheme = "bg-sky-100 text-sky-800 border-sky-200";
-                let btnTheme = "bg-white text-blue-600 border-2 border-blue-300 hover:bg-blue-50";
+                let btnTheme =
+                  "bg-white text-blue-600 border-2 border-blue-300 hover:bg-blue-50";
 
                 if (plan.theme === "orange" || plan.id === "growth") {
-                  bgTheme = "bg-amber-50/60 border-amber-200/90 hover:border-amber-300";
+                  bgTheme =
+                    "bg-amber-50/60 border-amber-200/90 hover:border-amber-300";
                   badgeTheme = "bg-amber-100 text-amber-800 border-amber-200";
-                  btnTheme = "bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-xs";
+                  btnTheme =
+                    "bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-xs";
                 } else if (plan.theme === "emerald" || plan.id === "pro") {
-                  bgTheme = "bg-emerald-50/60 border-emerald-200/90 hover:border-emerald-300";
-                  badgeTheme = "bg-emerald-100 text-emerald-800 border-emerald-200";
-                  btnTheme = "bg-slate-900 hover:bg-slate-800 text-white border-0 shadow-xs";
-                } else if (plan.theme === "indigo" || plan.id === "enterprise") {
-                  bgTheme = "bg-indigo-50/60 border-indigo-200/90 hover:border-indigo-300";
-                  badgeTheme = "bg-indigo-100 text-indigo-800 border-indigo-200";
-                  btnTheme = "bg-white text-indigo-700 border-2 border-indigo-300 hover:bg-indigo-50";
+                  bgTheme =
+                    "bg-emerald-50/60 border-emerald-200/90 hover:border-emerald-300";
+                  badgeTheme =
+                    "bg-emerald-100 text-emerald-800 border-emerald-200";
+                  btnTheme =
+                    "bg-slate-900 hover:bg-slate-800 text-white border-0 shadow-xs";
+                } else if (
+                  plan.theme === "indigo" ||
+                  plan.id === "enterprise"
+                ) {
+                  bgTheme =
+                    "bg-indigo-50/60 border-indigo-200/90 hover:border-indigo-300";
+                  badgeTheme =
+                    "bg-indigo-100 text-indigo-800 border-indigo-200";
+                  btnTheme =
+                    "bg-white text-indigo-700 border-2 border-indigo-300 hover:bg-indigo-50";
                 }
 
                 return (
@@ -2457,7 +2850,9 @@ export function MerchantOnboardingWizard() {
                               key={fIdx}
                               className="text-[11.5px] text-slate-700 font-normal flex items-start gap-1.5 leading-snug"
                             >
-                              <span className="text-slate-400 font-bold leading-none mt-0.5">•</span>
+                              <span className="text-slate-400 font-bold leading-none mt-0.5">
+                                •
+                              </span>
                               <span>{feat}</span>
                             </li>
                           ))}
@@ -2527,7 +2922,8 @@ export function MerchantOnboardingWizard() {
                 Section E: Category Commission &amp; Store Hours (Optional)
               </h3>
               <p className="text-xs text-slate-500 font-normal">
-                Category commission structure and store opening timings (Default 10 AM - 9 PM applied)
+                Category commission structure and store opening timings (Default
+                10 AM - 9 PM applied)
               </p>
             </div>
             <Badge
@@ -2549,8 +2945,12 @@ export function MerchantOnboardingWizard() {
               const matchedComm = masterCpaRates.find(
                 (c) =>
                   (c.id && c.id === formData.category) ||
-                  c.category.toLowerCase().includes(formData.category.toLowerCase()) ||
-                  c.category.toLowerCase().startsWith(formData.category.slice(0, 4).toLowerCase()),
+                  c.category
+                    .toLowerCase()
+                    .includes(formData.category.toLowerCase()) ||
+                  c.category
+                    .toLowerCase()
+                    .startsWith(formData.category.slice(0, 4).toLowerCase()),
               ) || {
                 category: selectedCatLabel,
                 rate: "3% – 5% blended rate",
@@ -2562,14 +2962,17 @@ export function MerchantOnboardingWizard() {
                 <div className="p-3.5 bg-blue-50/70 border border-blue-200/90 rounded-xl space-y-2 text-left">
                   <div className="flex justify-between items-center">
                     <Label className="text-[11px] font-extrabold text-blue-950 uppercase tracking-wider block">
-                      PERFORMANCE COMMISSION RATE ({selectedCatLabel.toUpperCase()})
+                      PERFORMANCE COMMISSION RATE (
+                      {selectedCatLabel.toUpperCase()})
                     </Label>
                     <button
                       type="button"
                       onClick={() => setShowMasterCpaTable(!showMasterCpaTable)}
                       className="text-[11px] font-bold text-blue-700 hover:text-blue-800 underline cursor-pointer"
                     >
-                      {showMasterCpaTable ? "Hide Master CPA Table" : "View Full Master CPA Table (15 Categories)"}
+                      {showMasterCpaTable
+                        ? "Hide Master CPA Table"
+                        : "View Full Master CPA Table (15 Categories)"}
                     </button>
                   </div>
 
@@ -2585,7 +2988,10 @@ export function MerchantOnboardingWizard() {
 
                     <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-slate-100 pt-1.5 mt-1.5">
                       <span className="font-medium">
-                        Model: <strong className="text-slate-900">{matchedComm.model || "CPA"}</strong>
+                        Model:{" "}
+                        <strong className="text-slate-900">
+                          {matchedComm.model || "CPA"}
+                        </strong>
                       </span>
                       {matchedComm.notes && (
                         <span className="italic text-slate-500 font-normal">
@@ -2603,16 +3009,23 @@ export function MerchantOnboardingWizard() {
                           The Master CPA Rate Table
                         </h4>
                         <span className="text-[10px] text-slate-500 italic">
-                          Single reference document for all merchant conversations
+                          Single reference document for all merchant
+                          conversations
                         </span>
                       </div>
                       <div className="overflow-x-auto border border-slate-200 rounded-lg bg-white">
                         <table className="w-full text-xs text-left">
                           <thead className="bg-slate-100 text-slate-800 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                             <tr>
-                              <th className="px-2.5 py-1.5 text-center w-8">#</th>
-                              <th className="px-2.5 py-1.5 font-bold">Category</th>
-                              <th className="px-2.5 py-1.5 font-bold">Base CPA / CPL</th>
+                              <th className="px-2.5 py-1.5 text-center w-8">
+                                #
+                              </th>
+                              <th className="px-2.5 py-1.5 font-bold">
+                                Category
+                              </th>
+                              <th className="px-2.5 py-1.5 font-bold">
+                                Base CPA / CPL
+                              </th>
                               <th className="px-2.5 py-1.5 font-bold">Model</th>
                               <th className="px-2.5 py-1.5 font-bold">Notes</th>
                             </tr>
@@ -2622,7 +3035,11 @@ export function MerchantOnboardingWizard() {
                               <tr
                                 key={row.id || idx}
                                 className={
-                                  row.category.toLowerCase().includes(formData.category.toLowerCase()) ||
+                                  row.category
+                                    .toLowerCase()
+                                    .includes(
+                                      formData.category.toLowerCase(),
+                                    ) ||
                                   (row.id && row.id === formData.category)
                                     ? "bg-blue-50/90 font-bold text-blue-900"
                                     : "hover:bg-slate-50/60 text-slate-700"
@@ -2631,7 +3048,9 @@ export function MerchantOnboardingWizard() {
                                 <td className="px-2.5 py-1.5 text-center font-mono text-[10px]">
                                   {idx + 1}
                                 </td>
-                                <td className="px-2.5 py-1.5 font-medium">{row.category}</td>
+                                <td className="px-2.5 py-1.5 font-medium">
+                                  {row.category}
+                                </td>
                                 <td className="px-2.5 py-1.5 font-mono text-blue-700 font-semibold">
                                   {row.rate}
                                 </td>
@@ -2670,9 +3089,7 @@ export function MerchantOnboardingWizard() {
                     }));
                   }
                 }}
-                className={
-                  fieldErrors.commissionAgreed ? "border-red-500" : ""
-                }
+                className={fieldErrors.commissionAgreed ? "border-red-500" : ""}
               />
               <span className="text-xs font-normal text-slate-800">
                 I acknowledge and accept the Vouchiqo performance commission
@@ -2682,7 +3099,8 @@ export function MerchantOnboardingWizard() {
             </label>
             {fieldErrors.commissionAgreed && (
               <p className="text-xs text-red-600 font-normal mt-1">
-                Please acknowledge and accept the performance commission structure to proceed
+                Please acknowledge and accept the performance commission
+                structure to proceed
               </p>
             )}
 
@@ -2694,7 +3112,8 @@ export function MerchantOnboardingWizard() {
                     Weekly Store Operating Hours Schedule
                   </Label>
                   <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                    Select store opening &amp; closing timings per day (Default 10:00 AM – 08:00 PM).
+                    Select store opening &amp; closing timings per day (Default
+                    10:00 AM – 08:00 PM).
                   </p>
                 </div>
                 <Button
@@ -2726,7 +3145,9 @@ export function MerchantOnboardingWizard() {
                       ...prev,
                       operatingHours: updatedHours,
                     }));
-                    toast.success("Applied Monday operating hours to all 7 days!");
+                    toast.success(
+                      "Applied Monday operating hours to all 7 days!",
+                    );
                   }}
                   className="text-[10.5px] font-bold text-blue-700 border-blue-200 hover:bg-blue-50 h-7 px-2.5 rounded-lg cursor-pointer self-start sm:self-auto"
                 >
@@ -2750,8 +3171,14 @@ export function MerchantOnboardingWizard() {
                     closeTime: day === "Sunday" ? "11:00 PM" : "08:00 PM",
                   };
 
-                  const currentOpen = normalizeTimeFormat(dayData.openTime, "10:00 AM");
-                  const currentClose = normalizeTimeFormat(dayData.closeTime, "08:00 PM");
+                  const currentOpen = normalizeTimeFormat(
+                    dayData.openTime,
+                    "10:00 AM",
+                  );
+                  const currentClose = normalizeTimeFormat(
+                    dayData.closeTime,
+                    "08:00 PM",
+                  );
 
                   return (
                     <div
@@ -2820,7 +3247,9 @@ export function MerchantOnboardingWizard() {
                               </option>
                             ))}
                           </select>
-                          <span className="text-slate-400 font-bold text-xs">–</span>
+                          <span className="text-slate-400 font-bold text-xs">
+                            –
+                          </span>
                           <select
                             value={currentClose}
                             onChange={(e) => {
@@ -2865,7 +3294,8 @@ export function MerchantOnboardingWizard() {
                 Section F: Declarations, Agreements &amp; Submission
               </h3>
               <p className="text-xs text-slate-500 font-normal">
-                Final merchant commitments, policy agreements &amp; digital signature
+                Final merchant commitments, policy agreements &amp; digital
+                signature
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -2879,25 +3309,43 @@ export function MerchantOnboardingWizard() {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-                Merchant Commitments ({commitmentItems.length})
-              </Label>
-              <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 cursor-pointer select-none">
-                <Checkbox
-                  checked={allCommitmentsChecked}
-                  onCheckedChange={(val) => handleToggleCommitmentsOnly(!!val)}
-                  className="w-3.5 h-3.5 rounded-sm"
-                />
-                <span>Select All</span>
-              </label>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
+              <div>
+                <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                  Merchant Commitments &amp; Acknowledgements (
+                  {commitmentItems.length})
+                </Label>
+                <p className="text-[11px] text-slate-500 font-normal">
+                  Operational covenants and verified voucher honouring
+                  guidelines
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  handleToggleCommitmentsOnly(!allCommitmentsChecked)
+                }
+                className={`text-xs font-semibold h-8 px-3 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0 ${
+                  allCommitmentsChecked
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 font-bold"
+                    : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                }`}
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>
+                  {allCommitmentsChecked
+                    ? "✓ All Acknowledgements Accepted"
+                    : "Accept All Acknowledgements"}
+                </span>
+              </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {commitmentItems.map((c, idx) => {
                 const itemKey = c.key || `commit${idx + 1}`;
                 const isChecked =
-                  !!formData[itemKey] ||
-                  !!formData.commitmentsAccepted?.[c.id];
+                  !!formData[itemKey] || !!formData.commitmentsAccepted?.[c.id];
                 const hasError = fieldErrors[itemKey];
 
                 return (
@@ -2935,19 +3383,58 @@ export function MerchantOnboardingWizard() {
               })}
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-                  Policy Agreements ({policyItems.length})
-                </Label>
-                <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 cursor-pointer select-none">
-                  <Checkbox
-                    checked={allPoliciesChecked}
-                    onCheckedChange={(val) => handleTogglePoliciesOnly(!!val)}
-                    className="w-3.5 h-3.5 rounded-sm"
-                  />
-                  <span>Select All</span>
-                </label>
+            <div className="space-y-2 pt-3 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
+                <div>
+                  <Label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                    Legal Policy Agreements ({policyItems.length})
+                  </Label>
+                  <p className="text-[11px] text-slate-500 font-normal">
+                    Statutory terms, merchant agreement &amp; dispute policies
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isDownloadingAll}
+                    onClick={handleDownloadAllDocuments}
+                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold h-8 px-3 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                  >
+                    {isDownloadingAll ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5 text-indigo-600" />
+                    )}
+                    <span>
+                      {isDownloadingAll
+                        ? `Downloading All ${downloadProgress}...`
+                        : "Download All Documents"}
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handleTogglePoliciesOnly(!allPoliciesChecked)
+                    }
+                    className={`text-xs font-semibold h-8 px-3 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                      allPoliciesChecked
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 font-bold"
+                        : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                    }`}
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    <span>
+                      {allPoliciesChecked
+                        ? "✓ All Documents Accepted"
+                        : "Accept All Documents"}
+                    </span>
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {policyItems.map((p, idx) => {
@@ -3038,7 +3525,8 @@ export function MerchantOnboardingWizard() {
             <div className="pt-2">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-slate-700">
-                  Authorised Signatory Full Name <span className="text-rose-500">*</span>
+                  Authorised Signatory Full Name{" "}
+                  <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -3084,24 +3572,79 @@ export function MerchantOnboardingWizard() {
             Section {currentStep} of 6
           </span>
           {currentStep === 6 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleToggleAllAgreements(!areAllAgreementsChecked)}
-              className={`text-xs font-semibold h-9.5 px-3 sm:px-4 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
-                areAllAgreementsChecked
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
-                  : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-              }`}
-            >
-              <CheckCheck className="w-4 h-4" />
-              <span className="hidden sm:inline">
-                {areAllAgreementsChecked ? "✓ All Accepted" : "Accept All Agreements"}
-              </span>
-              <span className="sm:hidden">
-                {areAllAgreementsChecked ? "✓ Accepted" : "Accept All"}
-              </span>
-            </Button>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {/* Separate Button 1: Accept All Acknowledgements */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  handleToggleCommitmentsOnly(!allCommitmentsChecked)
+                }
+                className={`text-xs font-semibold h-9 px-2.5 sm:px-3 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                  allCommitmentsChecked
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 font-bold"
+                    : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                }`}
+                title="Accept All Acknowledgements (Merchant Commitments)"
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">
+                  {allCommitmentsChecked
+                    ? "✓ Acknowledgements Accepted"
+                    : "Accept All Acknowledgements"}
+                </span>
+                <span className="md:hidden">
+                  {allCommitmentsChecked ? "✓ Ack. Accepted" : "Accept Ack."}
+                </span>
+              </Button>
+
+              {/* Separate Button 2: Accept All Documents */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleTogglePoliciesOnly(!allPoliciesChecked)}
+                className={`text-xs font-semibold h-9 px-2.5 sm:px-3 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                  allPoliciesChecked
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 font-bold"
+                    : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                }`}
+                title="Accept All Legal Policy Documents"
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">
+                  {allPoliciesChecked
+                    ? "✓ Documents Accepted"
+                    : "Accept All Documents"}
+                </span>
+                <span className="md:hidden">
+                  {allPoliciesChecked ? "✓ Docs Accepted" : "Accept Docs"}
+                </span>
+              </Button>
+
+              {/* Separate Button 3: Download All Documents */}
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isDownloadingAll}
+                onClick={handleDownloadAllDocuments}
+                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200 text-xs font-semibold h-9 px-2.5 sm:px-3 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Download All 5 Policy Documents"
+              >
+                {isDownloadingAll ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                ) : (
+                  <Download className="w-3.5 h-3.5 text-indigo-600" />
+                )}
+                <span className="hidden md:inline">
+                  {isDownloadingAll
+                    ? `Downloading ${downloadProgress}`
+                    : "Download All Docs"}
+                </span>
+                <span className="md:hidden">
+                  {isDownloadingAll ? downloadProgress : "Download All"}
+                </span>
+              </Button>
+            </div>
           )}
           {currentStep < 6 ? (
             <Button
@@ -3126,6 +3669,113 @@ export function MerchantOnboardingWizard() {
           )}
         </div>
       </div>
+
+      {/* Exit Confirmation Dialog */}
+      {showExitConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
+                <Store className="w-5 h-5 text-blue-600" />
+                <span>Exit Merchant Registration?</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExitConfirmModal(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to leave the registration wizard? Your
+              entered details in this browser session are safe. Where would you
+              like to go?
+            </p>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                onClick={() => router.push("/merchant/dashboard")}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9.5 rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-2"
+              >
+                <Store className="w-4 h-4" />
+                <span>Go to Merchant Dashboard</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => router.push("/")}
+                className="border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs h-9.5 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-2"
+              >
+                <Home className="w-4 h-4 text-slate-500" />
+                <span>Return to Homepage</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => setShowExitConfirmModal(false)}
+                className="text-slate-500 hover:text-slate-800 text-xs h-8 rounded-lg cursor-pointer"
+              >
+                Keep Editing Application
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Post-Registration Success Dialog */}
+      {submissionSuccessData && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+              <Check className="w-8 h-8 stroke-[2.5]" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-slate-900">
+                Application Submitted Successfully!
+              </h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Welcome to Vouchiqo for Merchants! Your application (
+                {submissionSuccessData.applicationId}) for{" "}
+                <span className="font-semibold text-slate-800">
+                  {submissionSuccessData.businessName}
+                </span>{" "}
+                has been received and assigned to Compliance Desk #4.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+              <Button
+                onClick={() => router.push("/merchant/dashboard")}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-10 rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Store className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => router.push("/merchant/application-status")}
+                className="border-blue-300 bg-blue-50/50 hover:bg-blue-100 text-blue-700 font-semibold text-xs h-10 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <FileCheck className="w-4 h-4 text-blue-600" />
+                <span>Track Status</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => router.push("/")}
+                className="border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs h-10 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <Home className="w-4 h-4 text-slate-500" />
+                <span>Homepage</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

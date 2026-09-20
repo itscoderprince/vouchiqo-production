@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { dispatchEvent } from "@/lib/socket/dispatcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -41,10 +41,33 @@ export const POST = asyncHandler(async (request) => {
   if (!merchant) throw new NotFoundError("Merchant profile");
 
   const body = await request.json();
-  if (merchant.plan === "starter" && !body.isAddonPurchased) {
-    throw new ForbiddenError(
-      "Campaigns require Growth plan or Flash Campaign Boost add-on (₹799).",
-    );
+  const campaignType = body.type || "flash";
+
+  const isFreeMerchant =
+    !merchant.plan ||
+    merchant.plan === "starter" ||
+    String(merchant.plan).toLowerCase().includes("starter") ||
+    String(merchant.plan).toLowerCase().includes("free");
+
+  if (isFreeMerchant) {
+    if (campaignType !== "flash") {
+      throw new ForbiddenError(
+        "Free merchants can only create Flash Sale Campaigns. Please upgrade to the Growth Plan to unlock all 7 campaign types.",
+      );
+    }
+    const existingCount = await Campaign.countDocuments({
+      merchantId: merchant._id,
+    });
+    if (existingCount >= 1 || merchant.flashSaleCampaignUsed) {
+      throw new ForbiddenError(
+        "Free merchants can only avail 1 Flash Sale campaign. You have already used your 1-time promotional campaign. Please upgrade to the Growth Plan for unlimited campaigns.",
+      );
+    }
+    if (!merchant.flashSalePurchased && !body.isAddonPurchased) {
+      throw new ForbiddenError(
+        "Please purchase the Flash Sale Campaign pass (₹799) to launch your campaign.",
+      );
+    }
   }
 
   const {
@@ -68,6 +91,12 @@ export const POST = asyncHandler(async (request) => {
 
   if (!name) {
     throw new Error("Campaign name is required");
+  }
+
+  if (isFreeMerchant) {
+    merchant.flashSaleCampaignUsed = true;
+    merchant.flashSalePurchased = false;
+    await merchant.save();
   }
 
   const campaign = await Campaign.create({
@@ -147,7 +176,7 @@ export const POST = asyncHandler(async (request) => {
  */
 export const PUT = asyncHandler(async (request) => {
   await connectDB();
-  await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
+  const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -159,12 +188,20 @@ export const PUT = asyncHandler(async (request) => {
     return ok({ _id: id, ...body }, "Campaign updated successfully");
   }
 
-  const campaign = await Campaign.findByIdAndUpdate(
-    id,
+  // IDOR protection: merchants can only update their own campaigns.
+  let filter = { _id: id };
+  if (user.role !== ROLES.ADMIN) {
+    const merchant = await Merchant.findOne({ authId: user.id });
+    if (!merchant) throw new NotFoundError("Merchant profile");
+    filter.merchantId = merchant._id;
+  }
+
+  const campaign = await Campaign.findOneAndUpdate(
+    filter,
     { $set: body },
     { new: true },
   );
-
+  if (!campaign) throw new NotFoundError("Campaign");
   return ok(campaign, "Campaign updated successfully");
 });
 
@@ -174,7 +211,7 @@ export const PUT = asyncHandler(async (request) => {
  */
 export const DELETE = asyncHandler(async (request) => {
   await connectDB();
-  await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
+  const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -184,6 +221,15 @@ export const DELETE = asyncHandler(async (request) => {
     return ok(null, "Campaign deleted successfully");
   }
 
-  await Campaign.deleteOne({ _id: id });
+  // IDOR protection: merchants can only delete their own campaigns.
+  let filter = { _id: id };
+  if (user.role !== ROLES.ADMIN) {
+    const merchant = await Merchant.findOne({ authId: user.id });
+    if (!merchant) throw new NotFoundError("Merchant profile");
+    filter.merchantId = merchant._id;
+  }
+
+  const deleted = await Campaign.deleteOne(filter);
+  if (!deleted.deletedCount) throw new NotFoundError("Campaign");
   return ok(null, "Campaign deleted successfully");
 });

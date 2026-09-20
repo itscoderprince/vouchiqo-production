@@ -28,7 +28,7 @@ export function useMerchantLoginForm() {
       sessionStorage.getItem("vouchiqo_is_merchant") === "true";
 
     if (user && (role === "merchant" || isMerchantFlag)) {
-      fetch("/api/merchants/me")
+      fetch("/api/merchants/me", { credentials: "include" })
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
           const merchant = data?.data?.merchant || data?.data;
@@ -56,7 +56,9 @@ export function useMerchantLoginForm() {
       }
       let effectiveRole = data?.user?.role;
       if (effectiveRole !== "merchant") {
-        const checkRes = await fetch("/api/merchants/me").catch(() => null);
+        const checkRes = await fetch("/api/merchants/me", {
+          credentials: "include",
+        }).catch(() => null);
         if (checkRes?.ok) {
           effectiveRole = "merchant";
         }
@@ -74,7 +76,9 @@ export function useMerchantLoginForm() {
 
       // Redirect based on merchant profile status
       try {
-        const meRes = await fetch("/api/merchants/me");
+        const meRes = await fetch("/api/merchants/me", {
+          credentials: "include",
+        });
         if (meRes.ok) {
           const meJson = await meRes.json();
           const merchantProfile = meJson?.data;
@@ -98,7 +102,8 @@ export function useMerchantLoginForm() {
   });
 
   const onSubmit = (data) => {
-    loginMutation.mutate({ email: data.email, password: data.password });
+    const cleanEmail = data.email ? data.email.trim().toLowerCase() : "";
+    loginMutation.mutate({ email: cleanEmail, password: data.password });
   };
 
   return {

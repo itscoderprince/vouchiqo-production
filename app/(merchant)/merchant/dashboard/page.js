@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Clock, Lock, Plus, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
@@ -95,6 +95,17 @@ export default function MerchantDashboard() {
     },
   });
 
+  // Fetch merchant affiliate products
+  const { data: affiliateProductsData = [] } = useQuery({
+    queryKey: ["merchant-affiliate-products"],
+    queryFn: async () => {
+      const res = await fetch("/api/merchant/affiliate-products");
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || [];
+    },
+  });
+
   const trendData = analyticsData?.trend ?? [];
   const merchant = analyticsData?.merchant ?? merchantProfile;
 
@@ -166,6 +177,37 @@ export default function MerchantDashboard() {
   const recentRedemptions = redemptionsData?.redemptions ?? [];
   const recentClaims = claimsData?.claims ?? [];
   const recentActivities = analyticsData?.recentActivities ?? [];
+
+  // Affiliate product listings for the dashboard listings panel
+  const affiliateListings = useMemo(() => {
+    return (affiliateProductsData || []).map((p) => ({
+      id: String(p._id),
+      _id: String(p._id),
+      type: "affiliate",
+      title: p.title || "Affiliate Deal",
+      code: "Affiliate Link",
+      affiliateUrl: p.affiliateUrl,
+      imageUrl: p.imageUrl,
+      discount: p.discountPercentage
+        ? `${p.discountPercentage}% OFF`
+        : p.discountText ||
+          (p.discountPrice ? `₹${p.discountPrice} Deal` : "Affiliate Deal"),
+      category: p.category || "General",
+      clicks: Number(p.clickCount) || 0,
+      views: Number(p.clickCount) || 0,
+      claims: 0,
+      redemptions: Number(p.clickCount) || 0,
+      successRate: p.clickCount > 0 ? 100 : 0,
+      conversion: p.clickCount > 0 ? 100 : 0,
+      status: p.status || "active",
+      createdAt: p.createdAt,
+    }));
+  }, [affiliateProductsData]);
+
+  const activeAffiliatesCount = (affiliateProductsData || []).filter(
+    (p) => p.status === "active",
+  ).length;
+  const totalActiveListings = (activeCoupons || 0) + activeAffiliatesCount;
 
   // Top performing coupons from real API analytics or overview stats fallback
   const rawTopCoupons = analyticsData?.topCoupons ?? [];
@@ -340,16 +382,10 @@ export default function MerchantDashboard() {
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/merchant/coupons/new"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium rounded-lg shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Post New Listing</span>
-            </Link>
-            <Link
-              href="/merchant/affiliate-products/new"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg border border-slate-200 transition-colors cursor-pointer"
-            >
-              <span>+ Affiliate Deal</span>
             </Link>
           </div>
         </div>
@@ -364,7 +400,7 @@ export default function MerchantDashboard() {
             ordersMoM={ordersMoM}
             pageViews={pageViews}
             trendData={trendData}
-            activeCoupons={activeCoupons}
+            activeCoupons={totalActiveListings}
             planLimit={planLimit}
           />
         </div>
@@ -388,9 +424,12 @@ export default function MerchantDashboard() {
           />
         </div>
 
-        {/* Top Performing Coupons Table */}
+        {/* Store Listings & Top Offers Table */}
         <div data-tour="top-coupons">
-          <TopCouponsTable coupons={topCoupons} />
+          <TopCouponsTable
+            coupons={topCoupons}
+            affiliates={affiliateListings}
+          />
         </div>
 
         {/* Recent Orders & Activity Feed */}

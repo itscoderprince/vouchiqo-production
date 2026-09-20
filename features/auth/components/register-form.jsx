@@ -20,11 +20,7 @@ export function RegisterForm() {
   return (
     <AuthCard title="Create your free account" maxWidth="max-w-5xl">
       <form
-        method="POST"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(e);
-        }}
+        onSubmit={handleSubmit}
         className="space-y-3.5"
         noValidate
       >

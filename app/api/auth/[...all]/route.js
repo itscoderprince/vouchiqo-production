@@ -1,4 +1,4 @@
-import { toNextJsHandler } from "better-auth/next-js";
+﻿import { toNextJsHandler } from "better-auth/next-js";
 import mongoose from "mongoose";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
@@ -8,6 +8,7 @@ import {
   sendUserWelcomeEmail,
 } from "@/lib/email/user-email";
 import { connectDB } from "@/lib/mongodb";
+import { invalidateSessionCache } from "@/modules/auth/auth.middleware";
 import { ROLES } from "@/utils/constants";
 import { isDisposableEmail } from "@/utils/disposable-emails";
 
@@ -36,9 +37,12 @@ const backendSignUpSchema = z.object({
     .string({ required_error: "Name is required" })
     .min(1, "Name must be at least 1 character")
     .max(100, "Name must be under 100 characters"),
+  role: z.enum(["customer", "merchant"], {
+    errorMap: () => ({ message: "Invalid role specified. Only customer or merchant permitted." }),
+  }).optional(),
   data: z
     .object({
-      role: z.enum(["customer", "merchant"]),
+      role: z.enum(["customer", "merchant"]).optional(),
       phoneNumber: z.string().optional(),
     })
     .optional(),
@@ -88,11 +92,12 @@ export async function POST(request) {
       }
 
       if (result && !result.success) {
+        const issues = result.error.issues || result.error.errors || [];
         return Response.json(
           {
             error: "Validation failed",
-            message: result.error.errors[0]?.message ?? "Invalid request input",
-            details: result.error.errors,
+            message: issues[0]?.message ?? "Invalid request input",
+            details: issues,
           },
           { status: 400 },
         );
@@ -230,7 +235,33 @@ export async function POST(request) {
     console.error("[Auth API Interceptor] Error executing verification:", err);
   }
 
-  const response = await handler.POST(request);
+  let requestToPass = request;
+  if (parsedBody) {
+    if (parsedBody.email && typeof parsedBody.email === "string") {
+      parsedBody.email = parsedBody.email.trim().toLowerCase();
+    }
+    // Hard defense-in-depth: never allow admin role injection via sign-up
+    if (pathname.endsWith("/sign-up/email")) {
+      if (parsedBody.role && parsedBody.role !== "merchant" && parsedBody.role !== "customer") {
+        parsedBody.role = "customer";
+      }
+      if (parsedBody.data?.role && parsedBody.data.role !== "merchant" && parsedBody.data.role !== "customer") {
+        parsedBody.data.role = "customer";
+      }
+    }
+    try {
+      requestToPass = new Request(request.url, {
+        method: request.method,
+        headers: request.headers,
+        body: JSON.stringify(parsedBody),
+        duplex: "half",
+      });
+    } catch {
+      requestToPass = request;
+    }
+  }
+
+  const response = await handler.POST(requestToPass);
 
   // Post-process /sign-up/email to send Welcome Email & promote merchant role
   if (pathname.endsWith("/sign-up/email") && response.ok) {
@@ -362,6 +393,16 @@ export async function POST(request) {
       }
     } catch (e) {
       console.error("[Sign-In Post-Process Error]:", e);
+    }
+  }
+
+  // Invalidate Redis session cache on sign-out so revoked sessions
+  // are not served from cache after the user logs out.
+  if (pathname.endsWith("/sign-out") && response.ok) {
+    try {
+      await invalidateSessionCache(request);
+    } catch (e) {
+      console.warn("[Auth Cache] Sign-out invalidation failed:", e?.message);
     }
   }
 

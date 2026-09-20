@@ -1,5 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-import { COUPON_CATEGORIES, MERCHANT_STATUS, normalizeCategory } from "../../utils/constants.js";
+import {
+  COUPON_CATEGORIES,
+  MERCHANT_STATUS,
+  normalizeCategory,
+} from "../../utils/constants.js";
 
 /**
  * Merchant profile.
@@ -85,6 +89,10 @@ const merchantSchema = new Schema(
       index: true,
     },
     planExpiry: { type: Date, default: null },
+    // Free Merchant 1-Time Flash Sale Campaign Pass (₹799)
+    flashSalePurchased: { type: Boolean, default: false },
+    flashSalePurchasedAt: { type: Date, default: null },
+    flashSaleCampaignUsed: { type: Boolean, default: false },
 
     // Commission Structure
     commissionRate: { type: String, trim: true },
@@ -215,7 +223,9 @@ merchantSchema.pre("save", function () {
   }
 
   if (this.constitution !== undefined) {
-    const cleanCons = String(this.constitution || "").trim().toLowerCase();
+    const cleanCons = String(this.constitution || "")
+      .trim()
+      .toLowerCase();
     if (!cleanCons) {
       this.constitution = undefined;
     } else {
@@ -224,7 +234,9 @@ merchantSchema.pre("save", function () {
   }
 
   if (this.liaisonDesignation !== undefined) {
-    const cleanDesig = String(this.liaisonDesignation || "").trim().toLowerCase();
+    const cleanDesig = String(this.liaisonDesignation || "")
+      .trim()
+      .toLowerCase();
     if (!cleanDesig) {
       this.liaisonDesignation = undefined;
     } else {
@@ -233,7 +245,9 @@ merchantSchema.pre("save", function () {
   }
 
   if (this.regionalHubCity !== undefined) {
-    const cleanCity = String(this.regionalHubCity || "").trim().toLowerCase();
+    const cleanCity = String(this.regionalHubCity || "")
+      .trim()
+      .toLowerCase();
     if (!cleanCity) {
       this.regionalHubCity = undefined;
     } else {
@@ -242,7 +256,9 @@ merchantSchema.pre("save", function () {
   }
 
   if (this.gstin !== undefined) {
-    const cleanGstin = String(this.gstin || "").trim().toUpperCase();
+    const cleanGstin = String(this.gstin || "")
+      .trim()
+      .toUpperCase();
     if (!cleanGstin) {
       this.gstin = undefined;
     } else {
@@ -251,7 +267,9 @@ merchantSchema.pre("save", function () {
   }
 
   if (this.contactEmail !== undefined) {
-    const cleanEmail = String(this.contactEmail || "").trim().toLowerCase();
+    const cleanEmail = String(this.contactEmail || "")
+      .trim()
+      .toLowerCase();
     if (!cleanEmail) {
       this.contactEmail = undefined;
     } else {
@@ -297,15 +315,13 @@ merchantSchema.pre("save", function () {
 });
 
 merchantSchema.index({ status: 1, category: 1 });
+merchantSchema.index({ status: 1, totalCoupons: -1, totalRedemptions: -1, createdAt: -1 });
 merchantSchema.index({ "location.city": 1, status: 1 });
 merchantSchema.index({ contactEmail: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ contactPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ liaisonPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ gstin: 1 }, { unique: true, sparse: true });
 
-delete mongoose.models.Merchant;
-if (mongoose.modelSchemas) delete mongoose.modelSchemas.Merchant;
-
-const Merchant = mongoose.model("Merchant", merchantSchema);
+const Merchant = mongoose.models.Merchant || mongoose.model("Merchant", merchantSchema);
 
 export default Merchant;

@@ -71,18 +71,40 @@ export function useCreateCampaignForm() {
     },
   });
 
+  // Fetch both standard coupons and affiliate link deals for attachment to campaign
   const { data: coupons = [] } = useQuery({
-    queryKey: ["merchant-coupons-for-campaign"],
+    queryKey: ["merchant-coupons-for-campaign", merchant?._id],
     queryFn: async () => {
       if (!merchant) return [];
-      const res = await fetch(`/api/coupons?limit=50`);
-      if (!res.ok) return [];
-      const json = await res.json();
-      const list = json.data?.coupons || [];
-      return list.filter(
-        (c) =>
-          c.merchantId?._id === merchant._id || c.merchantId === merchant._id,
-      );
+      const [couponsRes, affiliatesRes] = await Promise.all([
+        fetch(`/api/coupons?limit=50`).catch(() => null),
+        fetch(`/api/merchant/affiliate-products`).catch(() => null),
+      ]);
+
+      let couponList = [];
+      if (couponsRes?.ok) {
+        const json = await couponsRes.json();
+        couponList = (json.data?.coupons || []).filter(
+          (c) =>
+            c.merchantId?._id === merchant._id || c.merchantId === merchant._id,
+        );
+      }
+
+      let affiliateList = [];
+      if (affiliatesRes?.ok) {
+        const json = await affiliatesRes.json();
+        affiliateList = (json.data || []).map((a) => ({
+          _id: a._id,
+          title: a.title,
+          code: "Affiliate Link",
+          discountType: "percentage",
+          discountValue: a.discountPercentage || 0,
+          isAffiliate: true,
+          affiliateUrl: a.affiliateUrl,
+        }));
+      }
+
+      return [...couponList, ...affiliateList];
     },
     enabled: !!merchant,
   });

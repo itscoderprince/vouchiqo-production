@@ -32,7 +32,10 @@ export function useLoginForm() {
 
   const onSubmit = (data) => {
     login(
-      { email: data.email, password: data.password },
+      {
+        email: data.email ? data.email.trim().toLowerCase() : "",
+        password: data.password,
+      },
       {
         onError: (err) => {
           toast.error(err?.message || "Invalid credentials. Please try again.");

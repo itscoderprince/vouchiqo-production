@@ -1,6 +1,6 @@
-import { connectDB } from "@/lib/mongodb";
+﻿import { connectDB } from "@/lib/mongodb";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
-import { requireAuth } from "@/modules/auth/auth.middleware";
+import { invalidateMerchantCache, requireAuth } from "@/modules/auth/auth.middleware";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import {
@@ -229,6 +229,11 @@ export const PUT = asyncHandler(async (request) => {
   }
 
   await merchant.save();
+
+  // Invalidate Redis merchant profile cache so the next request gets fresh data
+  if (authIdStr) {
+    await invalidateMerchantCache(authIdStr).catch(() => {});
+  }
 
   // Cascade category change to all listings (coupons) and affiliate products
   const hasCategoryChanged = Boolean(

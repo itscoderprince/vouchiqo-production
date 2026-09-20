@@ -18,7 +18,7 @@ export const revalidate = 0;
 
 /**
  * GET /api/admin/merchants/[id]
- * Fetch single merchant profile with coupons, stats, and admin details.
+ * Fetch single merchant profile with coupons, affiliate products, stats, and admin details.
  */
 export const GET = asyncHandler(async (request, { params }) => {
   await connectDB();
@@ -31,14 +31,18 @@ export const GET = asyncHandler(async (request, { params }) => {
     throw new NotFoundError("Merchant");
   }
 
-  // Fetch all coupons for this merchant
-  const coupons = await Coupon.find({ merchantId: id })
-    .sort({ createdAt: -1 })
-    .lean();
+  // Fetch all coupons and affiliate deals for this merchant
+  const [coupons, affiliateProducts] = await Promise.all([
+    Coupon.find({ merchantId: id }).sort({ createdAt: -1 }).lean(),
+    AffiliateProduct.find({ merchantId: id, status: { $ne: "deleted" } })
+      .sort({ createdAt: -1 })
+      .lean(),
+  ]);
 
   return ok({
     merchant,
     coupons,
+    affiliateProducts,
   });
 });
 

@@ -23,8 +23,6 @@ import {
   Cell,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -37,6 +35,7 @@ import DataTable from "@/components/shared/data/DataTable";
 import StatusBadge from "@/components/shared/data/StatusBadge";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import FormSelect from "@/components/shared/form/FormSelect";
+import TrafficSourcesDonutChart from "@/components/shared/TrafficSourcesDonutChart";
 import { Button } from "@/components/ui/button";
 
 const TOOLTIP_STYLE = {
@@ -580,60 +579,12 @@ export default function MerchantAnalytics() {
               </span>
             }
           >
-            <div className="flex flex-col sm:flex-row items-center gap-6 py-2">
-              <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={trafficSources}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={46}
-                      outerRadius={65}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {trafficSources.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) => [`${v}%`, "Traffic Share"]}
-                      {...TOOLTIP_STYLE}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                  <span className="text-base font-black text-slate-900 leading-none">
-                    100%
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                    Traffic
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex-1 w-full space-y-2.5">
-                {trafficSources.map((src) => (
-                  <div
-                    key={src.name}
-                    className="flex items-center justify-between text-xs font-semibold p-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-3 h-3 rounded-md shrink-0 shadow-2xs"
-                        style={{ backgroundColor: src.color }}
-                      />
-                      <span className="text-slate-700 font-bold">
-                        {src.name}
-                      </span>
-                    </div>
-                    <span className="font-extrabold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
-                      {src.value}%
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="py-2">
+              <TrafficSourcesDonutChart
+                analyticsData={analyticsData}
+                pageViews={totalClicks || totalImpressions}
+                showCard={false}
+              />
             </div>
           </AnalyticsCard>
 

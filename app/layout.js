@@ -21,6 +21,16 @@ export const metadata = {
   title: "Vouchiqo | Verified Deals. Real Savings.",
   description:
     "Vouchiqo is a trusted offer marketplace and merchant growth platform offering 100% verified deals and analytics.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Vouchiqo",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/navbarlogovouchiqo.webp",
+  },
   verification: {
     other: {
       "verify-admitad": "af406b1286",

@@ -25,7 +25,6 @@ import {
   PlusCircle,
   Settings,
   ShieldCheck,
-  ShoppingBag,
   Sliders,
   Store,
   Tag,
@@ -605,30 +604,6 @@ export function AppSidebar({ ...props }) {
                 badge: unseenCoupons > 0 ? String(unseenCoupons) : null,
                 badgeColor:
                   "bg-red-500 text-white font-medium shadow-sm shadow-red-500/30",
-                subItems: [
-                  {
-                    title: "All Listings",
-                    url: "/merchant/coupons",
-                    icon: Ticket,
-                    badge: unseenCoupons > 0 ? String(unseenCoupons) : null,
-                    badgeColor: "bg-red-500 text-white font-medium",
-                  },
-                  {
-                    title: "Active Offers",
-                    url: "/merchant/coupons?status=active",
-                    icon: CheckSquare,
-                  },
-                  {
-                    title: "Expired Offers",
-                    url: "/merchant/coupons?status=expired",
-                    icon: Clock,
-                  },
-                  {
-                    title: "Affiliate Products",
-                    url: "/merchant/affiliate-products",
-                    icon: ShoppingBag,
-                  },
-                ],
               },
               {
                 title: "Post New Listing",

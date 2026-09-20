@@ -1,15 +1,21 @@
 "use client";
 
-import { Percent, Store, Tag, ShoppingBag } from "lucide-react";
+import { Percent, ShoppingBag, Store, Tag } from "lucide-react";
 
-export default function BrandStats({ coupons, merchant }) {
+export default function BrandStats({
+  coupons = [],
+  merchant = {},
+  affiliateCount = 0,
+}) {
+  const totalOffersCount = (coupons?.length || 0) + affiliateCount;
+
   const pctArr = coupons
     .filter(
       (c) =>
         c.discountType === "percentage" &&
         c.discountValue !== null &&
         c.discountValue !== undefined &&
-        !isNaN(Number(c.discountValue)),
+        !Number.isNaN(Number(c.discountValue)),
     )
     .map((c) => Number(c.discountValue));
   const fixedArr = coupons
@@ -18,7 +24,7 @@ export default function BrandStats({ coupons, merchant }) {
         c.discountType === "fixed" &&
         c.discountValue !== null &&
         c.discountValue !== undefined &&
-        !isNaN(Number(c.discountValue)),
+        !Number.isNaN(Number(c.discountValue)),
     )
     .map((c) => Number(c.discountValue));
   const hasFreebie = coupons.some((c) => c.discountType === "freebie");
@@ -30,12 +36,14 @@ export default function BrandStats({ coupons, merchant }) {
     discountLabel = `Up to ₹${Math.max(...fixedArr)}`;
   } else if (hasFreebie) {
     discountLabel = "Freebies";
+  } else if (merchant.maxDiscount) {
+    discountLabel = `Up to ${merchant.maxDiscount}%`;
   }
 
   const stats = [
     {
       label: "Active Deals",
-      value: `${coupons.length}`,
+      value: `${totalOffersCount}`,
       Icon: Tag,
       iconColor: "text-blue-600",
       bgColor: "bg-blue-50/80",
@@ -49,7 +57,7 @@ export default function BrandStats({ coupons, merchant }) {
     },
     {
       label: "Channel",
-      value: merchant.businessType || "Both",
+      value: merchant.businessType || "Online Store",
       Icon: Store,
       iconColor: "text-purple-600",
       bgColor: "bg-purple-50/80",
@@ -80,8 +88,12 @@ export default function BrandStats({ coupons, merchant }) {
                 {s.value}
               </span>
             </div>
-            <div className={`w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl ${s.bgColor} flex items-center justify-center shrink-0`}>
-              <IconComp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${s.iconColor}`} />
+            <div
+              className={`w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl ${s.bgColor} flex items-center justify-center shrink-0`}
+            >
+              <IconComp
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${s.iconColor}`}
+              />
             </div>
           </div>
         );
@@ -89,4 +101,3 @@ export default function BrandStats({ coupons, merchant }) {
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-// ─────────────────────────────────────────────
+﻿// ─────────────────────────────────────────────
 // User Roles
 // ─────────────────────────────────────────────
 export const ROLES = {
@@ -232,16 +232,20 @@ export const ADDONS_PRICING = [
   },
 ];
 export const REDIS_TTL = {
-  SESSION: 86400, // 24 hours
-  OTP: 300, // 5 minutes
-  RATE_LIMIT: 60, // 1 minute
-  FEATURED: 300, // 5 minutes
-  TRENDING: 120, // 2 minutes
-  REDEEM_LOCK: 10, // 10 seconds
-  BANNERS: 300, // 5 minutes
-  PAYMENT_LOCK: 30, // 30 seconds distributed lock for payment processing
-  PAYMENT_INTENT: 1800, // 30 minutes intent cache
-  PAYMENT_STATE: 86400, // 24 hours state cache
+  SESSION: 86400,      // 24 hours
+  OTP: 300,            // 5 minutes
+  RATE_LIMIT: 60,      // 1 minute
+  FEATURED: 300,       // 5 minutes
+  TRENDING: 120,       // 2 minutes
+  REDEEM_LOCK: 10,     // 10 seconds
+  BANNERS: 300,        // 5 minutes
+  PAYMENT_LOCK: 30,    // 30 seconds distributed lock for payment processing
+  PAYMENT_INTENT: 1800,// 30 minutes intent cache
+  PAYMENT_STATE: 86400,// 24 hours state cache
+  // Auth session cache TTLs (Redis-cached auth layer)
+  AUTH_SESSION: 300,   // 5 minutes -- cached session token lookup
+  AUTH_USER: 300,      // 5 minutes -- cached user role lookup
+  MERCHANT_PROFILE: 300, // 5 minutes -- cached merchant profile lookup
 };
 
 export const REDIS_KEYS = {
@@ -254,6 +258,10 @@ export const REDIS_KEYS = {
   paymentLock: (orderId) => `payment:lock:${orderId}`,
   paymentIntent: (idempotencyKey) => `payment:intent:${idempotencyKey}`,
   paymentState: (orderId) => `payment:state:${orderId}`,
+  // Auth session cache keys
+  session: (tokenHash) => `auth:session:${tokenHash}`,
+  userRole: (userId) => `auth:user:${userId}`,
+  merchantProfile: (authId) => `auth:merchant:${authId}`,
 };
 
 // ─────────────────────────────────────────────

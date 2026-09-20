@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import Merchant from "./merchant.model.js";
 import UserProfile from "../user/user.model.js";
 import {
@@ -276,6 +276,13 @@ export async function getMerchantByAuthId(authId, email = null) {
 export async function updateMerchant(merchantId, authId, data, userRole = "merchant") {
   let merchant = await Merchant.findOne({ _id: merchantId });
   if (!merchant) throw new ForbiddenError("You cannot edit this merchant");
+
+  // IDOR protection: non-admin users can only edit their own merchant profile.
+  // Without this check, any authenticated merchant could edit another merchant
+  // by guessing or enumerating merchantId values.
+  if (userRole !== "admin" && String(merchant.authId) !== String(authId)) {
+    throw new ForbiddenError("You are not authorized to edit this merchant profile");
+  }
 
   // Lock slug for regular merchants: once created, regular merchants CANNOT modify slug.
   // Only super admin (userRole === "admin") can edit an existing slug.

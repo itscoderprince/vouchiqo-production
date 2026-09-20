@@ -18,11 +18,7 @@ export function MerchantRegisterForm() {
   return (
     <AuthCard title="Merchant Partner Registration">
       <form
-        method="POST"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(e);
-        }}
+        onSubmit={handleSubmit}
         className="space-y-4"
         noValidate
       >

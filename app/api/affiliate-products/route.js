@@ -15,8 +15,9 @@ export const GET = asyncHandler(async (request) => {
   const { searchParams } = new URL(request.url);
   const merchantId = searchParams.get("merchantId");
   const category = searchParams.get("category");
+  const limit = searchParams.get("limit");
 
-  const products = await getPublicAffiliateProducts({ merchantId, category });
+  const products = await getPublicAffiliateProducts({ merchantId, category, limit });
   return ok(products);
 });
 

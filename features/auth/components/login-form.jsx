@@ -20,11 +20,7 @@ export function LoginForm() {
   return (
     <AuthCard title="Log In">
       <form
-        method="POST"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(e);
-        }}
+        onSubmit={handleSubmit}
         className="space-y-3.5"
         noValidate
       >

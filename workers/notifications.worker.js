@@ -32,7 +32,7 @@ const worker = new Worker(
       }
 
       let recipient = to;
-      const isTestingDomain = FROM_EMAIL.includes("onboarding@resend.dev");
+      const isTestingDomain = !process.env.EMAIL_FROM && FROM_EMAIL.includes("onboarding@resend.dev");
       const devRecipient = process.env.EMAIL_DEV_RECIPIENT || "vouchiqo@gmail.com";
 
       if (isTestingDomain && recipient !== devRecipient && process.env.NODE_ENV === "development") {

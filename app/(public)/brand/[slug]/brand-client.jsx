@@ -4,12 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
-
+import AffiliateProductCard from "./components/AffiliateProductCard";
 import BrandHeader from "./components/BrandHeader";
 import BrandStats from "./components/BrandStats";
 import CouponCard from "./components/CouponCard";
 import ExpiredOfferCard from "./components/ExpiredOfferCard";
-import AffiliateProductCard from "./components/AffiliateProductCard";
 import RelatedFooter from "./components/RelatedFooter";
 import SidebarSection from "./components/SidebarSection";
 
@@ -32,8 +31,15 @@ export default function BrandClient({
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCouponId, setCopiedCouponId] = useState(null);
   const [followers, setFollowers] = useState(merchant.followerCount || 0);
-  const [ratingVal, setRatingVal] = useState(merchant.rating || merchant.avgRating || 5.0);
-  const [votesCount, setVotesCount] = useState(merchant.ratingCount || merchant.totalRedemptions || merchant.totalClaims || 0);
+  const [ratingVal, setRatingVal] = useState(
+    merchant.rating || merchant.avgRating || 5.0,
+  );
+  const [votesCount, setVotesCount] = useState(
+    merchant.ratingCount ||
+      merchant.totalRedemptions ||
+      merchant.totalClaims ||
+      0,
+  );
   const [isRated, setIsRated] = useState(false);
   const [existingUser, setExistingUser] = useState(false);
   const [expandedCouponId, setExpandedCouponId] = useState(null);
@@ -91,9 +97,12 @@ export default function BrandClient({
     [coupons],
   );
 
+  // Offers count includes both coupon link deals and affiliate product deals
   const offersCount = useMemo(
-    () => coupons.filter((c) => !c.code || c.code.trim() === "").length,
-    [coupons],
+    () =>
+      coupons.filter((c) => !c.code || c.code.trim() === "").length +
+      affiliateProducts.length,
+    [coupons, affiliateProducts],
   );
 
   const handleFollow = () => {
@@ -212,65 +221,75 @@ export default function BrandClient({
           {/* Left: Coupons & Affiliate Products (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {/* Stats row */}
-            <BrandStats coupons={coupons} merchant={merchant} />
+            <BrandStats
+              coupons={coupons}
+              merchant={merchant}
+              affiliateCount={affiliateProducts.length}
+            />
 
-            {/* Affiliate Products section if activeTab is 'all' or 'affiliate' */}
-            {(activeTab === "all" || activeTab === "affiliate") && affiliateProducts.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs sm:text-[13px] font-medium uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                    <span>Affiliate Products</span>
-                    <span className="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-full text-[10px] font-normal">
-                      {affiliateProducts.length}
-                    </span>
-                  </h3>
+            {/* Affiliate Products section if activeTab is 'all', 'affiliate', or 'dl' (Offers) */}
+            {(activeTab === "all" ||
+              activeTab === "affiliate" ||
+              activeTab === "dl") &&
+              affiliateProducts.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs sm:text-[13px] font-medium uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                      <span>
+                        {activeTab === "dl"
+                          ? "Affiliate Deals & Offers"
+                          : "Affiliate Products"}
+                      </span>
+                      <span className="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-full text-[10px] font-normal">
+                        {affiliateProducts.length}
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    {affiliateProducts.map((prod) => (
+                      <AffiliateProductCard
+                        key={prod._id}
+                        product={prod}
+                        merchant={merchant}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {affiliateProducts.map((prod) => (
-                    <AffiliateProductCard
-                      key={prod._id}
-                      product={prod}
-                      merchant={merchant}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
 
             {/* Coupon & Deal list */}
             {activeTab !== "affiliate" && (
               <div className="space-y-3 pt-2">
-                {filteredCoupons.length > 0 ? (
-                  filteredCoupons.map((coupon) => (
-                    <CouponCard
-                      key={coupon._id}
-                      coupon={coupon}
-                      isExpanded={expandedCouponId === coupon._id}
-                      toggleDetails={() => toggleDetails(coupon._id)}
-                      copiedCouponId={copiedCouponId}
-                      handleCopyCode={handleCopyCode}
-                      merchant={merchant}
-                    />
-                  ))
-                ) : (
-                  activeTab !== "all" && (
-                    <div className="py-16 text-center bg-white border border-gray-100 rounded-xl">
-                      <p className="text-[14px] text-gray-500 font-normal">
-                        No deals match your current filter.
-                      </p>
-                      <button
-                        onClick={() => {
-                          setActiveTab("all");
-                          setExistingUser(false);
-                        }}
-                        type="button"
-                        className="mt-3 text-blue-600 font-medium text-sm hover:underline border-0 bg-transparent cursor-pointer"
-                      >
-                        Reset filters
-                      </button>
-                    </div>
-                  )
-                )}
+                {filteredCoupons.length > 0
+                  ? filteredCoupons.map((coupon) => (
+                      <CouponCard
+                        key={coupon._id}
+                        coupon={coupon}
+                        isExpanded={expandedCouponId === coupon._id}
+                        toggleDetails={() => toggleDetails(coupon._id)}
+                        copiedCouponId={copiedCouponId}
+                        handleCopyCode={handleCopyCode}
+                        merchant={merchant}
+                      />
+                    ))
+                  : activeTab !== "all" &&
+                    !(activeTab === "dl" && affiliateProducts.length > 0) && (
+                      <div className="py-16 text-center bg-white border border-gray-100 rounded-xl">
+                        <p className="text-[14px] text-gray-500 font-normal">
+                          No deals match your current filter.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setActiveTab("all");
+                            setExistingUser(false);
+                          }}
+                          type="button"
+                          className="mt-3 text-blue-600 font-medium text-sm hover:underline border-0 bg-transparent cursor-pointer"
+                        >
+                          Reset filters
+                        </button>
+                      </div>
+                    )}
               </div>
             )}
 

@@ -28,3 +28,4 @@ export * from "./modals";
 export { default as ProfileStatusGate } from "./ProfileStatusGate";
 export { default as QueryProvider } from "./QueryProvider";
 export { default as SectionHeader } from "./SectionHeader";
+export { default as TrafficSourcesDonutChart } from "./TrafficSourcesDonutChart";

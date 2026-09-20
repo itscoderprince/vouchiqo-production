@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import TrafficSourcesDonutChart from "@/components/shared/TrafficSourcesDonutChart";
 import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -25,27 +25,6 @@ export default function TrafficAndGoals({
     queryClient.invalidateQueries({ queryKey: qk.merchant.dashboard() });
   });
 
-  const zeroTraffic = [
-    { name: "Direct", value: 0, color: "#F72853" },
-    { name: "Organic", value: 0, color: "#3b82f6" },
-    { name: "Referral", value: 0, color: "#10b981" },
-    { name: "Social", value: 0, color: "#8b5cf6" },
-  ];
-
-  const defaultActiveTraffic = [
-    { name: "Direct", value: 35, color: "#F72853" },
-    { name: "Organic", value: 28, color: "#3b82f6" },
-    { name: "Referral", value: 22, color: "#10b981" },
-    { name: "Social", value: 15, color: "#8b5cf6" },
-  ];
-
-  const trafficData =
-    analyticsData?.trafficSources && analyticsData.trafficSources.length > 0
-      ? analyticsData.trafficSources
-      : pageViews > 0
-        ? defaultActiveTraffic
-        : zeroTraffic;
-
   // Monthly Targets
   const revenueGoal = analyticsData?.goals?.revenueTarget || 100000;
   const revenueActual = Number(totalRevenue) || 0;
@@ -67,89 +46,25 @@ export default function TrafficAndGoals({
       ? Math.min(100, Math.round((redemptionsActual / claimsActual) * 100))
       : 0;
 
-  const visitsDisplay =
-    pageViews >= 1000 ? `${(pageViews / 1000).toFixed(1)}k` : `${pageViews}`;
-
   return (
     <div className="col-span-full flex flex-col gap-3 xl:col-span-4 font-sans">
-      {/* Traffic Card */}
-      <div className="bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden flex flex-col">
-        <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 bg-slate-50/40">
-          <h3 className="text-xs sm:text-sm font-semibold text-slate-800 m-0 leading-tight">
-            Traffic Sources
-          </h3>
-          <p className="text-[11px] text-slate-500 font-normal mt-0.5 leading-none">
-            Where your visitors come from (Live DB)
-          </p>
-        </div>
-        <div className="p-3.5 sm:p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative h-24 w-24 shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={
-                      pageViews > 0
-                        ? trafficData
-                        : [{ name: "None", value: 1, color: "#f1f5f9" }]
-                    }
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={32}
-                    outerRadius={44}
-                    paddingAngle={pageViews > 0 ? 2 : 0}
-                    dataKey="value"
-                    isAnimationActive={true}
-                  >
-                    {(pageViews > 0
-                      ? trafficData
-                      : [{ name: "None", value: 1, color: "#f1f5f9" }]
-                    ).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                <span className="text-sm font-semibold text-slate-800">
-                  {visitsDisplay}
-                </span>
-                <span className="text-[9px] font-normal text-slate-400">
-                  Visits
-                </span>
-              </div>
-            </div>
-            <div className="flex-1 space-y-1.5">
-              {trafficData.map((t) => (
-                <div key={t.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: t.color }}
-                    />
-                    <span className="text-xs text-slate-600 font-normal">
-                      {t.name}
-                    </span>
-                  </div>
-                  <span className="text-xs font-medium text-slate-900">
-                    {t.value}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Traffic Sources Donut Card - Matching Reference Mockup */}
+      <TrafficSourcesDonutChart
+        analyticsData={analyticsData}
+        pageViews={pageViews}
+      />
 
       {/* Goals Card */}
-      <div className="bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden flex flex-col">
-        <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 bg-slate-50/40">
-          <h3 className="text-xs sm:text-sm font-semibold text-slate-800 m-0 leading-tight">
-            Monthly Goals
-          </h3>
-          <p className="text-[11px] text-slate-500 font-normal mt-0.5 leading-none">
-            Track progress toward targets
-          </p>
+      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs hover:shadow-xs overflow-hidden flex flex-col font-sans transition-all duration-300">
+        <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-slate-50/50 flex flex-row justify-between items-center">
+          <div>
+            <h3 className="font-sans text-xs font-bold text-slate-900 tracking-wider uppercase m-0 leading-none">
+              Monthly Goals
+            </h3>
+            <p className="text-[11px] font-normal text-slate-500 mt-1 leading-none font-sans normal-case tracking-normal">
+              Track progress toward targets
+            </p>
+          </div>
         </div>
         <div className="p-3.5 sm:p-4 space-y-3">
           {/* Goal 1: Monthly Revenue */}

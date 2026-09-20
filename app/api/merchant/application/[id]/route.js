@@ -1,9 +1,11 @@
-import {
+﻿import {
   sendMerchantApprovedEmail,
   sendMerchantRejectedEmail,
 } from "@/lib/email/merchant-email";
+import { requireRole } from "@/modules/auth/auth.middleware";
 import MerchantApplication from "@/modules/merchant/merchant-application.model";
 import Merchant from "@/modules/merchant/merchant.model";
+import { ROLES } from "@/utils/constants";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -46,6 +48,15 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  // Admin-only: only admins can approve/reject merchant applications
+  try {
+    await requireRole(req, ROLES.ADMIN);
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized. Admin access required." },
+      { status: 403 },
+    );
+  }
   try {
     const { id } = await params;
     const body = await req.json();

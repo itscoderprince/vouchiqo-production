@@ -154,7 +154,7 @@ export default function MerchantAffiliateProductsPage() {
           </div>
 
           <Link
-            href="/merchant/affiliate-products/new"
+            href="/merchant/coupons/new?type=affiliate"
             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#F72853] hover:bg-[#e01e47] text-white font-medium text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer h-8 sm:h-9"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -318,7 +318,7 @@ export default function MerchantAffiliateProductsPage() {
                   </p>
                 </div>
                 <Link
-                  href="/merchant/affiliate-products/new"
+                  href="/merchant/coupons/new?type=affiliate"
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />

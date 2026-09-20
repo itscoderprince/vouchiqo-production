@@ -1,6 +1,33 @@
-import AffiliateProduct from "./affiliate-product.model";
 import { connectDB } from "@/lib/mongodb";
-import { NotFoundError, ForbiddenError } from "@/utils/app-error";
+import Coupon from "@/modules/coupon/coupon.model";
+import Merchant from "@/modules/merchant/merchant.model";
+import { ForbiddenError, NotFoundError } from "@/utils/app-error";
+import AffiliateProduct from "./affiliate-product.model";
+
+/**
+ * Synchronize merchant's denormalized totalCoupons counter (coupons + affiliate deals)
+ */
+export async function syncMerchantTotalCoupons(merchantId) {
+  if (!merchantId) return;
+  try {
+    await connectDB();
+    const [couponCount, affiliateCount] = await Promise.all([
+      Coupon.countDocuments({
+        merchantId,
+        status: { $nin: ["deleted"] },
+      }),
+      AffiliateProduct.countDocuments({
+        merchantId,
+        status: { $nin: ["deleted"] },
+      }),
+    ]);
+    await Merchant.findByIdAndUpdate(merchantId, {
+      $set: { totalCoupons: couponCount + affiliateCount },
+    });
+  } catch (err) {
+    console.error("[syncMerchantTotalCoupons Error]:", err);
+  }
+}
 
 /**
  * Create a new affiliate product
@@ -13,7 +40,9 @@ export async function createAffiliateProduct(merchantId, data) {
   let discountPercentage = Number(data.discountPercentage) || 0;
 
   if (originalPrice > 0 && discountPrice > 0) {
-    discountPercentage = Math.round(((originalPrice - discountPrice) / originalPrice) * 100);
+    discountPercentage = Math.round(
+      ((originalPrice - discountPrice) / originalPrice) * 100,
+    );
   }
 
   const product = await AffiliateProduct.create({
@@ -30,6 +59,9 @@ export async function createAffiliateProduct(merchantId, data) {
     status: data.status || "active",
     expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
   });
+
+  // Keep merchant total offers counter synced
+  await syncMerchantTotalCoupons(merchantId);
 
   return product;
 }
@@ -57,7 +89,7 @@ export async function getMerchantAffiliateProducts(merchantId, query = {}) {
 }
 
 /**
- * Public: Get active affiliate products for a merchant or category
+ * Public: Get active affiliate products for a merchant or category with limit
  */
 export async function getPublicAffiliateProducts(query = {}) {
   await connectDB();
@@ -71,9 +103,12 @@ export async function getPublicAffiliateProducts(query = {}) {
     filter.category = query.category;
   }
 
+  const limit = Math.min(Number(query.limit) || 24, 100);
+
   const products = await AffiliateProduct.find(filter)
     .populate("merchantId", "businessName logo slug")
     .sort({ createdAt: -1 })
+    .limit(limit)
     .lean();
 
   return products;
@@ -109,9 +144,12 @@ export async function updateAffiliateProduct(productId, merchantId, data) {
   if (data.title !== undefined) product.title = data.title;
   if (data.description !== undefined) product.description = data.description;
   if (data.category !== undefined) product.category = data.category;
-  if (data.originalPrice !== undefined) product.originalPrice = Number(data.originalPrice) || 0;
-  if (data.discountPrice !== undefined) product.discountPrice = Number(data.discountPrice) || 0;
-  if (data.discountPercentage !== undefined) product.discountPercentage = Number(data.discountPercentage) || 0;
+  if (data.originalPrice !== undefined)
+    product.originalPrice = Number(data.originalPrice) || 0;
+  if (data.discountPrice !== undefined)
+    product.discountPrice = Number(data.discountPrice) || 0;
+  if (data.discountPercentage !== undefined)
+    product.discountPercentage = Number(data.discountPercentage) || 0;
   if (data.discountText !== undefined) product.discountText = data.discountText;
   if (data.affiliateUrl !== undefined) product.affiliateUrl = data.affiliateUrl;
   if (data.imageUrl !== undefined) product.imageUrl = data.imageUrl;
@@ -123,11 +161,15 @@ export async function updateAffiliateProduct(productId, merchantId, data) {
     const savings = product.originalPrice - product.discountPrice;
     product.discountPercentage = Math.max(
       0,
-      Math.round((savings / product.originalPrice) * 100)
+      Math.round((savings / product.originalPrice) * 100),
     );
   }
 
   await product.save();
+
+  // Keep merchant total offers counter synced
+  await syncMerchantTotalCoupons(merchantId);
+
   return product;
 }
 
@@ -148,6 +190,10 @@ export async function deleteAffiliateProduct(productId, merchantId) {
 
   product.status = "deleted";
   await product.save();
+
+  // Keep merchant total offers counter synced
+  await syncMerchantTotalCoupons(merchantId);
+
   return { success: true, message: "Affiliate product deleted" };
 }
 

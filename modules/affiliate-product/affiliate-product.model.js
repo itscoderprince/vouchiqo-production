@@ -60,7 +60,7 @@ const affiliateProductSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["active", "paused", "expired", "deleted"],
+      enum: ["active", "paused", "deleted"],
       default: "active",
       index: true,
     },
@@ -70,7 +70,6 @@ const affiliateProductSchema = new Schema(
     },
     expiresAt: {
       type: Date,
-      index: true,
     },
   },
   {
@@ -89,11 +88,8 @@ affiliateProductSchema.pre("save", function () {
 
 affiliateProductSchema.index({ merchantId: 1, status: 1 });
 affiliateProductSchema.index({ status: 1, category: 1 });
+affiliateProductSchema.index({ status: 1, createdAt: -1 });
 
-if (mongoose.models.AffiliateProduct) {
-  delete mongoose.models.AffiliateProduct;
-}
-
-const AffiliateProduct = mongoose.model("AffiliateProduct", affiliateProductSchema);
+const AffiliateProduct = mongoose.models.AffiliateProduct || mongoose.model("AffiliateProduct", affiliateProductSchema);
 
 export default AffiliateProduct;

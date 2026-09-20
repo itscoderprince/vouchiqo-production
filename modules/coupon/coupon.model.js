@@ -125,10 +125,6 @@ couponSchema.index(
   { weights: { title: 10, tags: 5, description: 1 } },
 );
 
-if (mongoose.models.Coupon) {
-  delete mongoose.models.Coupon;
-}
-
-const Coupon = mongoose.model("Coupon", couponSchema);
+const Coupon = mongoose.models.Coupon || mongoose.model("Coupon", couponSchema);
 
 export default Coupon;

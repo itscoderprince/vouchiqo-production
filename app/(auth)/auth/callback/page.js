@@ -31,10 +31,15 @@ export default async function AuthCallbackPage({ searchParams }) {
     const db = mongoose.connection.db;
 
     if (db) {
+      const userAuthId = String(session.user.id);
+      const queryId = mongoose.Types.ObjectId.isValid(userAuthId)
+        ? new mongoose.Types.ObjectId(userAuthId)
+        : userAuthId;
+
       // Check if first-time login for OAuth user
       const userProfile = await db
         .collection("user_profiles")
-        .findOne({ authId: session.user.id });
+        .findOne({ authId: userAuthId });
 
       const now = new Date();
       if (!userProfile || !userProfile.lastLoginAt) {
@@ -70,14 +75,14 @@ export default async function AuthCallbackPage({ searchParams }) {
         await db
           .collection("user")
           .updateOne(
-            { _id: session.user.id },
+            { $or: [{ _id: userAuthId }, { _id: queryId }] },
             { $set: { role: requestedRole } },
           );
 
         await db
           .collection("user_profiles")
           .updateOne(
-            { authId: session.user.id },
+            { authId: userAuthId },
             { $set: { role: requestedRole, lastLoginAt: now, updatedAt: now } },
             { upsert: true },
           );
@@ -87,7 +92,7 @@ export default async function AuthCallbackPage({ searchParams }) {
         await db
           .collection("user_profiles")
           .updateOne(
-            { authId: session.user.id },
+            { authId: userAuthId },
             {
               $set: { lastLoginAt: now, updatedAt: now },
               $setOnInsert: { role: currentRole },

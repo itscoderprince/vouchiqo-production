@@ -13,20 +13,25 @@ import Merchant from "@/modules/merchant/merchant.model";
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
-const CACHE_KEY = "vouchiqo:homepage:data:v2";
-const CACHE_TTL_SECONDS = 60;
+const CACHE_KEY = "vouchiqo:homepage:data:v3";
+const CACHE_TTL_SECONDS = 300;
 
 async function fetchHomepageData() {
-  // 1. Check Redis cache first for sub-5ms TTFB
+  // 1. Check Redis cache first with strict timeout (1.5s) for instant response
   try {
     if (redis && redis.status === "ready") {
-      const cached = await redis.get(CACHE_KEY);
+      const cached = await Promise.race([
+        redis.get(CACHE_KEY),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Redis cache get timeout")), 1500),
+        ),
+      ]);
       if (cached) {
         return JSON.parse(cached);
       }
     }
   } catch (err) {
-    console.warn("[Homepage Cache Warning]:", err?.message);
+    // Graceful fallback to database
   }
 
   // 2. Connect DB
@@ -50,9 +55,9 @@ async function fetchHomepageData() {
     listCoupons(latestParams).catch(() => ({ coupons: [] })),
     Merchant.find({ status: "approved" })
       .select(
-        "businessName slug logo banner totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
+        "businessName slug logo banner category maxDiscount shortDescription location totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
       )
-      .sort({ createdAt: -1 })
+      .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
       .limit(36)
       .lean()
       .catch(() => []),
@@ -68,10 +73,15 @@ async function fetchHomepageData() {
     affiliateProducts: JSON.parse(JSON.stringify(rawProducts || [])),
   };
 
-  // 4. Cache in Redis for instant subsequent loads
+  // 4. Cache in Redis non-blocking in the background
   try {
-    if (redis) {
-      await redis.set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS);
+    if (redis && redis.status === "ready") {
+      Promise.race([
+        redis.set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Redis cache set timeout")), 2000),
+        ),
+      ]).catch(() => {});
     }
   } catch (_) {}
 

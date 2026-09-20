@@ -1,6 +1,7 @@
 "use client";
 
 import { Rocket, Tag, Target, Trophy, Users, Zap } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
@@ -118,6 +119,12 @@ export default function CreateNewCampaignPage() {
     );
   }
 
+  const isFreeMerchant =
+    !merchant?.plan ||
+    merchant?.plan === "starter" ||
+    String(merchant?.plan).toLowerCase().includes("starter") ||
+    String(merchant?.plan).toLowerCase().includes("free");
+
   const filteredCoupons = coupons.filter(
     (c) =>
       c.title?.toLowerCase().includes(listingSearch.toLowerCase()) ||
@@ -133,6 +140,31 @@ export default function CreateNewCampaignPage() {
       }}
     >
       <div className="flex flex-col gap-4 text-left font-sans w-full">
+        {isFreeMerchant && (
+          <div className="flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200/80 rounded-xl text-xs font-sans shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-6 h-6 rounded-lg bg-[#F72853] text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs">
+                ⚡
+              </span>
+              <div>
+                <span className="font-bold text-slate-900">
+                  Free Partner Flash Sale Pass Active
+                </span>
+                <span className="text-slate-600 block text-[11px]">
+                  Configuring your 1-time 24–48hr Flash Sale Campaign with live
+                  countdown timer.
+                </span>
+              </div>
+            </div>
+            <Link
+              href="/merchant/billing"
+              className="text-[#F72853] hover:underline font-semibold text-xs whitespace-nowrap"
+            >
+              Need all 7 campaign types? Upgrade →
+            </Link>
+          </div>
+        )}
+
         <CampaignStepper
           steps={WIZARD_STEPS}
           currentStep={currentStep}
@@ -154,6 +186,7 @@ export default function CreateNewCampaignPage() {
                 errors={errors}
                 campaignTypes={CAMPAIGN_TYPES}
                 objectives={OBJECTIVES}
+                isFreeMerchant={isFreeMerchant}
                 onCancel={() => router.push("/merchant/campaigns")}
                 onNext={handleNextStep}
               />

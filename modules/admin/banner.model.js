@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import "../merchant/merchant.model.js";
 
 const promoBannerSchema = new Schema(
   {
@@ -101,10 +102,8 @@ const promoBannerSchema = new Schema(
   },
 );
 
-if (mongoose.models.PromoBanner) {
-  delete mongoose.models.PromoBanner;
-}
-
-const PromoBanner = mongoose.model("PromoBanner", promoBannerSchema);
+const PromoBanner =
+  mongoose.models.PromoBanner ||
+  mongoose.model("PromoBanner", promoBannerSchema);
 
 export default PromoBanner;

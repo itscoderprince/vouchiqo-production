@@ -2,6 +2,7 @@
 
 import { FileText, MessageSquare, Tag, Target } from "lucide-react";
 import { useWatch } from "react-hook-form";
+import toast from "react-hot-toast";
 import { FormInput, FormSelect, FormTextarea } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ export default function StepBasics({
   errors,
   campaignTypes,
   objectives,
+  isFreeMerchant,
   onCancel,
   onNext,
 }) {
@@ -49,15 +51,28 @@ export default function StepBasics({
           <FormSelect
             label="Campaign Type"
             icon={Tag}
-            options={campaignTypes.map((t) => ({
-              value: t.id,
-              label: `${t.name} (${t.badge})`,
-            }))}
+            options={campaignTypes.map((t) => {
+              const isFlash = t.id === "flash";
+              return {
+                value: t.id,
+                label:
+                  isFreeMerchant && !isFlash
+                    ? `🔒 ${t.name} (Growth Plan Only)`
+                    : `${t.name} (${t.badge})`,
+                disabled: isFreeMerchant && !isFlash,
+              };
+            })}
             required
-            value={selectedType}
-            onValueChange={(val) =>
-              setValue("type", val, { shouldValidate: true })
-            }
+            value={isFreeMerchant ? "flash" : selectedType}
+            onValueChange={(val) => {
+              if (isFreeMerchant && val !== "flash") {
+                toast.error(
+                  "Free merchants can only create Flash Sale campaigns. Upgrade to Growth Plan to unlock all 7 campaign types.",
+                );
+                return;
+              }
+              setValue("type", val, { shouldValidate: true });
+            }}
             error={errors.type}
           />
         </div>

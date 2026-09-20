@@ -1,5 +1,5 @@
-import { uploadImage } from "@/lib/cloudinary";
-import { requireAuth } from "@/modules/auth/auth.middleware";
+﻿import { uploadImage } from "@/lib/cloudinary";
+import { rateLimit, requireAuth } from "@/modules/auth/auth.middleware";
 import { ok } from "@/utils/api-response";
 import { AppError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
@@ -15,6 +15,9 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
  * Validates: file type, file size, auth.
  */
 export const POST = asyncHandler(async (request) => {
+  // Rate limit: max 20 uploads per hour per IP for guests.
+  await rateLimit(request, "POST:/api/uploads", 20, 3600);
+
   try {
     await requireAuth(request);
   } catch {

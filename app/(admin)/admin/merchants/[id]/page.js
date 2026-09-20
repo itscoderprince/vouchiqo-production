@@ -15,6 +15,7 @@ import {
   Phone,
   PlusCircle,
   ShieldAlert,
+  ShieldCheck,
   Store,
   Tag,
   UserCheck,
@@ -77,7 +78,17 @@ export default function MerchantDetailPage({ params }) {
         setMerchant(data.merchant);
         setTargetPlan(data.merchant.plan || "starter");
       }
-      setCoupons(data.coupons || []);
+      const allOffers = [
+        ...(data.coupons || []),
+        ...(data.affiliateProducts || []).map((a) => ({
+          ...a,
+          code: "Affiliate Link",
+          discountType: "percentage",
+          discountValue: a.discountPercentage || 0,
+          isAffiliate: true,
+        })),
+      ];
+      setCoupons(allOffers);
     } catch (err) {
       console.error("Error loading merchant detail:", err);
       toast.error("Failed to load merchant profile data.");
@@ -583,7 +594,8 @@ export default function MerchantDetailPage({ params }) {
                       <div className="p-4 bg-purple-50/40 rounded-xl border border-purple-200/80 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-900 block">
-                            Identity Document ({merchant?.docType || "GST Certificate"})
+                            Identity Document (
+                            {merchant?.docType || "GST Certificate"})
                           </span>
                           {docImgUrl && (
                             <a
@@ -596,18 +608,18 @@ export default function MerchantDetailPage({ params }) {
                             </a>
                           )}
                         </div>
-                        {docImgUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={docImgUrl}
-                            alt={merchant?.docType || "Primary Identity Document"}
-                            className="max-h-48 mx-auto object-contain rounded-xl border border-purple-200 bg-white p-1 shadow-2xs"
-                          />
-                        ) : (
-                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                            No primary document image uploaded
-                          </div>
-                        )}
+                        {docImgUrl
+                          ? // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={docImgUrl}
+                              alt={
+                                merchant?.docType || "Primary Identity Document"
+                              }
+                              className="max-h-48 mx-auto object-contain rounded-xl border border-purple-200 bg-white p-1 shadow-2xs"
+                            />
+                          : <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                              No primary document image uploaded
+                            </div>}
                       </div>
                     );
                   })()}
@@ -636,18 +648,16 @@ export default function MerchantDetailPage({ params }) {
                             </a>
                           )}
                         </div>
-                        {shopImgUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={shopImgUrl}
-                            alt="Shop Front"
-                            className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
-                          />
-                        ) : (
-                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                            No shop front photo uploaded
-                          </div>
-                        )}
+                        {shopImgUrl
+                          ? // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={shopImgUrl}
+                              alt="Shop Front"
+                              className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
+                            />
+                          : <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                              No shop front photo uploaded
+                            </div>}
                       </div>
                     );
                   })()}
@@ -673,18 +683,16 @@ export default function MerchantDetailPage({ params }) {
                             </a>
                           )}
                         </div>
-                        {logoImgUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={logoImgUrl}
-                            alt="Store Logo"
-                            className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
-                          />
-                        ) : (
-                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                            No store logo uploaded
-                          </div>
-                        )}
+                        {logoImgUrl
+                          ? // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={logoImgUrl}
+                              alt="Store Logo"
+                              className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
+                            />
+                          : <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                              No store logo uploaded
+                            </div>}
                       </div>
                     );
                   })()}
@@ -692,7 +700,9 @@ export default function MerchantDetailPage({ params }) {
                   {/* Store Banner */}
                   {(() => {
                     const bannerImgUrl =
-                      merchant?.banner || merchant?.bannerUrl || merchant?.shopBanner;
+                      merchant?.banner ||
+                      merchant?.bannerUrl ||
+                      merchant?.shopBanner;
                     return (
                       <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                         <div className="flex items-center justify-between">
@@ -710,18 +720,16 @@ export default function MerchantDetailPage({ params }) {
                             </a>
                           )}
                         </div>
-                        {bannerImgUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={bannerImgUrl}
-                            alt="Store Banner"
-                            className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
-                          />
-                        ) : (
-                          <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                            No store banner uploaded
-                          </div>
-                        )}
+                        {bannerImgUrl
+                          ? // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={bannerImgUrl}
+                              alt="Store Banner"
+                              className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-2xs"
+                            />
+                          : <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                              No store banner uploaded
+                            </div>}
                       </div>
                     );
                   })()}

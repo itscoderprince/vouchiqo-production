@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -13,7 +13,19 @@ export const dynamic = "force-dynamic";
  * GET /api/seed
  * Seed Super Admin, 2 Customer Users, and 7 Fresh Merchants using Better Auth's native auth.api.signUpEmail.
  */
-export async function GET() {
+export async function GET(request) {
+  // ABSOLUTE BLOCK in production — this route wipes all database data
+  if (process.env.NODE_ENV === "production") {
+    return Response.json({ error: "Not found" }, { status: 404 });
+  }
+  // Dev-only: require a secret header to prevent accidental wipes
+  const secret = request.headers.get("x-seed-secret");
+  if (!secret || secret !== process.env.SEED_SECRET) {
+    return Response.json(
+      { error: "Unauthorized. Pass 'x-seed-secret' header with the correct SEED_SECRET value." },
+      { status: 401 },
+    );
+  }
   console.log("[Seed Route] Started database seeding...");
   await connectDB();
   const db = mongoose.connection.db;

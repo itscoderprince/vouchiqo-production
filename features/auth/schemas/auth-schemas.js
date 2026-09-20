@@ -5,6 +5,8 @@ export const loginSchema = z.object({
   email: z
     .string()
     .min(1, "Email is required")
+    .trim()
+    .toLowerCase()
     .email("Please enter a valid email address"),
   password: z
     .string()
@@ -17,6 +19,8 @@ export const merchantLoginSchema = z.object({
   email: z
     .string()
     .min(1, "Email is required")
+    .trim()
+    .toLowerCase()
     .email("Please enter a valid email address"),
   password: z
     .string()
@@ -25,7 +29,11 @@ export const merchantLoginSchema = z.object({
 });
 
 export const adminLoginSchema = z.object({
-  username: z.string().min(1, "Username or email is required"),
+  username: z
+    .string()
+    .min(1, "Username or email is required")
+    .trim()
+    .toLowerCase(),
   password: z
     .string()
     .min(1, "Password is required")
@@ -34,10 +42,12 @@ export const adminLoginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    name: z.string().min(1, "Full name is required").max(100),
+    name: z.string().trim().min(1, "Full name is required").max(100),
     email: z
       .string()
       .min(1, "Email is required")
+      .trim()
+      .toLowerCase()
       .email("Please enter a valid email address")
       .refine((val) => !isDisposableEmail(val), {
         message:
@@ -69,10 +79,12 @@ export const registerSchema = z
   });
 
 export const merchantRegisterSchema = z.object({
-  name: z.string().min(1, "Brand name is required").max(100),
+  name: z.string().trim().min(1, "Brand name is required").max(100),
   email: z
     .string()
     .min(1, "Email is required")
+    .trim()
+    .toLowerCase()
     .email("Please enter a valid email address")
     .refine((val) => !isDisposableEmail(val), {
       message:

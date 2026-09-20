@@ -12,39 +12,52 @@ import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
  */
 export async function getPromoBanners() {
   try {
-    const cached = await redis.get(REDIS_KEYS.BANNERS);
-    if (cached) {
-      return JSON.parse(cached);
+    if (redis && redis.status === "ready") {
+      const cached = await Promise.race([
+        redis.get(REDIS_KEYS.BANNERS),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Redis banner get timeout")), 1200),
+        ),
+      ]);
+      if (cached) {
+        return JSON.parse(cached);
+      }
     }
   } catch (err) {
-    console.error("Redis error fetching promo banners:", err);
+    // Graceful cache miss
   }
 
-  const now = new Date();
-  const banners = await PromoBanner.find({
-    status: "active",
-    $and: [
-      {
-        $or: [{ startDate: null }, { startDate: { $lte: now } }],
-      },
-      {
-        $or: [{ endDate: null }, { endDate: { $gte: now } }],
-      },
-    ],
-  })
-    .populate("merchantId", "businessName slug logo banner")
-    .sort({ priority: -1, createdAt: -1 })
+  const rawBanners = await PromoBanner.find({ status: "active" })
+    .limit(36)
     .lean();
 
-  try {
-    await redis.setex(
-      REDIS_KEYS.BANNERS,
-      REDIS_TTL.BANNERS,
-      JSON.stringify(banners),
+  const now = new Date();
+  const banners = (rawBanners || [])
+    .filter((b) => {
+      if (b.startDate && new Date(b.startDate) > now) return false;
+      if (b.endDate && new Date(b.endDate) < now) return false;
+      return true;
+    })
+    .sort(
+      (a, b) =>
+        (b.priority || 0) - (a.priority || 0) ||
+        new Date(b.createdAt) - new Date(a.createdAt),
     );
-  } catch (err) {
-    console.error("Redis error writing promo banners:", err);
-  }
+
+  try {
+    if (redis && redis.status === "ready") {
+      Promise.race([
+        redis.setex(
+          REDIS_KEYS.BANNERS,
+          REDIS_TTL.BANNERS,
+          JSON.stringify(banners),
+        ),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Redis banner set timeout")), 1500),
+        ),
+      ]).catch(() => {});
+    }
+  } catch (err) {}
 
   return banners;
 }
@@ -54,7 +67,9 @@ export async function getPromoBanners() {
  */
 export async function invalidateBannersCache() {
   try {
-    await redis.del(REDIS_KEYS.BANNERS);
+    if (redis && redis.status === "ready") {
+      await redis.del(REDIS_KEYS.BANNERS);
+    }
   } catch (err) {
     console.error("Redis error deleting promo banners cache:", err);
   }
@@ -66,7 +81,6 @@ export async function invalidateBannersCache() {
  */
 export async function getAllBanners() {
   return await PromoBanner.find({})
-    .populate("merchantId", "businessName slug logo banner")
     .sort({ priority: -1, createdAt: -1 })
     .lean();
 }
