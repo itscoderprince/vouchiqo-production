@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
+import { logger } from "@/lib/logger";
 import { COUPON_CATEGORIES } from "@/utils/constants";
 import CategoriesClient from "./categories-client";
 
@@ -126,26 +127,23 @@ export const CATEGORY_META = {
 export default async function CategoriesPage() {
   await connectDB();
 
-  // 1. Get coupon counts per category from MongoDB
-  const couponCounts = await Coupon.aggregate([
-    {
-      $match: {
-        status: "active",
-        expiresAt: { $gt: new Date() },
+  // Parallel database execution (Rule 74 — eliminate request waterfalls)
+  const [couponCounts, affiliateCounts] = await Promise.all([
+    Coupon.aggregate([
+      {
+        $match: {
+          status: "active",
+          expiresAt: { $gt: new Date() },
+        },
       },
-    },
-    {
-      $group: {
-        _id: "$category",
-        total: { $sum: 1 },
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: 1 },
+        },
       },
-    },
-  ]);
-
-  // 2. Get affiliate product counts per category
-  let affiliateCounts = [];
-  try {
-    affiliateCounts = await AffiliateProduct.aggregate([
+    ]),
+    AffiliateProduct.aggregate([
       {
         $match: {
           status: "active",
@@ -157,9 +155,19 @@ export default async function CategoriesPage() {
           total: { $sum: 1 },
         },
       },
-    ]);
-  } catch (err) {
-    console.error("Error fetching affiliate category counts:", err);
+    ]).catch((err) => {
+      logger.error({ err }, "Error fetching affiliate category counts");
+      return [];
+    }),
+  ]);
+
+  const couponCountMap = new Map();
+  for (const c of couponCounts) {
+    if (c._id) couponCountMap.set(c._id, c.total);
+  }
+  const affiliateCountMap = new Map();
+  for (const a of affiliateCounts) {
+    if (a._id) affiliateCountMap.set(a._id, a.total);
   }
 
   // 3. Build 15 categories with accurate live counts & high-res photography
@@ -172,8 +180,8 @@ export default async function CategoriesPage() {
         image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
       };
 
-      const cCount = couponCounts.find((c) => c._id === slug)?.total || 0;
-      const aCount = affiliateCounts.find((a) => a._id === slug)?.total || 0;
+      const cCount = couponCountMap.get(slug) || 0;
+      const aCount = affiliateCountMap.get(slug) || 0;
       const totalOffers = cCount + aCount;
 
       return {

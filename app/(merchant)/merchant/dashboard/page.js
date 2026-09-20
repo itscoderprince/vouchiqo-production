@@ -15,7 +15,17 @@ import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import KpiCards from "./components/KpiCards";
-import PerformanceChart from "./components/PerformanceChart";
+import dynamic from "next/dynamic";
+import { qk } from "@/lib/query-keys";
+
+const PerformanceChart = dynamic(() => import("./components/PerformanceChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="col-span-full xl:col-span-8 bg-white border border-slate-200/80 rounded-xl p-6 h-80 flex items-center justify-center animate-pulse">
+      <div className="h-4 bg-slate-200 rounded w-40" />
+    </div>
+  ),
+});
 import RecentOrdersAndActivity from "./components/RecentOrdersAndActivity";
 import TopCouponsTable from "./components/TopCouponsTable";
 import TrafficAndGoals from "./components/TrafficAndGoals";
@@ -35,7 +45,7 @@ export default function MerchantDashboard() {
         duration: 5000,
       },
     );
-    queryClient.invalidateQueries({ queryKey: ["merchant-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
     queryClient.invalidateQueries({ queryKey: ["merchant-recent-claims"] });
   });
 
@@ -45,15 +55,15 @@ export default function MerchantDashboard() {
       `Coupon Redeemed! "${data.couponTitle || "Offer"}" (Saved ₹${data.savingsAmount || 0})`,
       { icon: "💰", duration: 5000 },
     );
-    queryClient.invalidateQueries({ queryKey: ["merchant-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
     queryClient.invalidateQueries({
-      queryKey: ["merchant-recent-redemptions"],
+      queryKey: qk.merchant.recentRedemptions(),
     });
   });
 
   // Fetch merchant analytics from real API
   const { data: analyticsData } = useQuery({
-    queryKey: ["merchant-analytics"],
+    queryKey: qk.merchant.analytics(),
     queryFn: async () => {
       const res = await fetch("/api/analytics");
       if (!res.ok) return null;
@@ -64,7 +74,7 @@ export default function MerchantDashboard() {
 
   // Fetch merchant profile (plan info)
   const { data: merchantProfile } = useQuery({
-    queryKey: ["merchant-profile"],
+    queryKey: qk.merchant.profile(),
     queryFn: async () => {
       const res = await fetch("/api/merchants/me");
       if (!res.ok) return null;
@@ -75,7 +85,7 @@ export default function MerchantDashboard() {
 
   // Fetch recent redemptions
   const { data: redemptionsData } = useQuery({
-    queryKey: ["merchant-recent-redemptions"],
+    queryKey: qk.merchant.recentRedemptions(),
     queryFn: async () => {
       const res = await fetch("/api/redemptions?limit=5");
       if (!res.ok) return { redemptions: [] };

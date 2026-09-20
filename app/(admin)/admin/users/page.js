@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import {
   Ban,
   CheckCircle2,
@@ -76,7 +77,7 @@ export default function UserManagement() {
 
   // Socket.IO Real-time listeners for live user updates
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.users() });
   });
 
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, () => {
@@ -148,7 +149,7 @@ export default function UserManagement() {
             "Customer account and all associated records deleted permanently!",
         );
         queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+        queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
         refetch();
       } else {
         toast.error(

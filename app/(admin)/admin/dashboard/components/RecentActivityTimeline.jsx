@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import { ArrowUpRight, Store, Tag } from "lucide-react";
 import Link from "next/link";
 import {
@@ -14,7 +15,7 @@ import { apiFetch } from "@/lib/fetcher";
 
 export default function RecentActivityTimeline() {
   const { data: analyticsData } = useQuery({
-    queryKey: ["admin-analytics"],
+    queryKey: qk.admin.analytics(),
     queryFn: async () => {
       const json = await apiFetch("/api/admin/analytics");
       return json.data;

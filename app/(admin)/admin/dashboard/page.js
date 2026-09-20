@@ -51,18 +51,18 @@ export default function AdminDashboard() {
 
   // Real-time socket listeners for live merchant data & applications
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
     queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
   });
 
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
     queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
   });
 
   // Fetch admin analytics
   const { data: analyticsData } = useQuery({
-    queryKey: ["admin-analytics"],
+    queryKey: qk.admin.analytics(),
     queryFn: async () => {
       const res = await fetch("/api/admin/analytics");
       if (!res.ok) return null;

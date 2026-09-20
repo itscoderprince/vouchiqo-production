@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import { Search, Tag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import CouponCard from "@/components/shared/cards/CouponCard";
@@ -48,35 +50,25 @@ function SkeletonCard() {
 }
 
 export default function DealsClient() {
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
-  // Fetch offers based on current filters
-  useEffect(() => {
-    async function loadOffers() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ limit: "40" });
-        if (search) params.set("search", search);
-        params.set("sortBy", sortBy);
-        params.set("sortOrder", sortOrder);
 
-        const res = await fetch(`/api/coupons?${params.toString()}`);
-        if (res.ok) {
-          const json = await res.json();
-          setCoupons(json.data?.coupons || []);
-        }
-      } catch (err) {
-        console.error("Failed to load offers:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    const timer = setTimeout(loadOffers, 300);
-    return () => clearTimeout(timer);
-  }, [search, sortBy, sortOrder]);
+  const { data: coupons = [], isLoading: loading } = useQuery({
+    queryKey: qk.coupons.list({ search, sortBy, sortOrder, limit: "40" }),
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: "40" });
+      if (search) params.set("search", search);
+      params.set("sortBy", sortBy);
+      params.set("sortOrder", sortOrder);
+
+      const res = await fetch(`/api/coupons?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to load offers");
+      const json = await res.json();
+      return json.data?.coupons || [];
+    },
+    staleTime: 60 * 1000,
+  });
 
   const handleResetFilters = () => {
     setSearch("");

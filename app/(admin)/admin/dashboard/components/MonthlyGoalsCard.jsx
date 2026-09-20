@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import {
   Card,
   CardContent,
@@ -17,19 +18,19 @@ export default function MonthlyGoalsCard({ analyticsData = {} }) {
 
   // Socket.IO Real-time listeners to keep goals updated instantly
   useRealtime(SOCKET_EVENTS.COUPON_CLAIMED, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
   });
 
   useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
   });
 
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
   });
 
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+    queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
   });
 
   const kpis = analyticsData?.kpis ?? {};

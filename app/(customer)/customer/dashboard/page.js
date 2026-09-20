@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import {
   Bookmark,
   History,
@@ -54,7 +55,7 @@ export default function CustomerDashboard() {
 
   // Fetch actual savings data
   const { data: savingsData } = useQuery({
-    queryKey: ["user-savings"],
+    queryKey: qk.user.savings(),
     queryFn: async () => {
       const res = await fetch("/api/users/savings");
       if (!res.ok) throw new Error("Failed to fetch savings data");
@@ -65,7 +66,7 @@ export default function CustomerDashboard() {
 
   // Fetch actual active saved claims
   const { data: claimsData } = useQuery({
-    queryKey: ["user-claims"],
+    queryKey: qk.user.claims("active"),
     queryFn: async () => {
       const res = await fetch("/api/claims?status=active");
       if (!res.ok) throw new Error("Failed to fetch claims data");
@@ -76,7 +77,7 @@ export default function CustomerDashboard() {
 
   // Fetch actual customer revival stats
   const { data: revivalsData } = useQuery({
-    queryKey: ["customer-revivals"],
+    queryKey: qk.user.revivals(),
     queryFn: async () => {
       const res = await fetch("/api/revivals/customer");
       if (!res.ok) throw new Error("Failed to fetch revivals stats");
@@ -156,8 +157,8 @@ export default function CustomerDashboard() {
     const json = await res.json();
 
     // Invalidate query caches to refresh statistics and listings
-    queryClient.invalidateQueries({ queryKey: ["user-savings"] });
-    queryClient.invalidateQueries({ queryKey: ["user-claims"] });
+    queryClient.invalidateQueries({ queryKey: qk.user.savings() });
+    queryClient.invalidateQueries({ queryKey: qk.user.claims() });
 
     return json.data?.couponCode;
   };

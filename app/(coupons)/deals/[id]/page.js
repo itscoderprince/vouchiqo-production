@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { logger } from "@/lib/logger";
 import Coupon from "@/modules/coupon/coupon.model";
 import { getCouponById } from "@/modules/coupon/coupon.service";
 import DealDetailsClient from "./deal-details-client";
@@ -72,6 +73,7 @@ export default async function CouponPage({ params }) {
         expiresAt: { $gt: new Date() },
         ...(isMockId ? {} : { _id: { $ne: coupon._id } }),
       })
+        .select("title discountValue discountType code expiresAt category merchantId")
         .populate("merchantId", "businessName slug logo")
         .limit(3)
         .lean();
@@ -84,6 +86,7 @@ export default async function CouponPage({ params }) {
         expiresAt: { $gt: new Date() },
         ...(isMockId ? {} : { _id: { $ne: coupon._id } }),
       })
+        .select("title discountValue discountType code expiresAt category merchantId")
         .populate("merchantId", "businessName slug logo")
         .limit(3)
         .lean();
@@ -133,7 +136,7 @@ export default async function CouponPage({ params }) {
 
     relatedCoupons = JSON.parse(JSON.stringify(rawRelated || []));
   } catch (err) {
-    console.error("Error loading deal page:", err);
+    logger.error({ err, id }, "Error loading deal page");
     notFound();
   }
 

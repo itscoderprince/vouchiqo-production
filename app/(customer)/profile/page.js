@@ -19,13 +19,27 @@ import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
-import ActivityTab from "./components/ActivityTab";
-import NearbyOffersTab from "./components/NearbyOffersTab";
-import SavedDealsTab from "./components/SavedDealsTab";
-// Modular Tab Components
-import SavingsTab from "./components/SavingsTab";
-import SettingsTab from "./components/SettingsTab";
-import WalletTab from "./components/WalletTab";
+import dynamic from "next/dynamic";
+
+// Modular Tab Components (Code-split dynamically per Rule 57)
+const SavingsTab = dynamic(() => import("./components/SavingsTab"), {
+  loading: () => <DashboardSkeleton mode="profile" />,
+});
+const SavedDealsTab = dynamic(() => import("./components/SavedDealsTab"), {
+  loading: () => <DashboardSkeleton mode="profile" />,
+});
+const WalletTab = dynamic(() => import("./components/WalletTab"), {
+  loading: () => <DashboardSkeleton mode="profile" />,
+});
+const ActivityTab = dynamic(() => import("./components/ActivityTab"), {
+  loading: () => <DashboardSkeleton mode="profile" />,
+});
+const NearbyOffersTab = dynamic(() => import("./components/NearbyOffersTab"), {
+  loading: () => <DashboardSkeleton mode="profile" />,
+});
+const SettingsTab = dynamic(() => import("./components/SettingsTab"), {
+  loading: () => <DashboardSkeleton mode="profile" />,
+});
 
 const DONUT_COLORS = [
   "#2563eb",

@@ -122,7 +122,7 @@ export default function AdminMerchantsClient({
       if (res.ok) {
         toast.success(json.message || "Merchant partner and all associated data deleted permanently!");
         queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
-        queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+        queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
         refetch();
       } else {
         toast.error(json.error?.message || json.message || "Failed to delete merchant.");

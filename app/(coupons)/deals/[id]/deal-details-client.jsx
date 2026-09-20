@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/query-keys";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -66,6 +67,7 @@ function CountdownTimer({ expiresAt }) {
 
 export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isLoggedIn, user } = useUser();
   const track = useTrackEvent();
   const [copiedCode, setCopiedCode] = useState(false);
@@ -88,7 +90,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
 
   // Fetch active saved claims for the user
   const { data: claims = [], refetch: refetchClaims } = useQuery({
-    queryKey: ["user-claims"],
+    queryKey: qk.user.claims("active"),
     queryFn: async () => {
       if (!isLoggedIn) return [];
       const res = await fetch("/api/claims?status=active");
@@ -156,6 +158,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
     },
     onSuccess: (data) => {
       refetchClaims();
+      queryClient.invalidateQueries({ queryKey: qk.user.claims() });
       toast.success(
         data.action === "save"
           ? "Coupon saved to your collection!"
