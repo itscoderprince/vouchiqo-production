@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils";
 const DEFAULT_MERCHANT_PLANS = [
   {
     id: "starter",
-    name: "Starter Free",
+    name: "STARTER FREE",
     badge: "Free Forever",
     priceMonthly: 0,
     priceYearly: 0,
@@ -45,12 +45,14 @@ const DEFAULT_MERCHANT_PLANS = [
     priceSuffix: "/ month free forever",
     subCaption: "Start listing. Pay only when a customer visits.",
     features: [
-      "Up to 3 active verified listings",
-      "Vouchiqo Verified badge standard",
-      "Basic CPM views & claims KPI cards",
-      "Campaign Manager (Add-on only)",
-      "Expired Coupon Revival (Locked)",
-      "72-hour email support SLA",
+      { text: "Up to 3 active verified listings", included: true },
+      { text: "Counter Smart Code & QR redemption", included: true },
+      { text: "Basic views & Smart Code analytics", included: true },
+      { text: "Platform promotional campaigns", included: false },
+      { text: "Expired offer customer revivals", included: false },
+      { text: "Targeted customer push notifications", included: false },
+      { text: "Vouchiqo Verified merchant badge", included: true },
+      { text: "Priority 24h dedicated support", included: false },
     ],
     footerNote:
       "Commission charged only on confirmed customer transactions — never on views or clicks.",
@@ -60,71 +62,78 @@ const DEFAULT_MERCHANT_PLANS = [
   },
   {
     id: "growth",
-    name: "Growth Partner",
+    name: "GROWTH PARTNER",
     badge: "Most Popular",
-    priceMonthly: 1499,
-    priceYearly: 14990,
-    priceText: "₹1,499",
-    originalPrice: "₹1,999",
+    priceMonthly: 999,
+    priceYearly: 9990,
+    priceText: "₹999",
+    originalPrice: "₹1,499",
     priceSuffix: "/ month",
-    subCaption: "More listings. Campaigns. Revival included. 14-day free trial.",
+    subCaption:
+      "More listings. Campaigns. Revival included. 14-day free trial.",
     features: [
-      "Up to 15 active offer listings",
-      "1 Active Campaign at a time",
-      "Standard Analytics & CSV performance exports",
-      "Campaign Manager 4-step wizard",
-      "Community verification credentials",
-      "48-hour priority email support",
+      { text: "Up to 15 active listings (5× Starter)", included: true },
+      { text: "Counter Smart Code & QR redemption", included: true },
+      { text: "Redemptions, clicks & category rank", included: true },
+      { text: "4 platform campaigns / yr (1/quarter)", included: true },
+      { text: "5 expired offer revivals / month", included: true },
+      { text: "Targeted customer push notifications", included: false },
+      { text: "Founding badge + 12-mo rate lock", included: true },
+      { text: "Standard email support (48h SLA)", included: true },
     ],
     footerNote:
       "No payment collected today. Trial starts on account activation.",
-    buttonText: "Select Growth — ₹1,499/mo",
+    buttonText: "Select Growth — ₹999/mo",
     theme: "amber",
     active: true,
   },
   {
     id: "pro",
-    name: "Pro Partner",
+    name: "PRO PARTNER",
     badge: "Best Value",
-    priceMonthly: 3999,
-    priceYearly: 39990,
-    priceText: "₹3,999",
-    originalPrice: "₹4,999",
+    priceMonthly: 2499,
+    priceYearly: 24990,
+    priceText: "₹2,499",
+    originalPrice: "₹3,999",
     priceSuffix: "/ month",
-    subCaption: "Unlimited listings, campaigns, and push sends. Full power.",
+    subCaption:
+      "Unlimited listings, campaigns, and push sends. Full power.",
     features: [
-      "Unlimited active offer listings",
-      "4 Simultaneous Active Campaigns",
-      "50 Expired Offer Revival credits/month included",
-      "Homepage Featured Slot (2 days/month included)",
-      "Push Notification (1 send/month included)",
-      "Deep Advanced Analytics & Heatmaps",
-      "24-hour priority support SLA",
+      { text: "Unlimited active offer listings", included: true },
+      { text: "Counter Smart Code & QR redemption", included: true },
+      { text: "Deep analytics & revenue heatmaps", included: true },
+      { text: "Unlimited platform campaigns (no cap)", included: true },
+      { text: "50 expired offer revivals / month", included: true },
+      { text: "Custom push notifications to customers", included: true },
+      { text: "Founding badge + 12-mo rate lock", included: true },
+      { text: "Priority 24h dedicated support", included: true },
     ],
-    footerNote: "Instant activation. Cancel or downgrade anytime.",
-    buttonText: "Select Pro — ₹3,999/mo",
+    footerNote:
+      "Commission rate locked for 12 months under Founding Program.",
+    buttonText: "Select Pro — ₹2,499/mo",
     theme: "indigo",
     active: true,
   },
   {
     id: "enterprise",
-    name: "Enterprise Partner",
+    name: "ENTERPRISE",
     badge: "Custom Scale",
     priceMonthly: 9999,
     priceYearly: 99990,
-    priceText: "₹9,999",
-    originalPrice: "₹12,999",
-    priceSuffix: "/ month",
+    priceText: "Custom pricing",
+    originalPrice: "",
+    priceSuffix: "",
     subCaption:
-      "Custom multi-location scale with dedicated manager & full API access.",
+      "Dedicated manager. API access. Multi-location. Custom SLA.",
     features: [
-      "Unlimited active offer listings",
-      "Unlimited Simultaneous Campaigns",
-      "Unlimited Expired Offer Revivals",
-      "Unlimited Targeted Push Notifications",
-      "Custom Homepage Featured Slot Allocation",
-      "Dedicated Account Manager",
-      "POS & Webhook API Integration",
+      { text: "Unlimited multi-location listings", included: true },
+      { text: "Direct POS & CRM API integration", included: true },
+      { text: "Multi-location BI & custom exports", included: true },
+      { text: "Unlimited custom marketing campaigns", included: true },
+      { text: "Unlimited expired offer revivals", included: true },
+      { text: "Priority customer broadcast push campaigns", included: true },
+      { text: "10% Year 1 Founding discount", included: true },
+      { text: "Dedicated named account manager", included: true },
     ],
     footerNote: "Custom SLA and guaranteed response times.",
     buttonText: "Contact Enterprise",
@@ -211,7 +220,7 @@ export default function MerchantPlansEditorPage() {
     if (!newFeatureText.trim()) return;
     const updated = [...plans];
     const currentFeatures = updated[planIndex].features || [];
-    updated[planIndex].features = [...currentFeatures, newFeatureText.trim()];
+    updated[planIndex].features = [...currentFeatures, { text: newFeatureText.trim(), included: true }];
     setPlans(updated);
     setNewFeatureText("");
   };
@@ -774,7 +783,12 @@ export default function MerchantPlansEditorPage() {
 
                     {/* Features List */}
                     <div className="space-y-1.5">
-                      {(activePlan.features || []).map((feat, fIdx) => {
+                      {(activePlan.features || []).map((rawFeat, fIdx) => {
+                        const featObj =
+                          typeof rawFeat === "object" && rawFeat !== null
+                            ? rawFeat
+                            : { text: String(rawFeat), included: true };
+                        const isIncluded = featObj.included !== false;
                         const theme = ROW_COLOR_THEMES[fIdx % ROW_COLOR_THEMES.length];
                         return (
                           <div
@@ -785,19 +799,55 @@ export default function MerchantPlansEditorPage() {
                             )}
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <div className="w-5 h-5 rounded-md bg-white text-emerald-700 border border-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
-                                <Check className="w-3 h-3 stroke-[2.5]" />
-                              </div>
-                              <input
-                                type="text"
-                                value={feat}
-                                onChange={(e) => {
+                              <button
+                                type="button"
+                                title={
+                                  isIncluded
+                                    ? "Included in this tier (Click to exclude)"
+                                    : "Excluded from this tier (Click to include)"
+                                }
+                                onClick={() => {
                                   const updated = [...plans];
-                                  updated[selectedPlanIdx].features[fIdx] =
-                                    e.target.value;
+                                  const cur = updated[selectedPlanIdx].features[fIdx];
+                                  const obj =
+                                    typeof cur === "object" && cur !== null
+                                      ? { ...cur, included: !isIncluded }
+                                      : { text: String(cur), included: !isIncluded };
+                                  updated[selectedPlanIdx].features[fIdx] = obj;
                                   setPlans(updated);
                                 }}
-                                className="w-full bg-transparent border-0 focus:outline-none text-slate-900 font-normal text-xs"
+                                className={cn(
+                                  "w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-2xs cursor-pointer transition-all",
+                                  isIncluded
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100"
+                                    : "bg-rose-50 text-rose-600 border border-rose-300 hover:bg-rose-100",
+                                )}
+                              >
+                                {isIncluded ? (
+                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                ) : (
+                                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                                )}
+                              </button>
+                              <input
+                                type="text"
+                                value={featObj.text || ""}
+                                onChange={(e) => {
+                                  const updated = [...plans];
+                                  const cur = updated[selectedPlanIdx].features[fIdx];
+                                  const obj =
+                                    typeof cur === "object" && cur !== null
+                                      ? { ...cur, text: e.target.value }
+                                      : { text: e.target.value, included: isIncluded };
+                                  updated[selectedPlanIdx].features[fIdx] = obj;
+                                  setPlans(updated);
+                                }}
+                                className={cn(
+                                  "w-full bg-transparent border-0 focus:outline-none font-normal text-xs",
+                                  isIncluded
+                                    ? "text-slate-900"
+                                    : "text-slate-400 line-through decoration-slate-300",
+                                )}
                               />
                             </div>
                             <Tooltip>

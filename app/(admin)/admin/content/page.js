@@ -610,10 +610,17 @@ export default function PlatformContentSettings() {
                   </label>
                   <textarea
                     rows={4}
-                    value={Array.isArray(p.features) ? p.features.join("\n") : ""}
+                    value={Array.isArray(p.features) ? p.features.map(f => typeof f === "object" && f !== null ? (f.included === false ? `✗ ${f.text}` : f.text) : f).join("\n") : ""}
                     onChange={(e) => {
                       const updated = [...plans];
-                      updated[pIdx].features = e.target.value.split("\n");
+                      updated[pIdx].features = e.target.value.split("\n").map(l => {
+                        const t = l.trim();
+                        if (!t) return null;
+                        if (t.startsWith("✗") || t.startsWith("✕") || t.startsWith("❌") || t.startsWith("No ")) {
+                          return { text: t.replace(/^([✓✔✗✕❌]|\\[[xXvV+]\\])\s*/, "").trim(), included: false };
+                        }
+                        return { text: t.replace(/^([✓✔]|\\[[vV+]\\])\s*/, "").trim(), included: true };
+                      }).filter(Boolean);
                       setPlans(updated);
                     }}
                     className="w-full text-xs font-mono p-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-500"
