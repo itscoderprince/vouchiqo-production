@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Clock,
   CreditCard,
+  Eye,
   HelpCircle,
   History,
   Home,
@@ -781,13 +782,27 @@ export function AppSidebar({ ...props }) {
                     PLATFORM ADMIN
                   </span>
                 ) : role === "merchant" ? (
-                  <span className="bg-white/95 text-[#F72853] border border-rose-200/90 text-[8.5px] font-medium px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
-                    <Store className="w-2.5 h-2.5 text-[#F72853]" />{" "}
-                    {merchantPlan
-                      ? (PLAN_LABELS[merchantPlan] ??
-                        merchantPlan.toUpperCase())
-                      : "STARTER"}
-                  </span>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="bg-white/95 text-[#F72853] border border-rose-200/90 text-[8.5px] font-medium px-1.5 py-0.5 rounded-[7px] inline-flex items-center gap-1 tracking-wider shadow-2xs">
+                      <Store className="w-2.5 h-2.5 text-[#F72853]" />{" "}
+                      {merchantPlan
+                        ? (PLAN_LABELS[merchantPlan] ??
+                          merchantPlan.toUpperCase())
+                        : "STARTER"}
+                    </span>
+                    {(merchantProfile?.slug || merchantBadgesData?.slug) && (
+                      <a
+                        href={`/brand/${merchantProfile?.slug || merchantBadgesData?.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[8.5px] font-medium text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-0.5 bg-blue-50 px-1 py-0.5 rounded border border-blue-200/70"
+                        title="Preview Public Storefront"
+                      >
+                        <Eye className="w-2 h-2" />
+                        <span>Preview ↗</span>
+                      </a>
+                    )}
+                  </div>
                 ) : (
                   <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[8.5px] font-normal px-1.5 py-0.5 rounded-[7px] inline-block">
                     MEMBER

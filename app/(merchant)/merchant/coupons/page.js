@@ -3,16 +3,21 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
+  BarChart3,
   CheckCircle2,
   Clock,
   Edit,
   ExternalLink,
+  Eye,
+  Globe,
   Layers,
   Pause,
+  Percent,
   Play,
   Plus,
   Search,
   ShoppingBag,
+  Sparkles,
   Tag,
   Ticket,
   Trash2,
@@ -26,6 +31,7 @@ import DataTable from "@/components/shared/data/DataTable";
 import StatusBadge from "@/components/shared/data/StatusBadge";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   InputGroup,
@@ -279,19 +285,21 @@ function MerchantCouponsContent() {
       redemptions: Number(c.totalRedemptions || 0),
       claims: Number(c.totalClaims || 0),
       affiliateUrl: null,
-      imageUrl: null,
+      imageUrl: c.image || c.imageUrl || null,
     }));
 
     const affiliateItems = (affiliateProductsData || []).map((a) => {
       const isDiscounted =
         a.discountPrice && a.originalPrice && a.discountPrice < a.originalPrice;
-      const discountDisplay = a.discountPercentage
-        ? `${a.discountPercentage}% OFF`
-        : isDiscounted
-          ? `₹${a.discountPrice} (Save ₹${a.originalPrice - a.discountPrice})`
-          : a.originalPrice
-            ? `₹${a.originalPrice}`
-            : "Affiliate Deal";
+      const discountDisplay = a.discountText && a.discountText.trim()
+        ? a.discountText.trim()
+        : a.discountPercentage
+          ? `${a.discountPercentage}% OFF`
+          : isDiscounted
+            ? `₹${a.discountPrice} (Save ₹${a.originalPrice - a.discountPrice})`
+            : a.originalPrice
+              ? `₹${a.originalPrice}`
+              : "Exclusive Deal";
 
       return {
         ...a,
@@ -634,6 +642,262 @@ function MerchantCouponsContent() {
     ],
   );
 
+  /**
+   * Premium Responsive Mobile Card Renderer for Merchant Coupons & Deals
+   */
+const renderMobileListingCard = useCallback(
+    (item) => {
+      const isAffiliate = item.listingType === "affiliate";
+      const editHref = isAffiliate
+        ? `/merchant/affiliate-products/${item._id}`
+        : `/merchant/coupons/${item._id}`;
+
+      return (
+        <Card className="overflow-hidden border border-slate-200/90 rounded-2xl bg-white shadow-2xs hover:shadow-xs transition-all duration-200 text-left font-sans gap-0">
+          {/* Top Category & Meta Badges Strip */}
+          <div className="flex items-center justify-between gap-2 px-3.5 pt-3.5 pb-2">
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              {/* Type Badge */}
+              <Badge
+                variant="outline"
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 ${
+                  isAffiliate
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/80"
+                    : "bg-rose-50 text-[#F72853] border-rose-200/80"
+                }`}
+              >
+                {isAffiliate ? (
+                  <>
+                    <Sparkles className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
+                    <span>Affiliate Deal</span>
+                  </>
+                ) : (
+                  <>
+                    <Ticket className="w-2.5 h-2.5 text-[#F72853] shrink-0" />
+                    <span>Coupon Voucher</span>
+                  </>
+                )}
+              </Badge>
+
+              {/* Category Badge */}
+              <Badge
+                variant="secondary"
+                className="bg-slate-100 text-slate-600 hover:bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 capitalize"
+              >
+                <Tag className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                <span className="truncate max-w-[100px]">{item.category || "General"}</span>
+              </Badge>
+            </div>
+
+            {/* Listing ID */}
+            <span className="text-[10px] font-mono text-slate-400 bg-slate-50 border border-slate-200/70 px-1.5 py-0.5 rounded-md shrink-0">
+              #{String(item._id).slice(-5)}
+            </span>
+          </div>
+
+          {/* Main Body: Visual Thumbnail + Title + Interactive Link/Code */}
+          <div className="px-3.5 pb-3 flex items-start gap-3">
+            {/* Image Thumbnail */}
+            <div className="w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-xl bg-slate-50 border border-slate-200/80 shrink-0 overflow-hidden relative shadow-2xs">
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  className={`w-full h-full flex items-center justify-center ${
+                    isAffiliate ? "bg-emerald-50/70" : "bg-rose-50/70"
+                  }`}
+                >
+                  {isAffiliate ? (
+                    <ShoppingBag className="w-6 h-6 text-emerald-600/80" />
+                  ) : (
+                    <Ticket className="w-6 h-6 text-[#F72853]/80" />
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Title & Outbound / Code Action */}
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <h3
+                className="text-xs sm:text-sm font-semibold text-slate-900 leading-snug line-clamp-2 break-words"
+                title={item.title}
+              >
+                {item.title}
+              </h3>
+
+              {/* Coupon Code Pill or Outbound Link */}
+              {isAffiliate ? (
+                item.affiliateUrl ? (
+                  <a
+                    href={item.affiliateUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200/80 px-2.5 py-1 rounded-lg transition-colors truncate max-w-full group"
+                    title={item.affiliateUrl}
+                  >
+                    <ExternalLink className="w-3 h-3 text-emerald-600 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    <span className="truncate">Open Store Link</span>
+                  </a>
+                ) : null
+              ) : item.code ? (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100/90 border border-dashed border-slate-300 rounded-md font-mono text-xs font-bold text-slate-800 tracking-wider select-all">
+                  <Ticket className="w-3 h-3 text-slate-400 shrink-0" />
+                  <span>{item.code}</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Key Metrics / Value Strip (Well-spaced 2-Column Grid) */}
+          <div className="px-3.5 pb-3">
+            <div className="grid grid-cols-2 gap-2 bg-slate-50/85 border border-slate-200/75 rounded-xl p-2.5">
+              {/* Offer Value / Deal */}
+              <div className="flex flex-col min-w-0 pr-1">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <Percent className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                  <span>Offer Value</span>
+                </span>
+                <div className="mt-0.5 flex items-baseline gap-1.5 flex-wrap min-w-0">
+                  <span
+                    className={`text-xs sm:text-sm font-bold truncate ${
+                      isAffiliate ? "text-emerald-700" : "text-[#F72853]"
+                    }`}
+                  >
+                    {item.discountText || (isAffiliate && item.discountPrice ? `₹${item.discountPrice}` : "Special Offer")}
+                  </span>
+                  {Boolean(
+                    isAffiliate &&
+                      item.originalPrice &&
+                      item.discountPrice &&
+                      Number(item.originalPrice) > Number(item.discountPrice)
+                  ) ? (
+                    <span className="text-[10px] text-slate-400 line-through shrink-0">
+                      ₹{item.originalPrice}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Performance / Engagement */}
+              <div className="flex flex-col min-w-0 pl-2.5 border-l border-slate-200/70">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <BarChart3 className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                  <span>Engagement</span>
+                </span>
+                {isAffiliate ? (
+                  <div className="mt-0.5 flex items-baseline gap-1">
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">
+                      {(item.clicks || 0).toLocaleString()}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      visits
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mt-0.5 flex items-baseline gap-1 text-xs text-slate-800 flex-wrap">
+                    <span className="font-bold">
+                      {(item.claims || 0).toLocaleString()}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      claims
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="font-bold text-emerald-600">
+                      {(item.redemptions || 0).toLocaleString()}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      used
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar: Status Badge + Expiry Date + Action Buttons */}
+          <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-slate-50/50 border-t border-slate-100">
+            {/* Left: Status & Expiry */}
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <StatusBadge
+                status={item.status}
+                label={
+                  item.status === "pending"
+                    ? "Pending Audit"
+                    : item.status === "paused"
+                      ? "Paused"
+                      : undefined
+                }
+                size="sm"
+              />
+
+              <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                <span>{formatDateSafe(item.expiresAt)}</span>
+              </span>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Edit Listing */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(editHref)}
+                className="h-7 px-2.5 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200/90 shadow-none cursor-pointer"
+                title={isAffiliate ? "Edit Affiliate Deal" : "Edit Coupon"}
+              >
+                <Edit className="w-3 h-3 mr-1" />
+                <span>Edit</span>
+              </Button>
+
+              {/* Toggle Status (Pause / Resume for affiliate deals) */}
+              {isAffiliate && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={togglingId === item._id}
+                  onClick={() => handleToggleAffiliateStatus(item)}
+                  className="h-7 w-7 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 border-slate-200/90 shadow-none cursor-pointer disabled:opacity-50"
+                  title={item.status === "active" ? "Pause Deal" : "Resume Deal"}
+                >
+                  {item.status === "active" ? (
+                    <Pause className="w-3 h-3" />
+                  ) : (
+                    <Play className="w-3 h-3" />
+                  )}
+                </Button>
+              )}
+
+              {/* Delete Listing */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDeleteTarget(item)}
+                disabled={deleteCouponMutation.isPending || isDeletingAffiliate}
+                className="h-7 w-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border-slate-200/90 shadow-none cursor-pointer disabled:opacity-50"
+                title="Delete Listing"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        </Card>
+      );
+    },
+    [
+      router,
+      togglingId,
+      handleToggleAffiliateStatus,
+      deleteCouponMutation.isPending,
+      isDeletingAffiliate,
+    ],
+  );
+
   return (
     <DashboardLayout
       title="All Store Listings"
@@ -792,6 +1056,7 @@ function MerchantCouponsContent() {
               loading={isLoading}
               searchable={false}
               defaultPageSize={10}
+              renderMobileCard={renderMobileListingCard}
               emptyState={
                 <div className="py-12 px-4 flex flex-col items-center justify-center text-center space-y-2.5">
                   <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#F72853] flex items-center justify-center border border-rose-100/80">

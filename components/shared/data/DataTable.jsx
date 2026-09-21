@@ -59,6 +59,7 @@ export default function DataTable({
   rightActions,
   getRowClassName,
   className,
+  renderMobileCard,
 }) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState(null);
@@ -265,19 +266,21 @@ export default function DataTable({
       </div>
 
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-2">
+      <div className="md:hidden space-y-2.5">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <div
               key={`mobile-loading-${i}`}
-              className="rounded-lg border border-brand-border p-3 space-y-2 bg-brand-bg"
+              className="rounded-2xl border border-slate-200/90 p-3.5 space-y-2.5 bg-white shadow-2xs"
             >
-              {columns.slice(0, 3).map((col, colIdx) => (
-                <Skeleton
-                  key={col.key || col.accessorKey || `mob-skel-${colIdx}`}
-                  className="h-4 w-full rounded"
-                />
-              ))}
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-14 h-14 rounded-xl shrink-0" />
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-3 w-1/2 rounded" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-full rounded-lg" />
             </div>
           ))
         ) : paged.length === 0 ? (
@@ -285,31 +288,37 @@ export default function DataTable({
             {emptyState ?? "No results found."}
           </div>
         ) : (
-          paged.map((row, rowIndex) => (
-            <div
-              key={row.id ?? row._id ?? `mob-row-${rowIndex}`}
-              className="rounded-lg border border-brand-border p-3 bg-brand-bg space-y-2"
-            >
-              {columns.map((col, colIdx) => {
-                const cKey =
-                  col.key || col.accessorKey || col.id || `mob-cell-${colIdx}`;
-                const dataKey = col.key || col.accessorKey;
-                return (
-                  <div
-                    key={cKey}
-                    className="flex items-start justify-between gap-2"
-                  >
-                    <span className="text-[10px] font-bold text-brand-subtext uppercase tracking-wider shrink-0">
-                      {col.header}
-                    </span>
-                    <span className="text-xs text-brand-text text-right">
-                      {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ))
+          paged.map((row, rowIndex) =>
+            renderMobileCard ? (
+              <div key={row.id ?? row._id ?? `mob-card-${rowIndex}`}>
+                {renderMobileCard(row, rowIndex)}
+              </div>
+            ) : (
+              <div
+                key={row.id ?? row._id ?? `mob-row-${rowIndex}`}
+                className="rounded-2xl border border-slate-200/80 p-3.5 bg-white shadow-2xs space-y-2 font-sans"
+              >
+                {columns.map((col, colIdx) => {
+                  const cKey =
+                    col.key || col.accessorKey || col.id || `mob-cell-${colIdx}`;
+                  const dataKey = col.key || col.accessorKey;
+                  return (
+                    <div
+                      key={cKey}
+                      className="flex items-start justify-between gap-2.5 min-w-0"
+                    >
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mt-0.5">
+                        {col.header}
+                      </span>
+                      <div className="text-xs text-slate-900 text-right min-w-0 flex-1 flex justify-end break-words">
+                        {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ),
+          )
         )}
       </div>
 

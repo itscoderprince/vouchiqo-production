@@ -146,6 +146,16 @@ export const UserMenu = () => {
     }
   };
 
+  // Hydration Guard: Render neutral container on SSR / pre-mount to prevent mismatch
+  if (!mounted) {
+    return (
+      <div
+        suppressHydrationWarning
+        className="h-9 min-w-[76px] flex items-center justify-end"
+      />
+    );
+  }
+
   // Guest State: If not logged in, render the Login button immediately without loading delays
   if (!session?.user) {
     return (

@@ -1,10 +1,20 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Clock, Lock, Plus, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  ExternalLink,
+  Eye,
+  Lock,
+  MessageSquareHeart,
+  Plus,
+  Zap,
+} from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ProcessFeedbackModal from "@/components/merchant/feedback/ProcessFeedbackModal";
@@ -13,19 +23,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { useRealtime } from "@/hooks/use-realtime";
+import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import KpiCards from "./components/KpiCards";
-import dynamic from "next/dynamic";
-import { qk } from "@/lib/query-keys";
 
-const PerformanceChart = dynamic(() => import("./components/PerformanceChart"), {
-  ssr: false,
-  loading: () => (
-    <div className="col-span-full xl:col-span-8 bg-white border border-slate-200/80 rounded-xl p-6 h-80 flex items-center justify-center animate-pulse">
-      <div className="h-4 bg-slate-200 rounded w-40" />
-    </div>
-  ),
-});
+const PerformanceChart = dynamic(
+  () => import("./components/PerformanceChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="col-span-full xl:col-span-8 bg-white border border-slate-200/80 rounded-xl p-6 h-80 flex items-center justify-center animate-pulse">
+        <div className="h-4 bg-slate-200 rounded w-40" />
+      </div>
+    ),
+  },
+);
+
 import RecentOrdersAndActivity from "./components/RecentOrdersAndActivity";
 import TopCouponsTable from "./components/TopCouponsTable";
 import TrafficAndGoals from "./components/TrafficAndGoals";
@@ -117,7 +130,8 @@ export default function MerchantDashboard() {
   });
 
   const trendData = analyticsData?.trend ?? [];
-  const merchant = analyticsData?.merchant ?? merchantProfile;
+  const merchant = { ...merchantProfile, ...analyticsData?.merchant };
+  const merchantSlug = merchant?.slug || merchantProfile?.slug || analyticsData?.merchant?.slug;
 
   const {
     isOpen: isFeedbackOpen,
@@ -129,14 +143,8 @@ export default function MerchantDashboard() {
     hasResponded: hasRespondedFeedback,
   } = useProcessFeedback("profile_completion");
 
-  useEffect(() => {
-    if (merchant && !hasRespondedFeedback && !isProfileIncomplete) {
-      const timer = setTimeout(() => {
-        openFeedback();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [merchant, hasRespondedFeedback, isProfileIncomplete, openFeedback]);
+  // Auto-popup timer removed to prevent disrupting merchant workflow.
+  // Merchants can open the Feedback Review Taker at any time via the "Feedback" button.
   const overviewStats = analyticsData?.overview ?? {};
 
   // KPI computations from real DB
@@ -389,7 +397,41 @@ export default function MerchantDashboard() {
               Track real-time performance, shopper visits, and deal redemptions.
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {/* Preview Public Storefront */}
+            {merchantSlug ? (
+              <a
+                href={`/brand/${merchantSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-medium rounded-xl border border-slate-200/90 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
+                title="Preview how your public brand page appears to customers"
+              >
+                <Eye className="w-3.5 h-3.5 text-blue-600" />
+                <span>Preview Storefront</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-400 text-xs font-medium rounded-xl border border-slate-200/60 shadow-2xs opacity-60 cursor-not-allowed"
+                title="Storefront link loading..."
+              >
+                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                <span>Preview Storefront</span>
+              </span>
+            )}
+
+            {/* Manual Feedback / Review Taker Trigger */}
+            <button
+              type="button"
+              onClick={() => openFeedback()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50/60 text-slate-700 hover:text-[#F72853] text-xs font-medium rounded-xl border border-slate-200/90 shadow-2xs transition-all cursor-pointer hover:border-rose-200"
+              title="Give feedback & suggestions"
+            >
+              <MessageSquareHeart className="w-3.5 h-3.5 text-[#F72853]" />
+              <span className="hidden sm:inline">Feedback</span>
+            </button>
+
             <Link
               href="/merchant/coupons/new"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium rounded-xl shadow-xs transition-colors cursor-pointer"

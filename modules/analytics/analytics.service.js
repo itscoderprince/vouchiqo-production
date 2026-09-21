@@ -316,6 +316,9 @@ export async function getMerchantAnalytics(authId, period = "30d") {
   return {
     merchant: {
       businessName: merchant.businessName,
+      slug: merchant.slug,
+      logo: merchant.logo,
+      category: merchant.category,
       totalCoupons: merchant.totalCoupons,
       totalRedemptions: merchant.totalRedemptions,
       totalClaims: merchant.totalClaims ?? 0,

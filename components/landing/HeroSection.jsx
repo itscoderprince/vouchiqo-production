@@ -1,9 +1,9 @@
 "use client";
 
-import SafeImage from "@/components/shared/SafeImage";
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
 export function HeroSection({ banners: initialBanners = [] }) {
   const [banners, setBanners] = useState(initialBanners);
@@ -35,7 +35,11 @@ export function HeroSection({ banners: initialBanners = [] }) {
       fetch("/api/banners")
         .then((res) => res.json())
         .then((json) => {
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (
+            json.success &&
+            Array.isArray(json.data) &&
+            json.data.length > 0
+          ) {
             setBanners(json.data);
           }
         })
@@ -227,10 +231,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
     <div className="w-full flex flex-col select-none">
       {/* Full Width Banners Section */}
       <section className="select-none w-full text-left">
-        <div
-          className="w-full rounded-md overflow-hidden shadow-sm relative group border border-slate-200/80 bg-slate-950"
-          style={{ aspectRatio: "1200 / 430" }}
-        >
+        <div className="w-full rounded-md overflow-hidden shadow-sm relative group border border-slate-200/80 bg-slate-950 h-[210px] xs:h-[240px] sm:h-[300px] md:h-[350px] lg:h-[385px] xl:h-[410px] max-h-[420px]">
           {/* Viewport for horizontal sliding */}
           <div
             className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing touch-pan-y"
@@ -244,7 +245,9 @@ export function HeroSection({ banners: initialBanners = [] }) {
           >
             <div
               className={`flex h-full w-full ${
-                isDragging.current ? "transition-none" : "transition-transform duration-500 ease-in-out"
+                isDragging.current
+                  ? "transition-none"
+                  : "transition-transform duration-500 ease-in-out"
               }`}
               style={{
                 transform:
@@ -267,7 +270,9 @@ export function HeroSection({ banners: initialBanners = [] }) {
                   <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
                     <SafeImage
                       src={
-                        slide.image && typeof slide.image === "string" && slide.image.trim() !== ""
+                        slide.image &&
+                        typeof slide.image === "string" &&
+                        slide.image.trim() !== ""
                           ? slide.image
                           : "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop"
                       }
@@ -276,7 +281,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                       priority={sIdx === 0}
                       loading={sIdx === 0 ? "eager" : "lazy"}
                       sizes="(max-width: 1440px) 100vw, 1440px"
-                      className="object-cover cursor-pointer select-none pointer-events-none"
+                      className="object-cover object-center cursor-pointer select-none pointer-events-none"
                     />
 
                     {/* Optional Text Overlay */}
@@ -311,7 +316,8 @@ export function HeroSection({ banners: initialBanners = [] }) {
                             <span
                               className="inline-flex items-center px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md pointer-events-auto transition-transform active:scale-95"
                               style={{
-                                backgroundColor: slide.buttonBgColor || "#f59e0b",
+                                backgroundColor:
+                                  slide.buttonBgColor || "#f59e0b",
                                 color: slide.buttonTextColor || "#0f172a",
                               }}
                             >
@@ -414,7 +420,9 @@ export function HeroSection({ banners: initialBanners = [] }) {
                   }`}
                   title={titleText}
                 >
-                  {brand.logo && typeof brand.logo === "string" && brand.logo.trim() !== "" ? (
+                  {brand.logo &&
+                  typeof brand.logo === "string" &&
+                  brand.logo.trim() !== "" ? (
                     <SafeImage
                       src={brand.logo}
                       alt={titleText}
@@ -448,4 +456,3 @@ export function HeroSection({ banners: initialBanners = [] }) {
     </div>
   );
 }
-

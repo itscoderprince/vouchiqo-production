@@ -38,7 +38,9 @@ export function useProcessFeedback(processType = "profile_completion") {
     statusData?.hasSubmitted ||
       statusData?.hasDismissed ||
       (typeof window !== "undefined" &&
-        localStorage.getItem(storageKey) === "true"),
+        (localStorage.getItem(storageKey) === "true" ||
+          localStorage.getItem(`vouchiqo_feedback_dismissed_${processType}`) ===
+            "true")),
   );
 
   const openFeedback = useCallback(() => {
@@ -110,10 +112,14 @@ export function useProcessFeedback(processType = "profile_completion") {
   const handleDismiss = useCallback(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(storageKey, "true");
+      localStorage.setItem(
+        `vouchiqo_feedback_dismissed_${processType}`,
+        "true",
+      );
     }
     dismissMutation.mutate();
     setIsOpen(false);
-  }, [storageKey, dismissMutation]);
+  }, [storageKey, processType, dismissMutation]);
 
   return {
     isOpen,
