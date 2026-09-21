@@ -525,6 +525,14 @@ export default function MerchantApprovalsClient() {
             searchKey="businessName"
             getRowClassName={getRowClassName}
             renderMobileCard={(row) => {
+              const imageSrc =
+                row.logo ||
+                row.logoUrl ||
+                row.shopLogo ||
+                row.shopPhotoUrl ||
+                row.shopFrontUrl ||
+                row.docImage;
+
               const initials = (row.businessName || "ST")
                 .trim()
                 .split(/\s+/)
@@ -575,23 +583,51 @@ export default function MerchantApprovalsClient() {
                   })
                 : "Recently";
 
+              const locationStr = [
+                row.location?.city || row.city,
+                row.location?.state || row.state,
+              ]
+                .filter(Boolean)
+                .join(", ");
+
               return (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-2xs space-y-2 text-left font-sans">
-                  {/* Compact Header: Avatar + Business Name & Subtitle + Top-Right Status */}
+                  {/* Compact Header: Logo/Avatar + Business Name & Email/Location below + Top-Right Status */}
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={row.businessName}
+                          className="w-8.5 h-8.5 rounded-full object-cover shrink-0 border border-slate-200/80 shadow-2xs"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={cn(
+                          "w-8.5 h-8.5 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs",
+                          imageSrc &&
+                            "hidden [img:not([style*='display: none']) ~ &]:hidden",
+                        )}
+                      >
                         {initials}
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 truncate leading-tight">
                           {row.businessName}
                         </h4>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal leading-none">
+                        {ownerEmail && (
+                          <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium truncate mt-0.5 leading-none">
+                            {ownerEmail}
+                          </p>
+                        )}
+                        <p className="text-[9.5px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal leading-none">
                           {row.category
                             ? `${row.category.charAt(0).toUpperCase() + row.category.slice(1)} • `
                             : ""}
-                          {row.location?.city || row.city || "Verified"}
+                          {locationStr || "Verified"}
                         </p>
                       </div>
                     </div>
@@ -603,7 +639,7 @@ export default function MerchantApprovalsClient() {
                   {/* Divider */}
                   <div className="border-t border-slate-100 dark:border-slate-800/60" />
 
-                  {/* Dense Key-Value Grid (Uses just required space) */}
+                  {/* Dense 2x2 Key-Value Grid (Clean, Balanced & No Redundancy) */}
                   <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 text-left">
                     <div>
                       <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
@@ -630,16 +666,11 @@ export default function MerchantApprovalsClient() {
 
                     <div>
                       <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
-                        OWNER / EMAIL
+                        CONTACT PERSON
                       </div>
                       <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
                         {ownerName}
                       </div>
-                      {ownerEmail && (
-                        <div className="text-[9.5px] text-slate-500 dark:text-slate-400 truncate">
-                          {ownerEmail}
-                        </div>
-                      )}
                     </div>
 
                     <div>
@@ -652,7 +683,7 @@ export default function MerchantApprovalsClient() {
                     </div>
                   </div>
 
-                  {/* Compact Full-Width Action Strip (No dead space) */}
+                  {/* Compact Full-Width Action Strip */}
                   <div className="pt-1 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60">
                     <Button
                       size="sm"
@@ -678,71 +709,6 @@ export default function MerchantApprovalsClient() {
                 </div>
               );
             }}
-            rightActions={
-              <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
-                {[
-                  {
-                    id: "all",
-                    label: "All",
-                    count: stats.total,
-                    description: "View all merchant onboarding applications",
-                  },
-                  {
-                    id: "pending",
-                    label: "Pending",
-                    count: stats.pending,
-                    description:
-                      "Filter to pending partner applications awaiting KYC verification",
-                  },
-                  {
-                    id: "approved",
-                    label: "Approved",
-                    count: stats.approved,
-                    description: "Filter to approved active merchant partners",
-                  },
-                  {
-                    id: "rejected",
-                    label: "Rejected",
-                    count: stats.rejected,
-                    description:
-                      "Filter to rejected or declined merchant applications",
-                  },
-                ].map((tab) => (
-                  <Tooltip key={tab.id}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab(tab.id)}
-                        className={cn(
-                          "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
-                          activeTab === tab.id
-                            ? "bg-white text-blue-600 shadow-2xs"
-                            : "text-slate-500 hover:text-slate-800 bg-transparent",
-                        )}
-                      >
-                        <span>{tab.label}</span>
-                        <span
-                          className={cn(
-                            "text-[9px] px-1 rounded-full",
-                            activeTab === tab.id
-                              ? "bg-blue-50 text-blue-600"
-                              : "bg-slate-200/70 text-slate-600",
-                          )}
-                        >
-                          {tab.count}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
-                    >
-                      {tab.description}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            }
           />
         </Card>
 

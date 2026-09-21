@@ -92,15 +92,13 @@ function formatDiscountBadge(coupon) {
   if (!coupon) return "SPECIAL OFFER";
   const val = coupon.rawDiscountValue || coupon.discountValue;
   const isNum =
-    val !== null &&
-    val !== undefined &&
-    val !== "" &&
-    !isNaN(Number(val));
+    val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
 
   if (coupon.offerType === "deal" && coupon.salePrice) {
     if (coupon.originalPrice && coupon.originalPrice > coupon.salePrice) {
       const pct = Math.round(
-        ((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) * 100,
+        ((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) *
+          100,
       );
       return `${pct}% OFF (Deal)`;
     }
@@ -119,7 +117,11 @@ function formatDiscountBadge(coupon) {
 
 export default function CouponModerationClient() {
   const queryClient = useQueryClient();
-  const { data: allCoupons = [], isLoading, refetch } = useAdminCoupons({ limit: 100 });
+  const {
+    data: allCoupons = [],
+    isLoading,
+    refetch,
+  } = useAdminCoupons({ limit: 100 });
   const approveMutation = useApproveAdminCoupon();
   const rejectMutation = useRejectAdminCoupon();
 
@@ -139,22 +141,42 @@ export default function CouponModerationClient() {
   // Tab filtered coupons
   const filteredCoupons = useMemo(() => {
     if (activeTab === "pending") {
-      return allCoupons.filter((c) => c.status === "pending" || (!c.isVerified && c.status !== "rejected"));
+      return allCoupons.filter(
+        (c) =>
+          c.status === "pending" || (!c.isVerified && c.status !== "rejected"),
+      );
     }
     if (activeTab === "approved") {
-      return allCoupons.filter((c) => c.status === "active" || c.status === "approved" || c.isVerified);
+      return allCoupons.filter(
+        (c) => c.status === "active" || c.status === "approved" || c.isVerified,
+      );
     }
     if (activeTab === "rejected") {
-      return allCoupons.filter((c) => c.status === "rejected" || c.status === "inactive" || c.status === "expired");
+      return allCoupons.filter(
+        (c) =>
+          c.status === "rejected" ||
+          c.status === "inactive" ||
+          c.status === "expired",
+      );
     }
     return allCoupons;
   }, [allCoupons, activeTab]);
 
   const stats = useMemo(() => {
     const total = allCoupons.length;
-    const pending = allCoupons.filter((c) => c.status === "pending" || (!c.isVerified && c.status !== "rejected")).length;
-    const approved = allCoupons.filter((c) => c.status === "active" || c.status === "approved" || c.isVerified).length;
-    const rejected = allCoupons.filter((c) => c.status === "rejected" || c.status === "inactive" || c.status === "expired").length;
+    const pending = allCoupons.filter(
+      (c) =>
+        c.status === "pending" || (!c.isVerified && c.status !== "rejected"),
+    ).length;
+    const approved = allCoupons.filter(
+      (c) => c.status === "active" || c.status === "approved" || c.isVerified,
+    ).length;
+    const rejected = allCoupons.filter(
+      (c) =>
+        c.status === "rejected" ||
+        c.status === "inactive" ||
+        c.status === "expired",
+    ).length;
     return { total, pending, approved, rejected };
   }, [allCoupons]);
 
@@ -225,8 +247,13 @@ export default function CouponModerationClient() {
       accessorKey: "headline",
       cell: (row) => {
         const merchantObj = row.merchantId || {};
-        const merchantName = row.merchantName || merchantObj.businessName || "Merchant Partner";
-        const merchantEmail = row.contactEmail || merchantObj.contactEmail || merchantObj.email || "No Email";
+        const merchantName =
+          row.merchantName || merchantObj.businessName || "Merchant Partner";
+        const merchantEmail =
+          row.contactEmail ||
+          merchantObj.contactEmail ||
+          merchantObj.email ||
+          "No Email";
 
         const initials = (row.headline || row.title || "OF")
           .split(" ")
@@ -248,7 +275,9 @@ export default function CouponModerationClient() {
                 <Store className="w-2.5 h-2.5 text-slate-500 shrink-0" />
                 <span className="truncate">{merchantName}</span>
                 <span>•</span>
-                <span className="truncate max-w-[110px] text-slate-500">{merchantEmail}</span>
+                <span className="truncate max-w-[110px] text-slate-500">
+                  {merchantEmail}
+                </span>
               </div>
             </div>
           </div>
@@ -301,7 +330,13 @@ export default function CouponModerationClient() {
       accessorKey: "createdAt",
       cell: (row) => (
         <span className="text-[10.5px] text-slate-600 font-normal whitespace-nowrap">
-          {row.createdAt ? new Date(row.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Recently"}
+          {row.createdAt
+            ? new Date(row.createdAt).toLocaleDateString("en-IN", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Recently"}
         </span>
       ),
     },
@@ -324,7 +359,10 @@ export default function CouponModerationClient() {
                 <span className="sr-only">Audit Details</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+            <TooltipContent
+              side="top"
+              className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+            >
               Audit Offer Mechanics &amp; Details
             </TooltipContent>
           </Tooltip>
@@ -343,7 +381,10 @@ export default function CouponModerationClient() {
                   <span className="sr-only">Approve Offer</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+              <TooltipContent
+                side="top"
+                className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+              >
                 Approve &amp; Publish Offer
               </TooltipContent>
             </Tooltip>
@@ -364,7 +405,10 @@ export default function CouponModerationClient() {
                   <span className="sr-only">Reject Offer</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+              <TooltipContent
+                side="top"
+                className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+              >
                 Reject Offer
               </TooltipContent>
             </Tooltip>
@@ -384,7 +428,8 @@ export default function CouponModerationClient() {
               Offer Listing Moderation
             </h1>
             <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-              Review, verify, and approve newly submitted in-store discount offers from merchant partners.
+              Review, verify, and approve newly submitted in-store discount
+              offers from merchant partners.
             </p>
           </div>
           <Button
@@ -394,7 +439,9 @@ export default function CouponModerationClient() {
             disabled={isLoading}
             className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
           >
-            <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`}
+            />
             <span>Refresh Queue</span>
           </Button>
         </div>
@@ -506,575 +553,642 @@ export default function CouponModerationClient() {
             loading={isLoading}
             searchKey="headline"
             getRowClassName={getRowClassName}
-            rightActions={
-              <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
-                {[
-                  {
-                    id: "all",
-                    label: "All",
-                    count: stats.total,
-                    description: "View all submitted coupons and discount listings",
-                  },
-                  {
-                    id: "pending",
-                    label: "Pending",
-                    count: stats.pending,
-                    description: "Filter to pending offers awaiting moderation approval",
-                  },
-                  {
-                    id: "approved",
-                    label: "Approved",
-                    count: stats.approved,
-                    description: "Filter to approved active published offers",
-                  },
-                  {
-                    id: "rejected",
-                    label: "Rejected",
-                    count: stats.rejected,
-                    description: "Filter to rejected or expired coupon submissions",
-                  },
-                ].map((tab) => (
-                  <Tooltip key={tab.id}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab(tab.id)}
-                        className={cn(
-                          "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
-                          activeTab === tab.id
-                            ? "bg-white text-blue-600 shadow-2xs"
-                            : "text-slate-500 hover:text-slate-800 bg-transparent",
-                        )}
-                      >
-                        <span>{tab.label}</span>
-                        <span
-                          className={cn(
-                            "text-[9px] px-1 rounded-full",
-                            activeTab === tab.id
-                              ? "bg-blue-50 text-blue-600"
-                              : "bg-slate-200/70 text-slate-600",
-                          )}
-                        >
-                          {tab.count}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                      {tab.description}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            }
           />
         </Card>
 
-      {/* Offer Full Details Audit Dialog Modal */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-[640px] max-h-[88vh] overflow-y-auto font-sans text-left p-0 border-slate-200 rounded-2xl shadow-xl">
-          {selectedCoupon && (() => {
-            const m = selectedCoupon.merchantId || {};
-            const merchantName = selectedCoupon.merchantName || m.businessName || "Merchant Partner";
-            const merchantEmail = selectedCoupon.contactEmail || m.contactEmail || m.email || "admin@vouchiqo.com";
-            const merchantPhone = selectedCoupon.contactPhone || m.contactPhone || m.whatsappNumber || m.liaisonPhone || "Not provided";
-            const merchantCity = m.location?.city || selectedCoupon.location?.city || "Ranchi";
-            const merchantState = m.location?.state || selectedCoupon.location?.state || "Jharkhand";
-            const merchantAddress = m.location?.address || m.address || "Main Storefront Address";
+        {/* Offer Full Details Audit Dialog Modal */}
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogContent className="sm:max-w-[640px] max-h-[88vh] overflow-y-auto font-sans text-left p-0 border-slate-200 rounded-2xl shadow-xl">
+            {selectedCoupon &&
+              (() => {
+                const m = selectedCoupon.merchantId || {};
+                const merchantName =
+                  selectedCoupon.merchantName ||
+                  m.businessName ||
+                  "Merchant Partner";
+                const merchantEmail =
+                  selectedCoupon.contactEmail ||
+                  m.contactEmail ||
+                  m.email ||
+                  "admin@vouchiqo.com";
+                const merchantPhone =
+                  selectedCoupon.contactPhone ||
+                  m.contactPhone ||
+                  m.whatsappNumber ||
+                  m.liaisonPhone ||
+                  "Not provided";
+                const merchantCity =
+                  m.location?.city || selectedCoupon.location?.city || "Ranchi";
+                const merchantState =
+                  m.location?.state ||
+                  selectedCoupon.location?.state ||
+                  "Jharkhand";
+                const merchantAddress =
+                  m.location?.address || m.address || "Main Storefront Address";
 
-            return (
-              <div className="flex flex-col h-full bg-white rounded-2xl overflow-hidden text-left font-sans">
-                {/* Header */}
-                <div className="p-4 bg-slate-900 text-white border-b border-slate-800 relative">
-                  <div className="flex items-start justify-between gap-3 pr-6">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-[10px] font-bold px-2 py-0.5">
-                          Audit Mode
-                        </Badge>
-                        <span className="text-[11px] text-slate-400 font-medium">
-                          ID: {selectedCoupon._id?.slice(-8)}
-                        </span>
-                      </div>
-                      <h2 className="text-base font-extrabold text-white mt-1 leading-snug">
-                        {selectedCoupon.headline || selectedCoupon.title}
-                      </h2>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-300 font-medium">
-                        <span className="flex items-center gap-1 font-bold text-emerald-400">
-                          <Store className="w-3.5 h-3.5" /> {merchantName}
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 text-slate-300">
-                          <Mail className="w-3 h-3 text-blue-400" /> {merchantEmail}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tab Navigation Pill Bar */}
-                <div className="flex items-center gap-1 p-2 bg-slate-100 border-b border-slate-200 overflow-x-auto">
-                  <button
-                    type="button"
-                    onClick={() => setAuditTab("mechanics")}
-                    className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
-                      auditTab === "mechanics"
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-transparent text-slate-600 hover:bg-slate-200/80",
-                    )}
-                  >
-                    <Tag className="w-3.5 h-3.5" />
-                    <span>Offer Mechanics</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setAuditTab("merchant")}
-                    className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
-                      auditTab === "merchant"
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-transparent text-slate-600 hover:bg-slate-200/80",
-                    )}
-                  >
-                    <Building2 className="w-3.5 h-3.5" />
-                    <span>Merchant &amp; Email</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setAuditTab("validity")}
-                    className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
-                      auditTab === "validity"
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-transparent text-slate-600 hover:bg-slate-200/80",
-                    )}
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Validity &amp; Limits</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setAuditTab("compliance")}
-                    className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
-                      auditTab === "compliance"
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-transparent text-slate-600 hover:bg-slate-200/80",
-                    )}
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Terms &amp; Declarations</span>
-                  </button>
-                </div>
-
-                {/* Tab Content Box */}
-                <div className="p-4 space-y-4 text-xs font-sans">
-                  {/* TAB 1: OFFER MECHANICS */}
-                  {auditTab === "mechanics" && (
-                    <div className="space-y-4">
-                      {/* Banner Image Preview (2:1 Ratio) */}
-                      {(selectedCoupon.image || selectedCoupon.imageUrl || selectedCoupon.bannerUrl) ? (
-                        <div className="relative aspect-[2/1] w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group shadow-xs">
-                          <img
-                            src={selectedCoupon.image || selectedCoupon.imageUrl || selectedCoupon.bannerUrl}
-                            alt={selectedCoupon.title}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute top-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
-                            2:1 Aspect Ratio Banner
+                return (
+                  <div className="flex flex-col h-full bg-white rounded-2xl overflow-hidden text-left font-sans">
+                    {/* Header */}
+                    <div className="p-4 bg-slate-900 text-white border-b border-slate-800 relative">
+                      <div className="flex items-start justify-between gap-3 pr-6">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-[10px] font-bold px-2 py-0.5">
+                              Audit Mode
+                            </Badge>
+                            <span className="text-[11px] text-slate-400 font-medium">
+                              ID: {selectedCoupon._id?.slice(-8)}
+                            </span>
+                          </div>
+                          <h2 className="text-base font-extrabold text-white mt-1 leading-snug">
+                            {selectedCoupon.headline || selectedCoupon.title}
+                          </h2>
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-300 font-medium">
+                            <span className="flex items-center gap-1 font-bold text-emerald-400">
+                              <Store className="w-3.5 h-3.5" /> {merchantName}
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-slate-300">
+                              <Mail className="w-3 h-3 text-blue-400" />{" "}
+                              {merchantEmail}
+                            </span>
                           </div>
                         </div>
-                      ) : (
-                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 flex items-center gap-2 text-xs font-medium">
-                          <Info className="w-4 h-4 text-amber-600 shrink-0" />
-                          <span>No custom 2:1 banner image uploaded; standard category graphic will render.</span>
+                      </div>
+                    </div>
+
+                    {/* Tab Navigation Pill Bar */}
+                    <div className="flex items-center gap-1 p-2 bg-slate-100 border-b border-slate-200 overflow-x-auto">
+                      <button
+                        type="button"
+                        onClick={() => setAuditTab("mechanics")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
+                          auditTab === "mechanics"
+                            ? "bg-blue-600 text-white shadow-xs"
+                            : "bg-transparent text-slate-600 hover:bg-slate-200/80",
+                        )}
+                      >
+                        <Tag className="w-3.5 h-3.5" />
+                        <span>Offer Mechanics</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAuditTab("merchant")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
+                          auditTab === "merchant"
+                            ? "bg-blue-600 text-white shadow-xs"
+                            : "bg-transparent text-slate-600 hover:bg-slate-200/80",
+                        )}
+                      >
+                        <Building2 className="w-3.5 h-3.5" />
+                        <span>Merchant &amp; Email</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAuditTab("validity")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
+                          auditTab === "validity"
+                            ? "bg-blue-600 text-white shadow-xs"
+                            : "bg-transparent text-slate-600 hover:bg-slate-200/80",
+                        )}
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>Validity &amp; Limits</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAuditTab("compliance")}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border-0",
+                          auditTab === "compliance"
+                            ? "bg-blue-600 text-white shadow-xs"
+                            : "bg-transparent text-slate-600 hover:bg-slate-200/80",
+                        )}
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Terms &amp; Declarations</span>
+                      </button>
+                    </div>
+
+                    {/* Tab Content Box */}
+                    <div className="p-4 space-y-4 text-xs font-sans">
+                      {/* TAB 1: OFFER MECHANICS */}
+                      {auditTab === "mechanics" && (
+                        <div className="space-y-4">
+                          {/* Banner Image Preview (2:1 Ratio) */}
+                          {selectedCoupon.image ||
+                          selectedCoupon.imageUrl ||
+                          selectedCoupon.bannerUrl ? (
+                            <div className="relative aspect-[2/1] w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group shadow-xs">
+                              <img
+                                src={
+                                  selectedCoupon.image ||
+                                  selectedCoupon.imageUrl ||
+                                  selectedCoupon.bannerUrl
+                                }
+                                alt={selectedCoupon.title}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute top-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
+                                2:1 Aspect Ratio Banner
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 flex items-center gap-2 text-xs font-medium">
+                              <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span>
+                                No custom 2:1 banner image uploaded; standard
+                                category graphic will render.
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Offer Badge Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                                Formatted Discount
+                              </span>
+                              <span className="font-extrabold text-emerald-700 text-sm">
+                                {formatDiscountBadge(selectedCoupon)}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                                Offer Type
+                              </span>
+                              <span className="font-bold text-slate-800 uppercase">
+                                {selectedCoupon.offerType ||
+                                  (selectedCoupon.code
+                                    ? "Code Offer"
+                                    : "In-Store Deal")}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                                Promo / Smart Code
+                              </span>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <code className="font-mono text-xs font-black text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200">
+                                  {selectedCoupon.code || "DEALOFFER"}
+                                </code>
+                                <button
+                                  type="button"
+                                  onClick={() => copyCode(selectedCoupon.code)}
+                                  className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer border-0 bg-transparent"
+                                  title="Copy Code"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                                Min Purchase Value
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {selectedCoupon.minOrderValue
+                                  ? `₹${selectedCoupon.minOrderValue}`
+                                  : "No Minimum"}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                                Max Discount Cap
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {selectedCoupon.maxCap
+                                  ? `₹${selectedCoupon.maxCap}`
+                                  : "No Cap"}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                                Category &amp; Industry
+                              </span>
+                              <span className="font-bold text-slate-800 capitalize">
+                                {selectedCoupon.category ||
+                                  m.category ||
+                                  "General"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Descriptions */}
+                          <div className="space-y-2">
+                            <div>
+                              <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1">
+                                Short Listing Headline &amp; Teaser
+                              </h4>
+                              <p className="text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200 font-medium leading-relaxed">
+                                {selectedCoupon.shortDescription ||
+                                  selectedCoupon.headline ||
+                                  selectedCoupon.title}
+                              </p>
+                            </div>
+
+                            {selectedCoupon.description &&
+                              selectedCoupon.description !==
+                                selectedCoupon.shortDescription && (
+                                <div>
+                                  <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1">
+                                    Full Offer Details
+                                  </h4>
+                                  <p className="text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200 font-normal leading-relaxed">
+                                    {selectedCoupon.description}
+                                  </p>
+                                </div>
+                              )}
+                          </div>
                         </div>
                       )}
 
-                      {/* Offer Badge Grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-                            Formatted Discount
-                          </span>
-                          <span className="font-extrabold text-emerald-700 text-sm">
-                            {formatDiscountBadge(selectedCoupon)}
-                          </span>
-                        </div>
+                      {/* TAB 2: MERCHANT & EMAIL CONTACT */}
+                      {auditTab === "merchant" && (
+                        <div className="space-y-3">
+                          <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-xl space-y-2">
+                            <div className="flex items-center justify-between border-b border-blue-200/60 pb-1.5">
+                              <span className="text-xs font-extrabold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <Store className="w-4 h-4 text-blue-600" />{" "}
+                                Merchant Identity &amp; Status
+                              </span>
+                              <Badge className="bg-blue-600 text-white text-[10px] font-bold">
+                                {m.plan
+                                  ? m.plan.toUpperCase()
+                                  : "STARTER PARTNER"}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                  Business Name
+                                </span>
+                                <span className="font-extrabold text-slate-900">
+                                  {merchantName}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                  Registered Category
+                                </span>
+                                <span className="font-bold text-slate-800 capitalize">
+                                  {m.category ||
+                                    selectedCoupon.category ||
+                                    "General"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
 
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-                            Offer Type
-                          </span>
-                          <span className="font-bold text-slate-800 uppercase">
-                            {selectedCoupon.offerType || (selectedCoupon.code ? "Code Offer" : "In-Store Deal")}
-                          </span>
-                        </div>
+                          {/* Contact & Liaison Info */}
+                          <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2.5">
+                            <h4 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                              <Mail className="w-3.5 h-3.5 text-blue-600" />{" "}
+                              Direct Contact &amp; Liaison Info
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                              <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                  Merchant Contact Email
+                                </span>
+                                <a
+                                  href={`mailto:${merchantEmail}`}
+                                  className="font-bold text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                  <Mail className="w-3 h-3 shrink-0" />{" "}
+                                  {merchantEmail}
+                                </a>
+                              </div>
 
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-                            Promo / Smart Code
-                          </span>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <code className="font-mono text-xs font-black text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200">
-                              {selectedCoupon.code || "DEALOFFER"}
-                            </code>
-                            <button
-                              type="button"
-                              onClick={() => copyCode(selectedCoupon.code)}
-                              className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer border-0 bg-transparent"
-                              title="Copy Code"
-                            >
-                              <Copy className="w-3 h-3" />
-                            </button>
+                              <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                  Phone / WhatsApp
+                                </span>
+                                <span className="font-bold text-slate-800 flex items-center gap-1">
+                                  <Phone className="w-3 h-3 text-emerald-600 shrink-0" />{" "}
+                                  {merchantPhone}
+                                </span>
+                              </div>
+
+                              <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                  Authorized Contact Person
+                                </span>
+                                <span className="font-bold text-slate-800 flex items-center gap-1">
+                                  <User className="w-3 h-3 text-purple-600 shrink-0" />
+                                  {m.liaisonName
+                                    ? `${m.liaisonName} (${m.liaisonDesignation || "Manager"})`
+                                    : "Owner / Manager"}
+                                </span>
+                              </div>
+
+                              <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                  Channel / Operating Type
+                                </span>
+                                <span className="font-bold text-slate-800 uppercase flex items-center gap-1">
+                                  <Globe className="w-3 h-3 text-indigo-600 shrink-0" />
+                                  {m.businessType || "In-Store & Online"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Storefront Address & GSTIN */}
+                          <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                            <h4 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-rose-600" />{" "}
+                              Physical Storefront &amp; Statutory GSTIN
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                  Store City &amp; Hub
+                                </span>
+                                <span className="font-bold text-slate-800">
+                                  {merchantCity}, {merchantState}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                  GSTIN Registration
+                                </span>
+                                <span className="font-mono font-bold text-slate-800">
+                                  {m.gstin || "GST Exempt / Unregistered"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="pt-1 text-[11px] text-slate-600 font-medium">
+                              <strong>Full Store Address:</strong>{" "}
+                              {merchantAddress}
+                            </div>
                           </div>
                         </div>
+                      )}
 
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-                            Min Purchase Value
-                          </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedCoupon.minOrderValue ? `₹${selectedCoupon.minOrderValue}` : "No Minimum"}
-                          </span>
+                      {/* TAB 3: VALIDITY & LIMITS */}
+                      {auditTab === "validity" && (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                Start Date
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {selectedCoupon.startDate
+                                  ? new Date(
+                                      selectedCoupon.startDate,
+                                    ).toLocaleDateString()
+                                  : new Date(
+                                      selectedCoupon.createdAt,
+                                    ).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                Expiration Date
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {selectedCoupon.expiresAt ||
+                                selectedCoupon.endDate
+                                  ? new Date(
+                                      selectedCoupon.expiresAt ||
+                                        selectedCoupon.endDate,
+                                    ).toLocaleDateString()
+                                  : "Ongoing"}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                Store Operating Hours
+                              </span>
+                              <span className="font-bold text-blue-700 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {selectedCoupon.validHours ||
+                                  "All Business Hours"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                              Valid Offer Days
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {(selectedCoupon.validDays &&
+                              selectedCoupon.validDays.length > 0
+                                ? selectedCoupon.validDays
+                                : [
+                                    "Mon",
+                                    "Tue",
+                                    "Wed",
+                                    "Thu",
+                                    "Fri",
+                                    "Sat",
+                                    "Sun",
+                                  ]
+                              ).map((day) => (
+                                <span
+                                  key={day}
+                                  className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold"
+                                >
+                                  {day}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                Total Usage Limit
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {selectedCoupon.maxClaims
+                                  ? `${selectedCoupon.maxClaims} Total Vouchers`
+                                  : "Unlimited Vouchers"}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 font-bold uppercase block">
+                                Per Customer Limit
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {selectedCoupon.perCustomerLimit ||
+                                  "1 per customer"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
+                      )}
 
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-                            Max Discount Cap
-                          </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedCoupon.maxCap ? `₹${selectedCoupon.maxCap}` : "No Cap"}
-                          </span>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-                            Category &amp; Industry
-                          </span>
-                          <span className="font-bold text-slate-800 capitalize">
-                            {selectedCoupon.category || m.category || "General"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Descriptions */}
-                      <div className="space-y-2">
-                        <div>
-                          <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1">
-                            Short Listing Headline &amp; Teaser
-                          </h4>
-                          <p className="text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200 font-medium leading-relaxed">
-                            {selectedCoupon.shortDescription || selectedCoupon.headline || selectedCoupon.title}
-                          </p>
-                        </div>
-
-                        {selectedCoupon.description && selectedCoupon.description !== selectedCoupon.shortDescription && (
+                      {/* TAB 4: TERMS & COMPLIANCE */}
+                      {auditTab === "compliance" && (
+                        <div className="space-y-3">
                           <div>
-                            <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1">
-                              Full Offer Details
+                            <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1 flex items-center gap-1">
+                              <Layers className="w-3.5 h-3.5 text-blue-600" />{" "}
+                              In-Store Terms &amp; Conditions
                             </h4>
-                            <p className="text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200 font-normal leading-relaxed">
-                              {selectedCoupon.description}
+                            <p className="text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed font-normal whitespace-pre-line">
+                              {selectedCoupon.termsAndConditions ||
+                                selectedCoupon.termsConditions ||
+                                "Standard Vouchiqo merchant partner terms apply. Valid on base invoice value."}
                             </p>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* TAB 2: MERCHANT & EMAIL CONTACT */}
-                  {auditTab === "merchant" && (
-                    <div className="space-y-3">
-                      <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-xl space-y-2">
-                        <div className="flex items-center justify-between border-b border-blue-200/60 pb-1.5">
-                          <span className="text-xs font-extrabold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <Store className="w-4 h-4 text-blue-600" /> Merchant Identity &amp; Status
-                          </span>
-                          <Badge className="bg-blue-600 text-white text-[10px] font-bold">
-                            {m.plan ? m.plan.toUpperCase() : "STARTER PARTNER"}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-[10px] text-slate-500 font-bold uppercase block">Business Name</span>
-                            <span className="font-extrabold text-slate-900">{merchantName}</span>
+                          {selectedCoupon.redemptionMethod && (
+                            <div>
+                              <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1">
+                                Counter Redemption Instructions
+                              </h4>
+                              <p className="text-blue-800 bg-blue-50 p-2.5 rounded-xl border border-blue-200 font-bold">
+                                {selectedCoupon.redemptionMethod}
+                              </p>
+                            </div>
+                          )}
+
+                          {selectedCoupon.internalNote && (
+                            <div>
+                              <h4 className="text-[11px] font-bold text-amber-800 uppercase tracking-wider mb-1">
+                                Merchant Note to Moderation Desk
+                              </h4>
+                              <p className="text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-medium">
+                                {selectedCoupon.internalNote}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Mandatory Merchant Declarations Status */}
+                          <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-1.5">
+                            <h4 className="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />{" "}
+                              Mandatory Merchant Compliance Declarations
+                            </h4>
+                            <ul className="space-y-1 text-[11px] text-emerald-800 font-medium">
+                              <li className="flex items-center gap-1.5">
+                                <Check className="w-3 h-3 text-emerald-600 shrink-0" />{" "}
+                                Verified Merchant Business Authorization
+                              </li>
+                              <li className="flex items-center gap-1.5">
+                                <Check className="w-3 h-3 text-emerald-600 shrink-0" />{" "}
+                                In-Store Discount Honor Guarantee Confirmed
+                              </li>
+                              <li className="flex items-center gap-1.5">
+                                <Check className="w-3 h-3 text-emerald-600 shrink-0" />{" "}
+                                Fair Pricing &amp; Genuine Offer Declaration
+                              </li>
+                              <li className="flex items-center gap-1.5">
+                                <Check className="w-3 h-3 text-emerald-600 shrink-0" />{" "}
+                                Vouchiqo Partner Platform Terms Accepted
+                              </li>
+                            </ul>
                           </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 font-bold uppercase block">Registered Category</span>
-                            <span className="font-bold text-slate-800 capitalize">{m.category || selectedCoupon.category || "General"}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Contact & Liaison Info */}
-                      <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2.5">
-                        <h4 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-blue-600" /> Direct Contact &amp; Liaison Info
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Merchant Contact Email</span>
-                            <a href={`mailto:${merchantEmail}`} className="font-bold text-blue-600 hover:underline flex items-center gap-1">
-                              <Mail className="w-3 h-3 shrink-0" /> {merchantEmail}
-                            </a>
-                          </div>
-
-                          <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Phone / WhatsApp</span>
-                            <span className="font-bold text-slate-800 flex items-center gap-1">
-                              <Phone className="w-3 h-3 text-emerald-600 shrink-0" /> {merchantPhone}
-                            </span>
-                          </div>
-
-                          <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Authorized Contact Person</span>
-                            <span className="font-bold text-slate-800 flex items-center gap-1">
-                              <User className="w-3 h-3 text-purple-600 shrink-0" />
-                              {m.liaisonName ? `${m.liaisonName} (${m.liaisonDesignation || "Manager"})` : "Owner / Manager"}
-                            </span>
-                          </div>
-
-                          <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-0.5">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Channel / Operating Type</span>
-                            <span className="font-bold text-slate-800 uppercase flex items-center gap-1">
-                              <Globe className="w-3 h-3 text-indigo-600 shrink-0" />
-                              {m.businessType || "In-Store & Online"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Storefront Address & GSTIN */}
-                      <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
-                        <h4 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-rose-600" /> Physical Storefront &amp; Statutory GSTIN
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-[10px] text-slate-500 font-bold uppercase block">Store City &amp; Hub</span>
-                            <span className="font-bold text-slate-800">{merchantCity}, {merchantState}</span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 font-bold uppercase block">GSTIN Registration</span>
-                            <span className="font-mono font-bold text-slate-800">{m.gstin || "GST Exempt / Unregistered"}</span>
-                          </div>
-                        </div>
-                        <div className="pt-1 text-[11px] text-slate-600 font-medium">
-                          <strong>Full Store Address:</strong> {merchantAddress}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3: VALIDITY & LIMITS */}
-                  {auditTab === "validity" && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase block">Start Date</span>
-                          <span className="font-bold text-slate-800">
-                            {selectedCoupon.startDate
-                              ? new Date(selectedCoupon.startDate).toLocaleDateString()
-                              : new Date(selectedCoupon.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase block">Expiration Date</span>
-                          <span className="font-bold text-slate-800">
-                            {selectedCoupon.expiresAt || selectedCoupon.endDate
-                              ? new Date(selectedCoupon.expiresAt || selectedCoupon.endDate).toLocaleDateString()
-                              : "Ongoing"}
-                          </span>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase block">Store Operating Hours</span>
-                          <span className="font-bold text-blue-700 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {selectedCoupon.validHours || "All Business Hours"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase block">Valid Offer Days</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(selectedCoupon.validDays && selectedCoupon.validDays.length > 0
-                            ? selectedCoupon.validDays
-                            : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                          ).map((day) => (
-                            <span key={day} className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold">
-                              {day}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase block">Total Usage Limit</span>
-                          <span className="font-bold text-slate-800">
-                            {selectedCoupon.maxClaims ? `${selectedCoupon.maxClaims} Total Vouchers` : "Unlimited Vouchers"}
-                          </span>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase block">Per Customer Limit</span>
-                          <span className="font-bold text-slate-800">
-                            {selectedCoupon.perCustomerLimit || "1 per customer"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 4: TERMS & COMPLIANCE */}
-                  {auditTab === "compliance" && (
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1 flex items-center gap-1">
-                          <Layers className="w-3.5 h-3.5 text-blue-600" /> In-Store Terms &amp; Conditions
-                        </h4>
-                        <p className="text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed font-normal whitespace-pre-line">
-                          {selectedCoupon.termsAndConditions || selectedCoupon.termsConditions || "Standard Vouchiqo merchant partner terms apply. Valid on base invoice value."}
-                        </p>
-                      </div>
-
-                      {selectedCoupon.redemptionMethod && (
-                        <div>
-                          <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-1">
-                            Counter Redemption Instructions
-                          </h4>
-                          <p className="text-blue-800 bg-blue-50 p-2.5 rounded-xl border border-blue-200 font-bold">
-                            {selectedCoupon.redemptionMethod}
-                          </p>
                         </div>
                       )}
+                    </div>
 
-                      {selectedCoupon.internalNote && (
-                        <div>
-                          <h4 className="text-[11px] font-bold text-amber-800 uppercase tracking-wider mb-1">
-                            Merchant Note to Moderation Desk
-                          </h4>
-                          <p className="text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-medium">
-                            {selectedCoupon.internalNote}
-                          </p>
-                        </div>
-                      )}
+                    {/* Footer Buttons */}
+                    <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 mt-auto">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsDetailsOpen(false)}
+                        className="h-8 text-xs font-bold border-slate-300 text-slate-700 rounded-xl cursor-pointer"
+                      >
+                        Close Modal
+                      </Button>
 
-                      {/* Mandatory Merchant Declarations Status */}
-                      <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-1.5">
-                        <h4 className="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Mandatory Merchant Compliance Declarations
-                        </h4>
-                        <ul className="space-y-1 text-[11px] text-emerald-800 font-medium">
-                          <li className="flex items-center gap-1.5">
-                            <Check className="w-3 h-3 text-emerald-600 shrink-0" /> Verified Merchant Business Authorization
-                          </li>
-                          <li className="flex items-center gap-1.5">
-                            <Check className="w-3 h-3 text-emerald-600 shrink-0" /> In-Store Discount Honor Guarantee Confirmed
-                          </li>
-                          <li className="flex items-center gap-1.5">
-                            <Check className="w-3 h-3 text-emerald-600 shrink-0" /> Fair Pricing &amp; Genuine Offer Declaration
-                          </li>
-                          <li className="flex items-center gap-1.5">
-                            <Check className="w-3 h-3 text-emerald-600 shrink-0" /> Vouchiqo Partner Platform Terms Accepted
-                          </li>
-                        </ul>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => openRejectModal(selectedCoupon._id)}
+                          disabled={rejectMutation.isPending}
+                          className="h-8 text-xs font-bold rounded-xl cursor-pointer shadow-xs"
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" />
+                          Reject Offer
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApprove(selectedCoupon._id)}
+                          disabled={approveMutation.isPending}
+                          className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-4 rounded-xl cursor-pointer shadow-md shadow-emerald-600/20"
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" />
+                          Approve &amp; Publish Live
+                        </Button>
                       </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Footer Buttons */}
-                <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 mt-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsDetailsOpen(false)}
-                    className="h-8 text-xs font-bold border-slate-300 text-slate-700 rounded-xl cursor-pointer"
-                  >
-                    Close Modal
-                  </Button>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => openRejectModal(selectedCoupon._id)}
-                      disabled={rejectMutation.isPending}
-                      className="h-8 text-xs font-bold rounded-xl cursor-pointer shadow-xs"
-                    >
-                      <X className="h-3.5 w-3.5 mr-1" />
-                      Reject Offer
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleApprove(selectedCoupon._id)}
-                      disabled={approveMutation.isPending}
-                      className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-4 rounded-xl cursor-pointer shadow-md shadow-emerald-600/20"
-                    >
-                      <Check className="h-3.5 w-3.5 mr-1" />
-                      Approve &amp; Publish Live
-                    </Button>
                   </div>
-                </div>
-              </div>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
+                );
+              })()}
+          </DialogContent>
+        </Dialog>
 
-      {/* Rejection Reason Dialog Modal */}
-      <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-rose-600 font-bold text-base">
-              <AlertTriangle className="h-5 w-5" />
-              <span>Reject Offer Listing</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-2 text-left font-sans">
-            <p className="text-xs text-slate-500 font-medium">
-              Please provide a clear explanation for rejecting this offer listing.
-              This will be shared directly with the merchant partner so they can update and re-submit.
-            </p>
-            <Textarea
-              placeholder="e.g. Invalid discount code, misleading title, or unreadable banner image..."
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              rows={4}
-              className="resize-none text-xs border-slate-200 rounded-xl font-medium"
-            />
-          </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsRejectOpen(false)}
-              disabled={rejectMutation.isPending}
-              className="h-8 text-xs font-bold rounded-xl"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleConfirmReject}
-              disabled={!rejectionReason.trim() || rejectMutation.isPending}
-              className="h-8 text-xs font-bold rounded-xl"
-            >
-              {rejectMutation.isPending ? "Rejecting..." : "Confirm Rejection"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        {/* Rejection Reason Dialog Modal */}
+        <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-rose-600 font-bold text-base">
+                <AlertTriangle className="h-5 w-5" />
+                <span>Reject Offer Listing</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2 text-left font-sans">
+              <p className="text-xs text-slate-500 font-medium">
+                Please provide a clear explanation for rejecting this offer
+                listing. This will be shared directly with the merchant partner
+                so they can update and re-submit.
+              </p>
+              <Textarea
+                placeholder="e.g. Invalid discount code, misleading title, or unreadable banner image..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+                className="resize-none text-xs border-slate-200 rounded-xl font-medium"
+              />
+            </div>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsRejectOpen(false)}
+                disabled={rejectMutation.isPending}
+                className="h-8 text-xs font-bold rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleConfirmReject}
+                disabled={!rejectionReason.trim() || rejectMutation.isPending}
+                className="h-8 text-xs font-bold rounded-xl"
+              >
+                {rejectMutation.isPending
+                  ? "Rejecting..."
+                  : "Confirm Rejection"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </TooltipProvider>
   );
 }
