@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { PlanSelector } from "@/components/shared/cards";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Table as TableIcon, ChevronDown, ChevronUp } from "lucide-react";
+import PlanComparisonTable from "./PlanComparisonTable";
 
 /**
- * PlanComparisonGrid — shows 4 subscription plan cards using PlanSelector.
+ * PlanComparisonGrid — shows 4 subscription plan cards + detailed comparison matrix table.
  * @param {{ plans: object[], currentPlanId: string, billingCycle: string, setBillingCycle: function, onOpenUpgrade: function }} props
  */
 export default function PlanComparisonGrid({
@@ -16,8 +20,10 @@ export default function PlanComparisonGrid({
   isPaymentCompleted = false,
   isLoading = false,
 }) {
+  const [showTable, setShowTable] = useState(true);
+
   return (
-    <div className="space-y-4 pt-1 text-left font-sans">
+    <div className="space-y-6 pt-1 text-left font-sans">
       {/* Header + billing toggle */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
         <div>
@@ -61,16 +67,11 @@ export default function PlanComparisonGrid({
                 className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs animate-pulse flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  {/* Badge skeleton */}
                   <div className="h-5 bg-slate-100 rounded-full w-24 mx-auto"></div>
-                  {/* Title skeleton */}
                   <div className="h-6 bg-slate-200 rounded-md w-3/4"></div>
-                  {/* Price skeleton */}
                   <div className="h-8 bg-slate-300 rounded-md w-1/2"></div>
-                  {/* Billing note skeleton */}
                   <div className="h-3 bg-slate-100 rounded w-1/3"></div>
 
-                  {/* Feature list skeleton */}
                   <div className="space-y-2.5 pt-3 border-t border-slate-100">
                     {Array.from({ length: 5 }).map((_, j) => (
                       <div key={j} className="flex items-center gap-2">
@@ -81,7 +82,6 @@ export default function PlanComparisonGrid({
                   </div>
                 </div>
 
-                {/* Button skeleton */}
                 <div className="h-10 bg-slate-200 rounded-xl w-full mt-4"></div>
               </div>
             ))
@@ -119,6 +119,49 @@ export default function PlanComparisonGrid({
                 />
               );
             })}
+      </div>
+
+      {/* Comprehensive Feature Comparison Matrix (All Features in One Place) */}
+      <div className="space-y-3.5 pt-4 border-t border-slate-200/80">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-sans text-xs font-semibold text-slate-800 uppercase tracking-wider">
+                Full Feature Comparison Matrix
+              </h3>
+              <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                All Plans in One Place
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 font-normal mt-0.5">
+              Side-by-side breakdown of every platform capability, redemption tier, and enterprise limit
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTable(!showTable)}
+            className="h-8 px-3 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-slate-50 rounded-lg cursor-pointer self-start sm:self-auto gap-1.5"
+          >
+            <TableIcon className="w-3.5 h-3.5 text-blue-600" />
+            <span>{showTable ? "Hide Comparison Table" : "Show All Features Matrix"}</span>
+            {showTable ? (
+              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            )}
+          </Button>
+        </div>
+
+        {showTable && (
+          <PlanComparisonTable
+            currentPlanId={currentPlanId}
+            onSelectPlan={onOpenUpgrade}
+            plans={plans}
+          />
+        )}
       </div>
     </div>
   );
