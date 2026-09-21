@@ -366,57 +366,6 @@ export function HeroSection({ banners: initialBanners = [] }) {
               })}
             </div>
           </div>
-
-          {/* Navigation Arrows - Compact and modern */}
-          {slides.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={handlePrev}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-slate-950/40 hover:bg-slate-950/80 text-white/90 hover:text-white backdrop-blur-xs border border-white/10 shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 stroke-[2.5]" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-slate-950/40 hover:bg-slate-950/80 text-white/90 hover:text-white backdrop-blur-xs border border-white/10 shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 stroke-[2.5]" />
-              </button>
-            </>
-          )}
-
-          {/* Responsive Pagination: Dots if <= 10 slides, Sleek Pill Counter Badge if > 10 */}
-          {slides.length > 1 && (
-            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
-              {slides.length <= 10 ? (
-                <div className="flex gap-1.5 sm:gap-2">
-                  {slides.map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleBrandClick(idx)}
-                      className={`h-1.5 sm:h-2 rounded-full transition-all border-0 cursor-pointer ${
-                        idx === currentSlide
-                          ? "bg-white w-4 sm:w-5"
-                          : "bg-white/40 hover:bg-white/60 w-1.5 sm:w-2"
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/65 backdrop-blur-md border border-white/20 text-white shadow-lg pointer-events-auto">
-                  <span className="text-[11px] sm:text-xs font-mono font-bold tracking-wider">
-                    {currentSlide + 1} <span className="text-white/50">/</span> {slides.length}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </section>
 
