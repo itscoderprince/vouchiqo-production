@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Check,
@@ -32,17 +32,34 @@ import {
 } from "@/lib/api-helpers";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import MobileTableCard from "@/components/shared/data/MobileTableCard";
 
 // 8 Distinct Pastel Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
-  { row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900" },
-  { row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900" },
-  { row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900" },
-  { row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900" },
-  { row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900" },
-  { row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900" },
-  { row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900" },
-  { row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900" },
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
 ];
 
 export default function PlatformRevenue() {
@@ -99,8 +116,10 @@ export default function PlatformRevenue() {
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
-      if (invoiceTab === "paid" && inv.status?.toLowerCase() !== "paid") return false;
-      if (invoiceTab === "failed" && inv.status?.toLowerCase() !== "failed") return false;
+      if (invoiceTab === "paid" && inv.status?.toLowerCase() !== "paid")
+        return false;
+      if (invoiceTab === "failed" && inv.status?.toLowerCase() !== "failed")
+        return false;
 
       if (invoiceSearch.trim()) {
         const q = invoiceSearch.toLowerCase().trim();
@@ -139,7 +158,8 @@ export default function PlatformRevenue() {
                 Platform SaaS Revenue &amp; Merchant Settlements
               </h1>
               <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-                Monthly Recurring Revenue (MRR), subscription billing invoices &amp; merchant payout ledger from MongoDB.
+                Monthly Recurring Revenue (MRR), subscription billing invoices
+                &amp; merchant payout ledger from MongoDB.
               </p>
             </div>
 
@@ -157,11 +177,16 @@ export default function PlatformRevenue() {
                     disabled={loading}
                     className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
                   >
-                    <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+                    <RefreshCw
+                      className={`h-3 w-3 ${loading ? "animate-spin" : ""}`}
+                    />
                     <span>Refresh</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                <TooltipContent
+                  side="top"
+                  className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                >
                   Fetch live revenue &amp; payouts ledger
                 </TooltipContent>
               </Tooltip>
@@ -177,7 +202,7 @@ export default function PlatformRevenue() {
                     Monthly Recurring (MRR)
                   </span>
                   <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none font-mono">
-                    â‚¹{mrr.toLocaleString("en-IN")}
+                    ₹{mrr.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
@@ -209,7 +234,7 @@ export default function PlatformRevenue() {
                     Avg Plan Value (ARPU)
                   </span>
                   <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none font-mono">
-                    â‚¹{avgPlanValue.toLocaleString("en-IN")}
+                    ₹{avgPlanValue.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
@@ -225,7 +250,7 @@ export default function PlatformRevenue() {
                     Pending Settlements
                   </span>
                   <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none font-mono">
-                    â‚¹{pendingPayouts.toLocaleString("en-IN")}
+                    ₹{pendingPayouts.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
@@ -244,7 +269,8 @@ export default function PlatformRevenue() {
                   <span>Recent SaaS Billing Invoices ({invoices.length})</span>
                 </h3>
                 <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
-                  Subscription invoice receipts generated automatically for active paid partners.
+                  Subscription invoice receipts generated automatically for
+                  active paid partners.
                 </p>
               </div>
 
@@ -272,8 +298,20 @@ export default function PlatformRevenue() {
                 <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
                   {[
                     { id: "all", label: "All", count: invoices.length },
-                    { id: "paid", label: "Paid", count: invoices.filter((i) => i.status?.toLowerCase() === "paid").length },
-                    { id: "failed", label: "Failed", count: invoices.filter((i) => i.status?.toLowerCase() === "failed").length },
+                    {
+                      id: "paid",
+                      label: "Paid",
+                      count: invoices.filter(
+                        (i) => i.status?.toLowerCase() === "paid",
+                      ).length,
+                    },
+                    {
+                      id: "failed",
+                      label: "Failed",
+                      count: invoices.filter(
+                        (i) => i.status?.toLowerCase() === "failed",
+                      ).length,
+                    },
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -304,7 +342,7 @@ export default function PlatformRevenue() {
             </div>
 
             {/* Colorful Invoices Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/90">
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/90">
               <table className="w-full border-collapse text-left font-sans">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
@@ -317,114 +355,120 @@ export default function PlatformRevenue() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                        <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                        Loading billing invoices...
-                      </td>
-                    </tr>
-                  ) : filteredInvoices.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                        No billing invoices found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredInvoices.map((inv, idx) => {
-                      const theme = ROW_COLOR_THEMES[idx % ROW_COLOR_THEMES.length];
-                      const isPaid = inv.status?.toLowerCase() === "paid";
-
-                      return (
-                        <tr
-                          key={inv.id || idx}
-                          className={cn("transition-all duration-150", theme.row)}
+                  {loading
+                    ? <tr>
+                        <td
+                          colSpan={6}
+                          className="py-8 text-center text-slate-400 text-xs"
                         >
-                          <td className="py-2 px-3">
-                            <span className="font-mono text-[11px] font-medium text-slate-900 bg-white/95 border border-slate-300/90 px-1.5 py-0.5 rounded shadow-2xs">
-                              {inv.id}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
-                            {inv.merchantName}
-                          </td>
-                          <td className="py-2 px-3">
-                            <span className="text-[10px] font-medium text-blue-700 bg-white/95 border border-blue-200 px-1.5 py-0.2 rounded shadow-2xs">
-                              {inv.plan}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 font-mono text-[10.5px] text-slate-600">
-                            {inv.date}
-                          </td>
-                          <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
-                            â‚¹{inv.amount.toLocaleString("en-IN")}
-                          </td>
-                          <td className="py-2 px-3 text-center">
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 text-[9.5px] font-medium rounded-md border shadow-2xs inline-block whitespace-nowrap",
-                                isPaid
-                                  ? "bg-white/95 text-emerald-700 border-emerald-300"
-                                  : "bg-white/95 text-rose-700 border-rose-300",
-                              )}
-                            >
-                              {inv.status}
-                            </span>
+                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                          Loading billing invoices...
+                        </td>
+                      </tr>
+                    : filteredInvoices.length === 0
+                      ? <tr>
+                          <td
+                            colSpan={6}
+                            className="py-8 text-center text-slate-400 text-xs"
+                          >
+                            No billing invoices found.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
+                      : filteredInvoices.map((inv, idx) => {
+                          const theme =
+                            ROW_COLOR_THEMES[idx % ROW_COLOR_THEMES.length];
+                          const isPaid = inv.status?.toLowerCase() === "paid";
+
+                          return (
+                            <tr
+                              key={inv.id || idx}
+                              className={cn(
+                                "transition-all duration-150",
+                                theme.row,
+                              )}
+                            >
+                              <td className="py-2 px-3">
+                                <span className="font-mono text-[11px] font-medium text-slate-900 bg-white/95 border border-slate-300/90 px-1.5 py-0.5 rounded shadow-2xs">
+                                  {inv.id}
+                                </span>
+                              </td>
+                              <td className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
+                                {inv.merchantName}
+                              </td>
+                              <td className="py-2 px-3">
+                                <span className="text-[10px] font-medium text-blue-700 bg-white/95 border border-blue-200 px-1.5 py-0.2 rounded shadow-2xs">
+                                  {inv.plan}
+                                </span>
+                              </td>
+                              <td className="py-2 px-3 font-mono text-[10.5px] text-slate-600">
+                                {inv.date}
+                              </td>
+                              <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
+                                ₹{inv.amount.toLocaleString("en-IN")}
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <span
+                                  className={cn(
+                                    "px-2 py-0.5 text-[9.5px] font-medium rounded-md border shadow-2xs inline-block whitespace-nowrap",
+                                    isPaid
+                                      ? "bg-white/95 text-emerald-700 border-emerald-300"
+                                      : "bg-white/95 text-rose-700 border-rose-300",
+                                  )}
+                                >
+                                  {inv.status}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
                 </tbody>
               </table>
             </div>
 
-            {/* Mobile Card View - Invoices */}
-            <div className="md:hidden space-y-2">
-              {loading ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                  Loading billing invoices...
-                </div>
-              ) : filteredInvoices.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  No billing invoices found.
-                </div>
-              ) : (
-                filteredInvoices.map((inv, idx) => {
-                  const isPaid = inv.status?.toLowerCase() === "paid";
-                  return (
-                    <div
-                      key={inv.id || idx}
-                      className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <span className="font-mono text-[11px] font-medium text-slate-900 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded block w-fit mb-1">
-                            {inv.id}
-                          </span>
-                          <p className="font-medium text-slate-900 text-[12px] truncate">{inv.merchantName}</p>
-                          <p className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium">{inv.plan}</p>
-                        </div>
-                        <span
-                          className={cn(
-                            "px-2.5 py-1 text-[10px] font-semibold rounded-lg border shadow-2xs inline-block whitespace-nowrap shrink-0",
-                            isPaid
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                              : "bg-rose-50 text-rose-700 border-rose-300",
-                          )}
-                        >
-                          {inv.status}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-[10px] text-slate-500 font-mono">{inv.date}</span>
-                        <span className="font-mono font-semibold text-slate-900 text-sm">&#8377;{inv.amount.toLocaleString("en-IN")}</span>
-                      </div>
+            {/* Mobile Card View - Invoices (Reference Card Design) */}
+            <div className="md:hidden space-y-3">
+              {loading
+                ? <div className="py-8 text-center text-slate-400 text-xs">
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                    Loading billing invoices...
+                  </div>
+                : filteredInvoices.length === 0
+                  ? <div className="py-8 text-center text-slate-400 text-xs">
+                      No billing invoices found.
                     </div>
-                  );
-                })
-              )}
+                  : filteredInvoices.map((inv, idx) => (
+                      <MobileTableCard
+                        key={inv.id || idx}
+                        avatarText={inv.merchantName}
+                        avatarBg="bg-blue-600"
+                        badge="CUSTOMER BILLING"
+                        title={inv.merchantName}
+                        subtitle={`Subscription Tier: ${inv.plan}`}
+                        fields={[
+                          {
+                            label: "ORDER ID",
+                            value: inv.id,
+                            isCode: true,
+                          },
+                          {
+                            label: "INVOICE DATE",
+                            value: inv.date,
+                          },
+                          {
+                            label: "STATUS",
+                            value: inv.status,
+                            isStatus: true,
+                          },
+                          {
+                            label: "AMOUNT",
+                            value: `₹${inv.amount.toLocaleString("en-IN")}`,
+                            isAmount: true,
+                          },
+                        ]}
+                        actionText="Review Invoice"
+                        onAction={() => {}}
+                      />
+                    ))}
             </div>
           </Card>
 
@@ -434,10 +478,13 @@ export default function PlatformRevenue() {
               <div>
                 <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <IndianRupee className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Merchant Settlement Payout Queue ({payouts.length})</span>
+                  <span>
+                    Merchant Settlement Payout Queue ({payouts.length})
+                  </span>
                 </h3>
                 <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
-                  Voucher redemption settlements owed to partner merchants for verified redemptions.
+                  Voucher redemption settlements owed to partner merchants for
+                  verified redemptions.
                 </p>
               </div>
 
@@ -463,154 +510,171 @@ export default function PlatformRevenue() {
             </div>
 
             {/* Colorful Payout Queue Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/90">
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/90">
               <table className="w-full border-collapse text-left font-sans">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
                     <th className="py-2 px-3 w-52">Merchant Partner</th>
-                    <th className="py-2 px-3 w-32 text-right">Settlement Value</th>
+                    <th className="py-2 px-3 w-32 text-right">
+                      Settlement Value
+                    </th>
                     <th className="py-2 px-3">Bank Details &amp; Period</th>
                     <th className="py-2 px-3 text-center w-28">Status</th>
                     <th className="py-2 px-3 text-right w-28">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
-                        <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                        Loading settlement payouts...
-                      </td>
-                    </tr>
-                  ) : filteredPayouts.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
-                        No pending settlement records found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredPayouts.map((p, idx) => {
-                      const theme = ROW_COLOR_THEMES[(idx + 2) % ROW_COLOR_THEMES.length];
-                      const isPaid = p.status === "paid";
-
-                      return (
-                        <tr
-                          key={p.id || idx}
-                          className={cn("transition-all duration-150", theme.row)}
+                  {loading
+                    ? <tr>
+                        <td
+                          colSpan={5}
+                          className="py-8 text-center text-slate-400 text-xs"
                         >
-                          <td className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
-                            {p.merchantName}
-                          </td>
-                          <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
-                            â‚¹{p.amount.toLocaleString("en-IN")}
-                          </td>
-                          <td className="py-2 px-3">
-                            <span className="font-mono text-[10.5px] text-slate-700 block">
-                              {p.bankDetails || "HDFC Bank - A/C: 50100100000 - IFSC: HDFC0000123"}
-                            </span>
-                            <span className="text-[9.5px] text-slate-500 block">
-                              Period: {p.period || "Current Month"}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 text-center">
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 text-[9.5px] font-medium rounded-md border shadow-2xs inline-block whitespace-nowrap",
-                                isPaid
-                                  ? "bg-white/95 text-emerald-700 border-emerald-300"
-                                  : "bg-white/95 text-amber-700 border-amber-300",
-                              )}
-                            >
-                              {isPaid ? "Settled" : "Pending Payout"}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 text-right">
-                            {!isPaid ? (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    disabled={actionLoading}
-                                    onClick={() => handleMarkAsPaid(p.id)}
-                                    className="h-6.5 px-2.5 text-[10.5px] font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-md cursor-pointer ml-auto shadow-2xs gap-1"
-                                  >
-                                    <Check className="w-3 h-3" />
-                                    <span>Mark Paid</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                                  Mark this settlement as transferred &amp; completed
-                                </TooltipContent>
-                              </Tooltip>
-                            ) : (
-                              <span className="text-[10px] font-medium text-slate-400 uppercase">
-                                Completed
-                              </span>
-                            )}
+                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                          Loading settlement payouts...
+                        </td>
+                      </tr>
+                    : filteredPayouts.length === 0
+                      ? <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-slate-400 text-xs"
+                          >
+                            No pending settlement records found.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
+                      : filteredPayouts.map((p, idx) => {
+                          const theme =
+                            ROW_COLOR_THEMES[
+                              (idx + 2) % ROW_COLOR_THEMES.length
+                            ];
+                          const isPaid = p.status === "paid";
+
+                          return (
+                            <tr
+                              key={p.id || idx}
+                              className={cn(
+                                "transition-all duration-150",
+                                theme.row,
+                              )}
+                            >
+                              <td className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
+                                {p.merchantName}
+                              </td>
+                              <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
+                                ₹{p.amount.toLocaleString("en-IN")}
+                              </td>
+                              <td className="py-2 px-3">
+                                <span className="font-mono text-[10.5px] text-slate-700 block">
+                                  {p.bankDetails ||
+                                    "HDFC Bank - A/C: 50100100000 - IFSC: HDFC0000123"}
+                                </span>
+                                <span className="text-[9.5px] text-slate-500 block">
+                                  Period: {p.period || "Current Month"}
+                                </span>
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <span
+                                  className={cn(
+                                    "px-2 py-0.5 text-[9.5px] font-medium rounded-md border shadow-2xs inline-block whitespace-nowrap",
+                                    isPaid
+                                      ? "bg-white/95 text-emerald-700 border-emerald-300"
+                                      : "bg-white/95 text-amber-700 border-amber-300",
+                                  )}
+                                >
+                                  {isPaid ? "Settled" : "Pending Payout"}
+                                </span>
+                              </td>
+                              <td className="py-2 px-3 text-right">
+                                {!isPaid
+                                  ? <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          disabled={actionLoading}
+                                          onClick={() => handleMarkAsPaid(p.id)}
+                                          className="h-6.5 px-2.5 text-[10.5px] font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-md cursor-pointer ml-auto shadow-2xs gap-1"
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>Mark Paid</span>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        side="top"
+                                        className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                                      >
+                                        Mark this settlement as transferred
+                                        &amp; completed
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  : <span className="text-[10px] font-medium text-slate-400 uppercase">
+                                      Completed
+                                    </span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
                 </tbody>
               </table>
             </div>
-            {/* Mobile Card View - Payouts */}
-            <div className="md:hidden space-y-2">
-              {loading ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                  Loading settlement payouts...
-                </div>
-              ) : filteredPayouts.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  No pending settlement records found.
-                </div>
-              ) : (
-                filteredPayouts.map((p, idx) => {
-                  const isPaid = p.status === "paid";
-                  return (
-                    <div
-                      key={p.id || idx}
-                      className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-medium text-slate-900 text-[12px] truncate">{p.merchantName}</p>
-                          <p className="font-mono text-[10px] text-slate-600 mt-0.5 line-clamp-2">{p.bankDetails || "HDFC Bank - A/C: 50100100000 - IFSC: HDFC0000123"}</p>
-                          <p className="text-[9.5px] text-slate-500 mt-0.5">Period: {p.period || "Current Month"}</p>
-                        </div>
-                        <span
-                          className={cn(
-                            "px-2.5 py-1 text-[10px] font-semibold rounded-lg border shadow-2xs inline-block whitespace-nowrap shrink-0",
-                            isPaid
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                              : "bg-amber-50 text-amber-700 border-amber-300",
-                          )}
-                        >
-                          {isPaid ? "Settled" : "Pending"}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="font-mono font-semibold text-slate-900 text-sm">&#8377;{p.amount.toLocaleString("en-IN")}</span>
-                        {!isPaid ? (
-                          <Button
-                            size="sm"
-                            disabled={actionLoading}
-                            onClick={() => handleMarkAsPaid(p.id)}
-                            className="h-7 px-3 text-[11px] font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg cursor-pointer shadow-2xs gap-1"
-                          >
-                            <Check className="w-3 h-3" />
-                            <span>Mark Paid</span>
-                          </Button>
-                        ) : (
-                          <span className="text-[10px] font-medium text-slate-400 uppercase">Completed</span>
-                        )}
-                      </div>
+            {/* Mobile Card View - Payouts (Reference Card Design) */}
+            <div className="md:hidden space-y-3">
+              {loading
+                ? <div className="py-8 text-center text-slate-400 text-xs">
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                    Loading settlement payouts...
+                  </div>
+                : filteredPayouts.length === 0
+                  ? <div className="py-8 text-center text-slate-400 text-xs">
+                      No pending settlement records found.
                     </div>
-                  );
-                })
-              )}
+                  : filteredPayouts.map((p, idx) => {
+                      const isPaid = p.status === "paid";
+                      return (
+                        <MobileTableCard
+                          key={p.id || idx}
+                          avatarText={p.merchantName}
+                          avatarBg="bg-indigo-600"
+                          badge="MERCHANT SETTLEMENT"
+                          title={p.merchantName}
+                          subtitle={
+                            p.period
+                              ? `Period: ${p.period}`
+                              : "Settlement Account"
+                          }
+                          fields={[
+                            {
+                              label: "PAYOUT ID",
+                              value: p.id,
+                              isCode: true,
+                            },
+                            {
+                              label: "BANK A/C",
+                              value: p.bankDetails
+                                ? p.bankDetails.split(" - ")[0]
+                                : "HDFC Bank",
+                            },
+                            {
+                              label: "STATUS",
+                              value: isPaid ? "Settled" : "Pending",
+                              isStatus: true,
+                              statusType: isPaid ? "success" : "pending",
+                            },
+                            {
+                              label: "AMOUNT",
+                              value: `₹${p.amount.toLocaleString("en-IN")}`,
+                              isAmount: true,
+                            },
+                          ]}
+                          actionText={
+                            isPaid ? "Settlement Completed" : "Review & Settle"
+                          }
+                          actionVariant={isPaid ? "outline" : "success"}
+                          actionDisabled={isPaid || actionLoading}
+                          onAction={() => !isPaid && handleMarkAsPaid(p.id)}
+                        />
+                      );
+                    })}
             </div>
           </Card>
         </div>

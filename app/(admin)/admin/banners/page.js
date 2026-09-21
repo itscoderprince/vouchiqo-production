@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   ArrowDown,
@@ -42,6 +42,7 @@ import {
 import { uploadFile } from "@/lib/fetcher";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import MobileTableCard from "@/components/shared/data/MobileTableCard";
 
 const SLOTS = [
   {
@@ -333,7 +334,9 @@ export default function BannerManagement() {
       if (res.ok && json.success) {
         showSuccess(`Banner status updated to ${nextStatus}.`);
         setBanners((prev) =>
-          prev.map((b) => (b._id === bannerId ? { ...b, status: nextStatus } : b)),
+          prev.map((b) =>
+            b._id === bannerId ? { ...b, status: nextStatus } : b,
+          ),
         );
       } else {
         showError(json.error || "Failed to toggle status.");
@@ -552,7 +555,8 @@ export default function BannerManagement() {
                 Promo Banner Management
               </h1>
               <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-                Manage hero carousels, mid-page trending offers, and visitor popup banners with live drag-and-drop ordering.
+                Manage hero carousels, mid-page trending offers, and visitor
+                popup banners with live drag-and-drop ordering.
               </p>
             </div>
             <Button
@@ -562,7 +566,9 @@ export default function BannerManagement() {
               disabled={loading}
               className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
             >
-              <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-3 w-3 ${loading ? "animate-spin" : ""}`}
+              />
               <span>Refresh</span>
             </Button>
           </div>
@@ -690,8 +696,12 @@ export default function BannerManagement() {
                         </span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                      {slot.description} â€¢ Optimal ratio: {slot.recommendedSize}
+                    <TooltipContent
+                      side="top"
+                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                    >
+                      {slot.description} â€¢ Optimal ratio:{" "}
+                      {slot.recommendedSize}
                     </TooltipContent>
                   </Tooltip>
                 );
@@ -699,7 +709,10 @@ export default function BannerManagement() {
             </div>
 
             <span className="text-[10.5px] font-medium text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
-              Upload Size: <span className="font-normal text-slate-800">{currentSlotConfig.recommendedSize}</span>
+              Upload Size:{" "}
+              <span className="font-normal text-slate-800">
+                {currentSlotConfig.recommendedSize}
+              </span>
             </span>
           </div>
 
@@ -737,7 +750,9 @@ export default function BannerManagement() {
               </div>
 
               {/* Media Uploads Row */}
-              <div className={`grid grid-cols-1 ${activeTab === "hero" ? "md:grid-cols-2" : ""} gap-2`}>
+              <div
+                className={`grid grid-cols-1 ${activeTab === "hero" ? "md:grid-cols-2" : ""} gap-2`}
+              >
                 {/* Banner Image */}
                 <div className="space-y-0.5">
                   <div className="flex items-center justify-between">
@@ -759,18 +774,20 @@ export default function BannerManagement() {
                       onClick={() => imageInputRef.current?.click()}
                       className="h-5 text-[10px] font-medium text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 cursor-pointer gap-1 px-1.5 rounded"
                     >
-                      {uploadingImage ? (
-                        <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                      ) : (
-                        <Upload className="w-2.5 h-2.5" />
-                      )}
-                      <span>{uploadingImage ? "Uploading..." : "Upload Image"}</span>
+                      {uploadingImage
+                        ? <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                        : <Upload className="w-2.5 h-2.5" />}
+                      <span>
+                        {uploadingImage ? "Uploading..." : "Upload Image"}
+                      </span>
                     </Button>
                   </div>
                   <Input
                     placeholder="https://images.unsplash.com/... or upload"
                     value={form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, image: e.target.value })
+                    }
                     required
                     className="h-7 text-xs border-slate-200 bg-white font-normal"
                   />
@@ -781,7 +798,10 @@ export default function BannerManagement() {
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between">
                       <label className="text-[10.5px] font-medium text-slate-700">
-                        Brand Logo <span className="text-slate-400 font-normal">(Optional)</span>
+                        Brand Logo{" "}
+                        <span className="text-slate-400 font-normal">
+                          (Optional)
+                        </span>
                       </label>
                       <input
                         type="file"
@@ -798,18 +818,20 @@ export default function BannerManagement() {
                         onClick={() => logoInputRef.current?.click()}
                         className="h-5 text-[10px] font-medium text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 cursor-pointer gap-1 px-1.5 rounded"
                       >
-                        {uploadingLogo ? (
-                          <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                        ) : (
-                          <Upload className="w-2.5 h-2.5" />
-                        )}
-                        <span>{uploadingLogo ? "Uploading..." : "Upload Logo"}</span>
+                        {uploadingLogo
+                          ? <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                          : <Upload className="w-2.5 h-2.5" />}
+                        <span>
+                          {uploadingLogo ? "Uploading..." : "Upload Logo"}
+                        </span>
                       </Button>
                     </div>
                     <Input
                       placeholder="https://... logo thumbnail URL"
                       value={form.logo}
-                      onChange={(e) => setForm({ ...form, logo: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, logo: e.target.value })
+                      }
                       className="h-7 text-xs border-slate-200 bg-white font-normal"
                     />
                   </div>
@@ -817,250 +839,292 @@ export default function BannerManagement() {
               </div>
 
               {/* Inputs & Customization */}
-              {activeTab === "popup" ? (
-                <div className="space-y-0.5">
-                  <label className="text-[10.5px] font-medium text-slate-700">
-                    Destination Link <span className="text-slate-400 font-normal">(Redirects on click)</span>
-                  </label>
-                  <Input
-                    placeholder="e.g. /deals or https://..."
-                    value={form.link}
-                    onChange={(e) => setForm({ ...form, link: e.target.value })}
-                    className="h-7 text-xs border-slate-200 bg-white font-normal"
-                  />
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-                    <div className="space-y-0.5">
-                      <label className="text-[10.5px] font-medium text-slate-700">
-                        Headline / Title
-                      </label>
-                      <Input
-                        placeholder="Overlay Title"
-                        value={form.title}
-                        onChange={(e) => setForm({ ...form, title: e.target.value })}
-                        className="h-7 text-xs border-slate-200 bg-white font-normal"
-                      />
-                    </div>
-                    <div className="space-y-0.5">
-                      <label className="text-[10.5px] font-medium text-slate-700">
-                        Tagline / Subtitle
-                      </label>
-                      <Input
-                        placeholder="Overlay Subtitle"
-                        value={form.subtitle}
-                        onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-                        className="h-7 text-xs border-slate-200 bg-white font-normal"
-                      />
-                    </div>
-                    <div className="space-y-0.5">
-                      <label className="text-[10.5px] font-medium text-slate-700">
-                        Button CTA Text
-                      </label>
-                      <Input
-                        placeholder="e.g. Explore Offer"
-                        value={form.buttonText}
-                        onChange={(e) => setForm({ ...form, buttonText: e.target.value })}
-                        className="h-7 text-xs border-slate-200 bg-white font-normal"
-                      />
-                    </div>
-                    <div className="space-y-0.5">
-                      <label className="text-[10.5px] font-medium text-slate-700">
-                        Destination Link
-                      </label>
-                      <Input
-                        placeholder="e.g. /deals or https://..."
-                        value={form.link}
-                        onChange={(e) => setForm({ ...form, link: e.target.value })}
-                        className="h-7 text-xs border-slate-200 bg-white font-normal"
-                      />
-                    </div>
+              {activeTab === "popup"
+                ? <div className="space-y-0.5">
+                    <label className="text-[10.5px] font-medium text-slate-700">
+                      Destination Link{" "}
+                      <span className="text-slate-400 font-normal">
+                        (Redirects on click)
+                      </span>
+                    </label>
+                    <Input
+                      placeholder="e.g. /deals or https://..."
+                      value={form.link}
+                      onChange={(e) =>
+                        setForm({ ...form, link: e.target.value })
+                      }
+                      className="h-7 text-xs border-slate-200 bg-white font-normal"
+                    />
                   </div>
-
-                  {/* Compact Color Controls Bar */}
-                  <div className="bg-slate-50 p-2 rounded-lg space-y-1.5 border border-slate-200/80">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-medium text-slate-600">Button BG:</span>
-                          <input
-                            type="color"
-                            value={form.buttonBgColor}
-                            onChange={(e) =>
-                              setForm({ ...form, buttonBgColor: e.target.value })
-                            }
-                            className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
-                          />
-                          <Input
-                            value={form.buttonBgColor}
-                            onChange={(e) =>
-                              setForm({ ...form, buttonBgColor: e.target.value })
-                            }
-                            className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-medium text-slate-600">Button Text:</span>
-                          <input
-                            type="color"
-                            value={form.buttonTextColor}
-                            onChange={(e) =>
-                              setForm({ ...form, buttonTextColor: e.target.value })
-                            }
-                            className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
-                          />
-                          <Input
-                            value={form.buttonTextColor}
-                            onChange={(e) =>
-                              setForm({ ...form, buttonTextColor: e.target.value })
-                            }
-                            className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-medium text-slate-600">Headline:</span>
-                          <input
-                            type="color"
-                            value={form.textColor}
-                            onChange={(e) =>
-                              setForm({ ...form, textColor: e.target.value })
-                            }
-                            className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
-                          />
-                          <Input
-                            value={form.textColor}
-                            onChange={(e) =>
-                              setForm({ ...form, textColor: e.target.value })
-                            }
-                            className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-medium text-slate-600">Tagline:</span>
-                          <input
-                            type="color"
-                            value={form.subtitleColor}
-                            onChange={(e) =>
-                              setForm({ ...form, subtitleColor: e.target.value })
-                            }
-                            className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
-                          />
-                          <Input
-                            value={form.subtitleColor}
-                            onChange={(e) =>
-                              setForm({ ...form, subtitleColor: e.target.value })
-                            }
-                            className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
-                          />
-                        </div>
+                : <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="space-y-0.5">
+                        <label className="text-[10.5px] font-medium text-slate-700">
+                          Headline / Title
+                        </label>
+                        <Input
+                          placeholder="Overlay Title"
+                          value={form.title}
+                          onChange={(e) =>
+                            setForm({ ...form, title: e.target.value })
+                          }
+                          className="h-7 text-xs border-slate-200 bg-white font-normal"
+                        />
                       </div>
-
-                      {/* Align Switcher */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] font-medium text-slate-500">Align:</span>
-                        <div className="flex bg-white rounded border border-slate-200 p-0.5">
-                          {["left", "center", "right"].map((pos) => (
-                            <button
-                              key={pos}
-                              type="button"
-                              onClick={() => setForm({ ...form, textPosition: pos })}
-                              className={cn(
-                                "px-1.5 py-0.2 text-[9px] font-medium uppercase rounded cursor-pointer transition-all",
-                                form.textPosition === pos
-                                  ? "bg-blue-600 text-white"
-                                  : "text-slate-600 hover:text-slate-900",
-                              )}
-                            >
-                              {pos}
-                            </button>
-                          ))}
-                        </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[10.5px] font-medium text-slate-700">
+                          Tagline / Subtitle
+                        </label>
+                        <Input
+                          placeholder="Overlay Subtitle"
+                          value={form.subtitle}
+                          onChange={(e) =>
+                            setForm({ ...form, subtitle: e.target.value })
+                          }
+                          className="h-7 text-xs border-slate-200 bg-white font-normal"
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[10.5px] font-medium text-slate-700">
+                          Button CTA Text
+                        </label>
+                        <Input
+                          placeholder="e.g. Explore Offer"
+                          value={form.buttonText}
+                          onChange={(e) =>
+                            setForm({ ...form, buttonText: e.target.value })
+                          }
+                          className="h-7 text-xs border-slate-200 bg-white font-normal"
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[10.5px] font-medium text-slate-700">
+                          Destination Link
+                        </label>
+                        <Input
+                          placeholder="e.g. /deals or https://..."
+                          value={form.link}
+                          onChange={(e) =>
+                            setForm({ ...form, link: e.target.value })
+                          }
+                          className="h-7 text-xs border-slate-200 bg-white font-normal"
+                        />
                       </div>
                     </div>
 
-                    {/* Presets & Live Preview */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-1 border-t border-slate-200/50">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <span className="text-[10px] font-medium text-slate-500">Presets:</span>
-                        {QUICK_COLORS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                buttonBgColor: c.hex,
-                                buttonTextColor: c.hex === "#ffffff" ? "#0f172a" : "#ffffff",
-                              })
-                            }
-                            className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs hover:scale-110 transition-transform cursor-pointer"
-                            style={{ backgroundColor: c.hex }}
-                            title={c.label}
-                          />
-                        ))}
-                      </div>
-
-                      {(form.image || form.title || form.buttonText) && (
-                        <div className="relative w-full sm:w-60 h-10 rounded-md overflow-hidden border border-slate-300 bg-slate-950 shrink-0">
-                          {form.image ? (
-                            // biome-ignore lint/performance/noImgElement: banner preview
-                            <img
-                              src={form.image}
-                              alt="Preview"
-                              className="w-full h-full object-cover"
+                    {/* Compact Color Controls Bar */}
+                    <div className="bg-slate-50 p-2 rounded-lg space-y-1.5 border border-slate-200/80">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-medium text-slate-600">
+                              Button BG:
+                            </span>
+                            <input
+                              type="color"
+                              value={form.buttonBgColor}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  buttonBgColor: e.target.value,
+                                })
+                              }
+                              className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
                             />
-                          ) : (
-                            <div className="w-full h-full bg-slate-900 flex items-center justify-center text-slate-500 text-[9px]">
-                              No image
-                            </div>
-                          )}
-                          <div
-                            className={`absolute inset-0 flex flex-col justify-center px-2 gap-0.2 pointer-events-none ${
-                              form.textPosition === "center"
-                                ? "items-center text-center bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent"
-                                : form.textPosition === "right"
-                                  ? "items-end text-right bg-gradient-to-l from-slate-950/80 via-slate-950/40 to-transparent"
-                                  : "items-start text-left bg-gradient-to-r from-slate-950/80 via-slate-950/40 to-transparent"
-                            }`}
-                          >
-                            {form.subtitle && (
-                              <span
-                                className="text-[8px] font-medium uppercase tracking-wider truncate max-w-full"
-                                style={{ color: form.subtitleColor }}
-                              >
-                                {form.subtitle}
-                              </span>
-                            )}
-                            {form.title && (
-                              <h4
-                                className="text-[9px] font-medium leading-tight truncate max-w-full"
-                                style={{ color: form.textColor }}
-                              >
-                                {form.title}
-                              </h4>
-                            )}
-                            {form.buttonText && (
-                              <span
-                                className="inline-flex items-center px-1 py-0.2 rounded text-[7px] font-medium shadow-2xs mt-0.5"
-                                style={{
-                                  backgroundColor: form.buttonBgColor,
-                                  color: form.buttonTextColor,
-                                }}
-                              >
-                                {form.buttonText}
-                              </span>
-                            )}
+                            <Input
+                              value={form.buttonBgColor}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  buttonBgColor: e.target.value,
+                                })
+                              }
+                              className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-medium text-slate-600">
+                              Button Text:
+                            </span>
+                            <input
+                              type="color"
+                              value={form.buttonTextColor}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  buttonTextColor: e.target.value,
+                                })
+                              }
+                              className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
+                            />
+                            <Input
+                              value={form.buttonTextColor}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  buttonTextColor: e.target.value,
+                                })
+                              }
+                              className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-medium text-slate-600">
+                              Headline:
+                            </span>
+                            <input
+                              type="color"
+                              value={form.textColor}
+                              onChange={(e) =>
+                                setForm({ ...form, textColor: e.target.value })
+                              }
+                              className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
+                            />
+                            <Input
+                              value={form.textColor}
+                              onChange={(e) =>
+                                setForm({ ...form, textColor: e.target.value })
+                              }
+                              className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-medium text-slate-600">
+                              Tagline:
+                            </span>
+                            <input
+                              type="color"
+                              value={form.subtitleColor}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  subtitleColor: e.target.value,
+                                })
+                              }
+                              className="w-5 h-5 p-0 rounded border border-slate-300 cursor-pointer shrink-0"
+                            />
+                            <Input
+                              value={form.subtitleColor}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  subtitleColor: e.target.value,
+                                })
+                              }
+                              className="h-6 w-16 text-[10.5px] font-mono border-slate-200 bg-white px-1"
+                            />
                           </div>
                         </div>
-                      )}
+
+                        {/* Align Switcher */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] font-medium text-slate-500">
+                            Align:
+                          </span>
+                          <div className="flex bg-white rounded border border-slate-200 p-0.5">
+                            {["left", "center", "right"].map((pos) => (
+                              <button
+                                key={pos}
+                                type="button"
+                                onClick={() =>
+                                  setForm({ ...form, textPosition: pos })
+                                }
+                                className={cn(
+                                  "px-1.5 py-0.2 text-[9px] font-medium uppercase rounded cursor-pointer transition-all",
+                                  form.textPosition === pos
+                                    ? "bg-blue-600 text-white"
+                                    : "text-slate-600 hover:text-slate-900",
+                                )}
+                              >
+                                {pos}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Presets & Live Preview */}
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-1 border-t border-slate-200/50">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] font-medium text-slate-500">
+                            Presets:
+                          </span>
+                          {QUICK_COLORS.map((c) => (
+                            <button
+                              key={c.hex}
+                              type="button"
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  buttonBgColor: c.hex,
+                                  buttonTextColor:
+                                    c.hex === "#ffffff" ? "#0f172a" : "#ffffff",
+                                })
+                              }
+                              className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs hover:scale-110 transition-transform cursor-pointer"
+                              style={{ backgroundColor: c.hex }}
+                              title={c.label}
+                            />
+                          ))}
+                        </div>
+
+                        {(form.image || form.title || form.buttonText) && (
+                          <div className="relative w-full sm:w-60 h-10 rounded-md overflow-hidden border border-slate-300 bg-slate-950 shrink-0">
+                            {form.image
+                              ? // biome-ignore lint/performance/noImgElement: banner preview
+                                <img
+                                  src={form.image}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover"
+                                />
+                              : <div className="w-full h-full bg-slate-900 flex items-center justify-center text-slate-500 text-[9px]">
+                                  No image
+                                </div>}
+                            <div
+                              className={`absolute inset-0 flex flex-col justify-center px-2 gap-0.2 pointer-events-none ${
+                                form.textPosition === "center"
+                                  ? "items-center text-center bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent"
+                                  : form.textPosition === "right"
+                                    ? "items-end text-right bg-gradient-to-l from-slate-950/80 via-slate-950/40 to-transparent"
+                                    : "items-start text-left bg-gradient-to-r from-slate-950/80 via-slate-950/40 to-transparent"
+                              }`}
+                            >
+                              {form.subtitle && (
+                                <span
+                                  className="text-[8px] font-medium uppercase tracking-wider truncate max-w-full"
+                                  style={{ color: form.subtitleColor }}
+                                >
+                                  {form.subtitle}
+                                </span>
+                              )}
+                              {form.title && (
+                                <h4
+                                  className="text-[9px] font-medium leading-tight truncate max-w-full"
+                                  style={{ color: form.textColor }}
+                                >
+                                  {form.title}
+                                </h4>
+                              )}
+                              {form.buttonText && (
+                                <span
+                                  className="inline-flex items-center px-1 py-0.2 rounded text-[7px] font-medium shadow-2xs mt-0.5"
+                                  style={{
+                                    backgroundColor: form.buttonBgColor,
+                                    color: form.buttonTextColor,
+                                  }}
+                                >
+                                  {form.buttonText}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>}
 
               {/* Publishing & Actions Bar */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50 p-1.5 px-2 rounded-lg border border-slate-200/80">
@@ -1073,25 +1137,36 @@ export default function BannerManagement() {
                       type="number"
                       placeholder="0"
                       value={form.priority}
-                      onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, priority: e.target.value })
+                      }
                       className="h-6.5 w-14 text-xs border-slate-200 bg-white px-1 text-center font-medium"
                     />
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-medium text-slate-700">Sponsored:</span>
+                    <span className="text-[11px] font-medium text-slate-700">
+                      Sponsored:
+                    </span>
                     <Switch
                       checked={form.isPaid}
-                      onCheckedChange={(val) => setForm({ ...form, isPaid: val })}
+                      onCheckedChange={(val) =>
+                        setForm({ ...form, isPaid: val })
+                      }
                     />
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-medium text-slate-700">Active:</span>
+                    <span className="text-[11px] font-medium text-slate-700">
+                      Active:
+                    </span>
                     <Switch
                       checked={form.status === "active"}
                       onCheckedChange={(val) =>
-                        setForm({ ...form, status: val ? "active" : "inactive" })
+                        setForm({
+                          ...form,
+                          status: val ? "active" : "inactive",
+                        })
                       }
                     />
                   </div>
@@ -1114,13 +1189,11 @@ export default function BannerManagement() {
                     disabled={saving}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7 px-3 cursor-pointer gap-1 shadow-2xs transition-all"
                   >
-                    {saving ? (
-                      <RefreshCw className="w-3 h-3 animate-spin" />
-                    ) : editingId ? (
-                      <Pencil className="w-3 h-3" />
-                    ) : (
-                      <Plus className="w-3 h-3" />
-                    )}
+                    {saving
+                      ? <RefreshCw className="w-3 h-3 animate-spin" />
+                      : editingId
+                        ? <Pencil className="w-3 h-3" />
+                        : <Plus className="w-3 h-3" />}
                     <span>
                       {editingId
                         ? `Update Banner`
@@ -1178,15 +1251,21 @@ export default function BannerManagement() {
               <table className="w-full border-collapse text-left font-sans">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
-                    <th className="py-2 px-3 text-center w-24">Order &amp; Move</th>
+                    <th className="py-2 px-3 text-center w-24">
+                      Order &amp; Move
+                    </th>
                     <th className="py-2 px-3">Banner Preview &amp; Details</th>
                     {activeTab === "hero" && (
                       <th className="py-2 px-2 text-center w-16">Brand Logo</th>
                     )}
                     {activeTab !== "popup" && (
                       <>
-                        <th className="py-2 px-2 text-center w-28">Colors &amp; Align</th>
-                        <th className="py-2 px-2 text-center w-24">Button CTA</th>
+                        <th className="py-2 px-2 text-center w-28">
+                          Colors &amp; Align
+                        </th>
+                        <th className="py-2 px-2 text-center w-24">
+                          Button CTA
+                        </th>
                       </>
                     )}
                     <th className="py-2 px-2 text-center w-18">Priority</th>
@@ -1196,462 +1275,496 @@ export default function BannerManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={10} className="py-8 text-center text-slate-400 text-xs">
-                        <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                        Loading promotional banners...
-                      </td>
-                    </tr>
-                  ) : displayedBanners.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="py-8 text-center text-slate-400 text-xs">
-                        No promotional banners found for {currentSlotConfig?.label}.
-                      </td>
-                    </tr>
-                  ) : (
-                    displayedBanners.map((r, index) => {
-                      const isDragging = draggedBannerId === r._id;
-                      const isOver = dragOverBannerId === r._id;
-                      const isTop = index === 0;
-                      const isBottom = index === displayedBanners.length - 1;
-                      const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
-
-                      return (
-                        <tr
-                          key={r._id}
-                          draggable={!searchTableQuery}
-                          onDragStart={(e) => handleDragStart(e, r._id)}
-                          onDragOver={(e) => handleDragOver(e, r._id)}
-                          onDrop={(e) => handleDrop(e, r._id)}
-                          onDragEnd={() => {
-                            setDraggedBannerId(null);
-                            setDragOverBannerId(null);
-                          }}
-                          className={cn(
-                            "transition-all duration-150",
-                            isDragging
-                              ? "opacity-30 bg-blue-100"
-                              : isOver
-                                ? "bg-blue-100/90 ring-2 ring-blue-500 ring-inset"
-                                : theme.row,
-                          )}
+                  {loading
+                    ? <tr>
+                        <td
+                          colSpan={10}
+                          className="py-8 text-center text-slate-400 text-xs"
                         >
-                          {/* 1. Order & Reorder Controls */}
-                          <td className="py-2 px-3 text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              {/* Drag Handle */}
-                              <span
-                                className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-blue-600 p-0.5 rounded transition-colors"
-                                title="Drag to reorder slide position"
-                              >
-                                <GripVertical className="w-3.5 h-3.5" />
-                              </span>
-
-                              {/* Rank Badge */}
-                              <span
-                                className="text-[10px] font-medium px-1.5 py-0.2 rounded-md border shrink-0 bg-white text-slate-900 border-slate-300 shadow-2xs"
-                                title={`Display Rank #${index + 1}`}
-                              >
-                                #{index + 1}
-                              </span>
-
-                              {/* 1-Click Move to Top Button */}
-                              {!isTop && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={() => handleMoveToTop(r._id)}
-                                      type="button"
-                                      className="p-1 text-amber-700 bg-white hover:bg-amber-50 rounded transition-colors cursor-pointer border border-amber-200 shadow-2xs"
-                                    >
-                                      <ArrowUpToLine className="w-3 h-3" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                                    Move to Top (#1 Slide)
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-
-                              {/* Step Move Up/Down Buttons */}
-                              <div className="flex flex-col gap-0.5">
-                                <button
-                                  onClick={() => handleMoveStep(r._id, -1)}
-                                  disabled={isTop}
-                                  type="button"
-                                  className={cn(
-                                    "p-0.5 rounded transition-colors bg-white border border-slate-200",
-                                    isTop
-                                      ? "text-slate-300 cursor-not-allowed opacity-50"
-                                      : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 cursor-pointer shadow-2xs",
-                                  )}
-                                  title="Move Up 1 slot"
-                                >
-                                  <ArrowUp className="w-2.5 h-2.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleMoveStep(r._id, 1)}
-                                  disabled={isBottom}
-                                  type="button"
-                                  className={cn(
-                                    "p-0.5 rounded transition-colors bg-white border border-slate-200",
-                                    isBottom
-                                      ? "text-slate-300 cursor-not-allowed opacity-50"
-                                      : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 cursor-pointer shadow-2xs",
-                                  )}
-                                  title="Move Down 1 slot"
-                                >
-                                  <ArrowDown className="w-2.5 h-2.5" />
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* 2. Banner Preview & Details */}
-                          <td className="py-2 px-3">
-                            <div className="flex items-center gap-2.5">
-                              {r.image ? (
-                                // biome-ignore lint/performance/noImgElement: banner thumbnail
-                                <img
-                                  src={r.image}
-                                  alt={r.title || "Banner"}
-                                  className="w-14 h-8 object-cover rounded-md border border-slate-200 bg-white shadow-2xs shrink-0"
-                                />
-                              ) : (
-                                <div className="w-14 h-8 bg-white rounded-md flex items-center justify-center text-slate-400 text-[9px] shrink-0 border border-slate-200">
-                                  No Image
-                                </div>
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <span className="font-medium text-slate-900 text-[11.5px] truncate block leading-tight">
-                                  {r.title || (
-                                    <span className="text-slate-500 font-normal italic">
-                                      Pure Image Banner (No Text Overlay)
-                                    </span>
-                                  )}
-                                </span>
-                                <span className="text-[9.5px] text-slate-600 font-normal truncate block leading-tight mt-0.5">
-                                  {r.subtitle || (r.link && r.link !== "#" ? r.link : "No Destination Link")}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* 3. Brand Logo */}
-                          {activeTab === "hero" && (
-                            <td className="py-2 px-2 text-center">
-                              <div className="flex justify-center">
-                                {r.logo ? (
-                                  // biome-ignore lint/performance/noImgElement: logo thumbnail
-                                  <img
-                                    src={r.logo}
-                                    alt="Logo"
-                                    className="w-5 h-5 object-contain rounded border border-slate-200 p-0.5 bg-white shadow-2xs"
-                                  />
-                                ) : (
-                                  <span className="text-[10px] text-slate-400">â€”</span>
-                                )}
-                              </div>
-                            </td>
-                          )}
-
-                          {/* 4. Custom Colors */}
-                          {activeTab !== "popup" && (
-                            <>
-                              <td className="py-2 px-2 text-center">
-                                <div className="flex items-center justify-center gap-1.5">
-                                  <div
-                                    className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
-                                    style={{ backgroundColor: r.buttonBgColor || "#f59e0b" }}
-                                    title={`Button BG: ${r.buttonBgColor || "#f59e0b"}`}
-                                  />
-                                  <div
-                                    className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
-                                    style={{ backgroundColor: r.subtitleColor || "#fbbf24" }}
-                                    title={`Subtitle: ${r.subtitleColor || "#fbbf24"}`}
-                                  />
-                                  <span className="text-[9px] font-medium uppercase text-slate-700 bg-white/95 px-1 py-0.2 rounded border border-slate-200 shadow-2xs">
-                                    {r.textPosition || "left"}
-                                  </span>
-                                </div>
-                              </td>
-
-                              {/* 5. Button CTA */}
-                              <td className="py-2 px-2 text-center">
-                                <div className="flex justify-center">
-                                  {r.buttonText ? (
-                                    <span
-                                      className="text-[9.5px] font-medium px-1.5 py-0.5 rounded shadow-2xs max-w-[85px] truncate block"
-                                      style={{
-                                        backgroundColor: r.buttonBgColor || "#f59e0b",
-                                        color: r.buttonTextColor || "#0f172a",
-                                      }}
-                                    >
-                                      {r.buttonText}
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] text-slate-400">â€”</span>
-                                  )}
-                                </div>
-                              </td>
-                            </>
-                          )}
-
-                          {/* 6. Priority with Inline Quick-Edit */}
-                          <td className="py-2 px-2 text-center">
-                            {editingPriorityId === r._id ? (
-                              <div className="flex items-center justify-center gap-1">
-                                <input
-                                  type="number"
-                                  autoFocus
-                                  value={priorityInputVal}
-                                  onChange={(e) => setPriorityInputVal(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") handleSavePriority(r._id);
-                                    if (e.key === "Escape") setEditingPriorityId(null);
-                                  }}
-                                  onBlur={() => handleSavePriority(r._id)}
-                                  className="w-12 text-center text-xs font-medium border border-blue-500 rounded py-0.5 outline-none bg-white shadow-2xs"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleSavePriority(r._id)}
-                                  className="p-0.5 text-emerald-600 hover:bg-emerald-50 rounded"
-                                >
-                                  <Check className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingPriorityId(r._id);
-                                  setPriorityInputVal(String(r.priority ?? 0));
-                                }}
-                                className="inline-flex items-center justify-center text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-white/95 text-slate-800 border border-slate-300/90 hover:bg-white transition-colors cursor-pointer shadow-2xs"
-                                title="Click to edit priority number"
-                              >
-                                {r.priority ?? 0}
-                              </button>
-                            )}
-                          </td>
-
-                          {/* 7. Placement Type Toggle */}
-                          <td className="py-2 px-2 text-center">
-                            <div className="flex justify-center items-center gap-1.5">
-                              <Switch
-                                size="sm"
-                                checked={Boolean(r.isPaid)}
-                                onCheckedChange={() => handleToggleSponsored(r._id, r.isPaid)}
-                                aria-label="Toggle Sponsored placement"
-                              />
-                              {r.isPaid ? (
-                                <span className="text-[9px] font-medium bg-white/95 text-purple-700 border border-purple-200 px-1.5 py-0.2 rounded shadow-2xs">
-                                  Sponsored
-                                </span>
-                              ) : (
-                                <span className="text-[9px] font-normal text-slate-600 bg-white/95 border border-slate-200 px-1.5 py-0.2 rounded shadow-2xs">
-                                  Standard
-                                </span>
-                              )}
-                            </div>
-                          </td>
-
-                          {/* 8. Status */}
-                          <td className="py-2 px-2 text-center">
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
-                                r.status === "active"
-                                  ? "bg-white/95 text-emerald-700 border-emerald-300"
-                                  : "bg-white/95 text-slate-600 border-slate-300",
-                              )}
-                            >
-                              {r.status || "active"}
-                            </span>
-                          </td>
-
-                          {/* 9. Actions */}
-                          <td className="py-2 px-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleStartEdit(r)}
-                                    className="h-6.5 w-6.5 p-0 text-slate-700 bg-white border-slate-200 hover:text-blue-600 hover:bg-slate-50 hover:border-blue-200 rounded-md cursor-pointer flex items-center justify-center shrink-0 transition-colors shadow-2xs"
-                                  >
-                                    <Pencil className="w-3 h-3" />
-                                    <span className="sr-only">Edit Banner</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                                  Edit Banner Content &amp; Design
-                                </TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleDeleteBanner(r)}
-                                    className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 rounded-md cursor-pointer flex items-center justify-center shrink-0 transition-colors shadow-2xs"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                    <span className="sr-only">Delete Banner</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                                  Delete Banner Permanently
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                          Loading promotional banners...
+                        </td>
+                      </tr>
+                    : displayedBanners.length === 0
+                      ? <tr>
+                          <td
+                            colSpan={10}
+                            className="py-8 text-center text-slate-400 text-xs"
+                          >
+                            No promotional banners found for{" "}
+                            {currentSlotConfig?.label}.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
+                      : displayedBanners.map((r, index) => {
+                          const isDragging = draggedBannerId === r._id;
+                          const isOver = dragOverBannerId === r._id;
+                          const isTop = index === 0;
+                          const isBottom =
+                            index === displayedBanners.length - 1;
+                          const theme =
+                            ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
+
+                          return (
+                            <tr
+                              key={r._id}
+                              draggable={!searchTableQuery}
+                              onDragStart={(e) => handleDragStart(e, r._id)}
+                              onDragOver={(e) => handleDragOver(e, r._id)}
+                              onDrop={(e) => handleDrop(e, r._id)}
+                              onDragEnd={() => {
+                                setDraggedBannerId(null);
+                                setDragOverBannerId(null);
+                              }}
+                              className={cn(
+                                "transition-all duration-150",
+                                isDragging
+                                  ? "opacity-30 bg-blue-100"
+                                  : isOver
+                                    ? "bg-blue-100/90 ring-2 ring-blue-500 ring-inset"
+                                    : theme.row,
+                              )}
+                            >
+                              {/* 1. Order & Reorder Controls */}
+                              <td className="py-2 px-3 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  {/* Drag Handle */}
+                                  <span
+                                    className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-blue-600 p-0.5 rounded transition-colors"
+                                    title="Drag to reorder slide position"
+                                  >
+                                    <GripVertical className="w-3.5 h-3.5" />
+                                  </span>
+
+                                  {/* Rank Badge */}
+                                  <span
+                                    className="text-[10px] font-medium px-1.5 py-0.2 rounded-md border shrink-0 bg-white text-slate-900 border-slate-300 shadow-2xs"
+                                    title={`Display Rank #${index + 1}`}
+                                  >
+                                    #{index + 1}
+                                  </span>
+
+                                  {/* 1-Click Move to Top Button */}
+                                  {!isTop && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          onClick={() => handleMoveToTop(r._id)}
+                                          type="button"
+                                          className="p-1 text-amber-700 bg-white hover:bg-amber-50 rounded transition-colors cursor-pointer border border-amber-200 shadow-2xs"
+                                        >
+                                          <ArrowUpToLine className="w-3 h-3" />
+                                        </button>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        side="top"
+                                        className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                                      >
+                                        Move to Top (#1 Slide)
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+
+                                  {/* Step Move Up/Down Buttons */}
+                                  <div className="flex flex-col gap-0.5">
+                                    <button
+                                      onClick={() => handleMoveStep(r._id, -1)}
+                                      disabled={isTop}
+                                      type="button"
+                                      className={cn(
+                                        "p-0.5 rounded transition-colors bg-white border border-slate-200",
+                                        isTop
+                                          ? "text-slate-300 cursor-not-allowed opacity-50"
+                                          : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 cursor-pointer shadow-2xs",
+                                      )}
+                                      title="Move Up 1 slot"
+                                    >
+                                      <ArrowUp className="w-2.5 h-2.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleMoveStep(r._id, 1)}
+                                      disabled={isBottom}
+                                      type="button"
+                                      className={cn(
+                                        "p-0.5 rounded transition-colors bg-white border border-slate-200",
+                                        isBottom
+                                          ? "text-slate-300 cursor-not-allowed opacity-50"
+                                          : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 cursor-pointer shadow-2xs",
+                                      )}
+                                      title="Move Down 1 slot"
+                                    >
+                                      <ArrowDown className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* 2. Banner Preview & Details */}
+                              <td className="py-2 px-3">
+                                <div className="flex items-center gap-2.5">
+                                  {r.image
+                                    ? // biome-ignore lint/performance/noImgElement: banner thumbnail
+                                      <img
+                                        src={r.image}
+                                        alt={r.title || "Banner"}
+                                        className="w-14 h-8 object-cover rounded-md border border-slate-200 bg-white shadow-2xs shrink-0"
+                                      />
+                                    : <div className="w-14 h-8 bg-white rounded-md flex items-center justify-center text-slate-400 text-[9px] shrink-0 border border-slate-200">
+                                        No Image
+                                      </div>}
+                                  <div className="min-w-0 flex-1">
+                                    <span className="font-medium text-slate-900 text-[11.5px] truncate block leading-tight">
+                                      {r.title || (
+                                        <span className="text-slate-500 font-normal italic">
+                                          Pure Image Banner (No Text Overlay)
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="text-[9.5px] text-slate-600 font-normal truncate block leading-tight mt-0.5">
+                                      {r.subtitle ||
+                                        (r.link && r.link !== "#"
+                                          ? r.link
+                                          : "No Destination Link")}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* 3. Brand Logo */}
+                              {activeTab === "hero" && (
+                                <td className="py-2 px-2 text-center">
+                                  <div className="flex justify-center">
+                                    {r.logo
+                                      ? // biome-ignore lint/performance/noImgElement: logo thumbnail
+                                        <img
+                                          src={r.logo}
+                                          alt="Logo"
+                                          className="w-5 h-5 object-contain rounded border border-slate-200 p-0.5 bg-white shadow-2xs"
+                                        />
+                                      : <span className="text-[10px] text-slate-400">
+                                          â€”
+                                        </span>}
+                                  </div>
+                                </td>
+                              )}
+
+                              {/* 4. Custom Colors */}
+                              {activeTab !== "popup" && (
+                                <>
+                                  <td className="py-2 px-2 text-center">
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      <div
+                                        className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
+                                        style={{
+                                          backgroundColor:
+                                            r.buttonBgColor || "#f59e0b",
+                                        }}
+                                        title={`Button BG: ${r.buttonBgColor || "#f59e0b"}`}
+                                      />
+                                      <div
+                                        className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
+                                        style={{
+                                          backgroundColor:
+                                            r.subtitleColor || "#fbbf24",
+                                        }}
+                                        title={`Subtitle: ${r.subtitleColor || "#fbbf24"}`}
+                                      />
+                                      <span className="text-[9px] font-medium uppercase text-slate-700 bg-white/95 px-1 py-0.2 rounded border border-slate-200 shadow-2xs">
+                                        {r.textPosition || "left"}
+                                      </span>
+                                    </div>
+                                  </td>
+
+                                  {/* 5. Button CTA */}
+                                  <td className="py-2 px-2 text-center">
+                                    <div className="flex justify-center">
+                                      {r.buttonText
+                                        ? <span
+                                            className="text-[9.5px] font-medium px-1.5 py-0.5 rounded shadow-2xs max-w-[85px] truncate block"
+                                            style={{
+                                              backgroundColor:
+                                                r.buttonBgColor || "#f59e0b",
+                                              color:
+                                                r.buttonTextColor || "#0f172a",
+                                            }}
+                                          >
+                                            {r.buttonText}
+                                          </span>
+                                        : <span className="text-[10px] text-slate-400">
+                                            â€”
+                                          </span>}
+                                    </div>
+                                  </td>
+                                </>
+                              )}
+
+                              {/* 6. Priority with Inline Quick-Edit */}
+                              <td className="py-2 px-2 text-center">
+                                {editingPriorityId === r._id
+                                  ? <div className="flex items-center justify-center gap-1">
+                                      <input
+                                        type="number"
+                                        autoFocus
+                                        value={priorityInputVal}
+                                        onChange={(e) =>
+                                          setPriorityInputVal(e.target.value)
+                                        }
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter")
+                                            handleSavePriority(r._id);
+                                          if (e.key === "Escape")
+                                            setEditingPriorityId(null);
+                                        }}
+                                        onBlur={() => handleSavePriority(r._id)}
+                                        className="w-12 text-center text-xs font-medium border border-blue-500 rounded py-0.5 outline-none bg-white shadow-2xs"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleSavePriority(r._id)
+                                        }
+                                        className="p-0.5 text-emerald-600 hover:bg-emerald-50 rounded"
+                                      >
+                                        <Check className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  : <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingPriorityId(r._id);
+                                        setPriorityInputVal(
+                                          String(r.priority ?? 0),
+                                        );
+                                      }}
+                                      className="inline-flex items-center justify-center text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-white/95 text-slate-800 border border-slate-300/90 hover:bg-white transition-colors cursor-pointer shadow-2xs"
+                                      title="Click to edit priority number"
+                                    >
+                                      {r.priority ?? 0}
+                                    </button>}
+                              </td>
+
+                              {/* 7. Placement Type Toggle */}
+                              <td className="py-2 px-2 text-center">
+                                <div className="flex justify-center items-center gap-1.5">
+                                  <Switch
+                                    size="sm"
+                                    checked={Boolean(r.isPaid)}
+                                    onCheckedChange={() =>
+                                      handleToggleSponsored(r._id, r.isPaid)
+                                    }
+                                    aria-label="Toggle Sponsored placement"
+                                  />
+                                  {r.isPaid
+                                    ? <span className="text-[9px] font-medium bg-white/95 text-purple-700 border border-purple-200 px-1.5 py-0.2 rounded shadow-2xs">
+                                        Sponsored
+                                      </span>
+                                    : <span className="text-[9px] font-normal text-slate-600 bg-white/95 border border-slate-200 px-1.5 py-0.2 rounded shadow-2xs">
+                                        Standard
+                                      </span>}
+                                </div>
+                              </td>
+
+                              {/* 8. Status */}
+                              <td className="py-2 px-2 text-center">
+                                <span
+                                  className={cn(
+                                    "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
+                                    r.status === "active"
+                                      ? "bg-white/95 text-emerald-700 border-emerald-300"
+                                      : "bg-white/95 text-slate-600 border-slate-300",
+                                  )}
+                                >
+                                  {r.status || "active"}
+                                </span>
+                              </td>
+
+                              {/* 9. Actions */}
+                              <td className="py-2 px-3 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleStartEdit(r)}
+                                        className="h-6.5 w-6.5 p-0 text-slate-700 bg-white border-slate-200 hover:text-blue-600 hover:bg-slate-50 hover:border-blue-200 rounded-md cursor-pointer flex items-center justify-center shrink-0 transition-colors shadow-2xs"
+                                      >
+                                        <Pencil className="w-3 h-3" />
+                                        <span className="sr-only">
+                                          Edit Banner
+                                        </span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                      side="top"
+                                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                                    >
+                                      Edit Banner Content &amp; Design
+                                    </TooltipContent>
+                                  </Tooltip>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleDeleteBanner(r)}
+                                        className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 rounded-md cursor-pointer flex items-center justify-center shrink-0 transition-colors shadow-2xs"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                        <span className="sr-only">
+                                          Delete Banner
+                                        </span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                      side="top"
+                                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                                    >
+                                      Delete Banner Permanently
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                 </tbody>
               </table>
             </div>
-            {/* Mobile Card View - Banners */}
-            <div className="md:hidden space-y-2.5">
-              {loading ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                  Loading promotional banners...
-                </div>
-              ) : displayedBanners.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  No promotional banners found for {currentSlotConfig?.label}.
-                </div>
-              ) : (
-                displayedBanners.map((r, index) => (
-                  <div
-                    key={r._id}
-                    className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-3"
-                  >
-                    {/* Banner image + title + rank */}
-                    <div className="flex items-start gap-3">
-                      <div className="relative shrink-0">
-                        {r.image ? (
-                          <img
-                            src={r.image}
-                            alt={r.title || "Banner"}
-                            className="w-20 h-11 object-cover rounded-xl border border-slate-200 bg-white shadow-2xs"
-                          />
-                        ) : (
-                          <div className="w-20 h-11 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 text-[9px] border border-slate-200">
-                            No Image
-                          </div>
-                        )}
-                        <span className="absolute -top-1.5 -left-1.5 text-[9px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded-md shadow">
-                          #{index + 1}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 text-[12px] truncate leading-tight">
-                          {r.title || <span className="text-slate-400 italic font-normal">Pure Image Banner</span>}
-                        </p>
-                        {r.subtitle && <p className="text-[10px] text-slate-500 mt-0.5 truncate">{r.subtitle}</p>}
-                        {r.link && r.link !== "#" && (
-                          <a href={r.link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 mt-0.5 flex items-center gap-1 truncate">
-                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                            <span className="truncate">{r.link}</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status badges row */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={cn(
-                        "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block",
-                        r.status === "active"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                          : "bg-slate-50 text-slate-600 border-slate-300",
-                      )}>
-                        {r.status || "active"}
-                      </span>
-                      {r.isPaid ? (
-                        <span className="text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded shadow-2xs">
-                          Sponsored
-                        </span>
-                      ) : (
-                        <span className="text-[9px] text-slate-600 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs">
-                          Standard
-                        </span>
-                      )}
-                      {r.buttonText && (
-                        <span
-                          className="text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs"
-                          style={{ backgroundColor: r.buttonBgColor || "#f59e0b", color: r.buttonTextColor || "#0f172a" }}
-                        >
-                          {r.buttonText}
-                        </span>
-                      )}
-                      <span className="text-[9px] font-mono text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">
-                        P:{r.priority ?? 0}
-                      </span>
-                    </div>
-
-                    {/* Reorder controls + actions */}
-                    <div className="flex items-center justify-between border-t border-slate-100 pt-2.5">
-                      <div className="flex items-center gap-1.5">
-                        {index > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => handleMoveToTop(r._id)}
-                            className="p-1.5 text-amber-700 bg-white hover:bg-amber-50 rounded-lg border border-amber-200 shadow-2xs cursor-pointer"
-                            title="Move to Top"
-                          >
-                            <ArrowUpToLine className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleMoveStep(r._id, -1)}
-                          disabled={index === 0}
-                          className={cn("p-1.5 rounded-lg border", index === 0 ? "opacity-30 cursor-not-allowed border-slate-200 text-slate-300" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 border-slate-200 cursor-pointer shadow-2xs")}
-                        >
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveStep(r._id, 1)}
-                          disabled={index === displayedBanners.length - 1}
-                          className={cn("p-1.5 rounded-lg border", index === displayedBanners.length - 1 ? "opacity-30 cursor-not-allowed border-slate-200 text-slate-300" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 border-slate-200 cursor-pointer shadow-2xs")}
-                        >
-                          <ArrowDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleStartEdit(r)}
-                          className="h-8 px-3 text-xs font-medium text-slate-700 bg-white border-slate-200 hover:text-blue-600 hover:bg-blue-50 rounded-lg cursor-pointer shadow-2xs"
-                        >
-                          <Pencil className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteBanner(r)}
-                          className="h-8 px-3 text-xs font-medium text-rose-600 bg-white border-rose-200 hover:bg-rose-50 rounded-lg cursor-pointer shadow-2xs"
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
+            {/* Mobile Card View - Banners (Reference Card Design) */}
+            <div className="md:hidden space-y-3">
+              {loading
+                ? <div className="py-8 text-center text-slate-400 text-xs">
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                    Loading promotional banners...
                   </div>
-                ))
-              )}
+                : displayedBanners.length === 0
+                  ? <div className="py-8 text-center text-slate-400 text-xs">
+                      No promotional banners found for{" "}
+                      {currentSlotConfig?.label}.
+                    </div>
+                  : displayedBanners.map((r, index) => (
+                      <MobileTableCard
+                        key={r._id}
+                        avatar={
+                          r.image
+                            ? <div className="relative shrink-0">
+                                <img
+                                  src={r.image}
+                                  alt={r.title || "Banner"}
+                                  className="w-12 h-12 object-cover rounded-xl border border-slate-200 shadow-xs"
+                                />
+                                <span className="absolute -top-1.5 -left-1.5 text-[9px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded-md shadow">
+                                  #{index + 1}
+                                </span>
+                              </div>
+                            : null
+                        }
+                        avatarText={!r.image ? `#${index + 1}` : undefined}
+                        avatarBg="bg-indigo-600"
+                        badge={
+                          currentSlotConfig?.label?.toUpperCase() ||
+                          "PROMO BANNER"
+                        }
+                        title={r.title || "Banner Offer"}
+                        subtitle={
+                          r.subtitle ||
+                          (r.link && r.link !== "#" ? r.link : "Banner Offer")
+                        }
+                        fields={[
+                          {
+                            label: "RANK / SLOT",
+                            value: `#${index + 1} (${r.slot || activeTab})`,
+                          },
+                          {
+                            label: "PRIORITY",
+                            value: `P:${r.priority ?? 0}`,
+                            isCode: true,
+                          },
+                          {
+                            label: "STATUS",
+                            value: r.status || "active",
+                            isStatus: true,
+                            statusType:
+                              r.status === "active" ? "success" : "neutral",
+                          },
+                          {
+                            label: "TYPE",
+                            value: r.isPaid ? "Sponsored" : "Standard",
+                          },
+                        ]}
+                        actions={
+                          <div className="space-y-2 pt-1">
+                            {/* Reorder controls row */}
+                            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                              <span className="text-[10.5px] font-semibold text-slate-500 pl-1.5">
+                                Reorder:
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                {index > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveToTop(r._id)}
+                                    className="p-1.5 text-amber-700 bg-white hover:bg-amber-50 rounded-lg border border-amber-200 shadow-2xs cursor-pointer"
+                                    title="Move to Top"
+                                  >
+                                    <ArrowUpToLine className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveStep(r._id, -1)}
+                                  disabled={index === 0}
+                                  className={cn(
+                                    "p-1.5 rounded-lg border",
+                                    index === 0
+                                      ? "opacity-30 cursor-not-allowed border-slate-200 text-slate-300"
+                                      : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 border-slate-200 bg-white cursor-pointer shadow-2xs",
+                                  )}
+                                >
+                                  <ArrowUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveStep(r._id, 1)}
+                                  disabled={
+                                    index === displayedBanners.length - 1
+                                  }
+                                  className={cn(
+                                    "p-1.5 rounded-lg border",
+                                    index === displayedBanners.length - 1
+                                      ? "opacity-30 cursor-not-allowed border-slate-200 text-slate-300"
+                                      : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 border-slate-200 bg-white cursor-pointer shadow-2xs",
+                                  )}
+                                >
+                                  <ArrowDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Action buttons row */}
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteBanner(r)}
+                                className="w-24 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl py-2.5 px-3 flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer select-none"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(r)}
+                                className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-xl py-2.5 px-4 flex items-center justify-between text-xs transition-colors cursor-pointer select-none"
+                              >
+                                <span>Edit Banner</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      />
+                    ))}
             </div>
           </Card>
         </div>

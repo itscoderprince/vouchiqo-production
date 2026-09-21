@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Check,
@@ -32,33 +32,139 @@ import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_COMMISSION_TABLE = [
-  { id: "fashion", category: "Fashion & Clothing", rate: "5%", model: "CPA", notes: "Uniform across apparel" },
-  { id: "food", category: "Food & Dining", rate: "3% dine-in / 2% delivery", model: "CPA", notes: "Never charge on Zomato-fulfilled orders" },
-  { id: "electronics", category: "Electronics & Gadgets", rate: "2.5% blended", model: "CPA", notes: "Accessories 4%, handsets 1.5%" },
-  { id: "beauty", category: "Beauty & Wellness", rate: "6% services / 4% retail", model: "CPA", notes: "Split by service vs product" },
-  { id: "travel", category: "Travel & Hospitality", rate: "5% hotels / 4% packages", model: "CPA", notes: "Hotels pay less than MakeMyTrip" },
-  { id: "home", category: "Home & Living", rate: "5%", model: "CPA", notes: "Furniture and dÃ©cor" },
-  { id: "home-improvement", category: "Home Improvement", rate: "2% products / 3% services", model: "CPA", notes: "In-store attribution via code" },
-  { id: "fitness", category: "Fitness & Healthcare", rate: "6% gyms / 2% pharmacy / â‚¹200 CPL clinics", model: "CPA + CPL", notes: "Two models in one category" },
-  { id: "education", category: "Education & Courses", rate: "â‚¹300 CPL local / 8% online", model: "CPL + CPA", notes: "CPL for offline institutes" },
-  { id: "kids-baby", category: "Kids & Baby Products", rate: "5%", model: "CPA", notes: "Clean, simple rate" },
-  { id: "jewellery", category: "Jewellery", rate: "1.5% gold / 6% fashion / 3% blended", model: "CPA", notes: "Split by product type" },
-  { id: "automotive", category: "Automobile & Auto Services", rate: "4%", model: "CPA", notes: "White space â€” you set the standard" },
-  { id: "entertainment", category: "Gaming & Entertainment", rate: "4â€“5%", model: "CPA", notes: "Gaming hardware vs passes" },
-  { id: "pets", category: "Pet Care & Supplies", rate: "5%", model: "CPA", notes: "Consumables high reorder rate" },
-  { id: "grocery", category: "Grocery & Essentials", rate: "1.5% FMCG / 3% specialty", model: "CPA", notes: "Low margin, volume based" },
+  {
+    id: "fashion",
+    category: "Fashion & Clothing",
+    rate: "5%",
+    model: "CPA",
+    notes: "Uniform across apparel",
+  },
+  {
+    id: "food",
+    category: "Food & Dining",
+    rate: "3% dine-in / 2% delivery",
+    model: "CPA",
+    notes: "Never charge on Zomato-fulfilled orders",
+  },
+  {
+    id: "electronics",
+    category: "Electronics & Gadgets",
+    rate: "2.5% blended",
+    model: "CPA",
+    notes: "Accessories 4%, handsets 1.5%",
+  },
+  {
+    id: "beauty",
+    category: "Beauty & Wellness",
+    rate: "6% services / 4% retail",
+    model: "CPA",
+    notes: "Split by service vs product",
+  },
+  {
+    id: "travel",
+    category: "Travel & Hospitality",
+    rate: "5% hotels / 4% packages",
+    model: "CPA",
+    notes: "Hotels pay less than MakeMyTrip",
+  },
+  {
+    id: "home",
+    category: "Home & Living",
+    rate: "5%",
+    model: "CPA",
+    notes: "Furniture and dÃ©cor",
+  },
+  {
+    id: "home-improvement",
+    category: "Home Improvement",
+    rate: "2% products / 3% services",
+    model: "CPA",
+    notes: "In-store attribution via code",
+  },
+  {
+    id: "fitness",
+    category: "Fitness & Healthcare",
+    rate: "6% gyms / 2% pharmacy / ₹200 CPL clinics",
+    model: "CPA + CPL",
+    notes: "Two models in one category",
+  },
+  {
+    id: "education",
+    category: "Education & Courses",
+    rate: "₹300 CPL local / 8% online",
+    model: "CPL + CPA",
+    notes: "CPL for offline institutes",
+  },
+  {
+    id: "kids-baby",
+    category: "Kids & Baby Products",
+    rate: "5%",
+    model: "CPA",
+    notes: "Clean, simple rate",
+  },
+  {
+    id: "jewellery",
+    category: "Jewellery",
+    rate: "1.5% gold / 6% fashion / 3% blended",
+    model: "CPA",
+    notes: "Split by product type",
+  },
+  {
+    id: "automotive",
+    category: "Automobile & Auto Services",
+    rate: "4%",
+    model: "CPA",
+    notes: "White space — you set the standard",
+  },
+  {
+    id: "entertainment",
+    category: "Gaming & Entertainment",
+    rate: "4–5%",
+    model: "CPA",
+    notes: "Gaming hardware vs passes",
+  },
+  {
+    id: "pets",
+    category: "Pet Care & Supplies",
+    rate: "5%",
+    model: "CPA",
+    notes: "Consumables high reorder rate",
+  },
+  {
+    id: "grocery",
+    category: "Grocery & Essentials",
+    rate: "1.5% FMCG / 3% specialty",
+    model: "CPA",
+    notes: "Low margin, volume based",
+  },
 ];
 
 // 8 Distinct Pastel Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
-  { row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900" },
-  { row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900" },
-  { row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900" },
-  { row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900" },
-  { row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900" },
-  { row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900" },
-  { row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900" },
-  { row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900" },
+  {
+    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
+  },
+  {
+    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
+  },
+  {
+    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
+  },
+  {
+    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
+  },
+  {
+    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
+  },
+  {
+    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
+  },
+  {
+    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
+  },
+  {
+    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
+  },
 ];
 
 export default function CommissionRatesEditorPage() {
@@ -205,7 +311,8 @@ export default function CommissionRatesEditorPage() {
                 Performance Commission Rates Editor
               </h1>
               <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-                Manage category commission rate cards (CPA/CPL rates, models &amp; rules) rendered live on Merchant Onboarding.
+                Manage category commission rate cards (CPA/CPL rates, models
+                &amp; rules) rendered live on Merchant Onboarding.
               </p>
             </div>
 
@@ -222,7 +329,10 @@ export default function CommissionRatesEditorPage() {
                     <span>Reset Defaults</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                <TooltipContent
+                  side="top"
+                  className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                >
                   Reset rate card to 15 standard launch defaults
                 </TooltipContent>
               </Tooltip>
@@ -236,11 +346,16 @@ export default function CommissionRatesEditorPage() {
                     disabled={loading}
                     className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
                   >
-                    <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+                    <RefreshCw
+                      className={`w-3 h-3 ${loading ? "animate-spin" : ""}`}
+                    />
                     <span>Refresh</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                <TooltipContent
+                  side="top"
+                  className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                >
                   Reload rates from database
                 </TooltipContent>
               </Tooltip>
@@ -250,11 +365,9 @@ export default function CommissionRatesEditorPage() {
                 disabled={saving || loading}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-3.5 cursor-pointer shadow-2xs gap-1.5 shrink-0"
               >
-                {saving ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Save className="w-3.5 h-3.5" />
-                )}
+                {saving
+                  ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  : <Save className="w-3.5 h-3.5" />}
                 <span>Save Rates</span>
               </Button>
             </div>
@@ -373,8 +486,12 @@ export default function CommissionRatesEditorPage() {
                       {activePreviewRate.rate}
                     </span>
                     <span className="text-[10.5px] text-slate-500 font-normal">
-                      â€¢ Model: <strong className="text-slate-800 font-medium">{activePreviewRate.model || "CPA"}</strong>
-                      {activePreviewRate.notes && ` â€” ${activePreviewRate.notes}`}
+                      • Model:{" "}
+                      <strong className="text-slate-800 font-medium">
+                        {activePreviewRate.model || "CPA"}
+                      </strong>
+                      {activePreviewRate.notes &&
+                        ` — ${activePreviewRate.notes}`}
                     </span>
                   </div>
                 </div>
@@ -392,10 +509,13 @@ export default function CommissionRatesEditorPage() {
               <div>
                 <h3 className="text-xs font-medium text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Master Category Rate Card ({cpaRates.length} Categories)</span>
+                  <span>
+                    Master Category Rate Card ({cpaRates.length} Categories)
+                  </span>
                 </h3>
                 <p className="text-[10.5px] text-slate-500 font-normal mt-0.5">
-                  Click any cell to edit rates, model types, and specific accounting rules.
+                  Click any cell to edit rates, model types, and specific
+                  accounting rules.
                 </p>
               </div>
 
@@ -424,9 +544,24 @@ export default function CommissionRatesEditorPage() {
                 {/* Filter Tabs with Tooltips */}
                 <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
                   {[
-                    { id: "all", label: "All", count: stats.total, desc: "Show all configured category rates" },
-                    { id: "cpa", label: "CPA", count: stats.cpaCount, desc: "Show percentage commission categories" },
-                    { id: "cpl", label: "CPL", count: stats.cplCount, desc: "Show fixed lead commission categories" },
+                    {
+                      id: "all",
+                      label: "All",
+                      count: stats.total,
+                      desc: "Show all configured category rates",
+                    },
+                    {
+                      id: "cpa",
+                      label: "CPA",
+                      count: stats.cpaCount,
+                      desc: "Show percentage commission categories",
+                    },
+                    {
+                      id: "cpl",
+                      label: "CPL",
+                      count: stats.cplCount,
+                      desc: "Show fixed lead commission categories",
+                    },
                   ].map((tab) => (
                     <Tooltip key={tab.id}>
                       <TooltipTrigger asChild>
@@ -453,7 +588,10 @@ export default function CommissionRatesEditorPage() {
                           </span>
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                      <TooltipContent
+                        side="top"
+                        className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                      >
                         {tab.desc}
                       </TooltipContent>
                     </Tooltip>
@@ -484,7 +622,7 @@ export default function CommissionRatesEditorPage() {
                 <div className="sm:col-span-3">
                   <input
                     type="text"
-                    placeholder="Base Rate (e.g. 4% / â‚¹500 CPL)"
+                    placeholder="Base Rate (e.g. 4% / ₹500 CPL)"
                     value={newCpaRate.rate}
                     onChange={(e) =>
                       setNewCpaRate({ ...newCpaRate, rate: e.target.value })
@@ -540,205 +678,281 @@ export default function CommissionRatesEditorPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                        <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                        Loading commission rates...
-                      </td>
-                    </tr>
-                  ) : filteredRates.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                        No category rates found matching your search.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredRates.map((rate, rIdx) => {
-                      const actualIdx = cpaRates.indexOf(rate);
-                      const theme = ROW_COLOR_THEMES[rIdx % ROW_COLOR_THEMES.length];
-                      const isSelected = previewCategoryIdx === rIdx;
-
-                      return (
-                        <tr
-                          key={rate.id || rIdx}
-                          onClick={() => setPreviewCategoryIdx(rIdx)}
-                          className={cn(
-                            "transition-all duration-150 cursor-pointer",
-                            theme.row,
-                            isSelected && "ring-1 ring-blue-500",
-                          )}
+                  {loading
+                    ? <tr>
+                        <td
+                          colSpan={6}
+                          className="py-8 text-center text-slate-400 text-xs"
                         >
-                          {/* # */}
-                          <td className="py-1.5 px-2 text-center">
-                            <div className="w-5.5 h-5.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] mx-auto shadow-2xs">
-                              #{rIdx + 1}
-                            </div>
-                          </td>
-
-                          {/* Category Name */}
-                          <td className="py-1.5 px-2.5">
-                            <input
-                              type="text"
-                              value={rate.category}
-                              onChange={(e) =>
-                                handleUpdateField(actualIdx, "category", e.target.value)
-                              }
-                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-medium text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
-                            />
-                          </td>
-
-                          {/* Rate */}
-                          <td className="py-1.5 px-2.5">
-                            <input
-                              type="text"
-                              value={rate.rate}
-                              placeholder="e.g. 5%"
-                              onChange={(e) =>
-                                handleUpdateField(actualIdx, "rate", e.target.value)
-                              }
-                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs font-mono h-7 px-2 font-medium text-blue-700 focus:border-blue-500 outline-none shadow-2xs"
-                            />
-                          </td>
-
-                          {/* Model */}
-                          <td className="py-1.5 px-2.5">
-                            <input
-                              type="text"
-                              value={rate.model}
-                              placeholder="CPA / CPL"
-                              onChange={(e) =>
-                                handleUpdateField(actualIdx, "model", e.target.value)
-                              }
-                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
-                            />
-                          </td>
-
-                          {/* Notes */}
-                          <td className="py-1.5 px-2.5">
-                            <input
-                              type="text"
-                              value={rate.notes || ""}
-                              placeholder="e.g. Uniform across apparel"
-                              onChange={(e) =>
-                                handleUpdateField(actualIdx, "notes", e.target.value)
-                              }
-                              className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-normal text-slate-700 focus:border-blue-500 outline-none shadow-2xs"
-                            />
-                          </td>
-
-                          {/* Action */}
-                          <td className="py-1.5 px-2.5 text-right">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveCpaRate(rIdx);
-                                  }}
-                                  className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 bg-white rounded-md cursor-pointer ml-auto shadow-2xs"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  <span className="sr-only">Delete</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                                Remove rate entry
-                              </TooltipContent>
-                            </Tooltip>
+                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                          Loading commission rates...
+                        </td>
+                      </tr>
+                    : filteredRates.length === 0
+                      ? <tr>
+                          <td
+                            colSpan={6}
+                            className="py-8 text-center text-slate-400 text-xs"
+                          >
+                            No category rates found matching your search.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
+                      : filteredRates.map((rate, rIdx) => {
+                          const actualIdx = cpaRates.indexOf(rate);
+                          const theme =
+                            ROW_COLOR_THEMES[rIdx % ROW_COLOR_THEMES.length];
+                          const isSelected = previewCategoryIdx === rIdx;
+
+                          return (
+                            <tr
+                              key={rate.id || rIdx}
+                              onClick={() => setPreviewCategoryIdx(rIdx)}
+                              className={cn(
+                                "transition-all duration-150 cursor-pointer",
+                                theme.row,
+                                isSelected && "ring-1 ring-blue-500",
+                              )}
+                            >
+                              {/* # */}
+                              <td className="py-1.5 px-2 text-center">
+                                <div className="w-5.5 h-5.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] mx-auto shadow-2xs">
+                                  #{rIdx + 1}
+                                </div>
+                              </td>
+
+                              {/* Category Name */}
+                              <td className="py-1.5 px-2.5">
+                                <input
+                                  type="text"
+                                  value={rate.category}
+                                  onChange={(e) =>
+                                    handleUpdateField(
+                                      actualIdx,
+                                      "category",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-medium text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                                />
+                              </td>
+
+                              {/* Rate */}
+                              <td className="py-1.5 px-2.5">
+                                <input
+                                  type="text"
+                                  value={rate.rate}
+                                  placeholder="e.g. 5%"
+                                  onChange={(e) =>
+                                    handleUpdateField(
+                                      actualIdx,
+                                      "rate",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs font-mono h-7 px-2 font-medium text-blue-700 focus:border-blue-500 outline-none shadow-2xs"
+                                />
+                              </td>
+
+                              {/* Model */}
+                              <td className="py-1.5 px-2.5">
+                                <input
+                                  type="text"
+                                  value={rate.model}
+                                  placeholder="CPA / CPL"
+                                  onChange={(e) =>
+                                    handleUpdateField(
+                                      actualIdx,
+                                      "model",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-normal text-slate-900 focus:border-blue-500 outline-none shadow-2xs"
+                                />
+                              </td>
+
+                              {/* Notes */}
+                              <td className="py-1.5 px-2.5">
+                                <input
+                                  type="text"
+                                  value={rate.notes || ""}
+                                  placeholder="e.g. Uniform across apparel"
+                                  onChange={(e) =>
+                                    handleUpdateField(
+                                      actualIdx,
+                                      "notes",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="w-full bg-white/95 border border-slate-300/90 rounded-lg text-xs h-7 px-2 font-normal text-slate-700 focus:border-blue-500 outline-none shadow-2xs"
+                                />
+                              </td>
+
+                              {/* Action */}
+                              <td className="py-1.5 px-2.5 text-right">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveCpaRate(rIdx);
+                                      }}
+                                      className="h-6.5 w-6.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-slate-200 bg-white rounded-md cursor-pointer ml-auto shadow-2xs"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                      <span className="sr-only">Delete</span>
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                                  >
+                                    Remove rate entry
+                                  </TooltipContent>
+                                </Tooltip>
+                              </td>
+                            </tr>
+                          );
+                        })}
                 </tbody>
               </table>
             </div>
-            {/* Mobile Card View - Commission Rates */}
-            <div className="md:hidden space-y-2.5">
-              {loading ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                  Loading commission rates...
-                </div>
-              ) : filteredRates.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  No category rates found matching your search.
-                </div>
-              ) : (
-                filteredRates.map((rate, rIdx) => {
-                  const actualIdx = cpaRates.indexOf(rate);
-                  return (
-                    <div
-                      key={rate.id || rIdx}
-                      className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-800 border border-slate-200 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
-                          #{rIdx + 1}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemoveCpaRate(rIdx)}
-                          className="h-7 w-7 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 bg-white rounded-lg cursor-pointer shadow-2xs"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <label className="text-[9.5px] font-semibold text-slate-500 uppercase tracking-wider block">Category</label>
-                          <input
-                            type="text"
-                            value={rate.category}
-                            onChange={(e) => handleUpdateField(actualIdx, "category", e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs h-8 px-2 font-medium text-slate-900 focus:border-blue-500 outline-none"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9.5px] font-semibold text-slate-500 uppercase tracking-wider block">Rate</label>
-                          <input
-                            type="text"
-                            value={rate.rate}
-                            placeholder="e.g. 5%"
-                            onChange={(e) => handleUpdateField(actualIdx, "rate", e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono h-8 px-2 font-medium text-blue-700 focus:border-blue-500 outline-none"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9.5px] font-semibold text-slate-500 uppercase tracking-wider block">Model</label>
-                          <input
-                            type="text"
-                            value={rate.model}
-                            placeholder="CPA / CPL"
-                            onChange={(e) => handleUpdateField(actualIdx, "model", e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs h-8 px-2 text-slate-900 focus:border-blue-500 outline-none"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9.5px] font-semibold text-slate-500 uppercase tracking-wider block">Notes</label>
-                          <input
-                            type="text"
-                            value={rate.notes || ""}
-                            placeholder="Special rules..."
-                            onChange={(e) => handleUpdateField(actualIdx, "notes", e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs h-8 px-2 text-slate-700 focus:border-blue-500 outline-none"
-                          />
-                        </div>
-                      </div>
+            {/* Mobile Card View - Commission Rates (Reference Card Design) */}
+            <div className="md:hidden space-y-3">
+              {loading
+                ? <div className="py-8 text-center text-slate-400 text-xs">
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                    Loading commission rates...
+                  </div>
+                : filteredRates.length === 0
+                  ? <div className="py-8 text-center text-slate-400 text-xs">
+                      No category rates found matching your search.
                     </div>
-                  );
-                })
-              )}
+                  : filteredRates.map((rate, rIdx) => {
+                      const actualIdx = cpaRates.indexOf(rate);
+                      return (
+                        <div
+                          key={rate.id || rIdx}
+                          className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5 text-left font-sans"
+                        >
+                          {/* Top Header */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                              #{rIdx + 1}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
+                                COMMISSION RATE
+                              </p>
+                              <h4 className="text-[14px] font-bold text-slate-900 dark:text-slate-100 truncate">
+                                {rate.category || "Custom Category"}
+                              </h4>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                Model: {rate.model || "CPA"}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRemoveCpaRate(rIdx)}
+                              className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 bg-white rounded-xl cursor-pointer shadow-xs shrink-0"
+                              title="Delete Rate"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+
+                          {/* Divider */}
+                          <div className="border-t border-slate-100 dark:border-slate-800/80" />
+
+                          {/* 2-column Grid of Editable Fields */}
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                                Category
+                              </label>
+                              <input
+                                type="text"
+                                value={rate.category}
+                                onChange={(e) =>
+                                  handleUpdateField(
+                                    actualIdx,
+                                    "category",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs h-9 px-2.5 font-bold text-slate-900 dark:text-white focus:ring-1 focus:ring-blue-500 outline-none"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                                Rate
+                              </label>
+                              <input
+                                type="text"
+                                value={rate.rate}
+                                placeholder="e.g. 5%"
+                                onChange={(e) =>
+                                  handleUpdateField(
+                                    actualIdx,
+                                    "rate",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono h-9 px-2.5 font-extrabold text-blue-600 dark:text-blue-400 focus:ring-1 focus:ring-blue-500 outline-none"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                                Model
+                              </label>
+                              <input
+                                type="text"
+                                value={rate.model}
+                                placeholder="CPA / CPL"
+                                onChange={(e) =>
+                                  handleUpdateField(
+                                    actualIdx,
+                                    "model",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs h-9 px-2.5 font-semibold text-slate-900 dark:text-slate-200 focus:ring-1 focus:ring-blue-500 outline-none"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                                Notes
+                              </label>
+                              <input
+                                type="text"
+                                value={rate.notes || ""}
+                                placeholder="Special rules..."
+                                onChange={(e) =>
+                                  handleUpdateField(
+                                    actualIdx,
+                                    "notes",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs h-9 px-2.5 text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-blue-500 outline-none truncate"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
             </div>
 
             {/* Bottom Status & Save Action */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
               <span className="text-[11px] text-slate-500 font-normal">
-                Showing {filteredRates.length} of {cpaRates.length} configured category rate cards
+                Showing {filteredRates.length} of {cpaRates.length} configured
+                category rate cards
               </span>
 
               <Button
@@ -746,11 +960,9 @@ export default function CommissionRatesEditorPage() {
                 disabled={saving || loading}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7.5 px-3.5 cursor-pointer shadow-2xs gap-1.5 shrink-0 self-start sm:self-auto"
               >
-                {saving ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Save className="w-3.5 h-3.5" />
-                )}
+                {saving
+                  ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  : <Save className="w-3.5 h-3.5" />}
                 <span>Save Rates</span>
               </Button>
             </div>

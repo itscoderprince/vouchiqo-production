@@ -1,4 +1,5 @@
-﻿import { Check, X } from "lucide-react";
+import { Check, X, ArrowRight } from "lucide-react";
+import MobileTableCard from "@/components/shared/data/MobileTableCard";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -17,8 +18,10 @@ export default function CouponModerationTable({
 }) {
   const getDiscountDisplay = (coupon) => {
     const val = coupon.rawDiscountValue || coupon.discountValue;
-    const isNum = val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
-    if (coupon.offerType === "deal" && coupon.salePrice) return `\u20b9${coupon.salePrice} Deal`;
+    const isNum =
+      val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
+    if (coupon.offerType === "deal" && coupon.salePrice)
+      return `\u20b9${coupon.salePrice} Deal`;
     if (coupon.discountType === "percentage" && isNum) return `${val}% OFF`;
     if (coupon.discountType === "fixed" && isNum) return `\u20b9${val} OFF`;
     if (coupon.specialOfferType) return coupon.specialOfferType;
@@ -115,57 +118,61 @@ export default function CouponModerationTable({
         </Table>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden divide-y divide-brand-border">
+      {/* Mobile Card View - Reference Card Design */}
+      <div className="md:hidden space-y-3 p-3 bg-slate-50/50 dark:bg-slate-950/20">
         {coupons.map((coupon) => (
-          <div key={coupon._id} className="p-3.5 space-y-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-bold text-brand-navy text-[12px] truncate">
-                  {coupon.merchantId?.businessName || "Unknown Merchant"}
-                </p>
-                <p className="text-[10px] text-brand-subtext font-bold uppercase mt-0.5">
-                  Plan: {coupon.merchantId?.plan || "starter"}
-                </p>
+          <MobileTableCard
+            key={coupon._id}
+            avatarText={coupon.merchantId?.businessName || "Coupon"}
+            avatarBg="bg-blue-600"
+            badge="COUPON MODERATION"
+            title={coupon.merchantId?.businessName || "Unknown Merchant"}
+            subtitle={`Plan: ${coupon.merchantId?.plan || "starter"}`}
+            fields={[
+              {
+                label: "ORDER ID / CODE",
+                value: coupon.code,
+                isCode: true,
+              },
+              {
+                label: "PRODUCT / OFFER",
+                value: coupon.title,
+              },
+              {
+                label: "STATUS",
+                value: "Pending",
+                isStatus: true,
+                statusType: "pending",
+              },
+              {
+                label: "DISCOUNT",
+                value: getDiscountDisplay(coupon),
+                isAmount: true,
+              },
+            ]}
+            actions={
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={() => onRejectClick(coupon._id)}
+                  className="w-24 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl py-2.5 px-3 flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer select-none disabled:opacity-50"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={() => onApprove(coupon._id)}
+                  className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-xl py-2.5 px-4 flex items-center justify-between text-xs transition-colors cursor-pointer select-none disabled:opacity-50"
+                >
+                  <span>Approve &amp; Publish</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
-              <span className="text-[10px] font-bold text-brand-blue bg-brand-surface border border-brand-border px-2 py-0.5 rounded shrink-0">
-                {getDiscountDisplay(coupon)}
-              </span>
-            </div>
-
-            <div>
-              <p className="font-bold text-brand-text text-[11px]">{coupon.title}</p>
-              {coupon.description && (
-                <p className="text-[10px] text-brand-subtext mt-0.5 line-clamp-2">{coupon.description}</p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 text-[10px] text-brand-subtext flex-wrap">
-              <span>Code: <code className="bg-brand-surface px-1 py-0.5 rounded font-bold text-brand-navy">{coupon.code}</code></span>
-              <span>Expires: {new Date(coupon.expiresAt).toLocaleDateString()}</span>
-            </div>
-
-            <div className="flex items-center gap-2 pt-1">
-              <Button
-                size="sm"
-                disabled={actionLoading}
-                onClick={() => onApprove(coupon._id)}
-                className="flex-1 bg-brand-success/15 text-brand-success hover:bg-brand-success hover:text-white border-0 h-8 rounded-lg transition-all cursor-pointer shadow-none font-semibold text-xs gap-1.5"
-              >
-                <Check className="w-3.5 h-3.5" />
-                Approve
-              </Button>
-              <Button
-                size="sm"
-                disabled={actionLoading}
-                onClick={() => onRejectClick(coupon._id)}
-                className="flex-1 bg-brand-error/15 text-brand-error hover:bg-brand-error hover:text-white border-0 h-8 rounded-lg transition-all cursor-pointer shadow-none font-semibold text-xs gap-1.5"
-              >
-                <X className="w-3.5 h-3.5" />
-                Reject
-              </Button>
-            </div>
-          </div>
+            }
+          />
         ))}
       </div>
     </div>

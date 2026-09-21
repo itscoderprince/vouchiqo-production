@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Award,
@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import MobileTableCard from "@/components/shared/data/MobileTableCard";
 
 // 8 Distinct Colorful Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
@@ -136,9 +137,7 @@ export default function FeaturedDeals() {
         const title = (c.title || "").toLowerCase();
         const code = (c.code || "").toLowerCase();
         return (
-          brand.includes(query) ||
-          title.includes(query) ||
-          code.includes(query)
+          brand.includes(query) || title.includes(query) || code.includes(query)
         );
       }
 
@@ -160,7 +159,8 @@ export default function FeaturedDeals() {
                 Featured Deals on Homepage
               </h1>
               <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-                Pin high-converting merchant offers directly to the Homepage Popular &amp; Featured carousel.
+                Pin high-converting merchant offers directly to the Homepage
+                Popular &amp; Featured carousel.
               </p>
             </div>
             <Button
@@ -170,7 +170,9 @@ export default function FeaturedDeals() {
               disabled={loading}
               className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
             >
-              <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-3 w-3 ${loading ? "animate-spin" : ""}`}
+              />
               <span>Refresh Deals</span>
             </Button>
           </div>
@@ -305,7 +307,8 @@ export default function FeaturedDeals() {
                     id: "featured",
                     label: "Featured Only",
                     count: stats.featured,
-                    description: "View deals pinned to Homepage Popular carousel",
+                    description:
+                      "View deals pinned to Homepage Popular carousel",
                   },
                   {
                     id: "regular",
@@ -339,7 +342,10 @@ export default function FeaturedDeals() {
                         </span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                    <TooltipContent
+                      side="top"
+                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                    >
                       {tab.description}
                     </TooltipContent>
                   </Tooltip>
@@ -354,230 +360,254 @@ export default function FeaturedDeals() {
                   <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
                     <th className="py-2 px-3 w-56">Brand Partner</th>
                     <th className="py-2 px-3">Offer Details</th>
-                    <th className="py-2 px-2 text-center w-36">Homepage Status</th>
-                    <th className="py-2 px-3 text-right w-36">Feature Control</th>
+                    <th className="py-2 px-2 text-center w-36">
+                      Homepage Status
+                    </th>
+                    <th className="py-2 px-3 text-right w-36">
+                      Feature Control
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-400 text-xs">
-                        <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                        Loading coupon listings...
-                      </td>
-                    </tr>
-                  ) : filteredCoupons.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-400 text-xs">
-                        No deals found matching your search.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredCoupons.map((coupon, index) => {
-                      const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
-                      const isFeatured = Boolean(coupon.isFeatured);
-                      const isToggling = togglingId === coupon._id;
-
-                      const brandName =
-                        coupon.merchantId?.businessName || "Unknown Brand";
-                      const initials = brandName
-                        .split(" ")
-                        .map((w) => w[0])
-                        .slice(0, 2)
-                        .join("")
-                        .toUpperCase();
-
-                      return (
-                        <tr
-                          key={coupon._id}
-                          className={cn("transition-all duration-150", theme.row)}
+                  {loading
+                    ? <tr>
+                        <td
+                          colSpan={4}
+                          className="py-8 text-center text-slate-400 text-xs"
                         >
-                          {/* Brand Partner */}
-                          <td className="py-2 px-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6.5 h-6.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
-                                {coupon.merchantId?.logo ? (
-                                  // biome-ignore lint/performance/noImgElement: merchant logo
-                                  <img
-                                    src={coupon.merchantId.logo}
-                                    alt={brandName}
-                                    className="w-full h-full object-cover rounded-md"
-                                  />
-                                ) : (
-                                  initials
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <span className="font-medium text-slate-900 text-[11.5px] leading-tight block truncate">
-                                  {brandName}
-                                </span>
-                                <span className="text-[9.5px] text-slate-600 font-normal capitalize block leading-none mt-0.5">
-                                  {coupon.category || "General"} â€¢ {coupon.merchantId?.location?.city || "Ranchi"}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Offer Details */}
-                          <td className="py-2 px-3">
-                            <div className="flex items-center gap-2">
-                              {coupon.discountValue && (
-                                <span className="bg-white/95 text-slate-800 border border-slate-300/90 font-medium text-[9.5px] px-1.5 py-0.2 rounded shadow-2xs shrink-0">
-                                  {coupon.discountType === "percentage"
-                                    ? `${coupon.discountValue}% OFF`
-                                    : `â‚¹${coupon.discountValue} OFF`}
-                                </span>
-                              )}
-                              <div className="min-w-0">
-                                <span className="font-medium text-slate-900 text-[11.5px] leading-tight block truncate">
-                                  {coupon.title}
-                                </span>
-                                {coupon.code && (
-                                  <span className="text-[9.5px] font-mono text-slate-600 font-normal block leading-none mt-0.5">
-                                    Code: {coupon.code}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Homepage Status */}
-                          <td className="py-2 px-2 text-center">
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
-                                isFeatured
-                                  ? "bg-white/95 text-amber-700 border-amber-300"
-                                  : "bg-white/95 text-slate-600 border-slate-300/90",
-                              )}
-                            >
-                              {isFeatured ? "Homepage Featured" : "Regular Listing"}
-                            </span>
-                          </td>
-
-                          {/* Feature Control Action */}
-                          <td className="py-2 px-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={isToggling}
-                                    onClick={() =>
-                                      handleToggleFeatured(coupon._id, isFeatured)
-                                    }
-                                    className={cn(
-                                      "h-6.5 px-2 text-[10.5px] font-medium rounded-md cursor-pointer shadow-2xs gap-1 transition-colors",
-                                      isFeatured
-                                        ? "bg-white text-amber-800 border-amber-300 hover:bg-amber-50"
-                                        : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50",
-                                    )}
-                                  >
-                                    {isToggling ? (
-                                      <RefreshCw className="w-3 h-3 animate-spin" />
-                                    ) : isFeatured ? (
-                                      <XCircle className="w-3 h-3 text-amber-600" />
-                                    ) : (
-                                      <Pin className="w-3 h-3 text-blue-600" />
-                                    )}
-                                    <span>{isFeatured ? "Unfeature" : "Feature Deal"}</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                                  {isFeatured
-                                    ? "Remove deal from Homepage Featured Carousel"
-                                    : "Pin this deal directly to the Homepage Featured section"}
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                          Loading coupon listings...
+                        </td>
+                      </tr>
+                    : filteredCoupons.length === 0
+                      ? <tr>
+                          <td
+                            colSpan={4}
+                            className="py-8 text-center text-slate-400 text-xs"
+                          >
+                            No deals found matching your search.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
+                      : filteredCoupons.map((coupon, index) => {
+                          const theme =
+                            ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
+                          const isFeatured = Boolean(coupon.isFeatured);
+                          const isToggling = togglingId === coupon._id;
+
+                          const brandName =
+                            coupon.merchantId?.businessName || "Unknown Brand";
+                          const initials = brandName
+                            .split(" ")
+                            .map((w) => w[0])
+                            .slice(0, 2)
+                            .join("")
+                            .toUpperCase();
+
+                          return (
+                            <tr
+                              key={coupon._id}
+                              className={cn(
+                                "transition-all duration-150",
+                                theme.row,
+                              )}
+                            >
+                              {/* Brand Partner */}
+                              <td className="py-2 px-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6.5 h-6.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
+                                    {coupon.merchantId?.logo
+                                      ? // biome-ignore lint/performance/noImgElement: merchant logo
+                                        <img
+                                          src={coupon.merchantId.logo}
+                                          alt={brandName}
+                                          className="w-full h-full object-cover rounded-md"
+                                        />
+                                      : initials}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="font-medium text-slate-900 text-[11.5px] leading-tight block truncate">
+                                      {brandName}
+                                    </span>
+                                    <span className="text-[9.5px] text-slate-600 font-normal capitalize block leading-none mt-0.5">
+                                      {coupon.category || "General"} •{" "}
+                                      {coupon.merchantId?.location?.city ||
+                                        "Ranchi"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Offer Details */}
+                              <td className="py-2 px-3">
+                                <div className="flex items-center gap-2">
+                                  {coupon.discountValue && (
+                                    <span className="bg-white/95 text-slate-800 border border-slate-300/90 font-medium text-[9.5px] px-1.5 py-0.2 rounded shadow-2xs shrink-0">
+                                      {coupon.discountType === "percentage"
+                                        ? `${coupon.discountValue}% OFF`
+                                        : `₹${coupon.discountValue} OFF`}
+                                    </span>
+                                  )}
+                                  <div className="min-w-0">
+                                    <span className="font-medium text-slate-900 text-[11.5px] leading-tight block truncate">
+                                      {coupon.title}
+                                    </span>
+                                    {coupon.code && (
+                                      <span className="text-[9.5px] font-mono text-slate-600 font-normal block leading-none mt-0.5">
+                                        Code: {coupon.code}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Homepage Status */}
+                              <td className="py-2 px-2 text-center">
+                                <span
+                                  className={cn(
+                                    "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block whitespace-nowrap",
+                                    isFeatured
+                                      ? "bg-white/95 text-amber-700 border-amber-300"
+                                      : "bg-white/95 text-slate-600 border-slate-300/90",
+                                  )}
+                                >
+                                  {isFeatured
+                                    ? "Homepage Featured"
+                                    : "Regular Listing"}
+                                </span>
+                              </td>
+
+                              {/* Feature Control Action */}
+                              <td className="py-2 px-3 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={isToggling}
+                                        onClick={() =>
+                                          handleToggleFeatured(
+                                            coupon._id,
+                                            isFeatured,
+                                          )
+                                        }
+                                        className={cn(
+                                          "h-6.5 px-2 text-[10.5px] font-medium rounded-md cursor-pointer shadow-2xs gap-1 transition-colors",
+                                          isFeatured
+                                            ? "bg-white text-amber-800 border-amber-300 hover:bg-amber-50"
+                                            : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50",
+                                        )}
+                                      >
+                                        {isToggling
+                                          ? <RefreshCw className="w-3 h-3 animate-spin" />
+                                          : isFeatured
+                                            ? <XCircle className="w-3 h-3 text-amber-600" />
+                                            : <Pin className="w-3 h-3 text-blue-600" />}
+                                        <span>
+                                          {isFeatured
+                                            ? "Unfeature"
+                                            : "Feature Deal"}
+                                        </span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                      side="top"
+                                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                                    >
+                                      {isFeatured
+                                        ? "Remove deal from Homepage Featured Carousel"
+                                        : "Pin this deal directly to the Homepage Featured section"}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                 </tbody>
               </table>
             </div>
-            {/* Mobile Card View - Featured Deals */}
-            <div className="md:hidden space-y-2.5">
-              {loading ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                  Loading coupon listings...
-                </div>
-              ) : filteredCoupons.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  No deals found matching your search.
-                </div>
-              ) : (
-                filteredCoupons.map((coupon, index) => {
-                  const isFeatured = Boolean(coupon.isFeatured);
-                  const isToggling = togglingId === coupon._id;
-                  const brandName = coupon.merchantId?.businessName || "Unknown Brand";
-                  const initials = brandName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-
-                  return (
-                    <div
-                      key={coupon._id}
-                      className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[11px] shrink-0 shadow-2xs overflow-hidden">
-                          {coupon.merchantId?.logo ? (
-                            <img src={coupon.merchantId.logo} alt={brandName} className="w-full h-full object-cover" />
-                          ) : (
-                            initials
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-900 text-[12px] leading-tight">{brandName}</p>
-                          <p className="text-[10px] text-slate-500 capitalize">{coupon.category || "General"} â€¢ {coupon.merchantId?.location?.city || "Ranchi"}</p>
-                          <p className="font-medium text-slate-900 text-[11px] mt-1 truncate">{coupon.title}</p>
-                          {coupon.code && (
-                            <p className="text-[10px] font-mono text-slate-500 mt-0.5">Code: {coupon.code}</p>
-                          )}
-                        </div>
-                        {coupon.discountValue && (
-                          <span className="bg-slate-100 text-slate-800 border border-slate-300/90 font-semibold text-[10px] px-2 py-0.5 rounded shadow-2xs shrink-0">
-                            {coupon.discountType === "percentage" ? ${coupon.discountValue}% OFF : &#8377; OFF}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-2.5">
-                        <span className={cn(
-                          "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block",
-                          isFeatured ? "bg-amber-50 text-amber-700 border-amber-300" : "bg-slate-50 text-slate-600 border-slate-300",
-                        )}>
-                          {isFeatured ? "Homepage Featured" : "Regular Listing"}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isToggling}
-                          onClick={() => handleToggleFeatured(coupon._id, isFeatured)}
-                          className={cn(
-                            "h-8 px-3 text-[11px] font-medium rounded-lg cursor-pointer shadow-2xs gap-1.5",
-                            isFeatured
-                              ? "bg-white text-amber-800 border-amber-300 hover:bg-amber-50"
-                              : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50",
-                          )}
-                        >
-                          {isToggling ? (
-                            <RefreshCw className="w-3 h-3 animate-spin" />
-                          ) : isFeatured ? (
-                            <XCircle className="w-3 h-3 text-amber-600" />
-                          ) : (
-                            <Pin className="w-3 h-3 text-blue-600" />
-                          )}
-                          <span>{isFeatured ? "Unfeature" : "Feature Deal"}</span>
-                        </Button>
-                      </div>
+            {/* Mobile Card View - Featured Deals (Reference Card Design) */}
+            <div className="md:hidden space-y-3">
+              {loading
+                ? <div className="py-8 text-center text-slate-400 text-xs">
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                    Loading coupon listings...
+                  </div>
+                : filteredCoupons.length === 0
+                  ? <div className="py-8 text-center text-slate-400 text-xs">
+                      No deals found matching your search.
                     </div>
-                  );
-                })
-              )}
+                  : filteredCoupons.map((coupon, index) => {
+                      const isFeatured = Boolean(coupon.isFeatured);
+                      const isToggling = togglingId === coupon._id;
+                      const brandName =
+                        coupon.merchantId?.businessName || "Unknown Brand";
+                      const discountDisplay = coupon.discountValue
+                        ? coupon.discountType === "percentage"
+                          ? `${coupon.discountValue}% OFF`
+                          : `₹${coupon.discountValue} OFF`
+                        : "SPECIAL DEAL";
+
+                      return (
+                        <MobileTableCard
+                          key={coupon._id}
+                          avatar={
+                            coupon.merchantId?.logo
+                              ? <img
+                                  src={coupon.merchantId.logo}
+                                  alt={brandName}
+                                  className="w-11 h-11 rounded-full object-cover border border-slate-200 shadow-xs"
+                                />
+                              : null
+                          }
+                          avatarText={
+                            !coupon.merchantId?.logo ? brandName : undefined
+                          }
+                          avatarBg="bg-blue-600"
+                          badge="BRAND PARTNER"
+                          title={brandName}
+                          subtitle={`${coupon.category || "General"} • ${coupon.merchantId?.location?.city || "Ranchi"}`}
+                          fields={[
+                            {
+                              label: "PRODUCT / OFFER",
+                              value: coupon.title,
+                            },
+                            {
+                              label: "COUPON CODE",
+                              value: coupon.code || "DIRECT DEAL",
+                              isCode: true,
+                            },
+                            {
+                              label: "STATUS",
+                              value: isFeatured
+                                ? "Homepage Featured"
+                                : "Regular Listing",
+                              isStatus: true,
+                              statusType: isFeatured ? "warning" : "neutral",
+                            },
+                            {
+                              label: "DISCOUNT",
+                              value: discountDisplay,
+                              isAmount: true,
+                            },
+                          ]}
+                          actionText={
+                            isToggling
+                              ? "Updating..."
+                              : isFeatured
+                                ? "Unfeature from Homepage"
+                                : "Feature Deal on Homepage"
+                          }
+                          actionVariant={isFeatured ? "outline" : "primary"}
+                          actionIcon={isFeatured ? XCircle : Pin}
+                          actionDisabled={isToggling}
+                          onAction={() =>
+                            handleToggleFeatured(coupon._id, isFeatured)
+                          }
+                        />
+                      );
+                    })}
             </div>
           </Card>
         </div>

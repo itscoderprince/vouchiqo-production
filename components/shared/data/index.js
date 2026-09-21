@@ -8,3 +8,4 @@ export { default as DashboardChart } from "./DashboardChart";
 export { default as DataTable } from "./DataTable";
 export { default as Sparkline } from "./Sparkline";
 export { default as StatusBadge } from "./StatusBadge";
+export { default as MobileTableCard, StatusPill } from "./MobileTableCard";

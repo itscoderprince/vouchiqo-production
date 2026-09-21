@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import MobileTableCard from "./MobileTableCard";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -290,40 +291,104 @@ export default function DataTable({
             {emptyState ?? "No results found."}
           </div>
         ) : (
-          paged.map((row, rowIndex) =>
-            renderMobileCard ? (
-              <div key={row.id ?? row._id ?? `mob-card-${rowIndex}`}>
-                {renderMobileCard(row, rowIndex)}
-              </div>
-            ) : (
-              <div
+          paged.map((row, rowIndex) => {
+            if (renderMobileCard) {
+              return (
+                <div key={row.id ?? row._id ?? `mob-card-${rowIndex}`}>
+                  {renderMobileCard(row, rowIndex)}
+                </div>
+              );
+            }
+
+            const titleCol =
+              columns.find((c) => {
+                const k = (c.key || c.accessorKey || "").toLowerCase();
+                return (
+                  k.includes("name") ||
+                  k.includes("title") ||
+                  k.includes("brand") ||
+                  k.includes("merchant")
+                );
+              }) || columns[0];
+
+            const titleKey = titleCol
+              ? titleCol.key || titleCol.accessorKey
+              : null;
+            const rawTitle = titleKey ? row[titleKey] : null;
+            const cardTitle =
+              titleCol && titleCol.cell
+                ? titleCol.cell(row)
+                : rawTitle || `Item #${rowIndex + 1}`;
+
+            const subtitleCol = columns.find((c) => {
+              const k = (c.key || c.accessorKey || "").toLowerCase();
+              return (
+                c !== titleCol &&
+                (k.includes("category") ||
+                  k.includes("email") ||
+                  k.includes("plan") ||
+                  k.includes("type") ||
+                  k.includes("role") ||
+                  k.includes("slot"))
+              );
+            });
+            const subKey = subtitleCol
+              ? subtitleCol.key || subtitleCol.accessorKey
+              : null;
+            const cardSubtitle =
+              subtitleCol && subtitleCol.cell
+                ? subtitleCol.cell(row)
+                : subKey
+                  ? String(row[subKey] ?? "")
+                  : null;
+
+            const otherCols = columns.filter(
+              (c) => c !== titleCol && c !== subtitleCol,
+            );
+
+            const fields = otherCols.map((col) => {
+              const h = String(col.header || "").toLowerCase();
+              const dataKey = col.key || col.accessorKey;
+              const val = col.cell ? col.cell(row) : (row[dataKey] ?? "—");
+              const isStatus = h.includes("status");
+              const isAmount =
+                h.includes("amount") ||
+                h.includes("price") ||
+                h.includes("revenue") ||
+                h.includes("mrr") ||
+                h.includes("arpu") ||
+                h.includes("discount");
+              const isCode =
+                h.includes("code") || h.includes("id") || h.includes("coupon");
+
+              return {
+                label: col.header,
+                value: val,
+                isStatus,
+                isAmount,
+                isCode,
+              };
+            });
+
+            return (
+              <MobileTableCard
                 key={row.id ?? row._id ?? `mob-row-${rowIndex}`}
-                className="rounded-2xl border border-slate-200/80 p-3.5 bg-white shadow-2xs space-y-2 font-sans"
-              >
-                {columns.map((col, colIdx) => {
-                  const cKey =
-                    col.key ||
-                    col.accessorKey ||
-                    col.id ||
-                    `mob-cell-${colIdx}`;
-                  const dataKey = col.key || col.accessorKey;
-                  return (
-                    <div
-                      key={cKey}
-                      className="flex items-start justify-between gap-2.5 min-w-0"
-                    >
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mt-0.5">
-                        {col.header}
-                      </span>
-                      <div className="text-xs text-slate-900 text-right min-w-0 flex-1 flex justify-end break-words">
-                        {col.cell ? col.cell(row) : (row[dataKey] ?? "—")}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ),
-          )
+                avatarText={typeof rawTitle === "string" ? rawTitle : undefined}
+                badge={
+                  typeof cardSubtitle === "string" && cardSubtitle.length < 25
+                    ? cardSubtitle
+                    : undefined
+                }
+                title={cardTitle}
+                subtitle={
+                  typeof cardSubtitle === "string" && cardSubtitle.length >= 25
+                    ? cardSubtitle
+                    : undefined
+                }
+                fields={fields}
+              />
+            );
+          })
         )}
       </div>
 
