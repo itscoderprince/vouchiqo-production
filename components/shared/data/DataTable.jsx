@@ -233,7 +233,9 @@ export default function DataTable({
               </TableRow>
             ) : (
               paged.map((row, rowIndex) => {
-                const customRowClass = getRowClassName ? getRowClassName(row, rowIndex) : "";
+                const customRowClass = getRowClassName
+                  ? getRowClassName(row, rowIndex)
+                  : "";
                 return (
                   <TableRow
                     key={row.id ?? row._id ?? `row-${rowIndex}`}
@@ -300,7 +302,10 @@ export default function DataTable({
               >
                 {columns.map((col, colIdx) => {
                   const cKey =
-                    col.key || col.accessorKey || col.id || `mob-cell-${colIdx}`;
+                    col.key ||
+                    col.accessorKey ||
+                    col.id ||
+                    `mob-cell-${colIdx}`;
                   const dataKey = col.key || col.accessorKey;
                   return (
                     <div

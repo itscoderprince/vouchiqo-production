@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -507,7 +507,8 @@ export default function AdminOffersClient() {
               No affiliate products or brand deals found.
             </div>
           ) : (
-            <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
@@ -561,14 +562,14 @@ export default function AdminOffersClient() {
                           <td className="px-4 py-3 font-bold">
                             {hasExact ? (
                               <div className="space-y-0.5">
-                                <span className="text-blue-600 block">₹{p.discountPrice?.toLocaleString()}</span>
-                                <span className="text-[10px] text-slate-400 line-through block">₹{p.originalPrice?.toLocaleString()}</span>
+                                <span className="text-blue-600 block">â‚¹{p.discountPrice?.toLocaleString()}</span>
+                                <span className="text-[10px] text-slate-400 line-through block">â‚¹{p.originalPrice?.toLocaleString()}</span>
                               </div>
                             ) : hasFixed ? (
                               <div className="space-y-0.5">
-                                <span className="text-emerald-600 block font-bold">₹{p.discountPrice?.toLocaleString()}</span>
+                                <span className="text-emerald-600 block font-bold">â‚¹{p.discountPrice?.toLocaleString()}</span>
                                 <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 block truncate max-w-[140px]">
-                                  {p.discountText || `Just @ ₹${p.discountPrice}`}
+                                  {p.discountText || `Just @ â‚¹${p.discountPrice}`}
                                 </span>
                               </div>
                             ) : (
@@ -653,6 +654,78 @@ export default function AdminOffersClient() {
                   </tbody>
                 </table>
               </div>
+
+            {/* Mobile Card View - Affiliate Products */}
+            <div className="md:hidden space-y-2.5">
+              {affiliateProducts.map((p) => {
+                const merchantName = p.merchantId?.businessName || "Unknown Merchant";
+                const hasExact = p.originalPrice > 0 && p.discountPrice > 0;
+                const hasFixed = p.discountPrice > 0 && p.originalPrice === 0;
+                return (
+                  <div
+                    key={p._id}
+                    className="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-2xs space-y-2.5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200 flex items-center justify-center">
+                        {p.imageUrl ? (
+                          <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <ShoppingBag className="w-5 h-5 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 text-[12px] truncate">{p.title}</p>
+                        {p.description && <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">{p.description}</p>}
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <span className="text-[9.5px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{merchantName}</span>
+                          <span className="text-[9.5px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{p.category}</span>
+                          <span className={	ext-[9.5px] font-bold px-1.5 py-0.5 rounded-full border }>
+                            {p.status?.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2.5">
+                      <div className="font-bold text-slate-900">
+                        {hasExact ? (
+                          <div>
+                            <span className="text-blue-600 block text-sm">&#8377;{p.discountPrice?.toLocaleString()}</span>
+                            <span className="text-[10px] text-slate-400 line-through">&#8377;{p.originalPrice?.toLocaleString()}</span>
+                          </div>
+                        ) : hasFixed ? (
+                          <span className="text-emerald-600 text-sm">&#8377;{p.discountPrice?.toLocaleString()}</span>
+                        ) : (
+                          <span className="text-emerald-700 text-sm">{p.discountText || ${p.discountPercentage}% OFF}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAffiliateStatus(p)}
+                          className={p-2 rounded-lg border text-xs font-semibold cursor-pointer }
+                        >
+                          <Power className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingAffiliate(p)}
+                          className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteAffiliateId(p._id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg border border-red-200 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

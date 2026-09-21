@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Check,
@@ -177,7 +177,7 @@ export default function PlatformRevenue() {
                     Monthly Recurring (MRR)
                   </span>
                   <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none font-mono">
-                    ₹{mrr.toLocaleString("en-IN")}
+                    â‚¹{mrr.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
@@ -209,7 +209,7 @@ export default function PlatformRevenue() {
                     Avg Plan Value (ARPU)
                   </span>
                   <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none font-mono">
-                    ₹{avgPlanValue.toLocaleString("en-IN")}
+                    â‚¹{avgPlanValue.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
@@ -225,7 +225,7 @@ export default function PlatformRevenue() {
                     Pending Settlements
                   </span>
                   <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none font-mono">
-                    ₹{pendingPayouts.toLocaleString("en-IN")}
+                    â‚¹{pendingPayouts.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
@@ -357,7 +357,7 @@ export default function PlatformRevenue() {
                             {inv.date}
                           </td>
                           <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
-                            ₹{inv.amount.toLocaleString("en-IN")}
+                            â‚¹{inv.amount.toLocaleString("en-IN")}
                           </td>
                           <td className="py-2 px-3 text-center">
                             <span
@@ -377,6 +377,54 @@ export default function PlatformRevenue() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View - Invoices */}
+            <div className="md:hidden space-y-2">
+              {loading ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                  Loading billing invoices...
+                </div>
+              ) : filteredInvoices.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  No billing invoices found.
+                </div>
+              ) : (
+                filteredInvoices.map((inv, idx) => {
+                  const isPaid = inv.status?.toLowerCase() === "paid";
+                  return (
+                    <div
+                      key={inv.id || idx}
+                      className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="font-mono text-[11px] font-medium text-slate-900 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded block w-fit mb-1">
+                            {inv.id}
+                          </span>
+                          <p className="font-medium text-slate-900 text-[12px] truncate">{inv.merchantName}</p>
+                          <p className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded mt-1 w-fit font-medium">{inv.plan}</p>
+                        </div>
+                        <span
+                          className={cn(
+                            "px-2.5 py-1 text-[10px] font-semibold rounded-lg border shadow-2xs inline-block whitespace-nowrap shrink-0",
+                            isPaid
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                              : "bg-rose-50 text-rose-700 border-rose-300",
+                          )}
+                        >
+                          {inv.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span className="text-[10px] text-slate-500 font-mono">{inv.date}</span>
+                        <span className="font-mono font-semibold text-slate-900 text-sm">&#8377;{inv.amount.toLocaleString("en-IN")}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </Card>
 
@@ -454,7 +502,7 @@ export default function PlatformRevenue() {
                             {p.merchantName}
                           </td>
                           <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
-                            ₹{p.amount.toLocaleString("en-IN")}
+                            â‚¹{p.amount.toLocaleString("en-IN")}
                           </td>
                           <td className="py-2 px-3">
                             <span className="font-mono text-[10.5px] text-slate-700 block">
@@ -506,6 +554,63 @@ export default function PlatformRevenue() {
                   )}
                 </tbody>
               </table>
+            </div>
+            {/* Mobile Card View - Payouts */}
+            <div className="md:hidden space-y-2">
+              {loading ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                  Loading settlement payouts...
+                </div>
+              ) : filteredPayouts.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  No pending settlement records found.
+                </div>
+              ) : (
+                filteredPayouts.map((p, idx) => {
+                  const isPaid = p.status === "paid";
+                  return (
+                    <div
+                      key={p.id || idx}
+                      className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium text-slate-900 text-[12px] truncate">{p.merchantName}</p>
+                          <p className="font-mono text-[10px] text-slate-600 mt-0.5 line-clamp-2">{p.bankDetails || "HDFC Bank - A/C: 50100100000 - IFSC: HDFC0000123"}</p>
+                          <p className="text-[9.5px] text-slate-500 mt-0.5">Period: {p.period || "Current Month"}</p>
+                        </div>
+                        <span
+                          className={cn(
+                            "px-2.5 py-1 text-[10px] font-semibold rounded-lg border shadow-2xs inline-block whitespace-nowrap shrink-0",
+                            isPaid
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                              : "bg-amber-50 text-amber-700 border-amber-300",
+                          )}
+                        >
+                          {isPaid ? "Settled" : "Pending"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span className="font-mono font-semibold text-slate-900 text-sm">&#8377;{p.amount.toLocaleString("en-IN")}</span>
+                        {!isPaid ? (
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleMarkAsPaid(p.id)}
+                            className="h-7 px-3 text-[11px] font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg cursor-pointer shadow-2xs gap-1"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>Mark Paid</span>
+                          </Button>
+                        ) : (
+                          <span className="text-[10px] font-medium text-slate-400 uppercase">Completed</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </Card>
         </div>

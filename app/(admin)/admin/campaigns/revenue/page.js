@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   ArrowUpRight,
@@ -186,7 +186,7 @@ export default function AdminCampaignRevenuePage() {
                     Campaign Add-on Revenue
                   </span>
                   <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none font-mono">
-                    ₹{totalAddOn.toLocaleString("en-IN")}
+                    â‚¹{totalAddOn.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
@@ -202,7 +202,7 @@ export default function AdminCampaignRevenuePage() {
                     Merchant Subscriptions
                   </span>
                   <span className="text-base font-medium text-blue-700 mt-0.5 block leading-none font-mono">
-                    ₹{totalSub.toLocaleString("en-IN")}
+                    â‚¹{totalSub.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
@@ -218,7 +218,7 @@ export default function AdminCampaignRevenuePage() {
                     Gross Monthly Revenue
                   </span>
                   <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none font-mono">
-                    ₹{grossMonthly.toLocaleString("en-IN")}
+                    â‚¹{grossMonthly.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
@@ -308,8 +308,8 @@ export default function AdminCampaignRevenuePage() {
               </div>
             </div>
 
-            {/* Colorful Transactions Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/90">
+            {/* Colorful Transactions Table - Desktop */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/90">
               <table className="w-full border-collapse text-left font-sans">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
@@ -427,7 +427,7 @@ export default function AdminCampaignRevenuePage() {
                 Showing {filteredTransactions.length} of {transactions.length} total add-on payment records
               </span>
               <span className="text-[11px] font-mono text-slate-700 font-medium">
-                Live Add-on Total: ₹{totalAddOn.toLocaleString("en-IN")}
+                Live Add-on Total: â‚¹{totalAddOn.toLocaleString("en-IN")}
               </span>
             </div>
           </Card>

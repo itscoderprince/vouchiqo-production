@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FolderOpen, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +77,7 @@ export default function CategoryEditor({
         </div>
 
         {/* List Table */}
-        <div className="overflow-hidden border border-brand-border rounded-xl bg-white shadow-none">
+        <div className="hidden md:block overflow-hidden border border-brand-border rounded-xl bg-white shadow-none">
           <Table className="w-full text-xs">
             <TableHeader className="bg-brand-surface hover:bg-transparent">
               <TableRow className="hover:bg-transparent border-b border-brand-border">

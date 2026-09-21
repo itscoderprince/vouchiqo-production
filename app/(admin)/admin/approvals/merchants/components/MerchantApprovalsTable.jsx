@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+﻿import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,7 +12,8 @@ import {
 export default function MerchantApprovalsTable({ merchants, onAction }) {
   return (
     <div className="bg-brand-bg border border-brand-border rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
-      <div className="overflow-x-auto flex-1">
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto flex-1">
         <Table className="w-full text-xs">
           <TableHeader className="bg-brand-surface border-b border-brand-border hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-b border-brand-border">
@@ -93,6 +94,56 @@ export default function MerchantApprovalsTable({ merchants, onAction }) {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden divide-y divide-brand-border">
+        {merchants.map((merchant) => (
+          <div key={merchant._id} className="p-3.5 space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-bold text-brand-navy text-[12px] truncate">{merchant.businessName}</p>
+                {merchant.website && (
+                  <a
+                    href={merchant.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-brand-blue hover:underline font-bold mt-0.5 block truncate"
+                  >
+                    {merchant.website.replace("https://", "").replace("http://", "")}
+                  </a>
+                )}
+              </div>
+              <span className="text-[10px] text-brand-subtext bg-brand-surface border border-brand-border px-2 py-0.5 rounded font-medium shrink-0 whitespace-nowrap">
+                {merchant.createdAt ? new Date(merchant.createdAt).toLocaleDateString() : "Pending"}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] text-brand-subtext flex-wrap">
+              {merchant.contactEmail && <span>{merchant.contactEmail}</span>}
+              {merchant.location && (
+                <span>{merchant.location.city || ""}{merchant.location.country ? `, ${merchant.location.country}` : ""}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <Button
+                size="sm"
+                onClick={() => onAction(merchant._id, "approve")}
+                className="flex-1 bg-brand-success/15 text-brand-success hover:bg-brand-success hover:text-white border-0 h-8 rounded-lg transition-all cursor-pointer shadow-none font-semibold text-xs gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5" />
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => onAction(merchant._id, "reject")}
+                className="flex-1 bg-brand-error/15 text-brand-error hover:bg-brand-error hover:text-white border-0 h-8 rounded-lg transition-all cursor-pointer shadow-none font-semibold text-xs gap-1.5"
+              >
+                <X className="w-3.5 h-3.5" />
+                Reject
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   ArrowDown,
@@ -47,7 +47,7 @@ const SLOTS = [
   {
     id: "hero",
     label: "Top Hero Section",
-    recommendedSize: "1200 × 430 px (~2.8:1)",
+    recommendedSize: "1200 Ã— 430 px (~2.8:1)",
     aliases: ["hero", "left-hero", "top-hero"],
     badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
     activeTabBg: "bg-blue-600 text-white shadow-2xs",
@@ -62,7 +62,7 @@ const SLOTS = [
   {
     id: "trending",
     label: "Trending Offers",
-    recommendedSize: "1400 × 300 px (~4.6:1)",
+    recommendedSize: "1400 Ã— 300 px (~4.6:1)",
     aliases: ["trending", "trending-offer"],
     badgeColor: "bg-purple-50 text-purple-700 border-purple-200",
     activeTabBg: "bg-purple-600 text-white shadow-2xs",
@@ -77,7 +77,7 @@ const SLOTS = [
   {
     id: "popup",
     label: "Popup Banner Modal",
-    recommendedSize: "600 × 400 px (3:2)",
+    recommendedSize: "600 Ã— 400 px (3:2)",
     aliases: ["popup", "popup-modal"],
     badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
     activeTabBg: "bg-emerald-600 text-white shadow-2xs",
@@ -691,7 +691,7 @@ export default function BannerManagement() {
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                      {slot.description} • Optimal ratio: {slot.recommendedSize}
+                      {slot.description} â€¢ Optimal ratio: {slot.recommendedSize}
                     </TooltipContent>
                   </Tooltip>
                 );
@@ -712,7 +712,7 @@ export default function BannerManagement() {
                   <Sliders className="w-3.5 h-3.5 text-blue-600" />
                   <h2 className="text-xs font-medium text-slate-900">
                     {editingId
-                      ? `Edit Banner — ${currentSlotConfig.label}`
+                      ? `Edit Banner â€” ${currentSlotConfig.label}`
                       : `Add Banner to ${currentSlotConfig.label}`}
                   </h2>
                   {editingId && (
@@ -1173,8 +1173,8 @@ export default function BannerManagement() {
               </div>
             </div>
 
-            {/* Drag & Drop Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/90">
+            {/* Drag & Drop Table - Desktop */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/90">
               <table className="w-full border-collapse text-left font-sans">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
@@ -1350,7 +1350,7 @@ export default function BannerManagement() {
                                     className="w-5 h-5 object-contain rounded border border-slate-200 p-0.5 bg-white shadow-2xs"
                                   />
                                 ) : (
-                                  <span className="text-[10px] text-slate-400">—</span>
+                                  <span className="text-[10px] text-slate-400">â€”</span>
                                 )}
                               </div>
                             </td>
@@ -1391,7 +1391,7 @@ export default function BannerManagement() {
                                       {r.buttonText}
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400">—</span>
+                                    <span className="text-[10px] text-slate-400">â€”</span>
                                   )}
                                 </div>
                               </td>
@@ -1516,6 +1516,142 @@ export default function BannerManagement() {
                   )}
                 </tbody>
               </table>
+            </div>
+            {/* Mobile Card View - Banners */}
+            <div className="md:hidden space-y-2.5">
+              {loading ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
+                  Loading promotional banners...
+                </div>
+              ) : displayedBanners.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  No promotional banners found for {currentSlotConfig?.label}.
+                </div>
+              ) : (
+                displayedBanners.map((r, index) => (
+                  <div
+                    key={r._id}
+                    className="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-2xs space-y-3"
+                  >
+                    {/* Banner image + title + rank */}
+                    <div className="flex items-start gap-3">
+                      <div className="relative shrink-0">
+                        {r.image ? (
+                          <img
+                            src={r.image}
+                            alt={r.title || "Banner"}
+                            className="w-20 h-11 object-cover rounded-xl border border-slate-200 bg-white shadow-2xs"
+                          />
+                        ) : (
+                          <div className="w-20 h-11 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 text-[9px] border border-slate-200">
+                            No Image
+                          </div>
+                        )}
+                        <span className="absolute -top-1.5 -left-1.5 text-[9px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded-md shadow">
+                          #{index + 1}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 text-[12px] truncate leading-tight">
+                          {r.title || <span className="text-slate-400 italic font-normal">Pure Image Banner</span>}
+                        </p>
+                        {r.subtitle && <p className="text-[10px] text-slate-500 mt-0.5 truncate">{r.subtitle}</p>}
+                        {r.link && r.link !== "#" && (
+                          <a href={r.link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 mt-0.5 flex items-center gap-1 truncate">
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                            <span className="truncate">{r.link}</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status badges row */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={cn(
+                        "px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-wider rounded-md border shadow-2xs inline-block",
+                        r.status === "active"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                          : "bg-slate-50 text-slate-600 border-slate-300",
+                      )}>
+                        {r.status || "active"}
+                      </span>
+                      {r.isPaid ? (
+                        <span className="text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded shadow-2xs">
+                          Sponsored
+                        </span>
+                      ) : (
+                        <span className="text-[9px] text-slate-600 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs">
+                          Standard
+                        </span>
+                      )}
+                      {r.buttonText && (
+                        <span
+                          className="text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs"
+                          style={{ backgroundColor: r.buttonBgColor || "#f59e0b", color: r.buttonTextColor || "#0f172a" }}
+                        >
+                          {r.buttonText}
+                        </span>
+                      )}
+                      <span className="text-[9px] font-mono text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">
+                        P:{r.priority ?? 0}
+                      </span>
+                    </div>
+
+                    {/* Reorder controls + actions */}
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2.5">
+                      <div className="flex items-center gap-1.5">
+                        {index > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleMoveToTop(r._id)}
+                            className="p-1.5 text-amber-700 bg-white hover:bg-amber-50 rounded-lg border border-amber-200 shadow-2xs cursor-pointer"
+                            title="Move to Top"
+                          >
+                            <ArrowUpToLine className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleMoveStep(r._id, -1)}
+                          disabled={index === 0}
+                          className={cn("p-1.5 rounded-lg border", index === 0 ? "opacity-30 cursor-not-allowed border-slate-200 text-slate-300" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 border-slate-200 cursor-pointer shadow-2xs")}
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveStep(r._id, 1)}
+                          disabled={index === displayedBanners.length - 1}
+                          className={cn("p-1.5 rounded-lg border", index === displayedBanners.length - 1 ? "opacity-30 cursor-not-allowed border-slate-200 text-slate-300" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50 border-slate-200 cursor-pointer shadow-2xs")}
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleStartEdit(r)}
+                          className="h-8 px-3 text-xs font-medium text-slate-700 bg-white border-slate-200 hover:text-blue-600 hover:bg-blue-50 rounded-lg cursor-pointer shadow-2xs"
+                        >
+                          <Pencil className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteBanner(r)}
+                          className="h-8 px-3 text-xs font-medium text-rose-600 bg-white border-rose-200 hover:bg-rose-50 rounded-lg cursor-pointer shadow-2xs"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </div>

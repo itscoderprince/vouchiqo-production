@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   FolderOpen,
@@ -378,7 +378,7 @@ export default function PlatformContentSettings() {
             />
             <FormInput
               name="recAmt"
-              label="Recovered Value (₹)"
+              label="Recovered Value (â‚¹)"
               type="number"
               value={statsForm.recoveredAmount}
               onChange={(e) =>
@@ -454,7 +454,7 @@ export default function PlatformContentSettings() {
                 onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
               />
               <FormInput
-                placeholder="Price (e.g. ₹4,999)"
+                placeholder="Price (e.g. â‚¹4,999)"
                 value={newPlan.priceText}
                 onChange={(e) => setNewPlan({ ...newPlan, priceText: e.target.value })}
               />
@@ -557,7 +557,7 @@ export default function PlatformContentSettings() {
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Price Text</label>
                     <FormInput
                       value={p.priceText || ""}
-                      placeholder="e.g. ₹999"
+                      placeholder="e.g. â‚¹999"
                       onChange={(e) => {
                         const updated = [...plans];
                         updated[pIdx].priceText = e.target.value;
@@ -569,7 +569,7 @@ export default function PlatformContentSettings() {
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Original Price</label>
                     <FormInput
                       value={p.originalPrice || ""}
-                      placeholder="e.g. ₹1,499"
+                      placeholder="e.g. â‚¹1,499"
                       onChange={(e) => {
                         const updated = [...plans];
                         updated[pIdx].originalPrice = e.target.value;
@@ -610,16 +610,16 @@ export default function PlatformContentSettings() {
                   </label>
                   <textarea
                     rows={4}
-                    value={Array.isArray(p.features) ? p.features.map(f => typeof f === "object" && f !== null ? (f.included === false ? `✗ ${f.text}` : f.text) : f).join("\n") : ""}
+                    value={Array.isArray(p.features) ? p.features.map(f => typeof f === "object" && f !== null ? (f.included === false ? `âœ— ${f.text}` : f.text) : f).join("\n") : ""}
                     onChange={(e) => {
                       const updated = [...plans];
                       updated[pIdx].features = e.target.value.split("\n").map(l => {
                         const t = l.trim();
                         if (!t) return null;
-                        if (t.startsWith("✗") || t.startsWith("✕") || t.startsWith("❌") || t.startsWith("No ")) {
-                          return { text: t.replace(/^([✓✔✗✕❌]|\\[[xXvV+]\\])\s*/, "").trim(), included: false };
+                        if (t.startsWith("âœ—") || t.startsWith("âœ•") || t.startsWith("âŒ") || t.startsWith("No ")) {
+                          return { text: t.replace(/^([âœ“âœ”âœ—âœ•âŒ]|\\[[xXvV+]\\])\s*/, "").trim(), included: false };
                         }
-                        return { text: t.replace(/^([✓✔]|\\[[vV+]\\])\s*/, "").trim(), included: true };
+                        return { text: t.replace(/^([âœ“âœ”]|\\[[vV+]\\])\s*/, "").trim(), included: true };
                       }).filter(Boolean);
                       setPlans(updated);
                     }}
@@ -644,7 +644,7 @@ export default function PlatformContentSettings() {
                   <label className="text-[10px] font-bold text-slate-600 uppercase">Button Action Label</label>
                   <FormInput
                     value={p.buttonText || ""}
-                    placeholder="e.g. Select Growth — ₹999/mo"
+                    placeholder="e.g. Select Growth â€” â‚¹999/mo"
                     onChange={(e) => {
                       const updated = [...plans];
                       updated[pIdx].buttonText = e.target.value;
@@ -707,7 +707,7 @@ export default function PlatformContentSettings() {
                 onChange={(e) => setNewCpaRate({ ...newCpaRate, category: e.target.value })}
               />
               <FormInput
-                placeholder="Base Rate (e.g. 4% / ₹500 CPL)"
+                placeholder="Base Rate (e.g. 4% / â‚¹500 CPL)"
                 value={newCpaRate.rate}
                 onChange={(e) => setNewCpaRate({ ...newCpaRate, rate: e.target.value })}
               />
@@ -730,7 +730,7 @@ export default function PlatformContentSettings() {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 rounded-xl">
+          <div className="hidden md:block overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full text-xs text-left">
               <thead className="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                 <tr>
