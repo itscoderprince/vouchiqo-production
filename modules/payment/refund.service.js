@@ -6,11 +6,14 @@ export class RefundService {
    * Process refund via Razorpay SDK and update Payment record
    */
   static async processRefund({ paymentId, merchantId, amount, reason }) {
-    const payment = await Payment.findOne({
+    const query = {
       _id: paymentId,
-      merchantId,
       status: "CAPTURED",
-    });
+    };
+    if (merchantId) {
+      query.merchantId = merchantId;
+    }
+    const payment = await Payment.findOne(query);
 
     if (!payment) {
       throw new Error("Payment record not found or not in CAPTURED state");

@@ -415,79 +415,6 @@ export default function MerchantSubscription() {
     }
   };
 
-  const handleSimulateDevPayment = async () => {
-    const planObj = selectedPlan;
-    const addOnObj = selectedAddOn;
-
-    setIsRazorpayLoading(true);
-    toast.loading("Processing instant dev test payment...", { id: "dev-pay" });
-
-    try {
-      const createRes = await fetch("/api/payments/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: totalPrice,
-          plan: planObj?.id,
-          cycle: billingCycle,
-          type: planObj ? "subscription" : "addon",
-          addOnId: addOnObj?.id,
-          gstin: gstin?.trim()?.toUpperCase() || "",
-        }),
-      });
-
-      const orderJson = await createRes.json();
-      if (!createRes.ok || !orderJson.data?.orderId) {
-        throw new Error(orderJson.message || "Failed to create order");
-      }
-
-      const orderId = orderJson.data.orderId;
-      const paymentId = `pay_simulated_${Date.now()}`;
-
-      const verifyRes = await fetch("/api/payments/verify-signature", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          razorpay_order_id: orderId,
-          razorpay_payment_id: paymentId,
-          razorpay_signature: "",
-          plan: planObj?.id,
-          cycle: billingCycle,
-          type: planObj ? "subscription" : "addon",
-          addOnId: addOnObj?.id,
-        }),
-      });
-
-      const verifyJson = await verifyRes.json();
-      if (!verifyRes.ok) {
-        throw new Error(
-          verifyJson.message || "Failed to verify simulated payment.",
-        );
-      }
-
-      toast.dismiss("dev-pay");
-      toast.success(
-        verifyJson.message || "Payment verified! Plan activated successfully.",
-        { duration: 5000 },
-      );
-      setIsCheckoutOpen(false);
-
-      await queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
-      queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
-      queryClient.invalidateQueries({ queryKey: ["merchant-campaigns-count"] });
-      await queryClient.invalidateQueries({
-        queryKey: ["merchant-payment-history"],
-      });
-      await refetchMerchant();
-      await refetchPaymentHistory();
-    } catch (err) {
-      toast.dismiss("dev-pay");
-      toast.error(err.message || "Dev payment failed.");
-    } finally {
-      setIsRazorpayLoading(false);
-    }
-  };
-
   const basePrice = selectedPlan
     ? billingCycle === "yearly"
       ? selectedPlan.priceYearly
@@ -553,7 +480,6 @@ export default function MerchantSubscription() {
           onPayWithRazorpay={() =>
             triggerRazorpayDirect(selectedPlan, selectedAddOn)
           }
-          onSimulatePayment={handleSimulateDevPayment}
           isPending={isRazorpayLoading}
         />
       </div>

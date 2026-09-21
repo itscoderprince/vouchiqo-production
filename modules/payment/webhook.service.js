@@ -21,22 +21,29 @@ export class WebhookService {
    * Process webhook event with log deduplication & Redis state tracking
    */
   static async processWebhook(eventId, eventType, payload, signature, rawBody) {
+    if (!signature || typeof signature !== "string") {
+      throw new Error("Missing or invalid webhook signature header");
+    }
+
     const existing = await WebhookLog.findOne({ eventId });
-    if (existing) {
+    if (existing && existing.processed) {
       return { processed: true, skipped: true, logId: existing._id };
     }
 
-    const isVerified = this.verifySignature(rawBody || payload, signature);
+    const payloadToVerify = rawBody || (typeof payload === "string" ? payload : JSON.stringify(payload));
+    const isVerified = this.verifySignature(payloadToVerify, signature);
 
-    const log = new WebhookLog({
-      eventId,
-      eventType,
-      payload,
-      signature,
-      verified: isVerified,
-    });
-
-    await log.save();
+    let log = existing;
+    if (!log) {
+      log = new WebhookLog({
+        eventId,
+        eventType,
+        payload,
+        signature,
+        verified: isVerified,
+      });
+      await log.save();
+    }
 
     if (!isVerified) {
       log.processed = true;
@@ -84,7 +91,7 @@ export class WebhookService {
   }
 
   /**
-   * Handle payment.captured event with Redis distributed state updates
+   * Handle payment.captured event with Redis distributed locking & atomic state update
    */
   static async handlePaymentCaptured(payload) {
     const paymentData =
@@ -107,15 +114,44 @@ export class WebhookService {
         };
       }
 
-      payment.status = "CAPTURED";
-      payment.gatewayPaymentId = payment_id;
-      payment.paidAt = new Date();
-      await payment.save();
+      // Idempotency: If already CAPTURED, return immediately without duplicate fulfillment
+      if (payment.status === "CAPTURED") {
+        return {
+          success: true,
+          alreadyCaptured: true,
+          paymentId: payment._id,
+        };
+      }
 
-      if (payment.idempotencyKey) {
+      // Atomic transition: Ensure only ONE worker transitions from non-CAPTURED to CAPTURED
+      const updatedPayment = await Payment.findOneAndUpdate(
+        {
+          _id: payment._id,
+          status: { $ne: "CAPTURED" },
+        },
+        {
+          $set: {
+            status: "CAPTURED",
+            gatewayPaymentId: payment_id,
+            paidAt: new Date(),
+          },
+        },
+        { new: true },
+      );
+
+      // If another concurrent request completed the transition first, exit cleanly
+      if (!updatedPayment) {
+        return {
+          success: true,
+          alreadyCaptured: true,
+          paymentId: payment._id,
+        };
+      }
+
+      if (updatedPayment.idempotencyKey) {
         await IdempotencyService.completeIntent(
-          payment.idempotencyKey,
-          payment._id,
+          updatedPayment.idempotencyKey,
+          updatedPayment._id,
         );
       }
 
@@ -124,29 +160,31 @@ export class WebhookService {
         await PaymentStateService.setState(order_id, {
           status: "CAPTURED",
           gatewayPaymentId: payment_id,
-          paidAt: payment.paidAt,
+          paidAt: updatedPayment.paidAt,
         });
       }
 
-      // Update merchant profile
-      const targetMerchantId = payment.merchantId || notes?.merchantId;
+      // Authoritative merchant fulfillment
+      // Always prioritize metadata stored securely on the Payment record over external notes
+      const targetMerchantId = updatedPayment.merchantId || notes?.merchantId;
       if (targetMerchantId) {
         const merchant = await Merchant.findById(targetMerchantId);
         if (merchant) {
           merchant.paymentStatus = "completed";
 
-          if (
-            payment.type === "SUBSCRIPTION" ||
-            notes?.type === "subscription"
-          ) {
-            const plan = notes?.plan || "growth";
-            const cycle = notes?.cycle || "monthly";
+          const paymentType = updatedPayment.type || updatedPayment.metadata?.type || notes?.type;
+          const isSubscription = paymentType === "SUBSCRIPTION" || notes?.type === "subscription";
+
+          if (isSubscription) {
+            const plan = updatedPayment.metadata?.plan || notes?.plan || "growth";
+            const cycle = updatedPayment.metadata?.cycle || notes?.cycle || "monthly";
             const expiryDays = cycle === "yearly" ? 365 : 30;
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() + expiryDays);
 
             merchant.plan = plan;
             merchant.planExpiry = expiryDate;
+            merchant.planStartedAt = merchant.planStartedAt || new Date();
             merchant.subscriptionStatus = "active";
             merchant.lastPaymentId = payment_id;
             merchant.lastOrderId = order_id;
@@ -157,8 +195,9 @@ export class WebhookService {
               merchant.revivalCredits = 999999;
             }
             await merchant.save();
-          } else if (payment.type === "ADDON" || notes?.type === "addon") {
-            if (notes?.addOnId === "revival_pack") {
+          } else {
+            const addOnId = updatedPayment.metadata?.addOnId || notes?.addOnId;
+            if (addOnId === "revival_pack") {
               merchant.revivalCredits = (merchant.revivalCredits || 0) + 25;
             }
             merchant.lastPaymentId = payment_id;
@@ -171,17 +210,17 @@ export class WebhookService {
             sendMerchantPaymentCompletedEmail({
               to: targetEmail,
               businessName: merchant.businessName,
-              amount: amount || payment.amount || 0,
+              amount: amount || updatedPayment.amount || 0,
               transactionId: payment_id,
               orderId: order_id,
-              planName: (notes?.plan || merchant.plan || "growth").toUpperCase(),
+              planName: (updatedPayment.metadata?.plan || notes?.plan || merchant.plan || "growth").toUpperCase(),
               planExpiry: merchant.planExpiry,
             }).catch((err) => console.error("[Webhook Payment Email Error]:", err));
           }
         }
       }
 
-      return { success: true, paymentId: payment._id };
+      return { success: true, paymentId: updatedPayment._id };
     } finally {
       if (order_id) {
         await PaymentStateService.releaseLock(order_id);

@@ -62,22 +62,36 @@ export const POST = asyncHandler(async (request) => {
     if (!matchedAddon) {
       throw new BadRequestError(`Invalid add-on package specified: ${addOnId}`);
     }
-    verifiedAmount = matchedAddon.price;
+    const basePrice = matchedAddon.price;
+    const allowedRates = [basePrice, Math.round(basePrice * 1.18)];
+    if (allowedRates.includes(Number(amount))) {
+      verifiedAmount = Number(amount);
+    } else {
+      verifiedAmount = Math.round(basePrice * 1.18);
+    }
   } else if (normalizedType === "SUBSCRIPTION" && plan) {
     const planConfig = SUBSCRIPTION_MATRIX[plan.toLowerCase()];
     if (!planConfig) {
       throw new BadRequestError(`Invalid subscription plan: ${plan}`);
     }
     const expectedBase = cycle === "yearly" ? planConfig.priceYearly : planConfig.priceMonthly;
-    // Allow founding discount rates (Growth: ₹999, Pro: ₹2,499) or base catalog rate
-    const allowedRates = [
+    // Allow founding discount rates (Growth: ₹999, Pro: ₹2,499) or standard catalog rate
+    const baseRates = [
       expectedBase,
       plan.toLowerCase() === "growth" ? 999 : null,
       plan.toLowerCase() === "pro" ? 2499 : null,
     ].filter(Boolean);
 
-    if (allowedRates.length > 0 && !allowedRates.includes(Number(amount))) {
-      verifiedAmount = allowedRates[0];
+    const allowedRates = [];
+    for (const b of baseRates) {
+      allowedRates.push(b);
+      allowedRates.push(Math.round(b * 1.18));
+    }
+
+    if (allowedRates.includes(Number(amount))) {
+      verifiedAmount = Number(amount);
+    } else {
+      verifiedAmount = Math.round(baseRates[0] * 1.18);
     }
   }
 

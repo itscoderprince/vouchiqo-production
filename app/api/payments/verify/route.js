@@ -4,6 +4,7 @@ import Merchant from "@/modules/merchant/merchant.model";
 import { enforcePaymentRateLimit } from "@/modules/payment/payment-auth.middleware";
 import Payment from "@/modules/payment/payment.model";
 import { PaymentService } from "@/modules/payment/payment.service";
+import { WebhookService } from "@/modules/payment/webhook.service";
 import { ok } from "@/utils/api-response";
 import { BadRequestError, NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/payments/verify
- * Standard payment verification endpoint with idempotent execution
+ * Standard payment verification endpoint with idempotent execution & timing-safe HMAC checks
  */
 export const POST = asyncHandler(async (request) => {
   await connectDB();
@@ -22,77 +23,78 @@ export const POST = asyncHandler(async (request) => {
   const session = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
   const user = session.user;
 
-  const merchant = await Merchant.findOne({ authId: user.id });
+  let merchant = await Merchant.findOne({ authId: user.id });
+  if (!merchant && user.email) {
+    merchant = await Merchant.findOne({
+      contactEmail: user.email.toLowerCase().trim(),
+    });
+  }
   const merchantId = merchant?._id;
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { orderId, paymentId, signature } = body;
 
+  if (
+    !orderId ||
+    typeof orderId !== "string" ||
+    !paymentId ||
+    typeof paymentId !== "string" ||
+    !signature ||
+    typeof signature !== "string"
+  ) {
+    throw new BadRequestError("Missing required payment verification parameters");
+  }
+
+  const cleanOrderId = orderId.trim();
+  const cleanPaymentId = paymentId.trim();
+  const cleanSignature = signature.trim();
+
   const isValid = PaymentService.verifySignature({
-    orderId,
-    paymentId,
-    signature,
+    orderId: cleanOrderId,
+    paymentId: cleanPaymentId,
+    signature: cleanSignature,
   });
 
   if (!isValid) {
     throw new BadRequestError("Invalid signature verification failed");
   }
 
-  const payment = await Payment.findOne({ gatewayOrderId: orderId });
+  const payment = await Payment.findOne({ gatewayOrderId: cleanOrderId });
   if (!payment) {
     throw new NotFoundError("Payment transaction");
   }
 
-  // Idempotency check: if payment was already captured, return existing state
-  if (payment.status === "CAPTURED") {
-    return ok(
-      payment,
-      "Payment already verified and processed",
-    );
+  if (
+    user.role !== ROLES.ADMIN &&
+    merchantId &&
+    payment.merchantId.toString() !== merchantId.toString()
+  ) {
+    throw new BadRequestError("Unauthorized payment verification");
   }
 
-  if (payment.type !== "SUBSCRIPTION") {
-    await PaymentService.capturePayment(orderId, paymentId, payment.amount).catch(() => {});
-  }
-
-  payment.status = "CAPTURED";
-  payment.gatewayPaymentId = paymentId;
-  payment.paidAt = new Date();
-  await payment.save();
-
-  const merchantRecord = merchant || (await Merchant.findById(payment.merchantId));
-  if (merchantRecord) {
-    merchantRecord.paymentStatus = "completed";
-    if (
-      payment.type === "SUBSCRIPTION" ||
-      payment.metadata?.type === "subscription"
-    ) {
-      const plan = payment.metadata?.plan || "growth";
-      const cycle = payment.metadata?.cycle || "monthly";
-      const expiryDays = cycle === "yearly" ? 365 : 30;
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + expiryDays);
-
-      merchantRecord.plan = plan;
-      merchantRecord.planExpiry = expiryDate;
-      merchantRecord.subscriptionStatus = "active";
-      merchantRecord.lastPaymentId = paymentId;
-      merchantRecord.lastOrderId = orderId;
-
-      if (plan === "pro") {
-        merchantRecord.revivalCredits = (merchantRecord.revivalCredits || 0) + 50;
-      } else if (plan === "enterprise") {
-        merchantRecord.revivalCredits = 999999;
-      }
-    } else if (payment.metadata?.addOnId === "revival_pack") {
-      merchantRecord.revivalCredits = (merchantRecord.revivalCredits || 0) + 25;
-    }
-    await merchantRecord.save();
-  }
+  // Idempotent fulfillment via WebhookService
+  await WebhookService.handlePaymentCaptured({
+    payload: {
+      payment: {
+        entity: {
+          order_id: cleanOrderId,
+          id: cleanPaymentId,
+          amount: payment.amount,
+          notes: {
+            merchantId: payment.merchantId?.toString(),
+            plan: payment.metadata?.plan,
+            cycle: payment.metadata?.cycle,
+            type: payment.metadata?.type || payment.type,
+            addOnId: payment.metadata?.addOnId,
+          },
+        },
+      },
+    },
+  });
 
   const updatedPayment = await PaymentService.getPayment(
     payment._id,
-    merchantId,
+    user.role === ROLES.ADMIN ? null : merchantId,
   );
 
   return ok(
