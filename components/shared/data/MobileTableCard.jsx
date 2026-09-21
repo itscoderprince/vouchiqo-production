@@ -1,14 +1,14 @@
 "use client";
 
-import React from "react";
 import {
-  ChevronRight,
-  ArrowRight,
-  Clock,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  XCircle,
 } from "lucide-react";
+import React from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -118,7 +118,7 @@ export default function MobileTableCard({
   title,
   subtitle,
   rightHeader,
-  showChevron = true,
+  showChevron,
   onHeaderClick,
   fields = [],
   children,
@@ -130,6 +130,8 @@ export default function MobileTableCard({
   actions,
   className,
 }) {
+  const shouldShowChevron =
+    showChevron !== undefined ? showChevron : Boolean(onHeaderClick);
   const initials =
     typeof avatarText === "string" && avatarText.trim().length > 0
       ? avatarText
@@ -192,7 +194,7 @@ export default function MobileTableCard({
         {/* Right header element or chevron */}
         {rightHeader ? (
           <div className="shrink-0">{rightHeader}</div>
-        ) : showChevron ? (
+        ) : shouldShowChevron ? (
           <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 shrink-0" />
         ) : null}
       </div>

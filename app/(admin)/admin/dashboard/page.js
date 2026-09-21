@@ -1,12 +1,16 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, IndianRupee, Store, Tag, Users } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  IndianRupee,
+  Store,
+  Tag,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useRealtime } from "@/hooks/use-realtime";
-import { qk } from "@/lib/query-keys";
-import { SOCKET_EVENTS } from "@/lib/socket/events";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import KPICard from "@/components/shared/cards/KPICard";
 import DashboardChart from "@/components/shared/data/DashboardChart";
@@ -19,6 +23,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useRealtime } from "@/hooks/use-realtime";
+import { qk } from "@/lib/query-keys";
+import { SOCKET_EVENTS } from "@/lib/socket/events";
 
 import MonthlyGoalsCard from "./components/MonthlyGoalsCard";
 import RecentActivityTimeline from "./components/RecentActivityTimeline";
@@ -133,7 +140,9 @@ export default function AdminDashboard() {
       sortable: true,
       cell: (row) => (
         <div className="text-right">
-          <span className="font-medium text-slate-800 block text-xs">{row.amount}</span>
+          <span className="font-medium text-slate-800 block text-xs">
+            {row.amount}
+          </span>
           <Link
             href={
               row.type === "Merchant"
@@ -178,7 +187,8 @@ export default function AdminDashboard() {
               <LiveIndicator />
             </div>
             <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-              Welcome back, Admin. Here's what's happening with your business today.
+              Welcome back, Admin. Here's what's happening with your business
+              today.
             </p>
           </div>
           <Link
@@ -215,7 +225,11 @@ export default function AdminDashboard() {
           <KPICard
             variant="amber"
             title="Total Orders"
-            value={(kpis.totalOrders ?? kpis.totalRedemptions ?? 0).toLocaleString()}
+            value={(
+              kpis.totalOrders ??
+              kpis.totalRedemptions ??
+              0
+            ).toLocaleString()}
             subtitle="Redeemed coupon orders"
             icon={Tag}
             iconClassName="bg-amber-50 border-amber-200/90 text-amber-600 shadow-2xs"
@@ -304,6 +318,85 @@ export default function AdminDashboard() {
                 searchable={false}
                 defaultPageSize={5}
                 emptyState="No pending moderation orders in queue."
+                renderMobileCard={(row) => {
+                  const isMerchant = row.type === "Merchant";
+                  const reviewHref = isMerchant
+                    ? "/admin/approvals/merchants"
+                    : "/admin/approvals/coupons";
+                  const initials = (row.customer || "CU")
+                    .trim()
+                    .split(/\s+/)
+                    .map((w) => w[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
+
+                  return (
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-xs transition-all space-y-3.5 text-left font-sans">
+                      {/* Header: Single Avatar + Customer Name & Type + Top-Right Status */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate leading-snug">
+                              {row.customer}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal">
+                              {isMerchant
+                                ? "Merchant Verification"
+                                : "Coupon Moderation"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          <StatusBadge status={row.status} size="sm" />
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-slate-100 dark:border-slate-800/80" />
+
+                      {/* 2-Column Key-Value Grid */}
+                      <div className="grid grid-cols-2 gap-3 items-center">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                            Order ID
+                          </div>
+                          <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded font-mono font-bold text-xs inline-block">
+                            #{row.id}
+                          </code>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                            Audit Fee
+                          </div>
+                          <div className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            {row.amount}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Full-Width Touch Action Button (Fitts's Law) */}
+                      <div className="pt-0.5">
+                        <Link
+                          href={reviewHref}
+                          className="w-full min-h-[44px] rounded-xl px-4 py-2.5 bg-blue-50/90 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-between text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none group"
+                        >
+                          <span>
+                            Review{" "}
+                            {isMerchant
+                              ? "Merchant Application"
+                              : "Coupon Offer"}
+                          </span>
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 shrink-0" />
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                }}
               />
             </CardContent>
           </Card>

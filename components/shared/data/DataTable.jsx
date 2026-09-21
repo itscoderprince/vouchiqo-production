@@ -307,7 +307,8 @@ export default function DataTable({
                   k.includes("name") ||
                   k.includes("title") ||
                   k.includes("brand") ||
-                  k.includes("merchant")
+                  k.includes("merchant") ||
+                  k.includes("customer")
                 );
               }) || columns[0];
 
@@ -315,10 +316,15 @@ export default function DataTable({
               ? titleCol.key || titleCol.accessorKey
               : null;
             const rawTitle = titleKey ? row[titleKey] : null;
-            const cardTitle =
-              titleCol && titleCol.cell
+
+            // Prevent duplicate avatar when titleCol.cell produces JSX with an avatar
+            const isStringTitle =
+              typeof rawTitle === "string" && rawTitle.trim().length > 0;
+            const cardTitle = isStringTitle
+              ? rawTitle
+              : titleCol && titleCol.cell
                 ? titleCol.cell(row)
-                : rawTitle || `Item #${rowIndex + 1}`;
+                : `Item #${rowIndex + 1}`;
 
             const subtitleCol = columns.find((c) => {
               const k = (c.key || c.accessorKey || "").toLowerCase();
@@ -342,15 +348,50 @@ export default function DataTable({
                   ? String(row[subKey] ?? "")
                   : null;
 
+            // Separate Status and Action columns for prominent placement (Law of Proximity & Common Region)
+            const statusCol = columns.find((c) => {
+              const h = String(c.header || "").toLowerCase();
+              const k = String(c.key || c.accessorKey || "").toLowerCase();
+              return h.includes("status") || k.includes("status");
+            });
+
+            const actionCol = columns.find((c) => {
+              const h = String(c.header || "").toLowerCase();
+              const k = String(c.key || c.accessorKey || "").toLowerCase();
+              return (
+                h.includes("action") ||
+                k.includes("action") ||
+                h.includes("review") ||
+                k.includes("review") ||
+                h.includes("manage")
+              );
+            });
+
+            const rightHeader = statusCol ? (
+              statusCol.cell ? (
+                statusCol.cell(row)
+              ) : (
+                <StatusPill
+                  status={row[statusCol.key || statusCol.accessorKey]}
+                />
+              )
+            ) : undefined;
+
+            const actionsFooter =
+              actionCol && actionCol.cell ? actionCol.cell(row) : undefined;
+
             const otherCols = columns.filter(
-              (c) => c !== titleCol && c !== subtitleCol,
+              (c) =>
+                c !== titleCol &&
+                c !== subtitleCol &&
+                c !== statusCol &&
+                c !== actionCol,
             );
 
             const fields = otherCols.map((col) => {
               const h = String(col.header || "").toLowerCase();
               const dataKey = col.key || col.accessorKey;
               const val = col.cell ? col.cell(row) : (row[dataKey] ?? "—");
-              const isStatus = h.includes("status");
               const isAmount =
                 h.includes("amount") ||
                 h.includes("price") ||
@@ -364,7 +405,6 @@ export default function DataTable({
               return {
                 label: col.header,
                 value: val,
-                isStatus,
                 isAmount,
                 isCode,
               };
@@ -373,7 +413,7 @@ export default function DataTable({
             return (
               <MobileTableCard
                 key={row.id ?? row._id ?? `mob-row-${rowIndex}`}
-                avatarText={typeof rawTitle === "string" ? rawTitle : undefined}
+                avatarText={isStringTitle ? rawTitle : undefined}
                 badge={
                   typeof cardSubtitle === "string" && cardSubtitle.length < 25
                     ? cardSubtitle
@@ -385,7 +425,9 @@ export default function DataTable({
                     ? cardSubtitle
                     : undefined
                 }
+                rightHeader={rightHeader}
                 fields={fields}
+                actions={actionsFooter}
               />
             );
           })
