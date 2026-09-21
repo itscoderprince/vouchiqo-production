@@ -243,7 +243,7 @@ export default function MerchantNotifications() {
               className="text-xs h-8 font-medium rounded-xl border-slate-200 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-slate-700 hover:text-[#F72853] hover:bg-rose-50/40 transition-colors shadow-2xs shrink-0 self-end sm:self-auto"
             >
               <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-              <span>Mark All as Read</span>
+              <span>Mark All Read</span>
             </Button>
           </div>
 

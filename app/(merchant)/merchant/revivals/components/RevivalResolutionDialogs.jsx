@@ -58,7 +58,7 @@ export function DeclineModal({
               {isPending && (
                 <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
               )}
-              Submit Decline Notice
+              Decline Request
             </Button>
           </div>
         </div>

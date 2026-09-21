@@ -126,7 +126,7 @@ export default function StatusCard({
             onClick={onViewDetails}
             className="text-xs font-normal rounded-lg cursor-pointer border-slate-200 shadow-none text-slate-800 hover:bg-slate-50"
           >
-            View Submitted Details
+            View Details
           </Button>
           <Button
             variant="ghost"

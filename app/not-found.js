@@ -76,14 +76,14 @@ export default function NotFound() {
               className="bg-[#f1f5f9] hover:bg-[#e2e8f0] text-xs font-extrabold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border-0 cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Go Back</span>
+              <span>Back</span>
             </button>
             <Link
               href="/"
               className="bg-[#3e80dd] hover:bg-[#2563eb] text-white text-xs font-extrabold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Home className="w-4 h-4" />
-              <span>Go Back Home</span>
+              <span>Homepage</span>
             </Link>
           </div>
         </div>

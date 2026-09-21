@@ -434,7 +434,7 @@ export default function AdminCampaignDetailPage({ params }) {
                     {isRequesting
                       ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                       : null}
-                    <span>Send Request Changes Note</span>
+                    <span>Request Changes</span>
                   </Button>
                 </div>
               </div>

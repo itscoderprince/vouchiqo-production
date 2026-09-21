@@ -55,7 +55,7 @@ export default function ProfileStatusGate({ status }) {
             className="btn-primary text-xs font-bold py-2.5 px-6 inline-flex items-center gap-1.5 border-0 rounded-lg shadow-none cursor-pointer"
             style={{ textDecoration: "none" }}
           >
-            <span>Complete Profile Now</span>
+            <span>Complete Profile</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         ) : (

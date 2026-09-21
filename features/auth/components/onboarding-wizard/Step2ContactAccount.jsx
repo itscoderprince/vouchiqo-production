@@ -250,7 +250,7 @@ export default function Step2ContactAccount({
                     onClick={handleAutoSuggestPassword}
                     className="text-[10px] text-blue-700 hover:text-blue-900 font-semibold bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded cursor-pointer transition-all flex items-center gap-1"
                   >
-                    <span>⚡ Auto-Suggest Password</span>
+                    <span>⚡ Suggest Password</span>
                   </button>
                 </div>
                 <div className="relative">

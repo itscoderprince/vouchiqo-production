@@ -160,7 +160,7 @@ export default function SubmitCouponPage() {
                   <FormInput name="mPhone" label="Contact Phone Number" icon={Phone} type="tel" placeholder="10-digit mobile" value={merchantMobile} onChange={(e) => setMerchantMobile(e.target.value)} />
 
                   <button type="submit" className="w-full bg-[#e85d04] hover:bg-orange-600 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
-                    Submit Merchant Lead
+                    Submit Merchant
                   </button>
                 </form>
               </Card>

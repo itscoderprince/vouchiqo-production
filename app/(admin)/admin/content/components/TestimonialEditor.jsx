@@ -25,7 +25,7 @@ export default function TestimonialEditor({
         {/* Create new Testimonial */}
         <div className="bg-brand-surface p-4 rounded-xl border border-brand-border/40 space-y-4 text-left">
           <h4 className="text-xs font-medium text-slate-800 uppercase tracking-wider">
-            Create New Testimonial Story
+            New Testimonial
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

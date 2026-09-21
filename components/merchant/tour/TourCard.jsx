@@ -157,7 +157,7 @@ export default function TourCard({
           onClick={onSkip}
           className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer font-sans"
         >
-          Skip tour
+          Skip
         </button>
         <button
           type="button"

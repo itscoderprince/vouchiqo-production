@@ -268,7 +268,7 @@ export default function Step5HoursCommission({
                   }}
                   className="text-[10.5px] font-bold text-blue-700 border-blue-200 hover:bg-blue-50 h-7 px-2.5 rounded-lg cursor-pointer self-start sm:self-auto"
                 >
-                  Apply Monday Hours to All Days
+                  Apply Monday to All
                 </Button>
               </div>
 

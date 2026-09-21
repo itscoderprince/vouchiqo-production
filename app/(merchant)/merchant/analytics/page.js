@@ -366,7 +366,7 @@ export default function MerchantAnalytics() {
             className="text-xs h-8 py-1.5 px-3.5 font-bold flex items-center gap-1.5 border-slate-200 rounded-xl cursor-pointer shadow-none text-slate-700 hover:bg-slate-50"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export CSV Report</span>
+            <span>Export CSV</span>
           </Button>
         </div>
 

@@ -141,14 +141,14 @@ export default function MerchantBusinessProfile() {
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
               >
-                Track Application Status
+                Track Status
               </Button>
               <Button
                 variant="outline"
                 onClick={() => setIsEditing(true)}
                 className="border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer"
               >
-                Edit Profile Details
+                Edit Profile
               </Button>
               <Button
                 variant="outline"
@@ -156,7 +156,7 @@ export default function MerchantBusinessProfile() {
                 className="border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 text-xs font-bold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5"
               >
                 <MessageSquareHeart className="w-3.5 h-3.5 text-blue-600" />
-                <span>Rate Setup Process</span>
+                <span>Give Feedback</span>
               </Button>
             </div>
           </div>
@@ -357,7 +357,7 @@ export default function MerchantBusinessProfile() {
                     onClick={handleNext}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer shadow-md shadow-blue-500/20 flex items-center gap-1"
                   >
-                    <span>Next Step</span>
+                    <span>Next</span>
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 : <Button
@@ -373,8 +373,8 @@ export default function MerchantBusinessProfile() {
                       : <>
                           <span>
                             {merchant
-                              ? "Save All Details"
-                              : "Submit Profile Details"}
+                              ? "Save Changes"
+                              : "Submit Profile"}
                           </span>
                           <CheckCircle2 className="w-4 h-4" />
                         </>}

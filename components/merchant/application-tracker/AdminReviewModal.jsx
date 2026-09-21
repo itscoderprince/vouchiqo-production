@@ -141,7 +141,7 @@ export default function AdminReviewModal({
               disabled={loading}
               className="bg-brand-navy hover:bg-brand-navy/90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-none"
             >
-              {loading ? "Updating Status..." : "Save Status Transition"}
+              {loading ? "Updating Status..." : "Save Status"}
             </Button>
           </DialogFooter>
         </form>

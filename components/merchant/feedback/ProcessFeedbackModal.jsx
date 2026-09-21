@@ -246,7 +246,7 @@ export default function ProcessFeedbackModal({
             disabled={isSubmitting}
             className="text-xs font-normal text-slate-500 hover:text-slate-800 h-8 px-3 rounded-lg cursor-pointer"
           >
-            Maybe Later
+            Later
           </Button>
 
           <Button
@@ -261,7 +261,7 @@ export default function ProcessFeedbackModal({
                 <span>Submitting...</span>
               </>
             ) : (
-              <span>Submit Feedback</span>
+              <span>Submit</span>
             )}
           </Button>
         </div>

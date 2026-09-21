@@ -534,7 +534,7 @@ export default function MerchantAffiliatesPage() {
             className="text-xs font-medium h-8 px-3 rounded-xl border-rose-200 text-[#F72853] hover:bg-rose-50 shrink-0 cursor-pointer shadow-2xs"
           >
             <Link href="/merchant/affiliate-products">
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add Affiliate Product
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Product
             </Link>
           </Button>
         </div>

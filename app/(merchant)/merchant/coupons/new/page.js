@@ -135,7 +135,7 @@ function CreateListingContent() {
                 className="flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to My Listings</span>
+                <span>Back to Listings</span>
               </Link>
             </Button>
           </div>

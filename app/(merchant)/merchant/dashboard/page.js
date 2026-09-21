@@ -318,7 +318,7 @@ export default function MerchantDashboard() {
                   }}
                   className="w-full bg-[#F72853] hover:bg-[#e01e47] text-white font-medium text-xs rounded-xl h-10 shadow-sm cursor-pointer flex items-center justify-center gap-2 transition-all"
                 >
-                  <span>Complete Profile Now</span>
+                  <span>Complete Profile</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>

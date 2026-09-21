@@ -127,7 +127,7 @@ export default function PushNotificationBuilderPage() {
             onClick={handleSchedulePush}
             className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer shadow-xs"
           >
-            Schedule MSG91 Push →
+            Schedule Push →
           </Button>
         </div>
 

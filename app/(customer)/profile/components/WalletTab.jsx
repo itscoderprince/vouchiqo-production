@@ -79,7 +79,7 @@ export default function WalletTab() {
             disabled={totalCashback <= 0}
             className="w-full py-2 text-xs font-normal border-0 h-auto cursor-pointer bg-[#F72853] hover:bg-[#df1c44] text-white shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed rounded-lg"
           >
-            Request Wallet Payout
+            Request Payout
           </Button>
           <span className="text-[9.5px] text-slate-400 text-center font-normal flex items-center justify-center gap-1 select-none">
             <Info className="w-3 h-3 text-[#F72853]" />

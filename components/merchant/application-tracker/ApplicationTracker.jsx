@@ -85,7 +85,7 @@ export default function ApplicationTracker({ initialData }) {
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-4 rounded-xl cursor-pointer shadow-sm inline-flex items-center gap-1.5"
           >
             <Store className="w-3.5 h-3.5" />
-            <span>Go to Dashboard</span>
+            <span>Dashboard</span>
           </Button>
           <Button
             variant="outline"
@@ -93,7 +93,7 @@ export default function ApplicationTracker({ initialData }) {
             className="border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs h-9 px-4 rounded-xl cursor-pointer shadow-xs inline-flex items-center gap-1.5"
           >
             <Home className="w-3.5 h-3.5 text-slate-500" />
-            <span>Return to Homepage</span>
+            <span>Homepage</span>
           </Button>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function ApplicationTracker({ initialData }) {
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 px-6 rounded-xl cursor-pointer shadow-md inline-flex items-center gap-2"
             >
               <Store className="w-4 h-4" />
-              <span>Start Merchant Onboarding</span>
+              <span>Start Onboarding</span>
             </Button>
             <Button
               variant="outline"
@@ -150,7 +150,7 @@ export default function ApplicationTracker({ initialData }) {
               className="border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs h-10 px-4 rounded-xl cursor-pointer shadow-xs inline-flex items-center gap-1.5"
             >
               <Store className="w-3.5 h-3.5 text-blue-600" />
-              <span>Go to Dashboard</span>
+              <span>Dashboard</span>
             </Button>
             <Button
               variant="outline"
@@ -158,7 +158,7 @@ export default function ApplicationTracker({ initialData }) {
               className="border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs h-10 px-4 rounded-xl cursor-pointer shadow-xs inline-flex items-center gap-1.5"
             >
               <Home className="w-3.5 h-3.5 text-slate-500" />
-              <span>Return to Homepage</span>
+              <span>Homepage</span>
             </Button>
           </div>
         </Card>
@@ -324,7 +324,7 @@ export default function ApplicationTracker({ initialData }) {
               className="bg-white text-slate-900 hover:bg-slate-100 text-xs font-medium h-8 px-3.5 rounded-xl cursor-pointer shadow-sm flex items-center gap-1.5 transition-all border-0"
             >
               <Edit2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>Edit Application</span>
+              <span>Edit Details</span>
             </Button>
             <Button
               variant="outline"

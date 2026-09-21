@@ -165,7 +165,7 @@ function MerchantPageLockOverlay() {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-11 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
           >
             <span>
-              {isPending ? "Track Application Status" : "Complete Profile Now"}
+              {isPending ? "Track Status" : "Complete Profile"}
             </span>
             <ArrowRight className="w-4 h-4 text-white" />
           </Button>

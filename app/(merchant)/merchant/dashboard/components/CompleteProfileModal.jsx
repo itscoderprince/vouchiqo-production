@@ -517,9 +517,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-9.5 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <span>
-                    {isPending
-                      ? "Track Live Application Status"
-                      : "Complete Profile Details"}
+                    {isPending ? "Track Status" : "Complete Profile"}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -530,7 +528,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                   onClick={handleGoToProfile}
                   className="w-full border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl h-9 cursor-pointer"
                 >
-                  <span>Modify Business Profile &amp; Documents</span>
+                  <span>Edit Profile</span>
                 </Button>
               </div>
             </div>
@@ -582,7 +580,7 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <CreditCard className="w-4 h-4" />
-                  <span>Complete Payment Now</span>
+                  <span>Complete Payment</span>
                 </Button>
               </div>
             </div>

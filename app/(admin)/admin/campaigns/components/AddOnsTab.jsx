@@ -144,7 +144,7 @@ export default function AddOnsTab() {
             onClick={handleSchedulePush}
             className="bg-[#e85d04] hover:bg-orange-600 text-white font-medium text-xs h-8 rounded-xl cursor-pointer"
           >
-            Schedule MSG91 Push
+            Schedule Push
           </Button>
         </div>
       </Card>

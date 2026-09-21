@@ -36,7 +36,7 @@ export default function ExitConfirmModal({ isOpen, onClose, router }) {
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9.5 rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-2"
           >
             <Store className="w-4 h-4" />
-            <span>Go to Merchant Dashboard</span>
+            <span>Dashboard</span>
           </Button>
 
           <Button
@@ -46,7 +46,7 @@ export default function ExitConfirmModal({ isOpen, onClose, router }) {
             className="border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs h-9.5 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4 text-slate-500" />
-            <span>Return to Homepage</span>
+            <span>Homepage</span>
           </Button>
 
           <Button
@@ -55,7 +55,7 @@ export default function ExitConfirmModal({ isOpen, onClose, router }) {
             onClick={onClose}
             className="text-slate-500 hover:text-slate-800 text-xs h-8 rounded-lg cursor-pointer"
           >
-            Keep Editing Application
+            Keep Editing
           </Button>
         </div>
       </div>

@@ -131,7 +131,7 @@ export default function MerchantCampaigns() {
                 }}
                 className="mt-1 bg-[#F72853] hover:bg-[#e01e47] text-white px-3 py-1.5 rounded-lg text-xs font-semibold self-start cursor-pointer transition-all"
               >
-                Upgrade to Growth Plan
+                Upgrade Plan
               </button>
             </div>
           ),

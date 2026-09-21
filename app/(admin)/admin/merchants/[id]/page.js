@@ -1006,7 +1006,7 @@ export default function MerchantDetailPage({ params }) {
                 {isChangingPlan
                   ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                   : null}
-                <span>Save &amp; Apply Plan Override</span>
+                <span>Apply Override</span>
               </Button>
             </DialogFooter>
           </DialogContent>

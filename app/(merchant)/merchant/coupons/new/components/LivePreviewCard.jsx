@@ -301,7 +301,7 @@ export default function LivePreviewCard({
 
           <Button className="w-full bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8.5 rounded-xl shadow-xs cursor-default flex items-center justify-center gap-1.5 transition-colors">
             <CheckCircle2 className="w-4 h-4 text-white" />
-            <span>Get In-Store Claim Code</span>
+            <span>Get Claim Code</span>
           </Button>
         </div>
       </div>

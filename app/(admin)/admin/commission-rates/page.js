@@ -255,7 +255,7 @@ export default function CommissionRatesEditorPage() {
                 ) : (
                   <Save className="w-3.5 h-3.5" />
                 )}
-                <span>Save Commission Rates</span>
+                <span>Save Rates</span>
               </Button>
             </div>
           </div>
@@ -466,7 +466,7 @@ export default function CommissionRatesEditorPage() {
             <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-medium text-slate-700 uppercase flex items-center gap-1">
-                  <Plus className="w-3 h-3 text-blue-600" /> Add New Category Commission Rate
+                  <Plus className="w-3 h-3 text-blue-600" /> Add Category Rate
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -673,7 +673,7 @@ export default function CommissionRatesEditorPage() {
                 ) : (
                   <Save className="w-3.5 h-3.5" />
                 )}
-                <span>Save Commission Rates</span>
+                <span>Save Rates</span>
               </Button>
             </div>
           </Card>

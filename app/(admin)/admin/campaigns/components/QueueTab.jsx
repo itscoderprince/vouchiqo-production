@@ -364,7 +364,7 @@ export default function QueueTab({
                     disabled={!isChecklistComplete}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl cursor-pointer disabled:opacity-50"
                   >
-                    Approve &amp; Move to Schedule
+                    Approve &amp; Schedule
                   </Button>
                   <div className="grid grid-cols-2 gap-2">
                     <Button

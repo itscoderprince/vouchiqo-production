@@ -133,7 +133,7 @@ export default function CreateNewCampaignPage() {
 
   return (
     <DashboardLayout
-      title="Create New Campaign"
+      title="Create Campaign"
       user={{
         name: merchant?.businessName || "Merchant Partner",
         role: "merchant",

@@ -223,7 +223,7 @@ export default function DealsClient() {
                   onClick={handleResetFilters}
                   className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 px-6 font-semibold rounded-lg cursor-pointer border-0 shadow-none transition-colors"
                 >
-                  Reset All Filters
+                  Reset Filters
                 </Button>
               </div>
             )}

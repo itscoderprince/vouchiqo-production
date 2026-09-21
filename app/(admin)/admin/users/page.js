@@ -397,7 +397,7 @@ export default function UserManagement() {
                 ) : (
                   <Download className="w-3 h-3" />
                 )}
-                <span>Export Newsletter CSV</span>
+                <span>Export CSV</span>
               </Button>
             </div>
           </div>

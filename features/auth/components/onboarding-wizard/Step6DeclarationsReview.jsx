@@ -91,8 +91,8 @@ export default function Step6DeclarationsReview({
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>
                   {allCommitmentsChecked
-                    ? "✓ All Acknowledgements Accepted"
-                    : "Accept All Acknowledgements"}
+                    ? "✓ Ack. Accepted"
+                    : "Accept All Ack."}
                 </span>
               </Button>
             </div>
@@ -165,7 +165,7 @@ export default function Step6DeclarationsReview({
                     <span>
                       {isDownloadingAll
                         ? `Downloading All ${downloadProgress}...`
-                        : "Download All Documents"}
+                        : "Download All"}
                     </span>
                   </Button>
 
@@ -185,8 +185,8 @@ export default function Step6DeclarationsReview({
                     <CheckCheck className="w-3.5 h-3.5" />
                     <span>
                       {allPoliciesChecked
-                        ? "✓ All Documents Accepted"
-                        : "Accept All Documents"}
+                        ? "✓ Docs Accepted"
+                        : "Accept All Docs"}
                     </span>
                   </Button>
                 </div>

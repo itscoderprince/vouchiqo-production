@@ -60,7 +60,7 @@ export default function CampaignsHeader({
             className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8.5 px-4 rounded-xl flex items-center gap-1.5 shadow-xs shadow-[#F72853]/25 cursor-pointer transition-all border-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Create New Campaign</span>
+            <span>Create Campaign</span>
           </Button>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function CampaignsHeader({
                 onClick={onCreateClick}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-8 px-4 rounded-xl shadow-xs cursor-pointer shrink-0"
               >
-                <span>Configure Flash Sale Now</span>
+                <span>Configure Flash Sale</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             </div>
@@ -178,7 +178,7 @@ export default function CampaignsHeader({
                   className="flex items-center gap-1.5"
                 >
                   <Lock className="w-3 h-3" />
-                  <span>Upgrade to Growth Plan</span>
+                  <span>Upgrade Plan</span>
                 </Link>
               </Button>
             </div>

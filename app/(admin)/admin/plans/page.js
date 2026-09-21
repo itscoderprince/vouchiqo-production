@@ -337,7 +337,7 @@ export default function MerchantPlansEditorPage() {
                 ) : (
                   <Save className="w-3.5 h-3.5" />
                 )}
-                <span>Save Plans &amp; Pricing</span>
+                <span>Save Plans</span>
               </Button>
             </div>
           </div>
@@ -488,7 +488,7 @@ export default function MerchantPlansEditorPage() {
                   className="w-full text-xs font-medium rounded-xl border-dashed border-blue-300 text-blue-700 bg-blue-50/40 hover:bg-blue-50 cursor-pointer h-8 gap-1.5 shadow-2xs"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Create New Plan Tier</span>
+                  <span>New Plan Tier</span>
                 </Button>
               </div>
             </Card>
@@ -839,7 +839,7 @@ export default function MerchantPlansEditorPage() {
                       ) : (
                         <>
                           <Save className="w-3.5 h-3.5" />
-                          <span>Save Plans &amp; Pricing</span>
+                          <span>Save Plans</span>
                         </>
                       )}
                     </Button>

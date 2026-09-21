@@ -859,7 +859,7 @@ export default function AdminPushNotificationsPage() {
                 className="w-full flex items-center justify-center gap-1.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
-                Broadcast push notification
+                Broadcast Push
               </button>
             </div>
           </div>

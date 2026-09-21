@@ -45,7 +45,7 @@ export default function ActionButtons({
           <RefreshCw
             className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
           />
-          Refresh Status
+          Refresh
         </Button>
 
         <Button
@@ -54,7 +54,7 @@ export default function ActionButtons({
           onClick={onViewDetails}
           className="text-xs font-normal rounded-lg border-slate-200 cursor-pointer shadow-none text-slate-800 hover:bg-slate-50"
         >
-          View Application Profile
+          View Profile
         </Button>
 
         <Button
@@ -63,7 +63,7 @@ export default function ActionButtons({
           onClick={handleResendEmail}
           className="text-xs font-normal text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg cursor-pointer"
         >
-          <Mail className="w-3.5 h-3.5 mr-1" /> Resend Confirmation
+          <Mail className="w-3.5 h-3.5 mr-1" /> Resend Email
         </Button>
       </div>
 

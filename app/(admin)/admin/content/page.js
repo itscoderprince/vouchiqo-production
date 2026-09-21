@@ -437,7 +437,7 @@ export default function PlatformContentSettings() {
               {savingKey === "merchant_plans" ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                "Save All Plans Config"
+                "Save Plans"
               )}
             </Button>
           </div>
@@ -486,7 +486,7 @@ export default function PlatformContentSettings() {
                 onClick={handleAddPlan}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl h-9 px-4 cursor-pointer gap-1.5 mt-auto"
               >
-                <Plus className="w-4 h-4" /> Add Plan Card
+                <Plus className="w-4 h-4" /> Add Plan
               </Button>
             </div>
           </div>
@@ -658,7 +658,7 @@ export default function PlatformContentSettings() {
               {savingKey === "merchant_plans" ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                "Save All Plans Config"
+                "Save Plans"
               )}
             </Button>
           </div>
@@ -683,7 +683,7 @@ export default function PlatformContentSettings() {
               {savingKey === "master_cpa_rates" ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                "Save Master CPA Rates"
+                "Save CPA Rates"
               )}
             </Button>
           </div>
@@ -809,7 +809,7 @@ export default function PlatformContentSettings() {
               {savingKey === "master_cpa_rates" ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                "Save Master CPA Rates"
+                "Save CPA Rates"
               )}
             </Button>
           </div>

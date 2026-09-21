@@ -205,7 +205,7 @@ export default function SectionBasic({
           onClick={onNext}
           className="bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium h-8 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
         >
-          <span>Continue to Discount &amp; Code</span>
+          <span>Next: Discount</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       </div>

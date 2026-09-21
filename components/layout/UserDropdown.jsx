@@ -468,7 +468,7 @@ export default function UserDropdown({
             }`}
           >
             <Home className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
-            <span>Go to Homepage</span>
+            <span>Homepage</span>
           </Link>
         </DropdownMenuItem>
 

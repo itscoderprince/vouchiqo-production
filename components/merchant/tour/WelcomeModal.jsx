@@ -51,14 +51,14 @@ export default function WelcomeModal({
             onClick={onSkip}
             className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer font-sans"
           >
-            Skip for now
+            Skip
           </button>
           <Button
             type="button"
             onClick={onStart}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-md shadow-blue-600/20 font-sans"
           >
-            Start Interactive Tour →
+            Start Tour →
           </Button>
         </DialogFooter>
       </DialogContent>

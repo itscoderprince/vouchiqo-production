@@ -123,7 +123,7 @@ export default function LocationModal({
           className="btn-primary w-full py-2.5 text-xs font-bold border-0 h-auto cursor-pointer shadow-none flex justify-center items-center gap-1.5"
         >
           <CheckCircle2 className="w-4 h-4" />
-          <span>Explore Deals Near Me</span>
+          <span>Explore Nearby</span>
         </Button>
       </form>
     </div>

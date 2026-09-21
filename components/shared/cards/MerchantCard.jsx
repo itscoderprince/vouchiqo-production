@@ -92,7 +92,7 @@ export default function MerchantCard({ merchant }) {
             variant="outline"
             className="btn-tertiary w-full text-xs py-2 justify-center text-center font-bold cursor-pointer border-brand-navy text-brand-navy hover:bg-brand-navy/5 shadow-none h-auto"
           >
-            <Link href={`/merchants/${_id}`}>View Brand Profile</Link>
+            <Link href={`/merchants/${_id}`}>View Profile</Link>
           </Button>
         </div>
       </div>

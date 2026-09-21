@@ -24,7 +24,7 @@ export default function CampaignListGrid({
           <Plus className="w-4 h-4" />
         </div>
         <h3 className="text-xs font-semibold text-slate-800 group-hover:text-[#F72853] transition-colors">
-          Create New Campaign
+          Create Campaign
         </h3>
         <p className="text-[11px] text-slate-400 font-normal mt-0.5">
           Plan &amp; launch a coordinated promotion

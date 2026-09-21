@@ -146,14 +146,14 @@ export default function PaymentPendingModal({ merchant }) {
               onClick={handleSkip}
               className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer px-3 py-2 rounded-xl"
             >
-              Skip for now
+              Skip
             </button>
             <Button
               type="button"
               onClick={handleGoToPayment}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-10 px-5 shadow-md shadow-blue-500/25 cursor-pointer flex items-center gap-1.5 transition-all"
             >
-              <span>Complete Payment Now</span>
+              <span>Complete Payment</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </div>

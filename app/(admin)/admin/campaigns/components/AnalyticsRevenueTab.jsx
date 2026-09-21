@@ -66,7 +66,7 @@ export default function AnalyticsRevenueTab() {
             onClick={handleGeneratePdf}
             className="bg-[#e85d04] hover:bg-orange-600 text-white font-bold text-xs h-8 rounded-xl cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 mr-1" /> Generate Post-Campaign PDF
+            <Download className="w-3.5 h-3.5 mr-1" /> Export PDF
           </Button>
         </div>
 

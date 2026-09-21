@@ -155,7 +155,7 @@ export default function StepListings({
           className="inline-flex items-center gap-1.5 text-xs font-medium text-[#F72853] hover:text-[#e01e47] hover:underline"
         >
           <Plus className="w-4 h-4" />
-          <span>Create new coupon for this campaign</span>
+          <span>Create Coupon</span>
         </Link>
       </div>
 

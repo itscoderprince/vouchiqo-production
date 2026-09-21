@@ -525,7 +525,7 @@ export default function PlatformBroadcastWizardPage() {
                         asChild
                         className="text-xs font-medium h-7.5 px-3 rounded-lg border-emerald-300 text-emerald-800 bg-white hover:bg-emerald-50 cursor-pointer shadow-2xs"
                       >
-                        <Link href="/admin/campaigns/live">View in Live Monitoring →</Link>
+                        <Link href="/admin/campaigns/live">Live Monitoring →</Link>
                       </Button>
                       <Button
                         size="sm"
@@ -533,7 +533,7 @@ export default function PlatformBroadcastWizardPage() {
                         asChild
                         className="text-xs font-medium h-7.5 px-3 rounded-lg border-slate-200 text-slate-700 bg-white hover:bg-slate-50 cursor-pointer shadow-2xs"
                       >
-                        <Link href="/admin/campaigns/queue">Go to Campaign Queue</Link>
+                        <Link href="/admin/campaigns/queue">Campaign Queue</Link>
                       </Button>
                     </div>
                   </div>

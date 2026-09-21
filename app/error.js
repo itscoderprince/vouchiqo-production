@@ -42,14 +42,14 @@ export default function GlobalError({ error, reset }) {
             className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm hover:scale-[1.02]"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Reload Page</span>
+            <span>Reload</span>
           </button>
           <Link
             href="/"
             className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all"
           >
             <Home className="w-3.5 h-3.5" />
-            <span>Return Home</span>
+            <span>Homepage</span>
           </Link>
         </div>
       </div>

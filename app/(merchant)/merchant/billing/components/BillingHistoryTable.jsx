@@ -138,7 +138,7 @@ export default function BillingHistoryTable({ invoices = [] }) {
           className="text-xs h-8 py-1 px-3 font-medium rounded-lg border-slate-200 flex items-center gap-1.5 cursor-pointer shrink-0 shadow-none text-slate-700 hover:bg-slate-50"
         >
           <Download className="w-3.5 h-3.5 text-blue-600" />
-          Download All Invoices
+          Download Invoices
         </Button>
       </div>
 

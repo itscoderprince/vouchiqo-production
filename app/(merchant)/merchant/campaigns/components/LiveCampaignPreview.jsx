@@ -96,7 +96,7 @@ export default function LiveCampaignPreview({ campaignData, merchantName }) {
 
             {/* Action button preview */}
             <Button className="w-full bg-[#F72853] hover:bg-[#e01e47] text-white text-xs font-medium py-2 h-9 rounded-xl shadow-xs cursor-default">
-              Get In-Store Claim Code
+              Get Claim Code
             </Button>
           </div>
         </div>

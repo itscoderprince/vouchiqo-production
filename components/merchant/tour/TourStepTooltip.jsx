@@ -110,7 +110,7 @@ export default function TourStepTooltip({
           onClick={onSkip}
           className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer font-sans"
         >
-          Skip tour
+          Skip
         </button>
         <Button
           type="button"

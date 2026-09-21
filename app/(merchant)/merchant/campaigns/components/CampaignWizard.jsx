@@ -103,7 +103,7 @@ export default function CampaignWizard({
               onClick={handleNext}
               className="btn-primary text-xs py-2 px-6 flex items-center gap-1.5 border-0 h-auto shadow-none font-bold"
             >
-              <span>Next Step</span>
+              <span>Next</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           ) : (
@@ -114,7 +114,7 @@ export default function CampaignWizard({
                 disabled={isPending}
                 className="btn-tertiary text-xs py-2 px-5 border border-brand-border rounded-lg h-auto font-bold"
               >
-                Save as Draft
+                Save Draft
               </Button>
               <Button
                 type="button"

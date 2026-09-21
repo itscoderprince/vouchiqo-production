@@ -59,8 +59,8 @@ export default function WizardFooter({
               <CheckCheck className="w-3.5 h-3.5" />
               <span className="hidden md:inline">
                 {allCommitmentsChecked
-                  ? "✓ Acknowledgements Accepted"
-                  : "Accept All Acknowledgements"}
+                  ? "✓ Ack. Accepted"
+                  : "Accept All Ack."}
               </span>
               <span className="md:hidden">
                 {allCommitmentsChecked ? "✓ Ack. Accepted" : "Accept Ack."}
@@ -82,8 +82,8 @@ export default function WizardFooter({
               <CheckCheck className="w-3.5 h-3.5" />
               <span className="hidden md:inline">
                 {allPoliciesChecked
-                  ? "✓ Documents Accepted"
-                  : "Accept All Documents"}
+                  ? "✓ Docs Accepted"
+                  : "Accept All Docs"}
               </span>
               <span className="md:hidden">
                 {allPoliciesChecked ? "✓ Docs Accepted" : "Accept Docs"}
@@ -107,7 +107,7 @@ export default function WizardFooter({
               <span className="hidden md:inline">
                 {isDownloadingAll
                   ? `Downloading ${downloadProgress}`
-                  : "Download All Docs"}
+                  : "Download All"}
               </span>
               <span className="md:hidden">
                 {isDownloadingAll ? downloadProgress : "Download All"}
@@ -121,7 +121,7 @@ export default function WizardFooter({
             onClick={onNext}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs h-9.5 px-6 rounded-lg border-0 cursor-pointer shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 transition-all duration-200 flex items-center gap-1.5"
           >
-            <span>Next Section</span>
+            <span>Next</span>
             <ChevronRight className="w-4 h-4" />
           </Button>
         ) : (
