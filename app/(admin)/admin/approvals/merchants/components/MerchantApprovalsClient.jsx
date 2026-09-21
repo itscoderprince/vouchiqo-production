@@ -82,7 +82,11 @@ const ROW_COLOR_THEMES = [
 
 export default function MerchantApprovalsClient() {
   const queryClient = useQueryClient();
-  const { data: allMerchants = [], isLoading, refetch } = useAdminMerchants({ limit: 100 });
+  const {
+    data: allMerchants = [],
+    isLoading,
+    refetch,
+  } = useAdminMerchants({ limit: 100 });
   const reviewMutation = useReviewMerchant();
 
   const [selectedMerchant, setSelectedMerchant] = useState(null);
@@ -95,7 +99,9 @@ export default function MerchantApprovalsClient() {
       return allMerchants.filter((m) => m.status === "pending" || !m.status);
     }
     if (activeTab === "approved") {
-      return allMerchants.filter((m) => m.status === "approved" || m.status === "active");
+      return allMerchants.filter(
+        (m) => m.status === "approved" || m.status === "active",
+      );
     }
     if (activeTab === "rejected") {
       return allMerchants.filter((m) => m.status === "rejected");
@@ -105,8 +111,12 @@ export default function MerchantApprovalsClient() {
 
   const stats = useMemo(() => {
     const total = allMerchants.length;
-    const pending = allMerchants.filter((m) => m.status === "pending" || !m.status).length;
-    const approved = allMerchants.filter((m) => m.status === "approved" || m.status === "active").length;
+    const pending = allMerchants.filter(
+      (m) => m.status === "pending" || !m.status,
+    ).length;
+    const approved = allMerchants.filter(
+      (m) => m.status === "approved" || m.status === "active",
+    ).length;
     const rejected = allMerchants.filter((m) => m.status === "rejected").length;
     return { total, pending, approved, rejected };
   }, [allMerchants]);
@@ -149,7 +159,11 @@ export default function MerchantApprovalsClient() {
         const locationStr =
           row.location?.city && row.location?.state
             ? `${row.location.city}, ${row.location.state}`
-            : row.location?.city || row.location?.address || row.city || row.slug || "Main Outlet";
+            : row.location?.city ||
+              row.location?.address ||
+              row.city ||
+              row.slug ||
+              "Main Outlet";
 
         const initials = (row.businessName || "MB")
           .split(" ")
@@ -190,14 +204,31 @@ export default function MerchantApprovalsClient() {
       cell: (row) => {
         const rawPlan = (row.plan || "starter").toLowerCase();
         const planMap = {
-          starter: { label: "STARTER", bg: "bg-white/90 text-slate-700 border-slate-200" },
-          growth: { label: "GROWTH", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-          pro: { label: "PRO", bg: "bg-blue-100 text-blue-800 border-blue-200" },
-          enterprise: { label: "ENTERPRISE", bg: "bg-purple-100 text-purple-800 border-purple-200" },
+          starter: {
+            label: "STARTER",
+            bg: "bg-white/90 text-slate-700 border-slate-200",
+          },
+          growth: {
+            label: "GROWTH",
+            bg: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          },
+          pro: {
+            label: "PRO",
+            bg: "bg-blue-100 text-blue-800 border-blue-200",
+          },
+          enterprise: {
+            label: "ENTERPRISE",
+            bg: "bg-purple-100 text-purple-800 border-purple-200",
+          },
         };
         const pInfo = planMap[rawPlan] || planMap.starter;
         return (
-          <span className={cn("px-1.5 py-0.5 text-[9px] font-medium tracking-wide rounded border inline-block whitespace-nowrap shadow-2xs", pInfo.bg)}>
+          <span
+            className={cn(
+              "px-1.5 py-0.5 text-[9px] font-medium tracking-wide rounded border inline-block whitespace-nowrap shadow-2xs",
+              pInfo.bg,
+            )}
+          >
             {pInfo.label}
           </span>
         );
@@ -247,7 +278,13 @@ export default function MerchantApprovalsClient() {
       accessorKey: "createdAt",
       cell: (row) => (
         <span className="text-[10.5px] text-slate-500 font-normal whitespace-nowrap">
-          {row.createdAt ? new Date(row.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Recently"}
+          {row.createdAt
+            ? new Date(row.createdAt).toLocaleDateString("en-IN", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Recently"}
         </span>
       ),
     },
@@ -270,7 +307,10 @@ export default function MerchantApprovalsClient() {
                 <span className="sr-only">Review KYC</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+            <TooltipContent
+              side="top"
+              className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+            >
               Review KYC &amp; Verification Details
             </TooltipContent>
           </Tooltip>
@@ -289,14 +329,18 @@ export default function MerchantApprovalsClient() {
                   <span className="sr-only">Accept Form</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+              <TooltipContent
+                side="top"
+                className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+              >
                 Accept Application Form
               </TooltipContent>
             </Tooltip>
           )}
 
           {/* Step 2: If form_accepted or under_review, show Approve button */}
-          {(row.status === "form_accepted" || row.status === "under_review") && (
+          {(row.status === "form_accepted" ||
+            row.status === "under_review") && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -309,7 +353,10 @@ export default function MerchantApprovalsClient() {
                   <span className="sr-only">Approve Partner</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+              <TooltipContent
+                side="top"
+                className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+              >
                 Approve Partner Account
               </TooltipContent>
             </Tooltip>
@@ -329,7 +376,10 @@ export default function MerchantApprovalsClient() {
                   <span className="sr-only">Reject Application</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+              <TooltipContent
+                side="top"
+                className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+              >
                 Reject Application
               </TooltipContent>
             </Tooltip>
@@ -349,7 +399,8 @@ export default function MerchantApprovalsClient() {
               Merchant Applications Queue
             </h1>
             <p className="text-slate-500 text-[11px] mt-0.5 font-normal">
-              Review submitted merchant account applications, verify business credentials, and approve or decline partner access.
+              Review submitted merchant account applications, verify business
+              credentials, and approve or decline partner access.
             </p>
           </div>
           <Button
@@ -359,7 +410,9 @@ export default function MerchantApprovalsClient() {
             disabled={isLoading}
             className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
           >
-            <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`}
+            />
             <span>Refresh Queue</span>
           </Button>
         </div>
@@ -471,6 +524,160 @@ export default function MerchantApprovalsClient() {
             loading={isLoading}
             searchKey="businessName"
             getRowClassName={getRowClassName}
+            renderMobileCard={(row) => {
+              const initials = (row.businessName || "ST")
+                .trim()
+                .split(/\s+/)
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+
+              const rawPlan = (row.plan || "starter").toLowerCase();
+              const planMap = {
+                starter: {
+                  label: "STARTER",
+                  bg: "bg-slate-100 text-slate-700 border-slate-200",
+                },
+                growth: {
+                  label: "GROWTH",
+                  bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                },
+                pro: {
+                  label: "PRO",
+                  bg: "bg-blue-50 text-blue-700 border-blue-200",
+                },
+                enterprise: {
+                  label: "ENTERPRISE",
+                  bg: "bg-purple-50 text-purple-700 border-purple-200",
+                },
+              };
+              const pInfo = planMap[rawPlan] || planMap.starter;
+
+              const ownerName =
+                row.liaisonName ||
+                row.ownerName ||
+                row.contactPerson ||
+                (row.userId?.name && !row.userId.name.includes("@")
+                  ? row.userId.name
+                  : null) ||
+                row.businessName ||
+                "Merchant Owner";
+
+              const ownerEmail = row.userId?.email || row.contactEmail;
+              const phone =
+                row.phone || row.contactPhone || row.location?.phone || "—";
+              const appliedDate = row.createdAt
+                ? new Date(row.createdAt).toLocaleDateString("en-IN", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "Recently";
+
+              return (
+                <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-2xs space-y-2 text-left font-sans">
+                  {/* Compact Header: Avatar + Business Name & Subtitle + Top-Right Status */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 truncate leading-tight">
+                          {row.businessName}
+                        </h4>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal leading-none">
+                          {row.category
+                            ? `${row.category.charAt(0).toUpperCase() + row.category.slice(1)} • `
+                            : ""}
+                          {row.location?.city || row.city || "Verified"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <StatusBadge status={row.status || "pending"} size="sm" />
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-slate-100 dark:border-slate-800/60" />
+
+                  {/* Dense Key-Value Grid (Uses just required space) */}
+                  <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 text-left">
+                    <div>
+                      <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
+                        CHOSEN PLAN
+                      </div>
+                      <span
+                        className={cn(
+                          "px-1.5 py-0.5 text-[9px] font-bold tracking-wide rounded border inline-block",
+                          pInfo.bg,
+                        )}
+                      >
+                        {pInfo.label}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
+                        APPLIED ON
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        {appliedDate}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
+                        OWNER / EMAIL
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {ownerName}
+                      </div>
+                      {ownerEmail && (
+                        <div className="text-[9.5px] text-slate-500 dark:text-slate-400 truncate">
+                          {ownerEmail}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
+                        PHONE
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        {phone}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Compact Full-Width Action Strip (No dead space) */}
+                  <div className="pt-1 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleOpenKyc(row)}
+                      className="flex-1 h-7.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 text-slate-700 rounded-lg cursor-pointer transition-colors"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Review KYC & Details</span>
+                    </Button>
+
+                    {row.status === "pending" && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleAction(row._id, "form_accepted")}
+                        className="h-7.5 px-3 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer flex items-center gap-1 shadow-2xs transition-colors"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Accept</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            }}
             rightActions={
               <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
                 {[
@@ -484,7 +691,8 @@ export default function MerchantApprovalsClient() {
                     id: "pending",
                     label: "Pending",
                     count: stats.pending,
-                    description: "Filter to pending partner applications awaiting KYC verification",
+                    description:
+                      "Filter to pending partner applications awaiting KYC verification",
                   },
                   {
                     id: "approved",
@@ -496,7 +704,8 @@ export default function MerchantApprovalsClient() {
                     id: "rejected",
                     label: "Rejected",
                     count: stats.rejected,
-                    description: "Filter to rejected or declined merchant applications",
+                    description:
+                      "Filter to rejected or declined merchant applications",
                   },
                 ].map((tab) => (
                   <Tooltip key={tab.id}>
@@ -524,7 +733,10 @@ export default function MerchantApprovalsClient() {
                         </span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                    <TooltipContent
+                      side="top"
+                      className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
+                    >
                       {tab.description}
                     </TooltipContent>
                   </Tooltip>

@@ -146,14 +146,14 @@ export default function MobileTableCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-sm transition-all space-y-3.5 text-left font-sans",
+        "bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:shadow-xs transition-all space-y-2 text-left font-sans",
         className,
       )}
     >
       {/* Top Header Section */}
       <div
         className={cn(
-          "flex items-center gap-3",
+          "flex items-center gap-2.5",
           onHeaderClick && "cursor-pointer select-none",
         )}
         onClick={onHeaderClick}
@@ -164,7 +164,7 @@ export default function MobileTableCard({
         ) : initials ? (
           <div
             className={cn(
-              "w-11 h-11 rounded-full text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs",
+              "w-8 h-8 rounded-full text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs",
               avatarBg,
             )}
           >
@@ -180,12 +180,12 @@ export default function MobileTableCard({
             </p>
           )}
           {title && (
-            <h4 className="text-[14px] sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 truncate leading-snug">
+            <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 truncate leading-tight">
               {title}
             </h4>
           )}
           {subtitle && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal leading-tight">
               {subtitle}
             </p>
           )}
@@ -204,7 +204,7 @@ export default function MobileTableCard({
 
       {/* 2-column Grid of Data Fields */}
       {fields && fields.length > 0 && (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3.5">
+        <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
           {fields.map((field, idx) => {
             if (!field) return null;
             const isFullWidth = field.fullWidth || false;
@@ -217,7 +217,7 @@ export default function MobileTableCard({
                   field.className,
                 )}
               >
-                <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 leading-none">
                   {field.label}
                 </div>
                 <div className="min-w-0">
@@ -228,7 +228,7 @@ export default function MobileTableCard({
                       className={field.pillClassName}
                     />
                   ) : field.isAmount ? (
-                    <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    <div className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
                       {field.value}
                     </div>
                   ) : field.isCode ? (
@@ -237,7 +237,7 @@ export default function MobileTableCard({
                     </code>
                   ) : typeof field.value === "string" ||
                     typeof field.value === "number" ? (
-                    <div className="text-[13px] sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                    <div className="text-[11.5px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 truncate leading-snug">
                       {field.value}
                     </div>
                   ) : (
@@ -264,7 +264,7 @@ export default function MobileTableCard({
               disabled={actionDisabled}
               onClick={onAction}
               className={cn(
-                "w-full rounded-xl px-4 py-2.5 sm:py-3 flex items-center justify-between text-sm font-bold transition-all cursor-pointer select-none",
+                "w-full h-8 rounded-lg px-3 py-1 flex items-center justify-between text-xs font-bold transition-all cursor-pointer select-none",
                 actionVariant === "primary" &&
                   "bg-blue-50/90 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-400",
                 actionVariant === "success" &&

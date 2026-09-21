@@ -332,11 +332,11 @@ export default function AdminDashboard() {
                     .toUpperCase();
 
                   return (
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-xs transition-all space-y-3.5 text-left font-sans">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:shadow-xs transition-all space-y-2 text-left font-sans">
                       {/* Header: Single Avatar + Customer Name & Type + Top-Right Status */}
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {initials}
                           </div>
                           <div className="min-w-0">
@@ -359,7 +359,7 @@ export default function AdminDashboard() {
                       <div className="border-t border-slate-100 dark:border-slate-800/80" />
 
                       {/* 2-Column Key-Value Grid */}
-                      <div className="grid grid-cols-2 gap-3 items-center">
+                      <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 items-center">
                         <div>
                           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Order ID
@@ -383,7 +383,7 @@ export default function AdminDashboard() {
                       <div className="pt-0.5">
                         <Link
                           href={reviewHref}
-                          className="w-full min-h-[44px] rounded-xl px-4 py-2.5 bg-blue-50/90 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-between text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none group"
+                          className="w-full min-h-[34px] rounded-lg px-3 py-1.5 bg-blue-50/90 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-between text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none group"
                         >
                           <span>
                             Review{" "}
