@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
+import { authClient } from "@/lib/auth-client";
 
 function MerchantLockModalRenderer() {
   const { isModalOpen, closeModal, merchant } = useMerchantLock();
@@ -164,9 +165,7 @@ function MerchantPageLockOverlay() {
             }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl h-11 shadow-md shadow-blue-500/25 cursor-pointer flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
           >
-            <span>
-              {isPending ? "Track Status" : "Complete Profile"}
-            </span>
+            <span>{isPending ? "Track Status" : "Complete Profile"}</span>
             <ArrowRight className="w-4 h-4 text-white" />
           </Button>
         </div>
@@ -347,6 +346,10 @@ export default function DashboardLayout({ title, user, children }) {
               if (typeof window !== "undefined") {
                 sessionStorage.setItem("vouchiqo_is_merchant", "true");
               }
+              // Force-refresh client session cache so useUser() reflects role: "merchant"
+              authClient
+                .getSession({ query: { disableCookieCache: true } })
+                .catch(() => {});
             } else if (!isRegisteredMerchant) {
               router.push("/customer/dashboard");
             }

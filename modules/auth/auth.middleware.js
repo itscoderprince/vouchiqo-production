@@ -1,12 +1,19 @@
-﻿import crypto from "crypto";
+import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/mongodb";
 import { redis } from "@/lib/redis";
+import Merchant from "@/modules/merchant/merchant.model";
 import {
   ForbiddenError,
   TooManyRequestsError,
   UnauthorizedError,
 } from "@/utils/app-error";
-import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
+import {
+  MERCHANT_STATUS,
+  REDIS_KEYS,
+  REDIS_TTL,
+  ROLES,
+} from "@/utils/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -20,9 +27,11 @@ import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
  * @param {Request|string} request
  * @returns {string|null}
  */
-function extractSessionToken(request) {
+export function extractSessionToken(request) {
   const cookieHeader =
-    (typeof request === "string" ? request : request?.headers?.get?.("cookie")) || "";
+    (typeof request === "string"
+      ? request
+      : request?.headers?.get?.("cookie")) || "";
   if (!cookieHeader) return null;
 
   const match =
@@ -84,7 +93,10 @@ export async function requireAuth(request) {
       }
     } catch (redisErr) {
       // Redis miss or error — fall through to DB lookup silently
-      console.warn("[Auth Cache] Redis lookup failed, falling back to DB:", redisErr?.message);
+      console.warn(
+        "[Auth Cache] Redis lookup failed, falling back to DB:",
+        redisErr?.message,
+      );
     }
   }
 
@@ -99,11 +111,19 @@ export async function requireAuth(request) {
       const ttl = session.session?.expiresAt
         ? Math.max(
             60,
-            Math.floor((new Date(session.session.expiresAt).getTime() - Date.now()) / 1000),
+            Math.floor(
+              (new Date(session.session.expiresAt).getTime() - Date.now()) /
+                1000,
+            ),
           )
         : REDIS_TTL.AUTH_SESSION;
 
-      await redis.set(cacheKey, JSON.stringify(session), "EX", Math.min(ttl, 604800));
+      await redis.set(
+        cacheKey,
+        JSON.stringify(session),
+        "EX",
+        Math.min(ttl, 604800),
+      );
     } catch (cacheErr) {
       // Non-critical: caching failure should not break auth
       console.warn("[Auth Cache] Failed to cache session:", cacheErr?.message);
@@ -125,6 +145,113 @@ export async function requireRole(request, ...roles) {
   const session = await requireAuth(request);
 
   if (!roles.includes(session.user.role)) {
+    // If route permits merchants, self-heal if this user is a registered or approved merchant in DB
+    if (roles.includes(ROLES.MERCHANT) && session.user?.id) {
+      try {
+        await connectDB();
+        const userIdStr = String(session.user.id);
+        const userEmail = session.user.email
+          ? session.user.email.toLowerCase().trim()
+          : null;
+
+        const merchant = await Merchant.findOne({
+          $or: [
+            { authId: userIdStr },
+            ...(userEmail ? [{ contactEmail: userEmail }] : []),
+          ],
+        }).lean();
+
+        if (
+          merchant &&
+          (merchant.status === MERCHANT_STATUS.APPROVED ||
+            merchant.status === "active" ||
+            merchant.status === MERCHANT_STATUS.PENDING)
+        ) {
+          session.user.role = ROLES.MERCHANT;
+
+          // Sync database collections
+          if (mongoose.connection?.db) {
+            const db = mongoose.connection.db;
+            await db
+              .collection("user")
+              .updateMany(
+                {
+                  $or: [
+                    { id: userIdStr },
+                    { _id: userIdStr },
+                    ...(mongoose.Types.ObjectId.isValid(userIdStr)
+                      ? [{ _id: new mongoose.Types.ObjectId(userIdStr) }]
+                      : []),
+                    ...(userEmail ? [{ email: userEmail }] : []),
+                  ],
+                },
+                { $set: { role: ROLES.MERCHANT } },
+              )
+              .catch(() => {});
+
+            await db
+              .collection("user_profiles")
+              .updateOne(
+                { authId: userIdStr },
+                { $set: { role: ROLES.MERCHANT } },
+                { upsert: true },
+              )
+              .catch(() => {});
+
+            await db
+              .collection("session")
+              .updateMany(
+                {
+                  $or: [
+                    { userId: userIdStr },
+                    ...(mongoose.Types.ObjectId.isValid(userIdStr)
+                      ? [{ userId: new mongoose.Types.ObjectId(userIdStr) }]
+                      : []),
+                  ],
+                },
+                { $set: { role: ROLES.MERCHANT } },
+              )
+              .catch(() => {});
+          }
+
+          // Update Redis session cache so subsequent calls are < 1ms
+          const token = extractSessionToken(request);
+          if (token) {
+            try {
+              const cacheKey = REDIS_KEYS.session(token);
+              const ttl = session.session?.expiresAt
+                ? Math.max(
+                    60,
+                    Math.floor(
+                      (new Date(session.session.expiresAt).getTime() -
+                        Date.now()) /
+                        1000,
+                    ),
+                  )
+                : REDIS_TTL.AUTH_SESSION;
+              const sessionPayload = JSON.stringify(session);
+              await redis.set(
+                cacheKey,
+                sessionPayload,
+                "EX",
+                Math.min(ttl, 604800),
+              );
+              await redis.set(
+                `auth:session:${token}`,
+                sessionPayload,
+                "EX",
+                Math.min(ttl, 604800),
+              );
+            } catch (_) {}
+          }
+
+          return session;
+        }
+      } catch (selfHealErr) {
+        console.warn("[requireRole Self-Heal Warning]:", selfHealErr?.message);
+      }
+    }
+
     throw new ForbiddenError(
       "You do not have permission to perform this action",
     );
@@ -145,7 +272,10 @@ export async function invalidateSessionCache(request) {
     if (!token) return;
     await redis.del(REDIS_KEYS.session(token));
   } catch (err) {
-    console.warn("[Auth Cache] Failed to invalidate session cache:", err?.message);
+    console.warn(
+      "[Auth Cache] Failed to invalidate session cache:",
+      err?.message,
+    );
   }
 }
 
@@ -160,7 +290,10 @@ export async function invalidateMerchantCache(authId) {
     if (!authId) return;
     await redis.del(REDIS_KEYS.merchantProfile(String(authId)));
   } catch (err) {
-    console.warn("[Auth Cache] Failed to invalidate merchant cache:", err?.message);
+    console.warn(
+      "[Auth Cache] Failed to invalidate merchant cache:",
+      err?.message,
+    );
   }
 }
 

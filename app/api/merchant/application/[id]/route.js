@@ -1,11 +1,14 @@
-﻿import {
+import mongoose from "mongoose";
+import { NextResponse } from "next/server";
+import {
   sendMerchantApprovedEmail,
   sendMerchantRejectedEmail,
 } from "@/lib/email/merchant-email";
+import { redis } from "@/lib/redis";
 import { requireRole } from "@/modules/auth/auth.middleware";
-import MerchantApplication from "@/modules/merchant/merchant-application.model";
 import Merchant from "@/modules/merchant/merchant.model";
-import { ROLES } from "@/utils/constants";
+import MerchantApplication from "@/modules/merchant/merchant-application.model";
+import { REDIS_KEYS, ROLES } from "@/utils/constants";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -143,12 +146,15 @@ export async function PUT(req, { params }) {
 
     // Sync status update to Merchant model in DB
     if (status) {
-      const merchantStatus = status === "document_verified" ? "pending" : status;
+      const merchantStatus =
+        status === "document_verified" ? "pending" : status;
       await Merchant.updateMany(
         {
           $or: [
             { _id: mongoose.Types.ObjectId.isValid(id) ? id : null },
-            ...(application?.email ? [{ contactEmail: application.email.toLowerCase().trim() }] : []),
+            ...(application?.email
+              ? [{ contactEmail: application.email.toLowerCase().trim() }]
+              : []),
           ],
         },
         {
@@ -157,10 +163,79 @@ export async function PUT(req, { params }) {
             isVerified: merchantStatus === "approved",
             ...(rejectionReason ? { rejectionReason } : {}),
           },
-        }
+        },
       ).catch(() => {});
 
       const targetEmail = application?.email || application?.contactEmail;
+      if (status === "approved" && mongoose.connection?.db) {
+        const db = mongoose.connection.db;
+        const appUserId = application?.userId || application?.authId;
+        const normalizedTargetEmail = targetEmail
+          ? targetEmail.toLowerCase().trim()
+          : null;
+
+        // Upgrade user & session roles to merchant
+        await db
+          .collection("user")
+          .updateMany(
+            {
+              $or: [
+                ...(appUserId
+                  ? [{ id: String(appUserId) }, { _id: String(appUserId) }]
+                  : []),
+                ...(normalizedTargetEmail
+                  ? [{ email: normalizedTargetEmail }]
+                  : []),
+              ],
+            },
+            { $set: { role: "merchant" } },
+          )
+          .catch(() => {});
+
+        await db
+          .collection("user_profiles")
+          .updateMany(
+            {
+              $or: [
+                ...(appUserId ? [{ authId: String(appUserId) }] : []),
+                ...(normalizedTargetEmail
+                  ? [{ email: normalizedTargetEmail }]
+                  : []),
+              ],
+            },
+            { $set: { role: "merchant" } },
+          )
+          .catch(() => {});
+
+        // Invalidate Redis sessions
+        if (appUserId) {
+          await redis
+            .del(REDIS_KEYS.merchantProfile(String(appUserId)))
+            .catch(() => {});
+          await redis
+            .del(REDIS_KEYS.userRole(String(appUserId)))
+            .catch(() => {});
+          const sessions = await db
+            .collection("session")
+            .find({ userId: String(appUserId) })
+            .toArray()
+            .catch(() => []);
+          for (const s of sessions) {
+            if (s.token) {
+              await redis.del(REDIS_KEYS.session(s.token)).catch(() => {});
+              await redis.del(`auth:session:${s.token}`).catch(() => {});
+            }
+          }
+          await db
+            .collection("session")
+            .updateMany(
+              { userId: String(appUserId) },
+              { $set: { role: "merchant" } },
+            )
+            .catch(() => {});
+        }
+      }
+
       if (targetEmail) {
         if (status === "approved") {
           sendMerchantApprovedEmail({

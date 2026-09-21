@@ -2,10 +2,7 @@ import { connectDB } from "@/lib/mongodb";
 import { dispatchEvent } from "@/lib/socket/dispatcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireAuth, requireRole } from "@/modules/auth/auth.middleware";
-import {
-  createCoupon,
-  listCoupons,
-} from "@/modules/coupon/coupon.service";
+import { createCoupon, listCoupons } from "@/modules/coupon/coupon.service";
 import { createCouponSchema } from "@/modules/coupon/coupon.validation";
 import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
@@ -53,7 +50,7 @@ export const POST = asyncHandler(async (request) => {
   const body = await request.json();
   const data = createCouponSchema.parse(body);
 
-  const coupon = await createCoupon(user.id, data);
+  const coupon = await createCoupon(user.id, data, user.email);
 
   const payload = {
     couponId: coupon._id || coupon.id,

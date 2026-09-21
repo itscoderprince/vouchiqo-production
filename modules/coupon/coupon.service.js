@@ -42,17 +42,45 @@ async function invalidateCouponCaches() {
  * @param {string} authId
  * @param {object} data - Validated coupon data
  */
-export async function createCoupon(authId, data) {
-  const merchant = await Merchant.findOne({
-    authId,
+export async function createCoupon(authId, data, userEmail = null) {
+  const authIdStr = String(authId);
+  let merchant = await Merchant.findOne({
+    authId: authIdStr,
     status: MERCHANT_STATUS.APPROVED,
   });
 
+  if (!merchant && userEmail) {
+    merchant = await Merchant.findOne({
+      contactEmail: userEmail.toLowerCase().trim(),
+      status: MERCHANT_STATUS.APPROVED,
+    });
+    if (merchant && (!merchant.authId || merchant.authId !== authIdStr)) {
+      merchant.authId = authIdStr;
+      await merchant.save().catch(() => {});
+    }
+  }
+
   if (!merchant) {
+    const anyMerchant = await Merchant.findOne({
+      $or: [
+        { authId: authIdStr },
+        ...(userEmail
+          ? [{ contactEmail: userEmail.toLowerCase().trim() }]
+          : []),
+      ],
+    });
+    if (anyMerchant) {
+      throw new ForbiddenError(
+        `Your merchant profile is currently ${anyMerchant.status}. Only approved merchants can publish coupons.`,
+      );
+    }
     throw new ForbiddenError("Only approved merchants can create coupons");
   }
 
-  if (merchant.subscriptionStatus === "paused" || merchant.subscriptionStatus === "cancelled") {
+  if (
+    merchant.subscriptionStatus === "paused" ||
+    merchant.subscriptionStatus === "cancelled"
+  ) {
     throw new ForbiddenError(
       `Your subscription plan is currently ${merchant.subscriptionStatus}. Please contact support or reactivate your plan to post new listings.`,
     );
@@ -341,9 +369,10 @@ export async function listCoupons(searchParams) {
   const search = searchParams.get("search");
 
   // Fast Redis Cache for repeated public queries (e.g. navbar search, notifications, deals)
-  const cacheKey = !isMerchantSelfQuery && !search
-    ? `vouchiqo:coupons:list:${searchParams.toString() || "default"}`
-    : null;
+  const cacheKey =
+    !isMerchantSelfQuery && !search
+      ? `vouchiqo:coupons:list:${searchParams.toString() || "default"}`
+      : null;
 
   if (cacheKey) {
     try {
@@ -367,10 +396,7 @@ export async function listCoupons(searchParams) {
   if (filter.status === COUPON_STATUS.ACTIVE && !isMerchantSelfQuery) {
     filter.isVerified = { $ne: false };
     if (!searchParams.get("allDates")) {
-      filter.$or = [
-        { expiresAt: { $gt: new Date() } },
-        { expiresAt: null },
-      ];
+      filter.$or = [{ expiresAt: { $gt: new Date() } }, { expiresAt: null }];
     }
   }
 
@@ -403,7 +429,10 @@ export async function listCoupons(searchParams) {
 
   const [coupons, total] = await Promise.all([
     Coupon.find(filter)
-      .populate("merchantId", "businessName slug logo location category address")
+      .populate(
+        "merchantId",
+        "businessName slug logo location category address",
+      )
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -562,7 +591,7 @@ export async function updateCoupon(couponId, authId, data) {
   if (!coupon) throw new NotFoundError("Coupon");
 
   Object.assign(coupon, data);
-  
+
   // Reset moderation state on edit/update by merchant to prompt re-moderation
   coupon.status = "pending";
   coupon.isVerified = false;

@@ -13,38 +13,36 @@ import { authClient, signUp } from "@/lib/auth-client";
 import {
   COMMISSION_TABLE,
   DEFAULT_COMMITMENTS,
-  DEFAULT_POLICIES,
   DEFAULT_PLANS,
+  DEFAULT_POLICIES,
   INITIAL_FORM_DATA,
   MASTER_STEPS,
   SHADOW_INPUT_CLASS,
   SHADOW_SELECT_CLASS,
   SHADOW_TEXTAREA_CLASS,
 } from "./onboarding-wizard/constants";
-
-// Import validation helpers
-import {
-  validateStep,
-  validateAgreementsSubmission,
-} from "./onboarding-wizard/validation";
+import ExitConfirmModal from "./onboarding-wizard/ExitConfirmModal";
 
 // Import legal document utilities
 import {
   handleDirectDownload as execDirectDownload,
   handleDownloadAllDocuments as execDownloadAll,
 } from "./onboarding-wizard/legal-documents";
-
-// Import modular step components and modals
-import WizardHeader from "./onboarding-wizard/WizardHeader";
-import WizardFooter from "./onboarding-wizard/WizardFooter";
 import Step1IdentityLocation from "./onboarding-wizard/Step1IdentityLocation";
 import Step2ContactAccount from "./onboarding-wizard/Step2ContactAccount";
 import Step3DocumentsUploads from "./onboarding-wizard/Step3DocumentsUploads";
 import Step4PlanSelection from "./onboarding-wizard/Step4PlanSelection";
 import Step5HoursCommission from "./onboarding-wizard/Step5HoursCommission";
 import Step6DeclarationsReview from "./onboarding-wizard/Step6DeclarationsReview";
-import ExitConfirmModal from "./onboarding-wizard/ExitConfirmModal";
 import SubmissionSuccessModal from "./onboarding-wizard/SubmissionSuccessModal";
+// Import validation helpers
+import {
+  validateAgreementsSubmission,
+  validateStep,
+} from "./onboarding-wizard/validation";
+import WizardFooter from "./onboarding-wizard/WizardFooter";
+// Import modular step components and modals
+import WizardHeader from "./onboarding-wizard/WizardHeader";
 
 export function MerchantOnboardingWizard() {
   const router = useRouter();
@@ -65,10 +63,8 @@ export function MerchantOnboardingWizard() {
 
   const commitmentItems =
     publicSettings?.merchant_commitments || DEFAULT_COMMITMENTS;
-  const policyItems =
-    publicSettings?.policy_agreements || DEFAULT_POLICIES;
-  const masterCpaRates =
-    publicSettings?.master_cpa_rates || COMMISSION_TABLE;
+  const policyItems = publicSettings?.policy_agreements || DEFAULT_POLICIES;
+  const masterCpaRates = publicSettings?.master_cpa_rates || COMMISSION_TABLE;
 
   // Dynamic Plans from DB
   const [plansFromDb, setPlansFromDb] = useState(null);
@@ -242,16 +238,16 @@ export function MerchantOnboardingWizard() {
         }));
         setIsFetchingLocation(false);
         toast.success(
-          `Location captured: ${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° E`
+          `Location captured: ${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° E`,
         );
       },
       () => {
         setIsFetchingLocation(false);
         toast.error(
-          "Could not fetch location. Please allow browser permissions."
+          "Could not fetch location. Please allow browser permissions.",
         );
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
@@ -329,7 +325,7 @@ export function MerchantOnboardingWizard() {
     const { isValid, errors } = validateStep(
       currentStep,
       formData,
-      customCategoryCharCount
+      customCategoryCharCount,
     );
 
     if (!isValid) {
@@ -339,7 +335,7 @@ export function MerchantOnboardingWizard() {
           ? "Please select a Merchant Plan"
           : currentStep === 5
             ? "Please acknowledge and accept the performance commission structure."
-            : "Please complete the required fields highlighted in red."
+            : "Please complete the required fields highlighted in red.",
       );
       return;
     }
@@ -504,7 +500,7 @@ export function MerchantOnboardingWizard() {
       formData,
       setDownloadProgress,
       setIsDownloadingAll,
-      setDownloadingPdfId
+      setDownloadingPdfId,
     );
   };
 
@@ -518,7 +514,7 @@ export function MerchantOnboardingWizard() {
     if (!isValid) {
       setFieldErrors(errors);
       toast.error(
-        "Please accept all mandatory agreements highlighted with red outlines."
+        "Please accept all mandatory agreements highlighted with red outlines.",
       );
       return;
     }
@@ -531,6 +527,7 @@ export function MerchantOnboardingWizard() {
           email: formData.email,
           password: formData.password,
           name: formData.tradingName || formData.registeredName,
+          role: "merchant",
           data: {
             role: "merchant",
             phoneNumber: formData.mobile,
@@ -605,7 +602,7 @@ export function MerchantOnboardingWizard() {
                 .includes(formData.category.toLowerCase()) ||
               c.category
                 .toLowerCase()
-                .startsWith(formData.category.slice(0, 4).toLowerCase())
+                .startsWith(formData.category.slice(0, 4).toLowerCase()),
           );
           return matchedComm ? matchedComm.rate : "3% – 5%";
         })(),
@@ -618,7 +615,7 @@ export function MerchantOnboardingWizard() {
                 .includes(formData.category.toLowerCase()) ||
               c.category
                 .toLowerCase()
-                .startsWith(formData.category.slice(0, 4).toLowerCase())
+                .startsWith(formData.category.slice(0, 4).toLowerCase()),
           );
           return matchedComm ? matchedComm.model : "CPA";
         })(),
@@ -638,7 +635,7 @@ export function MerchantOnboardingWizard() {
         throw new Error(
           errJson.message ||
             errJson.error ||
-            "Failed to submit merchant application."
+            "Failed to submit merchant application.",
         );
       }
 
@@ -657,7 +654,7 @@ export function MerchantOnboardingWizard() {
       }
 
       toast.success(
-        "Application submitted! Welcome to Vouchiqo for Merchants."
+        "Application submitted! Welcome to Vouchiqo for Merchants.",
       );
 
       setSubmissionSuccessData({
@@ -681,7 +678,7 @@ export function MerchantOnboardingWizard() {
 
   const getLabelClass = (
     fieldName,
-    defaultClass = "text-xs font-medium text-slate-700"
+    defaultClass = "text-xs font-medium text-slate-700",
   ) => {
     if (fieldErrors[fieldName]) {
       return "text-xs font-bold text-slate-900 transition-all";
@@ -703,10 +700,7 @@ export function MerchantOnboardingWizard() {
     return defaultClass;
   };
 
-  const getTextareaClass = (
-    fieldName,
-    defaultClass = shadowTextareaClass
-  ) => {
+  const getTextareaClass = (fieldName, defaultClass = shadowTextareaClass) => {
     if (fieldErrors[fieldName]) {
       return "bg-rose-50/30 border-2 border-rose-500 text-slate-900 shadow-[0_2px_8px_rgba(244,63,94,0.12)] text-xs rounded-lg font-normal placeholder:text-slate-400 focus:border-rose-600 focus:ring-2 focus:ring-rose-500/25 transition-all";
     }
@@ -894,10 +888,7 @@ export function MerchantOnboardingWizard() {
       />
 
       {/* Post-Registration Success Dialog */}
-      <SubmissionSuccessModal
-        data={submissionSuccessData}
-        router={router}
-      />
+      <SubmissionSuccessModal data={submissionSuccessData} router={router} />
     </div>
   );
 }

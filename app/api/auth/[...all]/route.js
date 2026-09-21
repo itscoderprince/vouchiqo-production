@@ -1,4 +1,4 @@
-﻿import { toNextJsHandler } from "better-auth/next-js";
+import { toNextJsHandler } from "better-auth/next-js";
 import mongoose from "mongoose";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
@@ -8,8 +8,9 @@ import {
   sendUserWelcomeEmail,
 } from "@/lib/email/user-email";
 import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
 import { invalidateSessionCache } from "@/modules/auth/auth.middleware";
-import { ROLES } from "@/utils/constants";
+import { REDIS_KEYS, ROLES } from "@/utils/constants";
 import { isDisposableEmail } from "@/utils/disposable-emails";
 
 const handler = toNextJsHandler(auth);
@@ -37,9 +38,13 @@ const backendSignUpSchema = z.object({
     .string({ required_error: "Name is required" })
     .min(1, "Name must be at least 1 character")
     .max(100, "Name must be under 100 characters"),
-  role: z.enum(["customer", "merchant"], {
-    errorMap: () => ({ message: "Invalid role specified. Only customer or merchant permitted." }),
-  }).optional(),
+  role: z
+    .enum(["customer", "merchant"], {
+      errorMap: () => ({
+        message: "Invalid role specified. Only customer or merchant permitted.",
+      }),
+    })
+    .optional(),
   data: z
     .object({
       role: z.enum(["customer", "merchant"]).optional(),
@@ -120,12 +125,15 @@ export async function POST(request) {
 
         await connectDB();
         const db = mongoose.connection.db;
-        const existingEmailUser = await db.collection("user").findOne({ email: normalizedEmail });
+        const existingEmailUser = await db
+          .collection("user")
+          .findOne({ email: normalizedEmail });
         if (existingEmailUser) {
           return Response.json(
             {
               error: "Conflict",
-              message: "An account with this email address already exists. Please log in instead.",
+              message:
+                "An account with this email address already exists. Please log in instead.",
             },
             { status: 409 },
           );
@@ -134,14 +142,17 @@ export async function POST(request) {
         const phone = body.data?.phoneNumber;
         if (phone) {
           const cleanPhone = phone.trim();
-          const existingPhoneMerchant = await db.collection("merchants").findOne({
-            $or: [{ contactPhone: cleanPhone }, { liaisonPhone: cleanPhone }],
-          });
+          const existingPhoneMerchant = await db
+            .collection("merchants")
+            .findOne({
+              $or: [{ contactPhone: cleanPhone }, { liaisonPhone: cleanPhone }],
+            });
           if (existingPhoneMerchant) {
             return Response.json(
               {
                 error: "Conflict",
-                message: "Mobile / Phone number is already registered to another merchant account.",
+                message:
+                  "Mobile / Phone number is already registered to another merchant account.",
               },
               { status: 409 },
             );
@@ -189,7 +200,11 @@ export async function POST(request) {
         const adminEmail = `${adminUsername}@vouchiqo.com`;
         const adminPassword = process.env.ADMIN_PASSWORD;
 
-        if (adminPassword && email === adminEmail && password === adminPassword) {
+        if (
+          adminPassword &&
+          email === adminEmail &&
+          password === adminPassword
+        ) {
           await connectDB();
           const db = mongoose.connection.db;
 
@@ -198,7 +213,9 @@ export async function POST(request) {
             .findOne({ email: adminEmail });
 
           if (!existingAdmin) {
-            console.log(`[Admin Sync] Initializing Super Admin user: ${adminEmail}`);
+            console.log(
+              `[Admin Sync] Initializing Super Admin user: ${adminEmail}`,
+            );
             await auth.api.signUpEmail({
               body: {
                 email: adminEmail,
@@ -217,9 +234,14 @@ export async function POST(request) {
                   { _id: adminUser._id },
                   { $set: { role: ROLES.ADMIN, emailVerified: true } },
                 );
-              console.log(`[Admin Sync] Admin role elevated to ${ROLES.ADMIN} and emailVerified`);
+              console.log(
+                `[Admin Sync] Admin role elevated to ${ROLES.ADMIN} and emailVerified`,
+              );
             }
-          } else if (!existingAdmin.emailVerified || existingAdmin.role !== ROLES.ADMIN) {
+          } else if (
+            !existingAdmin.emailVerified ||
+            existingAdmin.role !== ROLES.ADMIN
+          ) {
             // Ensure existing admin is always verified and has admin role
             await db
               .collection("user")
@@ -242,10 +264,18 @@ export async function POST(request) {
     }
     // Hard defense-in-depth: never allow admin role injection via sign-up
     if (pathname.endsWith("/sign-up/email")) {
-      if (parsedBody.role && parsedBody.role !== "merchant" && parsedBody.role !== "customer") {
+      if (
+        parsedBody.role &&
+        parsedBody.role !== "merchant" &&
+        parsedBody.role !== "customer"
+      ) {
         parsedBody.role = "customer";
       }
-      if (parsedBody.data?.role && parsedBody.data.role !== "merchant" && parsedBody.data.role !== "customer") {
+      if (
+        parsedBody.data?.role &&
+        parsedBody.data.role !== "merchant" &&
+        parsedBody.data.role !== "customer"
+      ) {
         parsedBody.data.role = "customer";
       }
     }
@@ -274,6 +304,10 @@ export async function POST(request) {
         referer.includes("/merchant") ||
         referer.includes("/onboarding");
 
+      if (isMerchantSignup && parsedBody) {
+        parsedBody.role = "merchant";
+      }
+
       if (body.email) {
         const normalizedEmail = body.email.toLowerCase().trim();
 
@@ -297,12 +331,15 @@ export async function POST(request) {
 
           if (userDoc) {
             const userIdStr = userDoc.id || userDoc._id.toString();
-            await db
-              .collection("user")
-              .updateOne(
-                { _id: userDoc._id },
-                { $set: { role: ROLES.MERCHANT, lastWelcomeEmailSentAt: new Date() } },
-              );
+            await db.collection("user").updateOne(
+              { _id: userDoc._id },
+              {
+                $set: {
+                  role: ROLES.MERCHANT,
+                  lastWelcomeEmailSentAt: new Date(),
+                },
+              },
+            );
             await db
               .collection("user_profiles")
               .updateOne(
@@ -310,6 +347,38 @@ export async function POST(request) {
                 { $set: { role: ROLES.MERCHANT } },
                 { upsert: true },
               );
+            await db
+              .collection("session")
+              .updateMany(
+                {
+                  $or: [
+                    { userId: userIdStr },
+                    ...(mongoose.Types.ObjectId.isValid(userIdStr)
+                      ? [{ userId: new mongoose.Types.ObjectId(userIdStr) }]
+                      : []),
+                  ],
+                },
+                { $set: { role: ROLES.MERCHANT } },
+              )
+              .catch(() => {});
+            const userSessions = await db
+              .collection("session")
+              .find({
+                $or: [
+                  { userId: userIdStr },
+                  ...(mongoose.Types.ObjectId.isValid(userIdStr)
+                    ? [{ userId: new mongoose.Types.ObjectId(userIdStr) }]
+                    : []),
+                ],
+              })
+              .toArray()
+              .catch(() => []);
+            for (const s of userSessions) {
+              if (s.token) {
+                await redis.del(REDIS_KEYS.session(s.token)).catch(() => {});
+                await redis.del(`auth:session:${s.token}`).catch(() => {});
+              }
+            }
             console.log(
               `[Sign-Up Sync] Promoted newly registered user ${normalizedEmail} to role: merchant`,
             );
@@ -361,18 +430,24 @@ export async function POST(request) {
 
           if (!lastLogin) {
             // VERY FIRST LOGIN! Send Official Welcome Email to User / Merchant
-            console.log(`[First-Time Login Email]: Sending Welcome email to ${normalizedEmail}`);
+            console.log(
+              `[First-Time Login Email]: Sending Welcome email to ${normalizedEmail}`,
+            );
             if (userDoc.role === "merchant") {
               sendMerchantWelcomeEmail({
                 to: normalizedEmail,
                 email: normalizedEmail,
                 businessName: userDoc.name || "Merchant Store",
-              }).catch((err) => console.error("[Merchant Welcome Email Error]:", err));
+              }).catch((err) =>
+                console.error("[Merchant Welcome Email Error]:", err),
+              );
             } else {
               sendUserWelcomeEmail({
                 to: normalizedEmail,
                 name: userDoc.name || normalizedEmail.split("@")[0],
-              }).catch((err) => console.error("[User Welcome Email Error]:", err));
+              }).catch((err) =>
+                console.error("[User Welcome Email Error]:", err),
+              );
             }
           } else {
             const daysSinceLastLogin =

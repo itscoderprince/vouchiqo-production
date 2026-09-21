@@ -6,9 +6,9 @@ import {
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
-import { NotFoundError } from "@/utils/app-error";
+import { ForbiddenError, NotFoundError } from "@/utils/app-error";
 import { asyncHandler } from "@/utils/async-handler";
-import { normalizeCategory, ROLES } from "@/utils/constants";
+import { MERCHANT_STATUS, normalizeCategory, ROLES } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +30,15 @@ export const GET = asyncHandler(async (request) => {
     }).lean();
   }
   if (!merchant) throw new NotFoundError("Merchant profile");
+
+  if (
+    merchant.status !== MERCHANT_STATUS.APPROVED &&
+    user.role !== ROLES.ADMIN
+  ) {
+    throw new ForbiddenError(
+      `Your merchant profile is currently ${merchant.status}. Only approved merchants can publish affiliate products.`,
+    );
+  }
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
@@ -61,6 +70,15 @@ export const POST = asyncHandler(async (request) => {
     }).lean();
   }
   if (!merchant) throw new NotFoundError("Merchant profile");
+
+  if (
+    merchant.status !== MERCHANT_STATUS.APPROVED &&
+    user.role !== ROLES.ADMIN
+  ) {
+    throw new ForbiddenError(
+      `Your merchant profile is currently ${merchant.status}. Only approved merchants can publish affiliate products.`,
+    );
+  }
 
   const body = await request.json();
   body.category = normalizeCategory(

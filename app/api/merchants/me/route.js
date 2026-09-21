@@ -1,6 +1,12 @@
-﻿import { connectDB } from "@/lib/mongodb";
+import mongoose from "mongoose";
+import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
-import { invalidateMerchantCache, requireAuth } from "@/modules/auth/auth.middleware";
+import {
+  extractSessionToken,
+  invalidateMerchantCache,
+  requireAuth,
+} from "@/modules/auth/auth.middleware";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import {
@@ -9,8 +15,7 @@ import {
 } from "@/modules/merchant/merchant.service";
 import { error, ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
-import { redis } from "@/lib/redis";
-import { REDIS_KEYS, REDIS_TTL, normalizeCategory } from "@/utils/constants";
+import { normalizeCategory, REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -54,7 +59,12 @@ export const GET = asyncHandler(async (request) => {
   if (!merchant) {
     if (authIdStr) {
       try {
-        await redis.set(REDIS_KEYS.merchantProfile(authIdStr), "__NOT_FOUND__", "EX", 60);
+        await redis.set(
+          REDIS_KEYS.merchantProfile(authIdStr),
+          "__NOT_FOUND__",
+          "EX",
+          60,
+        );
       } catch {}
     }
     return error("Merchant profile not found", 404, "NOT_FOUND");
@@ -84,6 +94,81 @@ export const GET = asyncHandler(async (request) => {
       }
     } catch (err) {
       console.error("[Slug Auto-Clean Error]:", err);
+    }
+  }
+
+  // Self-heal: If merchant profile is approved/active but user session role is not merchant, elevate immediately
+  if (merchant && user.role !== "merchant") {
+    user.role = "merchant";
+    if (mongoose.connection?.db) {
+      const db = mongoose.connection.db;
+      await db
+        .collection("user")
+        .updateMany(
+          {
+            $or: [
+              ...(authIdStr ? [{ id: authIdStr }, { _id: authIdStr }] : []),
+              ...(mongoose.Types.ObjectId.isValid(authIdStr)
+                ? [{ _id: new mongoose.Types.ObjectId(authIdStr) }]
+                : []),
+              ...(user.email
+                ? [{ email: user.email.toLowerCase().trim() }]
+                : []),
+            ],
+          },
+          { $set: { role: "merchant" } },
+        )
+        .catch(() => {});
+
+      await db
+        .collection("user_profiles")
+        .updateOne(
+          { authId: authIdStr },
+          { $set: { role: "merchant" } },
+          { upsert: true },
+        )
+        .catch(() => {});
+
+      await db
+        .collection("session")
+        .updateMany(
+          {
+            $or: [
+              ...(authIdStr ? [{ userId: authIdStr }] : []),
+              ...(mongoose.Types.ObjectId.isValid(authIdStr)
+                ? [{ userId: new mongoose.Types.ObjectId(authIdStr) }]
+                : []),
+            ],
+          },
+          { $set: { role: "merchant" } },
+        )
+        .catch(() => {});
+    }
+
+    // Refresh active Redis session token cache (both internal and Better Auth keys)
+    const sessionToken = extractSessionToken(request);
+    if (sessionToken) {
+      try {
+        const sessionKey = REDIS_KEYS.session(sessionToken);
+        const authSessionKey = `auth:session:${sessionToken}`;
+        let cachedSession = await redis.get(sessionKey);
+        if (!cachedSession) {
+          cachedSession = await redis.get(authSessionKey);
+        }
+        if (cachedSession) {
+          const parsed = JSON.parse(cachedSession);
+          if (parsed.user) parsed.user.role = "merchant";
+          else parsed.role = "merchant";
+          const serialized = JSON.stringify(parsed);
+          await redis.set(sessionKey, serialized, "EX", REDIS_TTL.AUTH_SESSION);
+          await redis.set(
+            authSessionKey,
+            serialized,
+            "EX",
+            REDIS_TTL.AUTH_SESSION,
+          );
+        }
+      } catch (_) {}
     }
   }
 

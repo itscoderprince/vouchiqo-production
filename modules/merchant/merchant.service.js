@@ -1,18 +1,19 @@
 import mongoose from "mongoose";
-import Merchant from "./merchant.model.js";
-import UserProfile from "../user/user.model.js";
 import {
   sendMerchantApprovedEmail,
   sendMerchantRejectedEmail,
 } from "../../lib/email/merchant-email.js";
 import { logger } from "../../lib/logger.js";
+import { redis } from "../../lib/redis.js";
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
 } from "../../utils/app-error.js";
-import { MERCHANT_STATUS } from "../../utils/constants.js";
+import { MERCHANT_STATUS, REDIS_KEYS } from "../../utils/constants.js";
 import { buildMeta, parsePagination } from "../../utils/pagination.js";
+import UserProfile from "../user/user.model.js";
+import Merchant from "./merchant.model.js";
 
 /**
  * Create a merchant profile.
@@ -27,12 +28,23 @@ import { buildMeta, parsePagination } from "../../utils/pagination.js";
 export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
   const { contactEmail, contactPhone, liaisonPhone, gstin } = data || {};
 
-  const baseFilter = excludeMerchantId ? { _id: { $ne: excludeMerchantId } } : {};
+  const baseFilter = excludeMerchantId
+    ? { _id: { $ne: excludeMerchantId } }
+    : {};
 
-  const emailStr = typeof contactEmail === "string" ? contactEmail.trim().toLowerCase() : "";
+  const emailStr =
+    typeof contactEmail === "string" ? contactEmail.trim().toLowerCase() : "";
   if (emailStr) {
-    const dupEmail = await Merchant.findOne({ ...baseFilter, contactEmail: emailStr }).select("_id").lean();
-    if (dupEmail) throw new ConflictError("Email address is already registered to another merchant.");
+    const dupEmail = await Merchant.findOne({
+      ...baseFilter,
+      contactEmail: emailStr,
+    })
+      .select("_id")
+      .lean();
+    if (dupEmail)
+      throw new ConflictError(
+        "Email address is already registered to another merchant.",
+      );
   }
 
   const phoneStr = String(contactPhone || liaisonPhone || "").trim();
@@ -40,14 +52,29 @@ export async function checkMerchantDuplicates(data, excludeMerchantId = null) {
     const dupPhone = await Merchant.findOne({
       ...baseFilter,
       $or: [{ contactPhone: phoneStr }, { liaisonPhone: phoneStr }],
-    }).select("_id").lean();
-    if (dupPhone) throw new ConflictError("Mobile / Contact phone number is already registered to another merchant.");
+    })
+      .select("_id")
+      .lean();
+    if (dupPhone)
+      throw new ConflictError(
+        "Mobile / Contact phone number is already registered to another merchant.",
+      );
   }
 
-  const cleanGstin = String(gstin || "").trim().toUpperCase();
+  const cleanGstin = String(gstin || "")
+    .trim()
+    .toUpperCase();
   if (cleanGstin) {
-    const dupGstin = await Merchant.findOne({ ...baseFilter, gstin: cleanGstin }).select("_id").lean();
-    if (dupGstin) throw new ConflictError("GSTIN is already registered to another merchant.");
+    const dupGstin = await Merchant.findOne({
+      ...baseFilter,
+      gstin: cleanGstin,
+    })
+      .select("_id")
+      .lean();
+    if (dupGstin)
+      throw new ConflictError(
+        "GSTIN is already registered to another merchant.",
+      );
   }
 }
 
@@ -72,7 +99,10 @@ export async function generateUniqueSlug(
   let cleanCategory = "";
   let excludeId = excludeMerchantId;
 
-  if (typeof category === "object" || (typeof category === "string" && category.match(/^[0-9a-fA-F]{24}$/))) {
+  if (
+    typeof category === "object" ||
+    (typeof category === "string" && category.match(/^[0-9a-fA-F]{24}$/))
+  ) {
     excludeId = category;
     cleanCategory = "";
   } else {
@@ -99,7 +129,12 @@ export async function generateUniqueSlug(
   const filterBase = excludeId ? { _id: { $ne: excludeId } } : {};
 
   // 1. Try cleanBase directly (e.g., "aditya-cars")
-  const existingExact = await Merchant.findOne({ ...filterBase, slug: cleanBase }).select("_id").lean();
+  const existingExact = await Merchant.findOne({
+    ...filterBase,
+    slug: cleanBase,
+  })
+    .select("_id")
+    .lean();
   if (!existingExact) return cleanBase;
 
   // 2. Try cleanBase + city suffix (e.g., "aditya-cars-ranchi")
@@ -111,7 +146,12 @@ export async function generateUniqueSlug(
 
   if (cleanCity) {
     const citySlug = `${cleanBase}-${cleanCity}`.slice(0, 80);
-    const existingCity = await Merchant.findOne({ ...filterBase, slug: citySlug }).select("_id").lean();
+    const existingCity = await Merchant.findOne({
+      ...filterBase,
+      slug: citySlug,
+    })
+      .select("_id")
+      .lean();
     if (!existingCity) return citySlug;
   }
 
@@ -124,28 +164,54 @@ export async function generateUniqueSlug(
 
   if (cleanState && cleanState !== cleanCity) {
     const stateSlug = `${cleanBase}-${cleanState}`.slice(0, 80);
-    const existingState = await Merchant.findOne({ ...filterBase, slug: stateSlug }).select("_id").lean();
+    const existingState = await Merchant.findOne({
+      ...filterBase,
+      slug: stateSlug,
+    })
+      .select("_id")
+      .lean();
     if (!existingState) return stateSlug;
   }
 
   // 4. Try cleanBase + city + state (e.g., "aditya-cars-ranchi-jharkhand")
   if (cleanCity && cleanState && cleanState !== cleanCity) {
-    const cityStateSlug = `${cleanBase}-${cleanCity}-${cleanState}`.slice(0, 80);
-    const existingCityState = await Merchant.findOne({ ...filterBase, slug: cityStateSlug }).select("_id").lean();
+    const cityStateSlug = `${cleanBase}-${cleanCity}-${cleanState}`.slice(
+      0,
+      80,
+    );
+    const existingCityState = await Merchant.findOne({
+      ...filterBase,
+      slug: cityStateSlug,
+    })
+      .select("_id")
+      .lean();
     if (!existingCityState) return cityStateSlug;
   }
 
   // 5. Try cleanBase + category (e.g., "aditya-cars-automotive")
   if (cleanCategory) {
     const categorySlug = `${cleanBase}-${cleanCategory}`.slice(0, 80);
-    const existingCategory = await Merchant.findOne({ ...filterBase, slug: categorySlug }).select("_id").lean();
+    const existingCategory = await Merchant.findOne({
+      ...filterBase,
+      slug: categorySlug,
+    })
+      .select("_id")
+      .lean();
     if (!existingCategory) return categorySlug;
   }
 
   // 6. Try cleanBase + city + category (e.g., "aditya-cars-ranchi-automotive")
   if (cleanCity && cleanCategory) {
-    const cityCatSlug = `${cleanBase}-${cleanCity}-${cleanCategory}`.slice(0, 80);
-    const existingCityCat = await Merchant.findOne({ ...filterBase, slug: cityCatSlug }).select("_id").lean();
+    const cityCatSlug = `${cleanBase}-${cleanCity}-${cleanCategory}`.slice(
+      0,
+      80,
+    );
+    const existingCityCat = await Merchant.findOne({
+      ...filterBase,
+      slug: cityCatSlug,
+    })
+      .select("_id")
+      .lean();
     if (!existingCityCat) return cityCatSlug;
   }
 
@@ -193,7 +259,9 @@ export async function createMerchant(authId, data) {
   const existing = await Merchant.findOne({
     $or: [
       { authId: authIdStr },
-      ...(data.contactEmail ? [{ contactEmail: data.contactEmail.toLowerCase().trim() }] : []),
+      ...(data.contactEmail
+        ? [{ contactEmail: data.contactEmail.toLowerCase().trim() }]
+        : []),
     ],
   });
   if (existing) throw new ConflictError("You already have a merchant profile");
@@ -213,11 +281,18 @@ export async function createMerchant(authId, data) {
   );
 
   // Normalize document & image aliases from wizard / onboarding forms
-  if (!data.docImage && (data.docFileUrl || data.docUrl || data.identityDocumentUrl)) {
+  if (
+    !data.docImage &&
+    (data.docFileUrl || data.docUrl || data.identityDocumentUrl)
+  ) {
     data.docImage = data.docFileUrl || data.docUrl || data.identityDocumentUrl;
   }
-  if (!data.shopImage && (data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl)) {
-    data.shopImage = data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl;
+  if (
+    !data.shopImage &&
+    (data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl)
+  ) {
+    data.shopImage =
+      data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl;
   }
   if (!data.logo && (data.logoUrl || data.shopLogo)) {
     data.logo = data.logoUrl || data.shopLogo;
@@ -229,19 +304,38 @@ export async function createMerchant(authId, data) {
   const merchant = await Merchant.create({ authId: authIdStr, ...data });
 
   // Update user's role to "merchant" in UserProfile and Better Auth user & session collections
-  await UserProfile.updateOne({ authId: authIdStr }, { role: "merchant" }).catch(() => {});
+  await UserProfile.updateOne(
+    { authId: authIdStr },
+    { role: "merchant" },
+  ).catch(() => {});
   if (mongoose.connection && mongoose.connection.db) {
     const userCol = mongoose.connection.db.collection("user");
-    await userCol.updateOne({ _id: authIdStr }, { $set: { role: "merchant" } }).catch(() => {});
-    await userCol.updateOne({ id: authIdStr }, { $set: { role: "merchant" } }).catch(() => {});
+    await userCol
+      .updateOne({ _id: authIdStr }, { $set: { role: "merchant" } })
+      .catch(() => {});
+    await userCol
+      .updateOne({ id: authIdStr }, { $set: { role: "merchant" } })
+      .catch(() => {});
     if (data.contactEmail) {
-      await userCol.updateOne({ email: data.contactEmail.toLowerCase().trim() }, { $set: { role: "merchant" } }).catch(() => {});
+      await userCol
+        .updateOne(
+          { email: data.contactEmail.toLowerCase().trim() },
+          { $set: { role: "merchant" } },
+        )
+        .catch(() => {});
     }
     if (mongoose.Types.ObjectId.isValid(authId)) {
-      await userCol.updateOne({ _id: new mongoose.Types.ObjectId(authId) }, { $set: { role: "merchant" } }).catch(() => {});
+      await userCol
+        .updateOne(
+          { _id: new mongoose.Types.ObjectId(authId) },
+          { $set: { role: "merchant" } },
+        )
+        .catch(() => {});
     }
     const sessionCol = mongoose.connection.db.collection("session");
-    await sessionCol.updateMany({ userId: authIdStr }, { $set: { role: "merchant" } }).catch(() => {});
+    await sessionCol
+      .updateMany({ userId: authIdStr }, { $set: { role: "merchant" } })
+      .catch(() => {});
   }
 
   return merchant;
@@ -276,7 +370,9 @@ export async function getMerchantByAuthId(authId, email = null) {
     merchant = await Merchant.findOne({ authId: authIdStr }).lean();
   }
   if (!merchant && email) {
-    merchant = await Merchant.findOne({ contactEmail: email.toLowerCase().trim() }).lean();
+    merchant = await Merchant.findOne({
+      contactEmail: email.toLowerCase().trim(),
+    }).lean();
   }
   if (!merchant) throw new NotFoundError("Merchant profile");
   return merchant;
@@ -290,15 +386,22 @@ export async function getMerchantByAuthId(authId, email = null) {
  * @param {object} data - Validated update data
  * @param {string} [userRole="merchant"] - Role of requesting user
  */
-export async function updateMerchant(merchantId, authId, data, userRole = "merchant") {
-  let merchant = await Merchant.findOne({ _id: merchantId });
+export async function updateMerchant(
+  merchantId,
+  authId,
+  data,
+  userRole = "merchant",
+) {
+  const merchant = await Merchant.findOne({ _id: merchantId });
   if (!merchant) throw new ForbiddenError("You cannot edit this merchant");
 
   // IDOR protection: non-admin users can only edit their own merchant profile.
   // Without this check, any authenticated merchant could edit another merchant
   // by guessing or enumerating merchantId values.
   if (userRole !== "admin" && String(merchant.authId) !== String(authId)) {
-    throw new ForbiddenError("You are not authorized to edit this merchant profile");
+    throw new ForbiddenError(
+      "You are not authorized to edit this merchant profile",
+    );
   }
 
   // Lock slug for regular merchants: once created, regular merchants CANNOT modify slug.
@@ -306,19 +409,28 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
   if (merchant.slug && userRole !== "admin") {
     delete data.slug;
   } else if (data.slug && data.slug !== merchant.slug) {
-    const city = data.location?.city || data.city || merchant.location?.city || "";
-    const state = data.location?.state || data.state || merchant.location?.state || "";
+    const city =
+      data.location?.city || data.city || merchant.location?.city || "";
+    const state =
+      data.location?.state || data.state || merchant.location?.state || "";
     data.slug = await generateUniqueSlug(data.slug, city, state, merchant._id);
   }
 
   await checkMerchantDuplicates(data, merchant._id);
 
   // Normalize document & image aliases from wizard / onboarding forms
-  if (!data.docImage && (data.docFileUrl || data.docUrl || data.identityDocumentUrl)) {
+  if (
+    !data.docImage &&
+    (data.docFileUrl || data.docUrl || data.identityDocumentUrl)
+  ) {
     data.docImage = data.docFileUrl || data.docUrl || data.identityDocumentUrl;
   }
-  if (!data.shopImage && (data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl)) {
-    data.shopImage = data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl;
+  if (
+    !data.shopImage &&
+    (data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl)
+  ) {
+    data.shopImage =
+      data.shopPhotoUrl || data.shopFrontUrl || data.storePhotoUrl;
   }
   if (!data.logo && (data.logoUrl || data.shopLogo)) {
     data.logo = data.logoUrl || data.shopLogo;
@@ -362,9 +474,18 @@ export async function updateMerchant(merchantId, authId, data, userRole = "merch
       { $set: { role: userRoleToSync } },
       { upsert: true },
     ),
-    userCol?.updateOne({ _id: merchant.authId }, { $set: { role: userRoleToSync } }).catch(() => {}),
+    userCol
+      ?.updateOne({ _id: merchant.authId }, { $set: { role: userRoleToSync } })
+      .catch(() => {}),
     ...(mongoose.Types.ObjectId.isValid(merchant.authId)
-      ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRoleToSync } }).catch(() => {})]
+      ? [
+          userCol
+            ?.updateOne(
+              { _id: new mongoose.Types.ObjectId(merchant.authId) },
+              { $set: { role: userRoleToSync } },
+            )
+            .catch(() => {}),
+        ]
       : []),
   ]);
 
@@ -454,23 +575,103 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
   const userRole = "merchant";
   const userCol = mongoose.connection.db?.collection("user");
 
+  const authIdStr = merchant.authId ? String(merchant.authId) : null;
+  const sessionCol = mongoose.connection.db?.collection("session");
+
   await Promise.all([
-    UserProfile.findOneAndUpdate(
-      { authId: merchant.authId },
-      { $set: { role: userRole } },
-      { upsert: true },
-    ),
-    userCol?.updateOne({ _id: merchant.authId }, { $set: { role: userRole } }).catch(() => {}),
-    ...(mongoose.Types.ObjectId.isValid(merchant.authId)
-      ? [userCol?.updateOne({ _id: new mongoose.Types.ObjectId(merchant.authId) }, { $set: { role: userRole } }).catch(() => {})]
+    ...(authIdStr
+      ? [
+          UserProfile.findOneAndUpdate(
+            { authId: authIdStr },
+            { $set: { role: userRole } },
+            { upsert: true },
+          ),
+          userCol
+            ?.updateOne({ _id: authIdStr }, { $set: { role: userRole } })
+            .catch(() => {}),
+          userCol
+            ?.updateOne({ id: authIdStr }, { $set: { role: userRole } })
+            .catch(() => {}),
+          ...(mongoose.Types.ObjectId.isValid(authIdStr)
+            ? [
+                userCol
+                  ?.updateOne(
+                    { _id: new mongoose.Types.ObjectId(authIdStr) },
+                    { $set: { role: userRole } },
+                  )
+                  .catch(() => {}),
+              ]
+            : []),
+        ]
+      : []),
+    ...(merchant.contactEmail
+      ? [
+          userCol
+            ?.updateOne(
+              { email: merchant.contactEmail.toLowerCase().trim() },
+              { $set: { role: userRole } },
+            )
+            .catch(() => {}),
+        ]
       : []),
   ]);
+
+  // Synchronously evict & sync all active sessions and profile caches from Redis
+  try {
+    if (authIdStr) {
+      await redis.del(REDIS_KEYS.merchantProfile(authIdStr)).catch(() => {});
+      await redis.del(REDIS_KEYS.userRole(authIdStr)).catch(() => {});
+    }
+    if (merchant._id) {
+      await redis
+        .del(REDIS_KEYS.merchantBadges(String(merchant._id)))
+        .catch(() => {});
+    }
+    if (sessionCol) {
+      const userSessions = await sessionCol
+        .find({
+          $or: [
+            ...(authIdStr ? [{ userId: authIdStr }] : []),
+            ...(mongoose.Types.ObjectId.isValid(authIdStr)
+              ? [{ userId: new mongoose.Types.ObjectId(authIdStr) }]
+              : []),
+          ],
+        })
+        .toArray()
+        .catch(() => []);
+
+      for (const s of userSessions) {
+        if (s.token) {
+          await redis.del(REDIS_KEYS.session(s.token)).catch(() => {});
+          await redis.del(`auth:session:${s.token}`).catch(() => {});
+        }
+      }
+
+      await sessionCol
+        .updateMany(
+          {
+            $or: [
+              ...(authIdStr ? [{ userId: authIdStr }] : []),
+              ...(mongoose.Types.ObjectId.isValid(authIdStr)
+                ? [{ userId: new mongoose.Types.ObjectId(authIdStr) }]
+                : []),
+            ],
+          },
+          { $set: { role: userRole } },
+        )
+        .catch(() => {});
+    }
+  } catch (cacheErr) {
+    logger.warn({ err: cacheErr }, "[reviewMerchant Cache Evict Error]");
+  }
 
   // Dispatch Email Notification to Merchant on Approval / Rejection
   try {
     let targetEmail = merchant.contactEmail;
     if (!targetEmail && merchant.authId && userCol) {
-      const uDoc = await userCol.findOne({ _id: merchant.authId }).catch(() => null);
+      const uDoc = await userCol
+        .findOne({ _id: merchant.authId })
+        .catch(() => null);
       targetEmail = uDoc?.email;
     }
 
@@ -481,7 +682,10 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
           businessName: merchant.businessName,
           liaisonName: merchant.liaisonName,
         }).catch((err) =>
-          logger.error({ err, merchantId }, "Merchant approved email dispatch error"),
+          logger.error(
+            { err, merchantId },
+            "Merchant approved email dispatch error",
+          ),
         );
       } else if (status === MERCHANT_STATUS.REJECTED) {
         sendMerchantRejectedEmail({
@@ -490,7 +694,10 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
           liaisonName: merchant.liaisonName,
           rejectionReason: merchant.rejectionReason || rejectionReason,
         }).catch((err) =>
-          logger.error({ err, merchantId }, "Merchant rejected email dispatch error"),
+          logger.error(
+            { err, merchantId },
+            "Merchant rejected email dispatch error",
+          ),
         );
       }
     }
