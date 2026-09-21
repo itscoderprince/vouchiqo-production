@@ -1,11 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import {
   Building2,
+  Calendar,
   Check,
+  Clock,
   CreditCard,
   ExternalLink,
   FileText,
@@ -18,9 +18,9 @@ import {
   Store,
   UserCheck,
   X,
-  Clock,
-  Calendar,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,8 +44,11 @@ export default function MerchantKycDialog({
   const isPaymentDone =
     merchant?.paymentStatus === "completed" ||
     merchant?.subscriptionStatus === "active" ||
-    (merchant?.planExpiry && new Date(merchant.planExpiry).getTime() > Date.now());
-  const planExpiryDate = merchant?.planExpiry ? new Date(merchant.planExpiry) : null;
+    (merchant?.planExpiry &&
+      new Date(merchant.planExpiry).getTime() > Date.now());
+  const planExpiryDate = merchant?.planExpiry
+    ? new Date(merchant.planExpiry)
+    : null;
   const [countdownStr, setCountdownStr] = useState("");
   const [customDate, setCustomDate] = useState("");
   const [customTime, setCustomTime] = useState("23:59");
@@ -74,7 +77,9 @@ export default function MerchantKycDialog({
         return;
       }
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const hours = Math.floor(
+        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+      );
       const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const secs = Math.floor((diff % (1000 * 60)) / 1000);
       setCountdownStr(`${days}d ${hours}h ${mins}m ${secs}s remaining`);
@@ -119,751 +124,857 @@ export default function MerchantKycDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl sm:max-w-5xl w-full bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 text-left shadow-2xl max-h-[90vh] overflow-y-auto font-sans">
-        <DialogHeader className="space-y-1 pb-3 border-b border-slate-100">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+      <DialogContent className="top-0 left-0 translate-x-0 translate-y-0 w-full h-[100dvh] max-h-[100dvh] max-w-none rounded-none p-0 gap-0 border-0 sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-5xl sm:h-auto sm:max-h-[92vh] sm:rounded-2xl sm:border border-slate-200 text-left shadow-2xl flex flex-col overflow-hidden font-sans z-50 bg-white">
+        {/* Fixed Pinned Header with Safe Clearance for Close Button */}
+        <DialogHeader className="px-3.5 py-2.5 sm:px-6 sm:py-3 border-b border-slate-100 bg-white shrink-0 pr-14 relative text-left">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <DialogTitle className="text-xs sm:text-base font-bold text-slate-900 truncate">
                   Merchant Audit: {merchant.businessName}
-                  <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-normal uppercase">
-                    {merchant.status || "Pending Audit"}
-                  </Badge>
                 </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500 font-normal">
-                  Detailed KYC audit, location verification, statutory identity
-                  documents, and settlement bank credentials.
+                <Badge
+                  className={`text-[9px] sm:text-[10px] font-semibold uppercase px-2 py-0.5 border ${
+                    merchant.status === "approved"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : merchant.status === "rejected"
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : merchant.status === "form_accepted"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                  }`}
+                >
+                  {merchant.status || "Pending Audit"}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                <span>
+                  Submitted:{" "}
+                  {merchant.createdAt
+                    ? new Date(merchant.createdAt).toLocaleDateString("en-IN")
+                    : "Recent"}
+                </span>
+                <span className="hidden sm:inline text-slate-300">•</span>
+                <DialogDescription className="hidden sm:inline text-[11px] text-slate-500 font-normal">
+                  Detailed KYC, statutory documents &amp; location audit
                 </DialogDescription>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-              <span>
-                Submitted:{" "}
-                {merchant.createdAt
-                  ? new Date(merchant.createdAt).toLocaleDateString("en-IN")
-                  : "Recent"}
-              </span>
             </div>
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="business" className="w-full text-xs pt-2 space-y-4">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 bg-slate-100 p-1 rounded-xl gap-1">
-            <TabsTrigger
-              value="business"
-              className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
-            >
-              <Store className="w-3.5 h-3.5" /> Profile &amp; Location
-            </TabsTrigger>
-            <TabsTrigger
-              value="legal"
-              className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
-            >
-              <FileText className="w-3.5 h-3.5" /> Statutory KYC
-            </TabsTrigger>
-            <TabsTrigger
-              value="visuals"
-              className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
-            >
-              <ImageIcon className="w-3.5 h-3.5" /> Store Media
-            </TabsTrigger>
-            <TabsTrigger
-              value="subscription"
-              className="text-xs font-medium rounded-lg py-2 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-700"
-            >
-              <CreditCard className="w-3.5 h-3.5" /> Subscription &amp; Payment
-            </TabsTrigger>
-          </TabsList>
+        {/* Scrollable Body Containing Compact Tabs & Content */}
+        <div className="flex-1 overflow-y-auto px-3 py-2.5 sm:px-6 sm:py-4">
+          <Tabs defaultValue="business" className="w-full text-xs space-y-3">
+            {/* Sleek Horizontal Scrollable Tabs on Mobile, Balanced 4-Col Grid on Desktop */}
+            <TabsList className="flex sm:grid sm:grid-cols-4 overflow-x-auto no-scrollbar bg-slate-100/90 p-1 rounded-xl gap-1 w-full shrink-0 border border-slate-200/60">
+              <TabsTrigger
+                value="business"
+                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+              >
+                <Store className="w-3.5 h-3.5 shrink-0" /> Profile &amp;
+                Location
+              </TabsTrigger>
+              <TabsTrigger
+                value="legal"
+                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 shrink-0" /> Statutory KYC
+              </TabsTrigger>
+              <TabsTrigger
+                value="visuals"
+                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+              >
+                <ImageIcon className="w-3.5 h-3.5 shrink-0" /> Store Media
+              </TabsTrigger>
+              <TabsTrigger
+                value="subscription"
+                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+              >
+                <CreditCard className="w-3.5 h-3.5 shrink-0" /> Plan &amp;
+                Billing
+              </TabsTrigger>
+            </TabsList>
 
-          {/* ── TAB 1: PROFILE & LOCATION ────────────────────────────── */}
-          <TabsContent value="business" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Card 1: Core Business Overview */}
-              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
-                <h4 className="text-xs font-medium text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                  <Building2 className="w-4 h-4 text-blue-600" /> Business
-                  Overview
-                </h4>
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Business Name
-                    </span>
-                    <span className="font-semibold text-slate-900 text-xs">
-                      {merchant.businessName}
+            {/* ── TAB 1: PROFILE & LOCATION ────────────────────────────── */}
+            <TabsContent value="business" className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3.5">
+                {/* Card 1: Core Business Overview */}
+                <div className="bg-slate-50/70 p-2.5 sm:p-3.5 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5 mb-2">
+                    <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-blue-600" />{" "}
+                      Business Overview
+                    </h4>
+                    <span className="text-[9px] font-mono text-slate-400 uppercase">
+                      Entity Info
                     </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Category
-                    </span>
-                    <span className="font-medium text-slate-800 capitalize">
-                      {merchant.category || "General"}
-                    </span>
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <div className="col-span-2 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Business Name
+                      </span>
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm block truncate">
+                        {merchant.businessName}
+                      </span>
+                    </div>
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Category
+                      </span>
+                      <span className="font-semibold text-slate-800 text-xs capitalize block truncate">
+                        {merchant.category || "General"}
+                      </span>
+                    </div>
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Constitution
+                      </span>
+                      <span className="font-semibold text-slate-800 text-xs uppercase block truncate">
+                        {merchant.constitution || "Proprietorship"}
+                      </span>
+                    </div>
+                    {merchant.website && (
+                      <div className="col-span-2 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                          Official Website
+                        </span>
+                        <a
+                          href={merchant.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium truncate"
+                        >
+                          <Globe className="w-3 h-3 shrink-0" />{" "}
+                          <span className="truncate">{merchant.website}</span>
+                        </a>
+                      </div>
+                    )}
                     {merchant.category === "others" &&
                       merchant.customCategoryNotes && (
-                        <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900">
-                          <span className="font-semibold block text-[10px] uppercase text-blue-700">
-                            Special Category Notes (20+ Words):
+                        <div className="col-span-2 p-2 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-900">
+                          <span className="font-bold block text-[9px] uppercase text-blue-700 tracking-wider">
+                            Special Category Notes:
                           </span>
-                          <p className="text-[11px] font-normal leading-relaxed">
+                          <p className="text-[11px] font-normal leading-relaxed mt-0.5">
                             {merchant.customCategoryNotes}
                           </p>
                         </div>
                       )}
                   </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Constitution Type
-                    </span>
-                    <span className="font-medium text-slate-800 uppercase">
-                      {merchant.constitution || "Proprietorship"}
+                </div>
+
+                {/* Card 2: Contact & Authorized Liaison */}
+                <div className="bg-slate-50/70 p-2.5 sm:p-3.5 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5 mb-2">
+                    <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <UserCheck className="w-3.5 h-3.5 text-blue-600" />{" "}
+                      Contact &amp; Liaison
+                    </h4>
+                    <span className="text-[9px] font-mono text-slate-400 uppercase">
+                      Key Personnel
                     </span>
                   </div>
-                  {merchant.website && (
-                    <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                        Official Website
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Liaison Name
                       </span>
+                      <span className="font-bold text-slate-900 text-xs block truncate">
+                        {merchant.liaisonName ||
+                          merchant.contactPerson ||
+                          "Store Owner"}
+                      </span>
+                    </div>
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Designation
+                      </span>
+                      <span className="font-semibold text-slate-800 text-xs capitalize block truncate">
+                        {merchant.liaisonDesignation || "Owner"}
+                      </span>
+                    </div>
+                    <div className="col-span-2 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Contact Email
+                      </span>
+                      <span className="font-mono text-slate-800 text-xs flex items-center gap-1.5 truncate">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">
+                          {merchant.contactEmail}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="col-span-2 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Phone &amp; WhatsApp
+                      </span>
+                      <span className="font-mono text-slate-800 text-xs flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        {merchant.contactPhone ||
+                          merchant.whatsappNumber ||
+                          "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Physical Address & Coordinates */}
+                <div className="bg-slate-50/70 p-2.5 sm:p-3.5 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5 mb-2">
+                    <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-blue-600" /> Store
+                      Location
+                    </h4>
+                    {mapsUrl && (
                       <a
-                        href={merchant.website}
+                        href={mapsUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium"
+                        className="text-[10px] font-semibold text-blue-600 hover:underline flex items-center gap-1"
                       >
-                        <Globe className="w-3 h-3" /> {merchant.website}
+                        <ExternalLink className="w-3 h-3" /> Maps
                       </a>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <div className="col-span-2 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Street Address
+                      </span>
+                      <span className="font-semibold text-slate-800 text-xs block leading-snug line-clamp-2">
+                        {merchant.location?.address || "Registered Address"}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 2: Contact & Authorized Liaison */}
-              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
-                <h4 className="text-xs font-medium text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                  <UserCheck className="w-4 h-4 text-blue-600" /> Contact &amp;
-                  Liaison
-                </h4>
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Authorized Liaison Name
-                    </span>
-                    <span className="font-semibold text-slate-900">
-                      {merchant.liaisonName ||
-                        merchant.contactPerson ||
-                        "Store Owner"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Designation
-                    </span>
-                    <span className="font-medium text-slate-800 capitalize">
-                      {merchant.liaisonDesignation || "Owner"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Contact Email
-                    </span>
-                    <span className="font-mono text-slate-800 flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-slate-400" />{" "}
-                      {merchant.contactEmail}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Contact Phone &amp; WhatsApp
-                    </span>
-                    <span className="font-mono text-slate-800 flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-slate-400" />{" "}
-                      {merchant.contactPhone ||
-                        merchant.whatsappNumber ||
-                        "N/A"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Physical Address & Coordinates */}
-              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
-                <h4 className="text-xs font-medium text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                  <MapPin className="w-4 h-4 text-blue-600" /> Store Location
-                  &amp; Coordinates
-                </h4>
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      Street Address
-                    </span>
-                    <span className="font-medium text-slate-800 block leading-snug">
-                      {merchant.location?.address || "Registered Address"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
                         City &amp; State
                       </span>
-                      <span className="font-medium text-slate-900">
+                      <span className="font-semibold text-slate-900 text-xs block truncate">
                         {merchant.location?.city
                           ? `${merchant.location.city}, ${merchant.location.state || ""}`
                           : "Ranchi, Jharkhand"}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
                         PIN Code
                       </span>
-                      <span className="font-mono font-medium text-slate-900">
+                      <span className="font-mono font-bold text-slate-900 text-xs block">
                         {merchant.location?.pincode || "N/A"}
                       </span>
                     </div>
+                    <div className="col-span-2 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                          GPS Coordinates
+                        </span>
+                        <span className="font-mono text-[11px] font-semibold text-blue-700 block truncate">
+                          Lat: {lat} | Lng: {lng}
+                        </span>
+                      </div>
+                      {mapsUrl && (
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 hover:bg-blue-100 shrink-0"
+                        >
+                          <ExternalLink className="w-3 h-3" /> Navigate
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                      GPS Pinpoint Coordinates
-                    </span>
-                    <span className="font-mono text-xs font-medium text-blue-700 block">
-                      Lat: {lat} | Lng: {lng}
-                    </span>
-                  </div>
-                  {mapsUrl && (
-                    <a
-                      href={mapsUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline pt-1"
-                    >
-                      <ExternalLink className="w-3 h-3" /> View Location on
-                      Google Maps
-                    </a>
-                  )}
                 </div>
               </div>
-            </div>
 
-            {/* WEEKLY OPERATING HOURS SCHEDULE DISPLAY */}
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block border-b border-slate-200 pb-1">
-                Weekly Store Operating Hours Schedule
-              </span>
-              {merchant.operatingHours && typeof merchant.operatingHours === "object" && Object.keys(merchant.operatingHours).length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 pt-1">
-                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
-                    const dayData = merchant.operatingHours[day];
-                    const isClosed = dayData ? (dayData.closed === true || dayData.isOpen === false) : false;
-                    const isOpen = !isClosed;
-                    const openTime = dayData?.open || dayData?.openTime || "10:00 AM";
-                    const closeTime = dayData?.close || dayData?.closeTime || (day === "Sunday" ? "11:00 PM" : "08:00 PM");
-
-                    return (
-                      <div key={day} className={`p-2 rounded-lg border text-center ${isOpen ? "bg-white border-slate-200 shadow-2xs" : "bg-rose-50/60 border-rose-200"}`}>
-                        <span className="text-[11px] font-bold text-slate-800 block">{day.slice(0, 3)}</span>
-                        {isOpen ? (
-                          <span className="text-[10px] font-mono text-emerald-700 font-semibold block mt-0.5">
-                            {openTime} – {closeTime}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-rose-600 block mt-0.5">CLOSED</span>
-                        )}
-                      </div>
-                    );
-                  })}
+              {/* WEEKLY OPERATING HOURS SCHEDULE DISPLAY */}
+              <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5 mb-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">
+                    Weekly Operating Hours Schedule
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Store Timings
+                  </span>
                 </div>
-              ) : (
-                <div className="text-xs font-mono text-slate-700">
-                  Mon–Sat 10:00 AM – 08:00 PM, Sun 10:00 AM – 11:00 PM
+                {merchant.operatingHours &&
+                typeof merchant.operatingHours === "object" &&
+                Object.keys(merchant.operatingHours).length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1.5">
+                    {[
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                      "Sunday",
+                    ].map((day) => {
+                      const dayData = merchant.operatingHours[day];
+                      const isClosed = dayData
+                        ? dayData.closed === true || dayData.isOpen === false
+                        : false;
+                      const isOpen = !isClosed;
+                      const openTime =
+                        dayData?.open || dayData?.openTime || "10:00 AM";
+                      const closeTime =
+                        dayData?.close ||
+                        dayData?.closeTime ||
+                        (day === "Sunday" ? "11:00 PM" : "08:00 PM");
+
+                      return (
+                        <div
+                          key={day}
+                          className={`p-1.5 rounded-lg border text-center ${
+                            isOpen
+                              ? "bg-white border-slate-200/80 shadow-2xs"
+                              : "bg-rose-50/70 border-rose-200"
+                          }`}
+                        >
+                          <span className="text-[10px] font-bold text-slate-700 block">
+                            {day.slice(0, 3)}
+                          </span>
+                          {isOpen ? (
+                            <span className="text-[9px] font-mono text-emerald-700 font-bold block mt-0.5 leading-tight">
+                              {openTime} – {closeTime}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold text-rose-600 block mt-0.5">
+                              CLOSED
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-xs font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                    Mon–Sat 10:00 AM – 08:00 PM, Sun 10:00 AM – 11:00 PM
+                  </div>
+                )}
+              </div>
+
+              {merchant.description && (
+                <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">
+                    Business Description
+                  </span>
+                  <p className="text-xs text-slate-700 leading-relaxed font-normal bg-white p-2.5 rounded-lg border border-slate-200/60 shadow-2xs">
+                    {merchant.description}
+                  </p>
                 </div>
               )}
-            </div>
+            </TabsContent>
 
-            {merchant.description && (
-              <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/80 space-y-1">
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Business Description
-                </span>
-                <p className="text-xs text-slate-700 leading-relaxed font-normal">
-                  {merchant.description}
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* ── TAB 2: STATUTORY KYC ─────────────────────────────────── */}
-          <TabsContent value="legal" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  Primary Document Type
-                </span>
-                <span className="font-semibold text-blue-700">
-                  {merchant.docType || "GST Registration Certificate"}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                  GSTIN Registration
-                </span>
-                <span className="font-mono font-semibold text-slate-900">
-                  {merchant.isGstExempt
-                    ? "Exempt Micro-Merchant"
-                    : merchant.gstin || "Exempt / N/A"}
-                </span>
-              </div>
-            </div>
-
-            {/* PRIMARY IDENTITY DOCUMENT IMAGE PREVIEW */}
-            {(() => {
-              const docImgUrl =
-                merchant.docImage ||
-                merchant.docFileUrl ||
-                merchant.docUrl ||
-                merchant.identityDocumentUrl ||
-                merchant.docFile;
-              return (
-                <div className="p-4 bg-blue-50/30 rounded-xl border border-blue-200 text-center space-y-3">
-                  <div className="flex items-center justify-between border-b border-blue-100 pb-2">
-                    <span className="text-xs font-medium text-slate-900 block">
-                      Primary Identity Document Image (
-                      {merchant.docType || "GST Certificate"})
-                    </span>
-                    {docImgUrl && (
-                      <a
-                        href={docImgUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" /> Full Size Image
-                      </a>
-                    )}
-                  </div>
-
-                  {docImgUrl ? (
-                    <div className="space-y-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={docImgUrl}
-                        alt={merchant.docType || "Primary Identity Document"}
-                        className="max-h-80 mx-auto object-contain rounded-xl border border-slate-200 shadow-xs bg-white p-1"
-                      />
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center space-y-1">
-                      <FileText className="w-8 h-8 text-slate-300 mx-auto" />
-                      <span className="text-xs text-slate-400 font-normal block">
-                        No primary identity document image uploaded by merchant
-                      </span>
-                    </div>
-                  )}
+            {/* ── TAB 2: STATUTORY KYC ─────────────────────────────────── */}
+            <TabsContent value="legal" className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 bg-slate-50/70 p-2.5 sm:p-3 rounded-xl border border-slate-200/80">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                    Primary Document Type
+                  </span>
+                  <span className="font-bold text-blue-700 text-xs block truncate">
+                    {merchant.docType || "GST Registration Certificate"}
+                  </span>
                 </div>
-              );
-            })()}
-          </TabsContent>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                    GSTIN / Registration ID
+                  </span>
+                  <span className="font-mono font-bold text-slate-900 text-xs block truncate">
+                    {merchant.isGstExempt
+                      ? "Exempt Micro-Merchant"
+                      : merchant.gstin || "Exempt / N/A"}
+                  </span>
+                </div>
+              </div>
 
-          {/* ── TAB 3: STORE VISUALS & PHOTOS ───────────────────────── */}
-          <TabsContent value="visuals" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* PRIMARY IDENTITY DOCUMENT IMAGE PREVIEW */}
               {(() => {
-                const shopImgUrl =
-                  merchant.shopImage ||
-                  merchant.shopPhotoUrl ||
-                  merchant.shopFrontUrl ||
-                  merchant.storePhotoUrl;
+                const docImgUrl =
+                  merchant.docImage ||
+                  merchant.docFileUrl ||
+                  merchant.docUrl ||
+                  merchant.identityDocumentUrl ||
+                  merchant.docFile;
                 return (
-                  <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-900 block">
-                        Shop Front Photograph
+                  <div className="p-2.5 sm:p-3.5 bg-blue-50/30 rounded-xl border border-blue-200/80 text-center space-y-2">
+                    <div className="flex items-center justify-between border-b border-blue-100 pb-1.5">
+                      <span className="text-xs font-bold text-slate-900 block truncate">
+                        Document Preview (
+                        {merchant.docType || "GST Certificate"})
                       </span>
-                      {shopImgUrl && (
+                      {docImgUrl && (
                         <a
-                          href={shopImgUrl}
+                          href={docImgUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
+                          className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer shrink-0"
                         >
-                          <ExternalLink className="w-3 h-3" /> View
+                          <ExternalLink className="w-3.5 h-3.5" /> Full Screen
                         </a>
                       )}
                     </div>
-                    {shopImgUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={shopImgUrl}
-                        alt="Shop Front"
-                        className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
-                      />
+
+                    {docImgUrl ? (
+                      <div className="space-y-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={docImgUrl}
+                          alt={merchant.docType || "Primary Identity Document"}
+                          className="max-h-72 sm:max-h-80 mx-auto object-contain rounded-xl border border-slate-200 shadow-2xs bg-white p-1"
+                        />
+                      </div>
                     ) : (
-                      <div className="py-8 text-center space-y-1">
-                        <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
+                      <div className="py-6 text-center space-y-1 bg-white rounded-lg border border-slate-200/60">
+                        <FileText className="w-7 h-7 text-slate-300 mx-auto" />
                         <span className="text-xs text-slate-400 font-normal block">
-                          No shop front photo uploaded
+                          No primary identity document uploaded
                         </span>
                       </div>
                     )}
                   </div>
                 );
               })()}
+            </TabsContent>
 
-              {(() => {
-                const logoImgUrl =
-                  merchant.logo || merchant.logoUrl || merchant.shopLogo;
-                return (
-                  <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-900 block">
-                        Store Brand Logo
-                      </span>
-                      {logoImgUrl && (
-                        <a
-                          href={logoImgUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
-                        >
-                          <ExternalLink className="w-3 h-3" /> View
-                        </a>
-                      )}
-                    </div>
-                    {logoImgUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={logoImgUrl}
-                        alt="Store Logo"
-                        className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
-                      />
-                    ) : (
-                      <div className="py-8 text-center space-y-1">
-                        <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                        <span className="text-xs text-slate-400 font-normal block">
-                          No store logo uploaded
+            {/* ── TAB 3: STORE VISUALS & PHOTOS ───────────────────────── */}
+            <TabsContent value="visuals" className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                {(() => {
+                  const shopImgUrl =
+                    merchant.shopImage ||
+                    merchant.shopPhotoUrl ||
+                    merchant.shopFrontUrl ||
+                    merchant.storePhotoUrl;
+                  return (
+                    <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/80 text-center space-y-1.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-1">
+                        <span className="text-xs font-bold text-slate-900 block truncate">
+                          Shop Front Photo
                         </span>
+                        {shopImgUrl && (
+                          <a
+                            href={shopImgUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
+                          >
+                            <ExternalLink className="w-3 h-3" /> View
+                          </a>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {(() => {
-                const bannerImgUrl =
-                  merchant.banner || merchant.bannerUrl || merchant.shopBanner;
-                return (
-                  <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 text-center space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-900 block">
-                        Store Banner Image
-                      </span>
-                      {bannerImgUrl && (
-                        <a
-                          href={bannerImgUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
-                        >
-                          <ExternalLink className="w-3 h-3" /> View
-                        </a>
-                      )}
-                    </div>
-                    {bannerImgUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={bannerImgUrl}
-                        alt="Store Banner"
-                        className="max-h-48 mx-auto object-contain rounded-xl border border-slate-200 bg-white shadow-2xs"
-                      />
-                    ) : (
-                      <div className="py-8 text-center space-y-1">
-                        <ImageIcon className="w-8 h-8 text-slate-300 mx-auto" />
-                        <span className="text-xs text-slate-400 font-normal block">
-                          No banner image uploaded
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          </TabsContent>
-
-          {/* ── TAB 4: SUBSCRIPTION & PAYMENT STATUS ─────────────────── */}
-          <TabsContent value="subscription" className="space-y-3 font-sans">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Card 1: Subscription Status & Expiry Overview */}
-              <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5">
-                <h4 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
-                  <CreditCard className="w-4 h-4 text-blue-600" /> Subscription &amp; Payment Status
-                </h4>
-
-                <div className="space-y-2.5">
-                  <div>
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
-                      Active Plan &amp; Payment Status
-                    </span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {(() => {
-                        const isStarter =
-                          (merchant.plan || "starter").toLowerCase().includes("starter") ||
-                          (merchant.plan || "").toLowerCase().includes("free");
-                        const isPaymentDone =
-                          isStarter ||
-                          merchant.paymentStatus === "completed" ||
-                          merchant.subscriptionStatus === "active";
-
-                        return (
-                          <>
-                            <Badge className="bg-blue-600 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md">
-                              Plan: {merchant.plan || "Starter Free"}
-                            </Badge>
-                            <Badge
-                              className={
-                                isStarter || isPaymentDone
-                                  ? "bg-emerald-600 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md"
-                                  : "bg-amber-500 text-white font-medium text-xs uppercase border-0 px-2 py-0.5 rounded-md animate-pulse"
-                              }
-                            >
-                              {isStarter ? "FREE PLAN (ACTIVE)" : isPaymentDone ? "Payment Completed" : "Payment Pending"}
-                            </Badge>
-                          </>
-                        );
-                      })()}
-                      {merchant.commissionRate && (
-                        <Badge variant="outline" className="text-xs font-mono text-emerald-800 bg-emerald-50 border-emerald-200/80 font-medium px-2 py-0.5 rounded-md">
-                          Commission: {merchant.commissionRate} ({merchant.commissionModel || "CPA"})
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {planExpiryDate && (
-                    <div className="bg-blue-50/70 border border-blue-200/60 rounded-lg p-2.5 space-y-2 text-xs text-blue-900 font-normal">
-                      {/* Row 1: Exact Plan Expiry Date & Time */}
-                      <div className="flex items-center gap-1.5 border-b border-blue-100/80 pb-1.5 flex-wrap">
-                        <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span className="text-slate-600 font-normal">Plan Expiry Date:</span>
-                        <span className="font-semibold text-slate-800">
-                          {planExpiryDate.toLocaleString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
-                        </span>
-                      </div>
-
-                      {/* Row 2: Live Countdown Timer */}
-                      {countdownStr && (
-                        <div className="flex items-center justify-between gap-2 pt-0.5">
-                          <span className="flex items-center gap-1 text-[11px] text-slate-500 font-normal">
-                            <Clock className="w-3 h-3 text-blue-600 animate-pulse shrink-0" /> Time Remaining:
-                          </span>
-                          <span className="font-semibold text-blue-700 bg-blue-100/80 px-2.5 py-0.5 rounded-md text-xs font-mono whitespace-nowrap">
-                            {countdownStr}
+                      {shopImgUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={shopImgUrl}
+                          alt="Shop Front"
+                          className="max-h-40 sm:max-h-44 w-full object-contain rounded-lg border border-slate-200 bg-white shadow-2xs"
+                        />
+                      ) : (
+                        <div className="py-6 text-center space-y-1 bg-white rounded-lg border border-slate-200/60">
+                          <ImageIcon className="w-7 h-7 text-slate-300 mx-auto" />
+                          <span className="text-xs text-slate-400 font-normal block">
+                            No photo uploaded
                           </span>
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  );
+                })()}
 
-              {/* Card 2: Super Admin Plan Control Center */}
-              <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5">
-                <h4 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
-                  ⚡ Super Admin Plan Control Center
-                </h4>
-
-                <div className="space-y-2 text-xs">
-                  {/* Section 1: Compact Custom Date & Time Picker */}
-                  <div className="space-y-1 bg-white p-2.5 rounded-lg border border-slate-200/70">
-                    <span className="text-[10px] uppercase font-semibold text-slate-500 block flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-blue-600" /> Custom Expiry Date &amp; Time (12h AM/PM):
-                    </span>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5">
-                      <input
-                        type="date"
-                        value={customDate}
-                        onChange={(e) => setCustomDate(e.target.value)}
-                        className="h-7 text-xs font-normal px-2 bg-slate-50 border border-slate-200 rounded-md text-slate-800 flex-1 min-w-0 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                      <input
-                        type="time"
-                        value={customTime}
-                        onChange={(e) => setCustomTime(e.target.value)}
-                        className="h-7 text-xs font-normal px-2 bg-slate-50 border border-slate-200 rounded-md text-slate-800 w-24 shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                      <Button
-                        size="sm"
-                        disabled={isExtending || !customDate}
-                        onClick={handleApplyCustomDate}
-                        className="h-7 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 cursor-pointer shrink-0 border-0 shadow-none"
-                      >
-                        Set Date
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Section 2: Quick Extend Days */}
-                  <div className="space-y-1 pt-0.5">
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Quick Extend Expiry:</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ extendDays: 7 })}
-                        className="h-6 text-xs font-medium text-blue-700 bg-blue-50/80 border-blue-200/80 hover:bg-blue-100 rounded-md cursor-pointer px-2"
-                      >
-                        +7 Days
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ extendDays: 30 })}
-                        className="h-6 text-xs font-medium text-emerald-700 bg-emerald-50/80 border-emerald-200/80 hover:bg-emerald-100 rounded-md cursor-pointer px-2"
-                      >
-                        +30 Days
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ extendDays: 90 })}
-                        className="h-6 text-xs font-medium text-purple-700 bg-purple-50/80 border-purple-200/80 hover:bg-purple-100 rounded-md cursor-pointer px-2"
-                      >
-                        +90 Days
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ extendDays: 365 })}
-                        className="h-6 text-xs font-medium text-amber-700 bg-amber-50/80 border-amber-200/80 hover:bg-amber-100 rounded-md cursor-pointer px-2"
-                      >
-                        +1 Year
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Section 3: Lifecycle Actions */}
-                  <div className="space-y-1 pt-0.5">
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Plan Lifecycle Actions:</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {merchant.subscriptionStatus === "paused" || merchant.paymentStatus !== "completed" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isExtending}
-                          onClick={() => handleControlPlan({ action: "resume" })}
-                          className="h-6 text-xs font-medium text-emerald-800 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 rounded-md cursor-pointer px-2.5"
-                        >
-                          ▶ Resume / Activate Plan
-                        </Button>
+                {(() => {
+                  const logoImgUrl =
+                    merchant.logo || merchant.logoUrl || merchant.shopLogo;
+                  return (
+                    <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/80 text-center space-y-1.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-1">
+                        <span className="text-xs font-bold text-slate-900 block truncate">
+                          Store Brand Logo
+                        </span>
+                        {logoImgUrl && (
+                          <a
+                            href={logoImgUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
+                          >
+                            <ExternalLink className="w-3 h-3" /> View
+                          </a>
+                        )}
+                      </div>
+                      {logoImgUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={logoImgUrl}
+                          alt="Store Logo"
+                          className="max-h-40 sm:max-h-44 w-full object-contain rounded-lg border border-slate-200 bg-white shadow-2xs"
+                        />
                       ) : (
+                        <div className="py-6 text-center space-y-1 bg-white rounded-lg border border-slate-200/60">
+                          <ImageIcon className="w-7 h-7 text-slate-300 mx-auto" />
+                          <span className="text-xs text-slate-400 font-normal block">
+                            No logo uploaded
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {(() => {
+                  const bannerImgUrl =
+                    merchant.banner ||
+                    merchant.bannerUrl ||
+                    merchant.shopBanner;
+                  return (
+                    <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/80 text-center space-y-1.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-1">
+                        <span className="text-xs font-bold text-slate-900 block truncate">
+                          Store Banner
+                        </span>
+                        {bannerImgUrl && (
+                          <a
+                            href={bannerImgUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
+                          >
+                            <ExternalLink className="w-3 h-3" /> View
+                          </a>
+                        )}
+                      </div>
+                      {bannerImgUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={bannerImgUrl}
+                          alt="Store Banner"
+                          className="max-h-40 sm:max-h-44 w-full object-contain rounded-lg border border-slate-200 bg-white shadow-2xs"
+                        />
+                      ) : (
+                        <div className="py-6 text-center space-y-1 bg-white rounded-lg border border-slate-200/60">
+                          <ImageIcon className="w-7 h-7 text-slate-300 mx-auto" />
+                          <span className="text-xs text-slate-400 font-normal block">
+                            No banner uploaded
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </TabsContent>
+
+            {/* ── TAB 4: SUBSCRIPTION & PAYMENT STATUS ─────────────────── */}
+            <TabsContent value="subscription" className="space-y-3 font-sans">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+                {/* Card 1: Subscription Status & Expiry Overview */}
+                <div className="bg-slate-50/70 p-2.5 sm:p-3.5 rounded-xl border border-slate-200/80 space-y-2">
+                  <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5 border-b border-slate-200/80 pb-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-blue-600" />{" "}
+                    Subscription &amp; Payment Status
+                  </h4>
+
+                  <div className="space-y-2">
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/60 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block mb-1 tracking-wider">
+                        Active Plan &amp; Payment Status
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {(() => {
+                          const isStarter =
+                            (merchant.plan || "starter")
+                              .toLowerCase()
+                              .includes("starter") ||
+                            (merchant.plan || "")
+                              .toLowerCase()
+                              .includes("free");
+                          const isPaymentDone =
+                            isStarter ||
+                            merchant.paymentStatus === "completed" ||
+                            merchant.subscriptionStatus === "active";
+
+                          return (
+                            <>
+                              <Badge className="bg-blue-600 text-white font-semibold text-[11px] uppercase border-0 px-2 py-0.5 rounded-md">
+                                Plan: {merchant.plan || "Starter Free"}
+                              </Badge>
+                              <Badge
+                                className={`font-semibold text-[11px] uppercase border-0 px-2 py-0.5 rounded-md ${
+                                  isStarter || isPaymentDone
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-amber-500 text-white animate-pulse"
+                                }`}
+                              >
+                                {isStarter
+                                  ? "FREE PLAN (ACTIVE)"
+                                  : isPaymentDone
+                                    ? "Payment Completed"
+                                    : "Payment Pending"}
+                              </Badge>
+                            </>
+                          );
+                        })()}
+                        {merchant.commissionRate && (
+                          <Badge
+                            variant="outline"
+                            className="text-[11px] font-mono text-emerald-800 bg-emerald-50 border-emerald-200/80 font-semibold px-2 py-0.5 rounded-md"
+                          >
+                            Commission: {merchant.commissionRate} (
+                            {merchant.commissionModel || "CPA"})
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {planExpiryDate && (
+                      <div className="bg-blue-50/70 border border-blue-200/60 rounded-lg p-2 space-y-1.5 text-xs text-blue-900 font-normal">
+                        <div className="flex items-center gap-1.5 border-b border-blue-100/80 pb-1 flex-wrap">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <span className="text-slate-600 font-normal text-xs">
+                            Plan Expiry:
+                          </span>
+                          <span className="font-bold text-slate-900 text-xs">
+                            {planExpiryDate.toLocaleString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </span>
+                        </div>
+
+                        {countdownStr && (
+                          <div className="flex items-center justify-between gap-2 pt-0.5">
+                            <span className="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                              <Clock className="w-3 h-3 text-blue-600 animate-pulse shrink-0" />{" "}
+                              Time Remaining:
+                            </span>
+                            <span className="font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-md text-[11px] font-mono whitespace-nowrap">
+                              {countdownStr}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card 2: Super Admin Plan Control Center */}
+                <div className="bg-slate-50/70 p-2.5 sm:p-3.5 rounded-xl border border-slate-200/80 space-y-2">
+                  <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5 border-b border-slate-200/80 pb-1.5">
+                    ⚡ Super Admin Plan Control Center
+                  </h4>
+
+                  <div className="space-y-1.5 text-xs">
+                    {/* Section 1: Compact Custom Date & Time Picker */}
+                    <div className="space-y-1 bg-white p-2 rounded-lg border border-slate-200/70 shadow-2xs">
+                      <span className="text-[9px] uppercase font-bold text-slate-500 block flex items-center gap-1 tracking-wider">
+                        <Calendar className="w-3 h-3 text-blue-600" /> Custom
+                        Expiry Date &amp; Time:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                        <input
+                          type="date"
+                          value={customDate}
+                          onChange={(e) => setCustomDate(e.target.value)}
+                          className="h-7 text-xs font-normal px-2 bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <input
+                          type="time"
+                          value={customTime}
+                          onChange={(e) => setCustomTime(e.target.value)}
+                          className="h-7 text-xs font-normal px-2 bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={isExtending || !customDate}
+                          onClick={handleApplyCustomDate}
+                          className="h-7 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 cursor-pointer border-0 shadow-none"
+                        >
+                          Set Expiry
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Quick Extend Days */}
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Quick Extend Days:
+                      </span>
+                      <div className="grid grid-cols-4 gap-1">
                         <Button
                           size="sm"
                           variant="outline"
                           disabled={isExtending}
-                          onClick={() => handleControlPlan({ action: "pause" })}
-                          className="h-6 text-xs font-medium text-amber-800 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-md cursor-pointer px-2.5"
+                          onClick={() => handleControlPlan({ extendDays: 7 })}
+                          className="h-6 text-[11px] font-semibold text-blue-700 bg-blue-50/80 border-blue-200/80 hover:bg-blue-100 rounded-md cursor-pointer px-1 w-full"
                         >
-                          ⏸ Pause Plan
+                          +7 D
                         </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ action: "stop" })}
-                        className="h-6 text-xs font-medium text-rose-800 bg-rose-50 border-rose-200 hover:bg-rose-100 rounded-md cursor-pointer px-2.5"
-                      >
-                        ⏹ Stop / Cancel Plan
-                      </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ extendDays: 30 })}
+                          className="h-6 text-[11px] font-semibold text-emerald-700 bg-emerald-50/80 border-emerald-200/80 hover:bg-emerald-100 rounded-md cursor-pointer px-1 w-full"
+                        >
+                          +30 D
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ extendDays: 90 })}
+                          className="h-6 text-[11px] font-semibold text-purple-700 bg-purple-50/80 border-purple-200/80 hover:bg-purple-100 rounded-md cursor-pointer px-1 w-full"
+                        >
+                          +90 D
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ extendDays: 365 })}
+                          className="h-6 text-[11px] font-semibold text-amber-700 bg-amber-50/80 border-amber-200/80 hover:bg-amber-100 rounded-md cursor-pointer px-1 w-full"
+                        >
+                          +1 Y
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Section 4: Switch Plan Tier */}
-                  <div className="space-y-1 pt-0.5">
-                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Change Subscription Tier:</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ plan: "starter" })}
-                        className="h-6 text-xs font-medium text-slate-700 bg-slate-100 border-slate-200 hover:bg-slate-200 rounded-md cursor-pointer px-2"
-                      >
-                        Starter
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ plan: "growth" })}
-                        className="h-6 text-xs font-medium text-blue-800 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded-md cursor-pointer px-2"
-                      >
-                        Growth
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ plan: "pro" })}
-                        className="h-6 text-xs font-medium text-purple-800 bg-purple-50 border-purple-200 hover:bg-purple-100 rounded-md cursor-pointer px-2"
-                      >
-                        Pro
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isExtending}
-                        onClick={() => handleControlPlan({ plan: "enterprise" })}
-                        className="h-6 text-xs font-medium text-amber-800 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-md cursor-pointer px-2"
-                      >
-                        Enterprise
-                      </Button>
+                    {/* Section 3: Lifecycle Actions */}
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Lifecycle Actions:
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {merchant.subscriptionStatus === "paused" ||
+                        merchant.paymentStatus !== "completed" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() =>
+                              handleControlPlan({ action: "resume" })
+                            }
+                            className="h-6 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 rounded-md cursor-pointer px-2"
+                          >
+                            ▶ Resume Plan
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isExtending}
+                            onClick={() =>
+                              handleControlPlan({ action: "pause" })
+                            }
+                            className="h-6 text-[11px] font-semibold text-amber-800 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-md cursor-pointer px-2"
+                          >
+                            ⏸ Pause Plan
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ action: "stop" })}
+                          className="h-6 text-[11px] font-semibold text-rose-800 bg-rose-50 border-rose-200 hover:bg-rose-100 rounded-md cursor-pointer px-2"
+                        >
+                          ⏹ Cancel Plan
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Section 4: Switch Plan Tier */}
+                    <div className="bg-white p-2 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Subscription Tier:
+                      </span>
+                      <div className="grid grid-cols-4 gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ plan: "starter" })}
+                          className="h-6 text-[11px] font-semibold text-slate-700 bg-slate-100 border-slate-200 hover:bg-slate-200 rounded-md cursor-pointer px-1"
+                        >
+                          Starter
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ plan: "growth" })}
+                          className="h-6 text-[11px] font-semibold text-blue-800 bg-blue-50 border-blue-200 hover:bg-blue-100 rounded-md cursor-pointer px-1"
+                        >
+                          Growth
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() => handleControlPlan({ plan: "pro" })}
+                          className="h-6 text-[11px] font-semibold text-purple-800 bg-purple-50 border-purple-200 hover:bg-purple-100 rounded-md cursor-pointer px-1"
+                        >
+                          Pro
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isExtending}
+                          onClick={() =>
+                            handleControlPlan({ plan: "enterprise" })
+                          }
+                          className="h-6 text-[11px] font-semibold text-amber-800 bg-amber-50 border-amber-200 hover:bg-amber-100 rounded-md cursor-pointer px-1"
+                        >
+                          Enterprise
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
 
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        {/* Fixed Sticky Action Bar at Bottom */}
+        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 border-t border-slate-200/80 bg-white/95 backdrop-blur shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2">
           <Button
             variant="outline"
             onClick={() => onAction(merchant._id, "rejected")}
-            className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200 text-xs font-normal rounded-lg cursor-pointer shadow-none gap-1.5 px-4"
+            className="w-full sm:w-auto h-9 bg-red-50 hover:bg-red-100 text-red-700 border-red-200 text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-4"
           >
-            <X className="w-4 h-4" /> Reject Application
+            <X className="w-3.5 h-3.5" /> Reject Application
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {(merchant.status === "pending" || !merchant.status) && (
               <Button
                 onClick={() => onAction(merchant._id, "form_accepted")}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-5"
+                className="flex-1 sm:flex-none h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-4"
               >
-                <Check className="w-4 h-4" /> Accept Form for Review
+                <Check className="w-3.5 h-3.5" /> Accept Form
               </Button>
             )}
 
-            {(merchant.status === "form_accepted" || merchant.status === "under_review" || merchant.status === "pending" || !merchant.status) && (
+            {(merchant.status === "form_accepted" ||
+              merchant.status === "under_review" ||
+              merchant.status === "pending" ||
+              !merchant.status) && (
               <Button
                 onClick={() => onAction(merchant._id, "approved")}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-5"
+                className="flex-1 sm:flex-none h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-none gap-1.5 px-4"
               >
-                <Check className="w-4 h-4" /> Approve & Activate Merchant
+                <Check className="w-3.5 h-3.5" /> Approve Partner
               </Button>
             )}
           </div>
