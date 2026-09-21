@@ -169,33 +169,35 @@ export default function MerchantKycDialog({
         {/* Scrollable Body Containing Compact Tabs & Content */}
         <div className="flex-1 overflow-y-auto px-3 py-2.5 sm:px-6 sm:py-4">
           <Tabs defaultValue="business" className="w-full text-xs space-y-3">
-            {/* Sleek Horizontal Scrollable Tabs on Mobile, Balanced 4-Col Grid on Desktop */}
-            <TabsList className="flex sm:grid sm:grid-cols-4 overflow-x-auto no-scrollbar bg-slate-100/90 p-1 rounded-xl gap-1 w-full shrink-0 border border-slate-200/60">
+            {/* 2x2 Grid Tabs on Mobile, 4-Col Grid on Desktop for Maximum Accessibility */}
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 bg-slate-100/90 p-1.5 rounded-xl gap-1.5 w-full shrink-0 border border-slate-200/60 h-auto">
               <TabsTrigger
                 value="business"
-                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+                className="text-xs font-semibold rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 h-auto data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all cursor-pointer"
               >
-                <Store className="w-3.5 h-3.5 shrink-0" /> Profile &amp;
-                Location
+                <Store className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Profile &amp; Location</span>
               </TabsTrigger>
               <TabsTrigger
                 value="legal"
-                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+                className="text-xs font-semibold rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 h-auto data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all cursor-pointer"
               >
-                <FileText className="w-3.5 h-3.5 shrink-0" /> Statutory KYC
+                <FileText className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Statutory KYC</span>
               </TabsTrigger>
               <TabsTrigger
                 value="visuals"
-                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+                className="text-xs font-semibold rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 h-auto data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all cursor-pointer"
               >
-                <ImageIcon className="w-3.5 h-3.5 shrink-0" /> Store Media
+                <ImageIcon className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Store Media</span>
               </TabsTrigger>
               <TabsTrigger
                 value="subscription"
-                className="flex-1 sm:flex-initial whitespace-nowrap text-xs font-semibold rounded-lg py-1.5 px-3 flex items-center justify-center gap-1.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all shrink-0 cursor-pointer"
+                className="text-xs font-semibold rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 h-auto data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-700 transition-all cursor-pointer"
               >
-                <CreditCard className="w-3.5 h-3.5 shrink-0" /> Plan &amp;
-                Billing
+                <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Plan &amp; Billing</span>
               </TabsTrigger>
             </TabsList>
 
