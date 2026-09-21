@@ -27,22 +27,18 @@ export async function getPromoBanners() {
     // Graceful cache miss
   }
 
-  const rawBanners = await PromoBanner.find({ status: "active" })
-    .limit(36)
+  const now = new Date();
+  const rawBanners = await PromoBanner.find({
+    status: "active",
+    $and: [
+      { $or: [{ startDate: null }, { startDate: { $lte: now } }] },
+      { $or: [{ endDate: null }, { endDate: { $gte: now } }] },
+    ],
+  })
+    .sort({ priority: -1, createdAt: -1 })
     .lean();
 
-  const now = new Date();
-  const banners = (rawBanners || [])
-    .filter((b) => {
-      if (b.startDate && new Date(b.startDate) > now) return false;
-      if (b.endDate && new Date(b.endDate) < now) return false;
-      return true;
-    })
-    .sort(
-      (a, b) =>
-        (b.priority || 0) - (a.priority || 0) ||
-        new Date(b.createdAt) - new Date(a.createdAt),
-    );
+  const banners = rawBanners || [];
 
   try {
     if (redis && redis.status === "ready") {
@@ -68,7 +64,10 @@ export async function getPromoBanners() {
 export async function invalidateBannersCache() {
   try {
     if (redis && redis.status === "ready") {
-      await redis.del(REDIS_KEYS.BANNERS);
+      await Promise.allSettled([
+        redis.del(REDIS_KEYS.BANNERS),
+        redis.del("vouchiqo:homepage:data:v3"),
+      ]);
     }
   } catch (err) {
     console.error("Redis error deleting promo banners cache:", err);

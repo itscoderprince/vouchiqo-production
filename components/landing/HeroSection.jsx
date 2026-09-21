@@ -52,11 +52,11 @@ export function HeroSection({ banners: initialBanners = [] }) {
         b.slot === "top" ||
         !b.slot,
     );
-    // Sort strictly by priority descending (highest priority first)
+    // Sort strictly by priority descending (highest priority first) - support all 50+ banners
     const sorted = [...dbBanners].sort(
       (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
     );
-    return sorted.slice(0, 8).map((b, idx) => ({ id: b._id || idx, ...b }));
+    return sorted.map((b, idx) => ({ id: b._id || idx, ...b }));
   }, [banners]);
 
   useEffect(() => {
@@ -389,22 +389,32 @@ export function HeroSection({ banners: initialBanners = [] }) {
             </>
           )}
 
-          {/* Pagination Dots */}
+          {/* Responsive Pagination: Dots if <= 10 slides, Sleek Pill Counter Badge if > 10 */}
           {slides.length > 1 && (
-            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2">
-              {slides.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleBrandClick(idx)}
-                  className={`h-1.5 sm:h-2 rounded-full transition-all border-0 cursor-pointer ${
-                    idx === currentSlide
-                      ? "bg-white w-4 sm:w-5"
-                      : "bg-white/40 hover:bg-white/60 w-1.5 sm:w-2"
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
+            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
+              {slides.length <= 10 ? (
+                <div className="flex gap-1.5 sm:gap-2">
+                  {slides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleBrandClick(idx)}
+                      className={`h-1.5 sm:h-2 rounded-full transition-all border-0 cursor-pointer ${
+                        idx === currentSlide
+                          ? "bg-white w-4 sm:w-5"
+                          : "bg-white/40 hover:bg-white/60 w-1.5 sm:w-2"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/65 backdrop-blur-md border border-white/20 text-white shadow-lg pointer-events-auto">
+                  <span className="text-[11px] sm:text-xs font-mono font-bold tracking-wider">
+                    {currentSlide + 1} <span className="text-white/50">/</span> {slides.length}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -432,7 +442,16 @@ export function HeroSection({ banners: initialBanners = [] }) {
           >
             {slides.map((brand, idx) => {
               const isActive = idx === currentSlide;
-              const titleText = brand.name || brand.title || `Slide ${idx + 1}`;
+              // Clean readable label from brand name, title, or link slug
+              let titleText = brand.name || brand.title || "";
+              if (!titleText && brand.link && brand.link !== "#") {
+                const parts = brand.link.replace(/\/+$/, "").split("/");
+                const last = parts[parts.length - 1];
+                if (last && !last.includes("?") && last.length < 30) {
+                  titleText = last.replace(/[-_]/g, " ");
+                }
+              }
+              if (!titleText) titleText = `Partner ${idx + 1}`;
               return (
                 <button
                   key={brand.id}
