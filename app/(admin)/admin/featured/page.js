@@ -440,13 +440,13 @@ export default function FeaturedDeals() {
                               {/* Offer Details */}
                               <td className="py-2 px-3">
                                 <div className="flex items-center gap-2">
-                                  {coupon.discountValue && (
-                                    <span className="bg-white/95 text-slate-800 border border-slate-300/90 font-medium text-[9.5px] px-1.5 py-0.2 rounded shadow-2xs shrink-0">
-                                      {coupon.discountType === "percentage"
-                                        ? `${coupon.discountValue}% OFF`
-                                        : `₹${coupon.discountValue} OFF`}
-                                    </span>
-                                  )}
+                                  {Number(coupon.discountValue) > 0
+                                    ? <span className="bg-white/95 text-slate-800 border border-slate-300/90 font-medium text-[9.5px] px-1.5 py-0.2 rounded shadow-2xs shrink-0">
+                                        {coupon.discountType === "percentage"
+                                          ? `${coupon.discountValue}% OFF`
+                                          : `₹${coupon.discountValue} OFF`}
+                                      </span>
+                                    : null}
                                   <div className="min-w-0">
                                     <span className="font-medium text-slate-900 text-[11.5px] leading-tight block truncate">
                                       {coupon.title}

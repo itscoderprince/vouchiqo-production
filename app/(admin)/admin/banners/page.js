@@ -3,6 +3,7 @@
 import {
   ArrowDown,
   ArrowUp,
+  ArrowRight,
   ArrowUpToLine,
   Check,
   CheckCircle2,
@@ -725,7 +726,7 @@ export default function BannerManagement() {
                   <Sliders className="w-3.5 h-3.5 text-blue-600" />
                   <h2 className="text-xs font-medium text-slate-900">
                     {editingId
-                      ? `Edit Banner â€” ${currentSlotConfig.label}`
+                      ? `Edit Banner — ${currentSlotConfig.label}`
                       : `Add Banner to ${currentSlotConfig.label}`}
                   </h2>
                   {editingId && (
@@ -1399,7 +1400,7 @@ export default function BannerManagement() {
                               </td>
 
                               {/* 2. Banner Preview & Details */}
-                              <td className="py-2 px-3">
+                              <td className="py-2 px-3 max-w-[280px] lg:max-w-[340px]">
                                 <div className="flex items-center gap-2.5">
                                   {r.image
                                     ? // biome-ignore lint/performance/noImgElement: banner thumbnail
@@ -1441,7 +1442,7 @@ export default function BannerManagement() {
                                           className="w-5 h-5 object-contain rounded border border-slate-200 p-0.5 bg-white shadow-2xs"
                                         />
                                       : <span className="text-[10px] text-slate-400">
-                                          â€”
+                                          —
                                         </span>}
                                   </div>
                                 </td>
@@ -1490,7 +1491,7 @@ export default function BannerManagement() {
                                             {r.buttonText}
                                           </span>
                                         : <span className="text-[10px] text-slate-400">
-                                            â€”
+                                            —
                                           </span>}
                                     </div>
                                   </td>
