@@ -11,7 +11,7 @@ const NOTIFICATION_COUNT = 2;
 export const Navbar = () => (
   <header className="w-full bg-white font-sans border-b border-slate-200/90 shadow-md shadow-slate-900/5 sticky top-0 z-50">
     <PromoBanner />
-    <div className="w-full px-4 py-3 flex items-center justify-between gap-4">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
       {/* Left: Logo */}
       <div className="flex items-center gap-3">
         <Logo />
@@ -43,7 +43,7 @@ export const Navbar = () => (
     </div>
 
     {/* Mobile Search Row (Mobile only) */}
-    <div className="block md:hidden px-4 pb-3">
+    <div className="block md:hidden px-4 pb-3 max-w-[1440px] mx-auto">
       <SearchBar />
     </div>
   </header>

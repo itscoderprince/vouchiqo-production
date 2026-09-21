@@ -66,10 +66,10 @@ export function AuthCard({
       <Navbar />
 
       {/* Centered main content area with dynamic min-height to push footer just below the viewport fold */}
-      <main className="flex-1 flex flex-col justify-start items-center pt-2 pb-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-30px)]">
+      <main className="flex-1 flex flex-col justify-center items-center py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 w-full max-w-[1440px] mx-auto">
         {/* Compact split-card container with less border radius (rounded-2xl) */}
         <div
-          className={`w-full ${maxWidth} bg-white dark:bg-zinc-950 border border-brand-border dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[460px] md:min-h-[500px]`}
+          className={`w-full ${maxWidth} bg-white dark:bg-zinc-950 border border-brand-border dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[460px] md:min-h-[500px] my-auto`}
         >
           {/* Left Visual Panel: Blue & White theme, clean with NO text overlays */}
           <div
