@@ -19,7 +19,7 @@ export async function claimCoupon(userId, couponId) {
   const coupon = await Coupon.findOne({
     _id: couponId,
     status: COUPON_STATUS.ACTIVE,
-    expiresAt: { $gt: new Date() },
+    $or: [{ expiresAt: { $gt: new Date() } }, { endDate: { $gt: new Date() } }],
   }).lean();
 
   if (!coupon) throw new NotFoundError("Coupon");
@@ -34,7 +34,9 @@ export async function claimCoupon(userId, couponId) {
   }
 
   // Check if user already claimed this coupon
-  const existingClaim = await Claim.findOne({ userId, couponId: coupon._id }).select("_id").lean();
+  const existingClaim = await Claim.findOne({ userId, couponId: coupon._id })
+    .select("_id")
+    .lean();
   if (existingClaim) {
     throw new AppError(
       "You have already saved/claimed this coupon",
@@ -73,7 +75,9 @@ export async function claimCoupon(userId, couponId) {
   });
 
   // Fetch Merchant for email details
-  const merchant = await Merchant.findById(coupon.merchantId).select("businessName").lean();
+  const merchant = await Merchant.findById(coupon.merchantId)
+    .select("businessName")
+    .lean();
 
   // Trigger Coupon Claimed Email to Customer
   if (userEmail) {
@@ -89,7 +93,10 @@ export async function claimCoupon(userId, couponId) {
           : `₹${coupon.discountValue} OFF`,
       validTill: coupon.expiresAt,
     }).catch((err) =>
-      logger.error({ err, userId, couponId }, "Coupon claimed email dispatch error"),
+      logger.error(
+        { err, userId, couponId },
+        "Coupon claimed email dispatch error",
+      ),
     );
   }
 

@@ -5,9 +5,7 @@ import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import Redemption from "@/modules/redemption/redemption.model";
 import UserProfile from "@/modules/user/user.model";
-import {
-  sendMerchantRedemptionNotificationEmail,
-} from "@/lib/email/merchant-email";
+import { sendMerchantRedemptionNotificationEmail } from "@/lib/email/merchant-email";
 import { sendUserCouponRedeemedEmail } from "@/lib/email/user-email";
 import { AppError, NotFoundError } from "@/utils/app-error";
 import { CLAIM_STATUS, COUPON_STATUS, REDIS_KEYS } from "@/utils/constants";
@@ -52,7 +50,10 @@ export async function redeemCoupon(userId, claimId, couponId) {
     const coupon = await Coupon.findOne({
       _id: couponId,
       status: COUPON_STATUS.ACTIVE,
-      expiresAt: { $gt: new Date() },
+      $or: [
+        { expiresAt: { $gt: new Date() } },
+        { endDate: { $gt: new Date() } },
+      ],
     }).lean();
 
     if (!coupon)
@@ -124,7 +125,9 @@ export async function redeemCoupon(userId, claimId, couponId) {
         offerTitle: coupon.title,
         customerName: userName,
         savingsGiven: savingsAmount,
-      }).catch((err) => console.error("[Merchant Redemption Email Error]:", err));
+      }).catch((err) =>
+        console.error("[Merchant Redemption Email Error]:", err),
+      );
     }
 
     // Increment counters atomically
@@ -240,11 +243,11 @@ export async function getMerchantRedemptions(merchantId, searchParams) {
                 $expr: {
                   $or: [
                     { $eq: ["$_id", "$userIdStr"] },
-                    { $eq: [{ $toString: "$_id" }, "$userIdStr"] }
-                  ]
-                }
-              }
-            }
+                    { $eq: [{ $toString: "$_id" }, "$userIdStr"] },
+                  ],
+                },
+              },
+            },
           ],
           as: "userProfile",
         },
@@ -255,7 +258,9 @@ export async function getMerchantRedemptions(merchantId, searchParams) {
           _id: 1,
           userId: {
             _id: { $ifNull: ["$userProfile._id", "$userId"] },
-            name: { $ifNull: ["$userProfile.name", "$userName", "Customer User"] },
+            name: {
+              $ifNull: ["$userProfile.name", "$userName", "Customer User"],
+            },
             email: { $ifNull: ["$userProfile.email", "$userEmail", ""] },
             image: "$userProfile.image",
           },
