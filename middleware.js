@@ -1,17 +1,17 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- * Vouchiqo Next.js Edge-Compatible Proxy Middleware
+ * Vouchiqo Next.js Edge-Compatible Route Guard Middleware
  * ─────────────────────────────────────────────────────────────────────────────
  *
- * Runs on Next.js Edge Runtime (100% compatible).
- * Uses fast cookie presence checking without importing Node.js DB drivers (MongoDB/BSON),
- * eliminating Edge Runtime process.getBuiltinModule errors completely.
+ * Runs on Next.js Edge Runtime.
+ * Intercepts unauthenticated navigation to protected dashboard namespaces
+ * and immediately redirects to login without rendering server-side component shells.
  */
 
 import { NextResponse } from "next/server";
 import { isProtectedRoute, ROUTES } from "./utils/routes";
 
-export async function proxy(request) {
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   // ── Step 1: Check session token cookie presence ──────────────────────────
@@ -30,11 +30,10 @@ export async function proxy(request) {
   }
 
   // ── Step 3: Authenticated user — allow request to proceed ──────────────
-  // Fine-grained role validation is enforced by DashboardLayout & Page components on Node.js runtime
   return NextResponse.next();
 }
 
-export default proxy;
+export default middleware;
 
 export const config = {
   matcher: [
@@ -42,19 +41,7 @@ export const config = {
     "/admin/:path*",
     "/merchant/:path*",
     "/customer/:path*",
+    "/profile",
     "/profile/:path*",
-
-    // Auth callback
-    "/auth/:path*",
-
-    // Auth pages
-    "/login",
-    "/register",
-    "/admin-login",
-    "/merchant-login",
-    "/merchant-register",
-    "/forgot-password",
-    "/reset-password",
-    "/verify-otp",
   ],
 };

@@ -60,3 +60,7 @@ parse_docs.mjs
 parse_docs.js
 
 /project_docs/
+
+# Credentials and sensitive notes
+details.md
+credentials.md

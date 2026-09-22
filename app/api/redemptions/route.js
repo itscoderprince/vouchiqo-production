@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
 import { dispatchEvent } from "@/lib/socket/dispatcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
-import { requireAuth } from "@/modules/auth/auth.middleware";
+import { rateLimit, requireAuth } from "@/modules/auth/auth.middleware";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import {
@@ -46,6 +46,7 @@ export const GET = asyncHandler(async (request) => {
 export const POST = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireAuth(request);
+  await rateLimit(request, "POST:/api/redemptions", 20, 60);
 
   const body = await request.json();
   const { claimId, couponId } = redeemSchema.parse(body);

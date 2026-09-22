@@ -205,6 +205,14 @@ export async function POST(request) {
           email === adminEmail &&
           password === adminPassword
         ) {
+          if (
+            process.env.NODE_ENV === "production" &&
+            adminPassword === "Admin@123!"
+          ) {
+            console.error(
+              "[CRITICAL SECURITY WARNING] Default ADMIN_PASSWORD 'Admin@123!' detected in production! Please rotate ADMIN_PASSWORD immediately.",
+            );
+          }
           await connectDB();
           const db = mongoose.connection.db;
 
