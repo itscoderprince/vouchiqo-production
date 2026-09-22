@@ -741,7 +741,7 @@ export default function CategoryClient({
     <div className="w-full bg-[#f8fafc] text-slate-900 font-sans min-h-screen pb-16 select-none relative">
       {/* ── 1. COMPACT HERO HEADER ── */}
       <div className="bg-white border-b border-slate-200/90 px-4 sm:px-6 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           {/* Breadcrumbs */}
           <nav
             aria-label="Breadcrumb"
@@ -802,7 +802,7 @@ export default function CategoryClient({
       </div>
 
       {/* ── 2. MAIN 2-COLUMN E-COMMERCE LAYOUT ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-5">
+      <div className="w-full px-4 sm:px-6 md:px-8 py-5">
         <div className="flex items-start gap-6">
           {/* ── LEFT DESKTOP FILTER SIDEBAR ── */}
           <aside className="w-64 lg:w-72 shrink-0 hidden md:block bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
@@ -1040,7 +1040,7 @@ export default function CategoryClient({
                   <span>Promo Codes ({filteredCoupons.length})</span>
                 </h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
                   {filteredCoupons.map((coupon) => {
                     const merchantName =
                       coupon.merchantId?.businessName ||
@@ -1172,7 +1172,7 @@ export default function CategoryClient({
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-3.5 sm:gap-4">
                   {filteredAffiliate.map((product, idx) => (
                     <ProductOfferCard
                       key={product._id || idx}
@@ -1272,7 +1272,7 @@ export default function CategoryClient({
       )}
 
       {/* ── 4. TRUST & SAVINGS GUIDE / FAQS SECTION ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-12">
+      <div className="w-full px-4 sm:px-6 md:px-8 mt-12">
         <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/80 shadow-2xs">
           <div className="mb-4 text-left">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#F72853] bg-rose-50 px-2.5 py-0.5 rounded-full mb-1">
