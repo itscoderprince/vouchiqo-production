@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowUpRight, Flame, ShieldCheck, Sparkles } from "lucide-react";
 import SafeImage from "@/components/shared/SafeImage";
+import { ArrowUpRight, Flame, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function ProductOfferCard({ product }) {
   if (!product) return null;
@@ -50,20 +50,10 @@ export default function ProductOfferCard({ product }) {
     productImage ||
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
 
-  const numOrig =
-    typeof originalPrice === "number"
-      ? originalPrice
-      : Number(originalPrice) || 0;
-  const numDisc =
-    typeof discountPrice === "number"
-      ? discountPrice
-      : Number(discountPrice) || 0;
-  const savings =
-    numOrig > 0 && numDisc > 0 ? Math.max(0, numOrig - numDisc) : 0;
-  const computedPercent =
-    numOrig > 0 && numDisc > 0
-      ? Math.round((savings / numOrig) * 100)
-      : discountPercentage || 0;
+  const numOrig = typeof originalPrice === "number" ? originalPrice : (Number(originalPrice) || 0);
+  const numDisc = typeof discountPrice === "number" ? discountPrice : (Number(discountPrice) || 0);
+  const savings = numOrig > 0 && numDisc > 0 ? Math.max(0, numOrig - numDisc) : 0;
+  const computedPercent = numOrig > 0 && numDisc > 0 ? Math.round((savings / numOrig) * 100) : (discountPercentage || 0);
 
   // Clean discount badge label
   let badgeLabel = null;
@@ -209,7 +199,9 @@ export default function ProductOfferCard({ product }) {
               <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
               <span>Verified Deal</span>
             </div>
-            <span className="inline-flex items-center justify-center gap-1 h-8 sm:h-8.5 px-3.5 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#F72853] via-[#fa3b63] to-[#E11D48] group-hover:from-[#E11D48] group-hover:to-[#be123c] shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 active:scale-[0.98] transition-all duration-200 shrink-0">
+            <span
+              className="inline-flex items-center justify-center gap-1 h-8 sm:h-8.5 px-3.5 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#F72853] via-[#fa3b63] to-[#E11D48] group-hover:from-[#E11D48] group-hover:to-[#be123c] shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 active:scale-[0.98] transition-all duration-200 shrink-0"
+            >
               <span>Grab Offer</span>
               <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.2] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </span>
