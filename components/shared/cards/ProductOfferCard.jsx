@@ -67,10 +67,10 @@ export default function ProductOfferCard({ product }) {
 
   // Floating discount badge on image
   let badgeLabel = null;
-  if (discountText?.trim()) {
-    badgeLabel = discountText.trim();
-  } else if (computedPercent > 0 && computedPercent <= 100) {
+  if (computedPercent > 0 && computedPercent <= 100) {
     badgeLabel = `${computedPercent}% OFF`;
+  } else if (discountText?.trim()) {
+    badgeLabel = discountText.trim();
   } else if (numDisc > 0 && numOrig > numDisc) {
     badgeLabel = `SAVE ₹${savings.toLocaleString("en-IN")}`;
   }
@@ -107,103 +107,92 @@ export default function ProductOfferCard({ product }) {
       onClick={handleClick}
       target={affiliateUrl?.startsWith("http") ? "_blank" : "_self"}
       rel="noopener noreferrer"
-      className="group relative flex flex-col rounded-2xl no-underline cursor-pointer border border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_28px_rgba(247,40,83,0.12)] hover:border-rose-300 hover:-translate-y-1 transition-all duration-300 select-none text-left overflow-hidden h-full"
+      className="group relative flex flex-col rounded-xl no-underline cursor-pointer border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.05)] hover:shadow-[0_10px_25px_rgba(15,23,42,0.09)] hover:border-rose-300 hover:-translate-y-1 transition-all duration-200 select-none text-left overflow-hidden h-full"
     >
-      {/* ===== Banner Header with Floating Discount Badge ===== */}
-      <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-50 shrink-0 flex items-center justify-center">
-        {/* Ambient subtle blur layer */}
+      {/* ===== Product Banner Image - 16:10 native aspect ratio for promotional banners ===== */}
+      <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100/70 shrink-0">
         <SafeImage
           src={coverImage}
-          alt=""
+          alt={title || "Offer banner"}
           fill
-          className="object-cover blur-md scale-110 opacity-20 pointer-events-none"
-          aria-hidden="true"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-[1.04] select-none pointer-events-none"
         />
 
-        {/* Main crisp banner image with gentle zoom on hover */}
-        <SafeImage
-          src={coverImage}
-          alt={title || "Affiliate product"}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="relative z-1 object-contain transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none p-1"
-        />
+        {/* Subtle bottom vignette to ensure contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60 pointer-events-none" />
 
-        {/* Floating Discount Badge on Image (Top-Left) */}
+        {/* Floating discount badge - top-left */}
         {badgeLabel && (
-          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-gradient-to-r from-[#F72853] to-[#FF4D6D] text-white text-[10px] sm:text-[10.5px] font-bold px-2.5 py-0.5 rounded-full shadow-xs tracking-tight">
-            <Flame className="w-2.5 h-2.5 fill-white text-white" />
+          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-[#F72853] text-white text-[10.5px] font-bold px-2 py-0.5 rounded shadow-sm leading-none tracking-wide">
+            <Flame className="w-2.5 h-2.5 fill-white text-white shrink-0" />
             <span>{badgeLabel}</span>
           </div>
         )}
       </div>
 
-      {/* ===== Card Content Box ===== */}
-      <div className="relative flex-1 flex flex-col justify-between bg-white p-3 sm:p-3.5 font-sans">
-        <div>
-          {/* Brand Row with the ONLY Verified badge on the card */}
-          <div className="flex items-center justify-between gap-1.5 mb-1.5">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-5 h-5 rounded-full border border-slate-200/90 bg-white shadow-2xs overflow-hidden shrink-0 p-0.5 flex items-center justify-center">
-                <SafeImage
-                  src={merchantLogo}
-                  alt={merchantName || "Merchant"}
-                  width={20}
-                  height={20}
-                  className="w-full h-full object-contain rounded-full select-none pointer-events-none"
-                />
-              </div>
-              <span className="text-[11.5px] sm:text-xs font-semibold text-slate-800 truncate">
-                {merchantName}
-              </span>
-              <ShieldCheck
-                className="w-3.5 h-3.5 text-emerald-600 shrink-0"
-                title="Verified Store Offer"
+      {/* ===== Card Body ===== */}
+      <div className="flex-1 flex flex-col p-3.5 gap-2">
+        {/* Brand / Merchant Row */}
+        <div className="flex items-center justify-between gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <div className="w-4 h-4 rounded-full border border-slate-200 bg-white overflow-hidden shrink-0 flex items-center justify-center p-0.5">
+              <SafeImage
+                src={merchantLogo}
+                alt={merchantName || "Merchant"}
+                width={16}
+                height={16}
+                className="w-full h-full object-contain rounded-full select-none pointer-events-none"
               />
             </div>
-            <span className="text-[9.5px] text-slate-400 font-medium shrink-0">
-              Online Deal
+            <span className="text-[11px] font-medium text-slate-500 truncate leading-none">
+              {merchantName}
             </span>
+            <ShieldCheck
+              className="w-3 h-3 text-emerald-500 shrink-0"
+              title="Verified Store"
+            />
           </div>
-
-          {/* Product Title with fixed min-height for uniform row alignment */}
-          <div className="mb-2">
-            <h3 className="text-left text-xs sm:text-[13px] font-semibold text-slate-900 group-hover:text-[#F72853] transition-colors leading-snug line-clamp-2 min-h-[34px]">
-              {title}
-            </h3>
-          </div>
-
-          {/* Price & Value Display (Clean, never duplicating "Verified") */}
-          <div className="flex items-baseline flex-wrap gap-1.5 mb-2.5 min-h-[22px]">
-            {numDisc > 0 ? (
-              <>
-                <span className="text-sm sm:text-[15px] font-bold text-slate-900 tracking-tight">
-                  ₹{numDisc.toLocaleString("en-IN")}
-                </span>
-                {numOrig > numDisc && (
-                  <span className="text-[11px] text-slate-400 font-normal line-through">
-                    ₹{numOrig.toLocaleString("en-IN")}
-                  </span>
-                )}
-                {savings > 0 && (
-                  <span className="text-[9.5px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
-                    Save ₹{savings.toLocaleString("en-IN")}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-[11.5px] sm:text-xs font-semibold text-[#F72853] bg-rose-50/70 border border-rose-200/60 px-2 py-0.5 rounded-md">
-                {discountText?.trim() ? discountText : "Exclusive Deal"}
-              </span>
-            )}
-          </div>
+          <span className="text-[10px] text-slate-400 font-normal shrink-0">
+            Verified Deal
+          </span>
         </div>
 
-        {/* ===== Ergonomic Full-Width CTA Button (No redundant filler text) ===== */}
-        <div className="pt-2 border-t border-slate-100/90 mt-auto">
-          <span className="flex items-center justify-center gap-1.5 w-full h-8.5 sm:h-9 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[#F72853] via-[#fa3b63] to-[#E11D48] group-hover:from-[#E11D48] group-hover:to-[#be123c] shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 active:scale-[0.98] transition-all duration-200">
+        {/* Product Title - 2-line clamp, high contrast readability */}
+        <h3 className="text-[13.5px] font-semibold text-slate-900 group-hover:text-[#F72853] transition-colors leading-[1.35] line-clamp-2 min-h-[36px]">
+          {title}
+        </h3>
+
+        {/* Price & Value Block */}
+        <div className="flex items-baseline gap-1.5 flex-wrap min-h-[22px]">
+          {numDisc > 0 ? (
+            <>
+              <span className="text-[16px] font-bold text-slate-900 tracking-tight leading-none">
+                ₹{numDisc.toLocaleString("en-IN")}
+              </span>
+              {numOrig > numDisc && (
+                <span className="text-[11.5px] text-slate-400 line-through leading-none">
+                  ₹{numOrig.toLocaleString("en-IN")}
+                </span>
+              )}
+              {savings > 0 && (
+                <span className="text-[10.5px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded leading-none">
+                  Save ₹{savings.toLocaleString("en-IN")}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-[11.5px] font-semibold text-[#F72853] bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-md leading-none">
+              {discountText?.trim() ? discountText : "Exclusive Deal"}
+            </span>
+          )}
+        </div>
+
+        {/* CTA - Proportional Fitts's Law Target */}
+        <div className="mt-auto pt-1.5">
+          <span className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg text-xs font-semibold text-white bg-[#F72853] group-hover:bg-[#E01E47] active:scale-[0.98] transition-all duration-150 shadow-[0_2px_6px_rgba(247,40,83,0.22)] group-hover:shadow-[0_4px_12px_rgba(247,40,83,0.32)]">
             <span>Grab Offer</span>
-            <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.2] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.2] transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </div>
       </div>
