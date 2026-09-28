@@ -26,7 +26,6 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
-    "exceljs": "^4.4.0",
     "firebase": "^11.10.0",
     "firebase-admin": "^13.10.0",
     "input-otp": "^1.4.2",

@@ -104,30 +104,6 @@ export default function AdminMerchantsClient({
 
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExportExcel = async () => {
-    try {
-      setIsExporting(true);
-      const res = await fetch("/api/admin/merchants/export");
-      if (!res.ok) throw new Error("Export request failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Vouchiqo_Merchants_Cumulative_${new Date().toISOString().slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success("Merchants list exported successfully!");
-    } catch (err) {
-      console.error("[Export Error]:", err);
-      toast.error("Failed to export merchants list.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const stats = useMemo(() => {
     const total = merchants.length;
