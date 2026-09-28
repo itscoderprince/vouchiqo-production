@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,7 +9,7 @@ import {
   Calendar,
   CheckCircle2,
   CreditCard,
-  Download,
+  FileSpreadsheet,
   Edit2,
   Loader2,
   Percent,
@@ -353,7 +353,7 @@ export default function MerchantAffiliatesPage() {
               onClick={handleExportCSV}
               className="text-xs h-8.5 font-medium rounded-xl border-slate-200 hover:border-slate-300 text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
             >
-              <Download className="w-3.5 h-3.5 text-[#F72853]" />
+              <FileSpreadsheet className="w-3.5 h-3.5 text-[#F72853]" />
               <span>Export CSV</span>
             </Button>
             <Button

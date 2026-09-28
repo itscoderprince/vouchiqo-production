@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 import {
   Ban,
   CheckCircle2,
-  Download,
+  FileSpreadsheet,
   Mail,
   RefreshCw,
   Search,
@@ -395,7 +395,7 @@ export default function UserManagement() {
                 {exporting ? (
                   <RefreshCw className="w-3 h-3 animate-spin" />
                 ) : (
-                  <Download className="w-3 h-3" />
+                  <FileSpreadsheet className="w-3 h-3" />
                 )}
                 <span>Export CSV</span>
               </Button>

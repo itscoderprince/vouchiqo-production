@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import {
   ArrowUpRight,
   CheckCircle2,
   CreditCard,
-  Download,
+  FileSpreadsheet,
   FileText,
   Layers,
   Percent,
@@ -207,7 +207,7 @@ export default function AdminCampaignRevenuePage() {
                 onClick={handleExportCsv}
                 className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
               >
-                <Download className="w-3 h-3 text-blue-600" />
+                <FileSpreadsheet className="w-3 h-3 text-blue-600" />
                 <span>Export CSV</span>
               </Button>
             </div>

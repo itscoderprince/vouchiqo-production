@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   Clock,
   ExternalLink,
   Eye,
+  FileSpreadsheet,
   FileText,
   RefreshCw,
   ShieldCheck,
@@ -37,6 +38,7 @@ import { useAdminMerchants, useReviewMerchant } from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
+import { exportToCsv } from "@/lib/exportCsv";
 import { cn } from "@/lib/utils";
 import MerchantKycDialog from "../../approvals/merchants/components/MerchantKycDialog";
 
@@ -153,6 +155,34 @@ export default function AdminMerchantsClient({
   const getMerchantRowColor = (row, index) => {
     const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
     return cn("transition-all", theme.row);
+  };
+
+  const handleExportCsv = () => {
+    if (!merchants.length) return toast.error("No merchant data to export.");
+    const headers = [
+      "Brand Name",
+      "Category",
+      "City",
+      "Plan",
+      "Status",
+      "Contact Email",
+      "Phone",
+      "Revenue (INR)",
+      "Registered On",
+    ];
+    const rows = merchants.map((m) => [
+      m.businessName || "",
+      m.category || "General",
+      m.location?.city || m.city || "",
+      (m.subscriptionTier || m.plan || "starter").toUpperCase(),
+      m.status || "",
+      m.userId?.email || m.contactEmail || "",
+      (m.phone || m.contactPhone) ? ("=\"" + (m.phone || m.contactPhone) + "\"") : "",
+      m.totalRevenue ?? 0,
+      m.createdAt ? new Date(m.createdAt).toLocaleDateString("en-IN") : "",
+    ]);
+    exportToCsv(headers, rows, "vouchiqo_merchants");
+    toast.success("Exported " + merchants.length + " merchants to CSV!");
   };
 
   // Socket listener for real-time applications and status updates
@@ -540,16 +570,28 @@ export default function AdminMerchantsClient({
               {description}
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isLoading}
-            className="self-start sm:self-auto gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
-          >
-            <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Refresh Queue</span>
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              disabled={isLoading || !merchants.length}
+              className="gap-1.5 h-7.5 px-3 text-xs font-medium border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+            >
+              <FileSpreadsheet className="h-3 w-3" />
+              <span>Export CSV</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="gap-1.5 h-7.5 px-3 text-xs font-medium border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-lg shrink-0 cursor-pointer shadow-2xs"
+            >
+              <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </Button>
+          </div>
         </div>
 
         {/* 4 Mini KPI Overview Cards */}
