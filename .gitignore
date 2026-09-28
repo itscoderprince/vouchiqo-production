@@ -64,3 +64,5 @@ parse_docs.js
 # Credentials and sensitive notes
 details.md
 credentials.md
+
+*.xlsx
