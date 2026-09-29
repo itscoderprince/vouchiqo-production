@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -11,7 +11,7 @@ import { qk } from "@/lib/query-keys";
  */
 function invalidateCouponCaches(queryClient, id) {
   queryClient.invalidateQueries({ queryKey: qk.coupons.all() });
-  // Merchant list key — invalidate without the merchantId arg so all variants refresh.
+  // Merchant list key â€” invalidate without the merchantId arg so all variants refresh.
   queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
   if (id) {
     queryClient.invalidateQueries({ queryKey: qk.merchant.coupon(id) });
@@ -32,9 +32,8 @@ export function useMerchantCoupons(merchantId) {
       );
       return json.data?.coupons || [];
     },
-    staleTime: 5_000,
-    refetchInterval: 3_000,
-    refetchOnWindowFocus: true,
+    staleTime: 30_000,        // real-time updates handled by socket invalidation
+    refetchOnWindowFocus: false,
   });
 }
 

@@ -15,19 +15,28 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const ClicksTrendChart = dynamic(
+  () => import("./components/ClicksTrendChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-56 w-full rounded-xl bg-slate-100 animate-pulse" />
+    ),
+  }
+);
+
+const BestDaysChart = dynamic(
+  () => import("./components/BestDaysChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-52 w-full rounded-xl bg-slate-100 animate-pulse" />
+    ),
+  }
+);
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import KPICard from "@/components/shared/cards/KPICard";
 import AnalyticsCard from "@/components/shared/data/AnalyticsCard";
@@ -461,51 +470,9 @@ export default function MerchantAnalytics() {
               </div>
 
               <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={trendData}
-                    margin={{ top: 5, right: 10, left: -15, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="#f1f5f9"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="label"
-                      stroke="#94a3b8"
-                      fontSize={11}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      stroke="#94a3b8"
-                      fontSize={10}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip {...TOOLTIP_STYLE} />
-                    <Line
-                      type="monotone"
-                      dataKey="clicks"
-                      stroke="#2563eb"
-                      strokeWidth={2.5}
-                      dot={{ r: 3, fill: "#2563eb" }}
-                      activeDot={{ r: 5 }}
-                      name="Clicks"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="redemptions"
-                      stroke="#0f172a"
-                      strokeWidth={2.5}
-                      dot={{ r: 3, fill: "#0f172a" }}
-                      activeDot={{ r: 5 }}
-                      name="Redemptions"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <ClicksTrendChart data={trendData} />
               </div>
+
             </AnalyticsCard>
           </div>
 
@@ -598,49 +565,9 @@ export default function MerchantAnalytics() {
             }
           >
             <div className="h-52 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={dayData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#f1f5f9"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="day"
-                    stroke="#94a3b8"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    stroke="#94a3b8"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    {...TOOLTIP_STYLE}
-                    formatter={(v) => [v, "Redemptions"]}
-                  />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={26}>
-                    {dayData.map((d, i) => (
-                      <Cell
-                        key={i}
-                        fill={
-                          d.value > 0 &&
-                          d.value === Math.max(...dayData.map((x) => x.value))
-                            ? "#2563eb"
-                            : "#93c5fd"
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <BestDaysChart data={dayData} />
             </div>
+
           </AnalyticsCard>
         </div>
 

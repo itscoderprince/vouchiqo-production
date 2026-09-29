@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Analytics BullMQ Worker
  *
  * Processes background jobs queued by the analytics queue.
@@ -25,9 +25,9 @@ import mongoose from "mongoose";
 import { createQueueConnection } from "../lib/redis.js";
 import { JOB_NAMES, QUEUE_NAMES } from "../utils/constants.js";
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Bootstrap DB connection
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -42,9 +42,9 @@ async function connectDB() {
   console.log("[analytics-worker] MongoDB connected");
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Inline Models
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const couponSchema = new mongoose.Schema(
   {
@@ -119,9 +119,9 @@ async function recordDailyEvent({
   await AnalyticsEvent.updateOne(filter, { $inc: { count } }, { upsert: true });
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Worker
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const connection = createQueueConnection();
 
@@ -134,7 +134,7 @@ export const worker = new Worker(
     switch (job.name) {
       case JOB_NAMES.RECORD_VIEW: {
         if (!couponId) return;
-        await Coupon.findByIdAndUpdate(couponId, { $inc: { viewCount: 1 } });
+        await Coupon.updateOne({ _id: couponId }, { $inc: { viewCount: 1 } });
         break;
       }
 
@@ -147,9 +147,7 @@ export const worker = new Worker(
           );
           const derivedMerchantId = merchantId || coupon?.merchantId;
           if (derivedMerchantId) {
-            await Merchant.findByIdAndUpdate(derivedMerchantId, {
-              $inc: { totalImpressions: 1 },
-            });
+            await Merchant.updateOne({ _id: derivedMerchantId }, { $inc: { totalImpressions: 1 } });
           }
           await recordDailyEvent({
             merchantId: derivedMerchantId,
@@ -158,9 +156,7 @@ export const worker = new Worker(
             source,
           });
         } else if (merchantId) {
-          await Merchant.findByIdAndUpdate(merchantId, {
-            $inc: { totalImpressions: 1 },
-          });
+          await Merchant.updateOne({ _id: merchantId }, { $inc: { totalImpressions: 1 } });
           await recordDailyEvent({
             merchantId,
             couponId: null,
@@ -180,9 +176,7 @@ export const worker = new Worker(
           );
           const derivedMerchantId = merchantId || coupon?.merchantId;
           if (derivedMerchantId) {
-            await Merchant.findByIdAndUpdate(derivedMerchantId, {
-              $inc: { totalClicks: 1 },
-            });
+            await Merchant.updateOne({ _id: derivedMerchantId }, { $inc: { totalClicks: 1 } });
           }
           await recordDailyEvent({
             merchantId: derivedMerchantId,
@@ -191,9 +185,7 @@ export const worker = new Worker(
             source,
           });
         } else if (merchantId) {
-          await Merchant.findByIdAndUpdate(merchantId, {
-            $inc: { totalClicks: 1 },
-          });
+          await Merchant.updateOne({ _id: merchantId }, { $inc: { totalClicks: 1 } });
           await recordDailyEvent({
             merchantId,
             couponId: null,
@@ -223,9 +215,7 @@ export const worker = new Worker(
 
       case JOB_NAMES.RECORD_STORE_VIEW: {
         if (merchantId) {
-          await Merchant.findByIdAndUpdate(merchantId, {
-            $inc: { storePageViews: 1 },
-          });
+          await Merchant.updateOne({ _id: merchantId }, { $inc: { storePageViews: 1 } });
           await recordDailyEvent({
             merchantId,
             couponId: null,

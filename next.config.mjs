@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
@@ -19,7 +19,21 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "recharts", "radix-ui", "@tanstack/react-query"],
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "radix-ui",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-label",
+      "@radix-ui/react-slot",
+      "@tanstack/react-query",
+    ],
   },
   async headers() {
     // In development mode, disable custom headers to avoid blocking dev webviews or popups
