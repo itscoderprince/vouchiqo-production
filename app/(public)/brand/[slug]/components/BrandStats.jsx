@@ -5,28 +5,41 @@ import { Percent, ShoppingBag, Store, Tag } from "lucide-react";
 export default function BrandStats({
   coupons = [],
   merchant = {},
+  affiliateProducts = [],
   affiliateCount = 0,
 }) {
-  const totalOffersCount = (coupons?.length || 0) + affiliateCount;
+  const actualAffiliateCount = affiliateCount || affiliateProducts?.length || 0;
+  const totalOffersCount = (coupons?.length || 0) + actualAffiliateCount;
 
-  const pctArr = coupons
-    .filter(
-      (c) =>
-        c.discountType === "percentage" &&
-        c.discountValue !== null &&
-        c.discountValue !== undefined &&
-        !Number.isNaN(Number(c.discountValue)),
-    )
-    .map((c) => Number(c.discountValue));
-  const fixedArr = coupons
-    .filter(
-      (c) =>
-        c.discountType === "fixed" &&
-        c.discountValue !== null &&
-        c.discountValue !== undefined &&
-        !Number.isNaN(Number(c.discountValue)),
-    )
-    .map((c) => Number(c.discountValue));
+  const pctArr = [
+    ...coupons
+      .filter(
+        (c) =>
+          c.discountType === "percentage" &&
+          c.discountValue !== null &&
+          c.discountValue !== undefined &&
+          !Number.isNaN(Number(c.discountValue)),
+      )
+      .map((c) => Number(c.discountValue)),
+    ...affiliateProducts
+      .filter((p) => p.discountPercentage && !Number.isNaN(Number(p.discountPercentage)))
+      .map((p) => Number(p.discountPercentage)),
+  ];
+
+  const fixedArr = [
+    ...coupons
+      .filter(
+        (c) =>
+          c.discountType === "fixed" &&
+          c.discountValue !== null &&
+          c.discountValue !== undefined &&
+          !Number.isNaN(Number(c.discountValue)),
+      )
+      .map((c) => Number(c.discountValue)),
+    ...affiliateProducts
+      .filter((p) => p.originalPrice && p.discountPrice && p.originalPrice > p.discountPrice)
+      .map((p) => Number(p.originalPrice - p.discountPrice)),
+  ];
   const hasFreebie = coupons.some((c) => c.discountType === "freebie");
 
   let discountLabel = "See Deals";

@@ -1,15 +1,47 @@
 // components/landing/PopularStores.jsx
 "use client";
 
-import { ChevronLeft, ChevronRight, Percent, Tag } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
+import SafeImage from "@/components/shared/SafeImage";
+import TwitterVerifiedBadge from "@/components/shared/TwitterVerifiedBadge";
+
+const CATEGORY_FALLBACK_BANNERS = {
+  jewellery:
+    "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=600&auto=format&fit=crop",
+  fashion:
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600&auto=format&fit=crop",
+  electronics:
+    "https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=600&auto=format&fit=crop",
+  beauty:
+    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=600&auto=format&fit=crop",
+  food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop",
+  grocery:
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop",
+  fitness:
+    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop",
+  home: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop",
+  "home-improvement":
+    "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop",
+  travel:
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=600&auto=format&fit=crop",
+  education:
+    "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=600&auto=format&fit=crop",
+};
+
+const DEFAULT_BANNER =
+  "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop";
 
 export default function PopularStores({ merchants = [] }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Map database merchants into standard structure
+  // Map database merchants into standard structure with fallback support
   const finalStoresList = useMemo(() => {
     return (merchants || []).map((m) => {
       const rawCat = m.category || "Deals";
@@ -21,7 +53,7 @@ export default function PopularStores({ merchants = [] }) {
         logo: m.logo || "/placeholder-brand.png",
         href: `/brand/${m.slug}`,
         coupons: m.totalCoupons || 0,
-        banner: m.banner,
+        banner: m.banner || m.shopImage,
         category: cleanCat,
         discount: m.maxDiscount
           ? `Up to ${m.maxDiscount}% OFF`
@@ -34,9 +66,15 @@ export default function PopularStores({ merchants = [] }) {
     });
   }, [merchants]);
 
-  // Store of the Month (Prioritize merchant with active coupons and complete branding)
+  // Store of the Month (Prioritize merchant with active coupons, logo, and banner/shopImage)
   const storeOfTheMonth = useMemo(() => {
     return (
+      merchants.find(
+        (m) =>
+          (m.totalCoupons || 0) > 0 &&
+          m.logo &&
+          (m.banner || m.shopImage),
+      ) ||
       merchants.find((m) => (m.totalCoupons || 0) > 0 && m.logo) ||
       merchants.find((m) => (m.totalCoupons || 0) > 0) ||
       merchants.find((m) => (m.totalRedemptions || 0) > 0) ||
@@ -51,17 +89,16 @@ export default function PopularStores({ merchants = [] }) {
   const somCategory = storeOfTheMonth?.category
     ? `${storeOfTheMonth.category.charAt(0).toUpperCase() + storeOfTheMonth.category.slice(1).toLowerCase()} Deals`
     : "Verified Deals";
+  const somCatKey = (storeOfTheMonth?.category || "").toLowerCase().trim();
+  const somFallback = CATEGORY_FALLBACK_BANNERS[somCatKey] || DEFAULT_BANNER;
   const somBanner =
     storeOfTheMonth?.banner ||
-    "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=600&auto=format&fit=crop";
+    storeOfTheMonth?.shopImage ||
+    somFallback;
   const somLogo = storeOfTheMonth?.logo || "/placeholder-brand.png";
   const somHref = storeOfTheMonth ? `/brand/${storeOfTheMonth.slug}` : "/deals";
   const somCoupons = storeOfTheMonth ? storeOfTheMonth.totalCoupons || 0 : 0;
-  const somOffers = storeOfTheMonth
-    ? (storeOfTheMonth.totalCoupons || 0) +
-      (storeOfTheMonth.totalRedemptions || 0)
-    : 0;
-  const somDiscount = storeOfTheMonth?.maxDiscount
+  const somMaxDiscount = storeOfTheMonth?.maxDiscount
     ? `Up to ${storeOfTheMonth.maxDiscount}% OFF`
     : null;
 
@@ -167,7 +204,7 @@ export default function PopularStores({ merchants = [] }) {
           <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#F72853] tracking-tight">
             Popular Stores
           </h2>
-          <span className="text-[10.5px] sm:text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+          <span className="text-[10.5px] sm:text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
             {finalStoresList.length} Stores
           </span>
         </div>
@@ -219,68 +256,102 @@ export default function PopularStores({ merchants = [] }) {
         <div className="w-full lg:w-1/4 shrink-0 flex flex-col self-stretch">
           <Link
             href={somHref}
-            className="flex-1 relative flex flex-col justify-between no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200/90 bg-white shadow-2xs group transition-all duration-200 hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] h-full min-h-[160px] sm:min-h-[220px]"
+            className="flex-1 relative flex flex-col no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200/90 bg-white shadow-2xs group transition-all duration-300 hover:shadow-[0_12px_28px_rgba(247,40,83,0.16)] hover:border-[#F72853]/60 h-full min-h-[380px] sm:min-h-[460px] lg:min-h-0"
           >
-            {/* Background photo + scrim */}
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-              style={{ backgroundImage: `url(${somBanner})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/30 via-slate-900/10 to-white pointer-events-none" />
+            {/* 1. Hero Visual Cover (Rich, vibrant banner - 100% opacity with subtle dark scrim) */}
+            <div className="relative w-full h-44 sm:h-48 md:h-52 overflow-hidden bg-slate-900 shrink-0">
+              <SafeImage
+                src={somBanner}
+                alt={somName}
+                fill
+                priority
+                fallbackSrc={somFallback}
+                sizes="(max-width: 1024px) 100vw, 25vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              {/* Soft dark gradient: protects badge legibility while keeping banner imagery vibrant & clear */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-slate-950/45 pointer-events-none" />
 
-            {/* Content Wrapper */}
-            <div className="relative z-10 p-3.5 sm:p-4.5 flex flex-col justify-between h-full">
-              {/* Top Title & Logo Box */}
-              <div className="flex md:flex-col items-center md:items-start justify-between gap-3">
-                {/* Logo Box */}
-                <div className="w-20 h-14 sm:w-24 sm:h-16 md:w-full md:h-20 bg-white border border-slate-200/90 rounded-xl p-2 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-[#F72853]/40 transition-colors">
-                  <img
-                    src={somLogo}
-                    alt={somName}
-                    loading="lazy"
-                    decoding="async"
-                    className="max-h-full max-w-full object-contain rounded-lg"
-                  />
+              {/* Top Floating Badges */}
+              <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between gap-2">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#F72853] text-white tracking-wider uppercase shadow-xs">
+                  Store Of The Month
+                </span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-black/55 backdrop-blur-md text-white border border-white/20 shadow-2xs capitalize">
+                  {somCategory}
+                </span>
+              </div>
+            </div>
+
+            {/* 2. Elevated Brand Logo Seam */}
+            <div className="relative -mt-9 sm:-mt-10 px-3.5 sm:px-4.5 z-20 flex items-end justify-between">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-white p-2 shadow-lg ring-4 ring-white border border-slate-100 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
+                <SafeImage
+                  src={somLogo}
+                  alt={somName}
+                  width={72}
+                  height={72}
+                  className="max-h-full max-w-full object-contain rounded-xl"
+                  fallbackSrc="/placeholder-brand.png"
+                />
+              </div>
+
+              <div className="mb-1 flex items-center bg-emerald-50 border border-emerald-200/90 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-2xs">
+                <span>Verified Partner</span>
+              </div>
+            </div>
+
+            {/* 3. Card Body: Brand Name & Highlights */}
+            <div className="flex-1 flex flex-col justify-between p-3.5 sm:p-4.5 pt-2 sm:pt-2.5">
+              {/* Brand Name & Category */}
+              <div>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-[#F72853] transition-colors leading-tight tracking-tight line-clamp-1">
+                    {somName}
+                  </h3>
+                  <TwitterVerifiedBadge className="w-4 h-4 shrink-0" />
                 </div>
+                <p className="text-[11.5px] font-medium text-slate-500 mt-0.5 line-clamp-1">
+                  Exclusive verified discounts & promotional codes
+                </p>
+              </div>
 
-                {/* Title & Store Info */}
-                <div className="text-right md:text-left flex-1 min-w-0">
-                  <div className="flex items-center justify-end md:justify-start gap-1.5 mb-1">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-[#F72853] text-white tracking-wider uppercase shadow-2xs">
-                      Most Popular
+              {/* Special Highlights Box */}
+              <div className="my-auto py-3">
+                <div className="bg-gradient-to-br from-rose-50/70 via-pink-50/30 to-amber-50/40 border border-rose-100/90 rounded-2xl p-3 sm:p-3.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                    <span className="text-[#F72853] uppercase tracking-wider text-[10.5px] font-extrabold">
+                      Partner Highlights
                     </span>
-                    <span className="text-[10px] font-medium text-slate-500 hidden sm:inline">
-                      • Store Of The Month
+                    <span className="bg-white px-2 py-0.5 rounded-full text-[10px] font-bold text-slate-700 border border-slate-200/80 shadow-2xs">
+                      {somMaxDiscount || "Verified Partner"}
                     </span>
                   </div>
 
-                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-[#F72853] transition-colors leading-tight tracking-tight line-clamp-1">
-                    {somName}
-                  </h3>
-                  <p className="text-[11px] font-medium text-slate-600 capitalize line-clamp-1 mt-0.5">
-                    {somCategory}
-                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-0.5 text-center">
+                    <div className="bg-white/95 backdrop-blur-xs rounded-xl p-2 border border-slate-100 shadow-2xs">
+                      <div className="text-[10px] text-slate-500 font-semibold">Live Offers</div>
+                      <div className="text-sm font-black text-[#F72853]">
+                        {somCoupons > 0 ? `${somCoupons} Deals` : "Active"}
+                      </div>
+                    </div>
+                    <div className="bg-white/95 backdrop-blur-xs rounded-xl p-2 border border-slate-100 shadow-2xs">
+                      <div className="text-[10px] text-slate-500 font-semibold">Access</div>
+                      <div className="text-sm font-black text-emerald-600">
+                        {somMaxDiscount ? somMaxDiscount.replace(/^Up to\s*/i, "") : "100% Free"}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Bottom Stats Bar with Dotted Divider */}
-              <div className="mt-3 p-2 sm:p-2.5 bg-white/95 backdrop-blur-xs rounded-xl border border-rose-200/90 shadow-2xs grid grid-cols-2 text-center divide-x divide-dashed divide-rose-200">
-                <div className="flex items-center justify-center gap-1.5 px-1.5 sm:px-2">
-                  <Tag className="w-3.5 h-3.5 text-[#F72853] shrink-0" />
-                  <span className="text-[11px] sm:text-xs font-bold text-slate-800 whitespace-nowrap">
-                    {somCoupons > 0
-                      ? `${somCoupons} Live ${somCoupons === 1 ? "Offer" : "Offers"}`
-                      : "Verified Store"}
+              {/* CTA Action Button */}
+              <div className="pt-1 mt-auto">
+                <div className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-[#F72853] to-[#e01e47] text-white font-bold text-xs sm:text-sm text-center shadow-md shadow-rose-500/20 group-hover:shadow-lg group-hover:shadow-rose-500/30 group-hover:from-[#e01e47] group-hover:to-[#c7173e] transition-all flex items-center justify-center gap-2">
+                  <span>
+                    {somCoupons > 0 ? `Explore All ${somCoupons} Offers` : "Explore Store Offers"}
                   </span>
-                </div>
-                <div className="flex items-center justify-center gap-1.5 px-1.5 sm:px-2">
-                  <Percent className="w-3.5 h-3.5 text-[#F72853] shrink-0" />
-                  <span className="text-[11px] sm:text-xs font-bold text-[#F72853] whitespace-nowrap">
-                    {somDiscount ||
-                      (somOffers > 0
-                        ? `${somOffers} Redemptions`
-                        : "Up to 50% OFF")}
-                  </span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </div>

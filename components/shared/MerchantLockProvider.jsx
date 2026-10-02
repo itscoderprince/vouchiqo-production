@@ -7,6 +7,7 @@ import { calculateProfileHealth } from "@/app/(merchant)/merchant/dashboard/comp
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { qk } from "@/lib/query-keys";
+import { authClient } from "@/lib/auth-client";
 
 const MerchantLockContext = createContext({
   isProfileIncomplete: false,
@@ -22,7 +23,15 @@ const MerchantLockContext = createContext({
 });
 
 export function MerchantLockProvider({ children, isMerchant }) {
-  const { data: merchant } = useMerchantProfile({ enabled: Boolean(isMerchant) });
+  const { data: merchant, refetch: refetchProfile } = useMerchantProfile({
+    enabled: Boolean(isMerchant),
+    refetchInterval: (query) => {
+      const data = query?.state?.data;
+      const isAppr = data?.status === "approved" || data?.status === "active";
+      return isMerchant && !isAppr ? 4000 : false;
+    },
+    refetchOnWindowFocus: true,
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const queryClient = useQueryClient();
@@ -30,17 +39,32 @@ export function MerchantLockProvider({ children, isMerchant }) {
   // Real-time: When admin approves/rejects the merchant, immediately refresh the profile
   // so the lock state updates without waiting for the stale time to expire.
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, (data) => {
-    if (data?.status) {
-      queryClient.invalidateQueries({ queryKey: qk.merchant.profile() });
-      queryClient.invalidateQueries({ queryKey: qk.merchant.applicationStatus() });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.profile() });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.applicationStatus() });
+    queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+    refetchProfile();
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("vouchiqo_is_merchant", "true");
+      authClient.getSession({ query: { disableCookieCache: true } }).catch(() => {});
     }
   });
 
   const health = isMerchant && merchant ? calculateProfileHealth(merchant) : null;
 
-  const isPending = isMerchant && Boolean(merchant) && merchant.status === "pending";
+  const isApproved =
+    isMerchant &&
+    Boolean(merchant) &&
+    (merchant.status === "approved" || merchant.status === "active");
+
+  const isPending =
+    isMerchant &&
+    Boolean(merchant) &&
+    (merchant.status === "pending" ||
+      merchant.status === "form_accepted" ||
+      merchant.status === "under_review" ||
+      !merchant.status);
+
   const isRejected = isMerchant && Boolean(merchant) && merchant.status === "rejected";
-  const isApproved = isMerchant && Boolean(merchant) && merchant.status === "approved";
   const isPaused = isMerchant && Boolean(merchant) && merchant.subscriptionStatus === "paused";
   const isSubscriptionCancelled = isMerchant && Boolean(merchant) && merchant.subscriptionStatus === "cancelled";
 
@@ -65,7 +89,14 @@ export function MerchantLockProvider({ children, isMerchant }) {
   useEffect(() => {
     if (!isMerchant || !merchant) return;
 
-    if (isLocked) {
+    if (isApproved) {
+      setIsModalOpen(false);
+      setHasInitialized(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("vouchiqo_is_merchant", "true");
+        authClient.getSession({ query: { disableCookieCache: true } }).catch(() => {});
+      }
+    } else if (isLocked) {
       if (!hasInitialized) {
         const isExcludedPage =
           typeof window !== "undefined" &&
@@ -77,11 +108,10 @@ export function MerchantLockProvider({ children, isMerchant }) {
         setHasInitialized(true);
       }
     } else {
-      // Merchant is now unlocked (e.g. just got approved or completed profile) -- close modal.
       setIsModalOpen(false);
-      setHasInitialized(false); // Reset so next state change can re-evaluate correctly
+      setHasInitialized(false);
     }
-  }, [isMerchant, merchant, isLocked, hasInitialized]);
+  }, [isMerchant, merchant, isApproved, isLocked, hasInitialized]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);

@@ -224,6 +224,7 @@ export default function BrandClient({
             <BrandStats
               coupons={coupons}
               merchant={merchant}
+              affiliateProducts={affiliateProducts}
               affiliateCount={affiliateProducts.length}
             />
 

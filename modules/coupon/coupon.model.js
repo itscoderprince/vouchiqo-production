@@ -114,6 +114,11 @@ const couponSchema = new Schema(
 
 // Compound indexes for common query patterns
 couponSchema.index({ status: 1, category: 1, expiresAt: 1 });
+couponSchema.index({ merchantId: 1, status: 1, expiresAt: 1 });
+couponSchema.index({ status: 1, expiresAt: 1 });
+couponSchema.index({ isFeatured: 1, status: 1, createdAt: -1 });
+couponSchema.index({ isHot: 1, isVerified: 1, status: 1, expiresAt: 1, totalClaims: -1 });
+couponSchema.index({ category: 1, status: 1, expiresAt: 1 });
 couponSchema.index({ merchantId: 1, status: 1 });
 couponSchema.index({ isFeatured: 1, status: 1 });
 couponSchema.index({ status: 1, isVerified: 1, createdAt: -1 });

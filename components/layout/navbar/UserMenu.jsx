@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   LayoutDashboard,
@@ -25,7 +25,6 @@ export const UserMenu = () => {
   const [mounted, setMounted] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Effective role — starts from session, may be upgraded to "merchant" after DB check
   const [effectiveRole, setEffectiveRole] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
 
@@ -33,61 +32,35 @@ export const UserMenu = () => {
     setMounted(true);
   }, []);
 
-  // Resolve the effective role: session role is the primary source but may be
-  // stale (Better Auth caches cookies for 5 min). If session says "customer",
-  // verify against /api/merchants/me to catch newly-registered merchants.
   useEffect(() => {
     if (!mounted || !session?.user) return;
-
     const sessionRole = session?.user?.role || "customer";
-
     if (sessionRole === "admin" || sessionRole === "merchant") {
       setEffectiveRole(sessionRole);
       return;
     }
-
     const isMerchantFlag =
       typeof window !== "undefined" &&
       sessionStorage.getItem("vouchiqo_is_merchant") === "true";
-
-    if (isMerchantFlag) {
-      setEffectiveRole("merchant");
-    }
-
-    // Session says customer — do a quick DB check in case they just registered
-    // as a merchant and the session cookie hasn't refreshed yet
+    if (isMerchantFlag) setEffectiveRole("merchant");
     fetch("/api/merchants/me")
       .then((r) => {
         if (r.ok) {
           setEffectiveRole("merchant");
-          if (typeof window !== "undefined") {
+          if (typeof window !== "undefined")
             sessionStorage.setItem("vouchiqo_is_merchant", "true");
-          }
         } else if (!isMerchantFlag) {
           setEffectiveRole("customer");
         }
       })
-      .catch(() => {
-        if (!isMerchantFlag) {
-          setEffectiveRole("customer");
-        }
-      });
+      .catch(() => { if (!isMerchantFlag) setEffectiveRole("customer"); });
   }, [mounted, session]);
 
-  // Customer onboarding check — only run for CONFIRMED customers
-  // We wait until effectiveRole is fully resolved (not null) to avoid the
-  // race condition where merchants briefly see the customer onboarding modal.
   useEffect(() => {
     if (!mounted || !session?.user) return;
-
-    // effectiveRole is null while the async DB check is in flight — wait for it
     if (effectiveRole === null) return;
-
-    // Only show onboarding to confirmed customers
     if (effectiveRole === "admin" || effectiveRole === "merchant") return;
-
     const storageKey = `vouchiqo_onboarded_${session.user.id}`;
-
     const checkOnboarding = async () => {
       try {
         const res = await fetch("/api/users");
@@ -96,12 +69,8 @@ export const UserMenu = () => {
           if (json.success) {
             const profile = json.data?.profile;
             setUserProfile(profile);
-
             const hasGender = !!profile?.gender;
-            const hasInterests =
-              Array.isArray(profile?.interests) &&
-              profile.interests.length >= 2;
-
+            const hasInterests = Array.isArray(profile?.interests) && profile.interests.length >= 2;
             if (profile?.isOnboarded && hasGender && hasInterests) {
               localStorage.setItem(storageKey, "true");
             } else {
@@ -113,7 +82,6 @@ export const UserMenu = () => {
         console.error("Failed to check onboarding status:", err);
       }
     };
-
     checkOnboarding();
   }, [mounted, session, effectiveRole]);
 
@@ -135,10 +103,7 @@ export const UserMenu = () => {
       }
       await signOut({
         fetchOptions: {
-          onSuccess: () => {
-            router.replace("/");
-            router.refresh();
-          },
+          onSuccess: () => { router.replace("/"); router.refresh(); },
         },
       });
     } catch (err) {
@@ -146,22 +111,18 @@ export const UserMenu = () => {
     }
   };
 
-  // Hydration Guard: Render neutral container on SSR / pre-mount to prevent mismatch
+  // SSR hydration guard — keep a fixed-size placeholder so layout doesn't shift
   if (!mounted) {
-    return (
-      <div
-        suppressHydrationWarning
-        className="h-9 min-w-[76px] flex items-center justify-end"
-      />
-    );
+    return <div suppressHydrationWarning className="h-9 w-[68px] shrink-0" aria-hidden="true" />;
   }
 
-  // Guest State: If not logged in, render the Login button immediately without loading delays
-  if (!session?.user) {
+  // Show Login during session load (isPending) AND for confirmed guests.
+  // This guarantees the user icon/Login button is ALWAYS visible in the navbar.
+  if (isPending || !session?.user) {
     return (
       <Link
         href="/login"
-        className="h-9 text-[13px] font-semibold bg-[#2563eb] text-white hover:bg-[#1d4ed8] rounded-lg px-4 flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200 hover:shadow-sm"
+        className="h-9 text-[13px] font-semibold bg-[#2563eb] text-white hover:bg-[#1d4ed8] rounded-lg px-4 flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200 hover:shadow-sm shrink-0"
       >
         <User className="h-3.5 w-3.5" />
         Login
@@ -169,7 +130,6 @@ export const UserMenu = () => {
     );
   }
 
-  // Use effectiveRole (DB-verified) if resolved, fall back to session role
   const role = effectiveRole ?? session.user.role ?? "customer";
   const isAdmin = role === "admin";
   const isMerchant = role === "merchant";
@@ -178,30 +138,14 @@ export const UserMenu = () => {
     switch (role) {
       case "admin":
         return [
-          {
-            icon: LayoutDashboard,
-            label: "Admin Dashboard",
-            href: "/admin/dashboard",
-          },
+          { icon: LayoutDashboard, label: "Admin Dashboard", href: "/admin/dashboard" },
           { icon: Users, label: "Manage Users", href: "/admin/users" },
-          {
-            icon: Store,
-            label: "Manage Merchants",
-            href: "/admin/approvals/merchants",
-          },
+          { icon: Store, label: "Manage Merchants", href: "/admin/approvals/merchants" },
         ];
       case "merchant":
         return [
-          {
-            icon: LayoutDashboard,
-            label: "Merchant Dashboard",
-            href: "/merchant/dashboard",
-          },
-          {
-            icon: Store,
-            label: "Application Status",
-            href: "/merchant/application-status",
-          },
+          { icon: LayoutDashboard, label: "Merchant Dashboard", href: "/merchant/dashboard" },
+          { icon: Store, label: "Application Status", href: "/merchant/application-status" },
           { icon: Ticket, label: "Manage Offers", href: "/merchant/coupons" },
           { icon: User, label: "My Profile", href: "/merchant/profile" },
         ];
@@ -218,9 +162,7 @@ export const UserMenu = () => {
   const getInitials = (name) => {
     if (!name) return "U";
     const parts = name.split(" ").filter(Boolean);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.slice(0, 2).toUpperCase();
   };
 
@@ -234,7 +176,6 @@ export const UserMenu = () => {
         />
       );
     }
-    // Plain rounded avatar with initials for all roles
     const initials = getInitials(session.user.name);
     const avatarClass = isAdmin
       ? "bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white border-purple-200"
@@ -242,9 +183,7 @@ export const UserMenu = () => {
         ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white border-blue-200"
         : "bg-slate-100 text-slate-800 border-slate-200";
     return (
-      <div
-        className={`h-7 w-7 rounded-full font-bold text-[11px] flex items-center justify-center uppercase border shadow-2xs ${avatarClass}`}
-      >
+      <div className={`h-7 w-7 rounded-full font-bold text-[11px] flex items-center justify-center uppercase border shadow-2xs ${avatarClass}`}>
         {initials}
       </div>
     );
@@ -255,9 +194,7 @@ export const UserMenu = () => {
       <button
         onClick={() => setOpen((v) => !v)}
         className={`rounded-full transition-all focus:outline-none cursor-pointer flex items-center justify-center p-0.5 border-2 ${
-          open
-            ? "border-[#2563eb] bg-[#eff6ff]"
-            : "border-transparent hover:border-gray-200"
+          open ? "border-[#2563eb] bg-[#eff6ff]" : "border-transparent hover:border-gray-200"
         }`}
         aria-label="User menu"
         aria-haspopup="true"
@@ -268,7 +205,6 @@ export const UserMenu = () => {
 
       {open && (
         <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50 overflow-hidden text-left">
-          {/* User Profile Header */}
           <div className="px-4 py-2.5 border-b border-slate-100 bg-[#f8fafc]">
             <div className="flex items-center justify-between gap-2 mb-0.5">
               <p className="text-[12px] font-bold text-slate-900 truncate">
@@ -288,12 +224,9 @@ export const UserMenu = () => {
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-slate-400 font-semibold truncate">
-              {session.user.email}
-            </p>
+            <p className="text-[10px] text-slate-400 font-semibold truncate">{session.user.email}</p>
           </div>
 
-          {/* Menu Items */}
           {menuItems.map(({ icon: Icon, label, href }) => (
             <Link
               key={href}
@@ -306,7 +239,6 @@ export const UserMenu = () => {
             </Link>
           ))}
 
-          {/* Sign Out Button */}
           <button
             onClick={handleSignOut}
             type="button"
@@ -327,10 +259,7 @@ export const UserMenu = () => {
           onSaveComplete={() => {
             setShowOnboarding(false);
             if (session?.user?.id) {
-              localStorage.setItem(
-                `vouchiqo_onboarded_${session.user.id}`,
-                "true",
-              );
+              localStorage.setItem(`vouchiqo_onboarded_${session.user.id}`, "true");
             }
           }}
         />

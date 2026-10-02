@@ -378,7 +378,7 @@ export default function PlatformContentSettings() {
             />
             <FormInput
               name="recAmt"
-              label="Recovered Value (â‚¹)"
+              label="Recovered Value (₹)"
               type="number"
               value={statsForm.recoveredAmount}
               onChange={(e) =>
@@ -454,7 +454,7 @@ export default function PlatformContentSettings() {
                 onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
               />
               <FormInput
-                placeholder="Price (e.g. â‚¹4,999)"
+                placeholder="Price (e.g. ₹4,999)"
                 value={newPlan.priceText}
                 onChange={(e) => setNewPlan({ ...newPlan, priceText: e.target.value })}
               />
@@ -557,7 +557,7 @@ export default function PlatformContentSettings() {
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Price Text</label>
                     <FormInput
                       value={p.priceText || ""}
-                      placeholder="e.g. â‚¹999"
+                      placeholder="e.g. ₹999"
                       onChange={(e) => {
                         const updated = [...plans];
                         updated[pIdx].priceText = e.target.value;
@@ -569,7 +569,7 @@ export default function PlatformContentSettings() {
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Original Price</label>
                     <FormInput
                       value={p.originalPrice || ""}
-                      placeholder="e.g. â‚¹1,499"
+                      placeholder="e.g. ₹1,499"
                       onChange={(e) => {
                         const updated = [...plans];
                         updated[pIdx].originalPrice = e.target.value;
@@ -644,7 +644,7 @@ export default function PlatformContentSettings() {
                   <label className="text-[10px] font-bold text-slate-600 uppercase">Button Action Label</label>
                   <FormInput
                     value={p.buttonText || ""}
-                    placeholder="e.g. Select Growth â€” â‚¹999/mo"
+                    placeholder="e.g. Select Growth â€” ₹999/mo"
                     onChange={(e) => {
                       const updated = [...plans];
                       updated[pIdx].buttonText = e.target.value;
@@ -707,7 +707,7 @@ export default function PlatformContentSettings() {
                 onChange={(e) => setNewCpaRate({ ...newCpaRate, category: e.target.value })}
               />
               <FormInput
-                placeholder="Base Rate (e.g. 4% / â‚¹500 CPL)"
+                placeholder="Base Rate (e.g. 4% / ₹500 CPL)"
                 value={newCpaRate.rate}
                 onChange={(e) => setNewCpaRate({ ...newCpaRate, rate: e.target.value })}
               />

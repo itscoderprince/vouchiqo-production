@@ -91,6 +91,7 @@ export default function AdminOffersClient() {
   const [activeTab, setActiveTab] = useState("coupons"); // 'coupons' | 'affiliates'
 
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -131,6 +132,28 @@ export default function AdminOffersClient() {
     status: statusFilter === "all" ? "" : statusFilter,
     search: debouncedSearch,
   });
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set();
+    offers.forEach((c) => {
+      if (c.category) set.add(c.category.trim());
+    });
+    const sorted = Array.from(set).sort();
+    return [
+      { value: "all", label: "All Categories" },
+      ...sorted.map((cat) => ({
+        value: cat.toLowerCase(),
+        label: cat.charAt(0).toUpperCase() + cat.slice(1),
+      })),
+    ];
+  }, [offers]);
+
+  const displayedOffers = useMemo(() => {
+    if (categoryFilter === "all") return offers;
+    return offers.filter(
+      (o) => (o.category || "").toLowerCase() === categoryFilter.toLowerCase()
+    );
+  }, [offers, categoryFilter]);
 
   const stats = useMemo(() => {
     const total = offers.length;
@@ -476,7 +499,7 @@ export default function AdminOffersClient() {
           <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
             <DataTable
               columns={columns}
-              data={offers}
+              data={displayedOffers}
               loading={isLoading}
               searchKey="title"
               searchKeys={["title", "code", "merchantName"]}
@@ -484,6 +507,14 @@ export default function AdminOffersClient() {
               getRowClassName={getOfferRowColor}
               rightActions={
                 <div className="flex items-center gap-2">
+                  <FormSelect
+                    name="categoryFilter"
+                    options={categoryOptions}
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                    placeholder="All Categories"
+                    triggerClassName="w-[140px] h-7 text-[11px] bg-white border-slate-200 font-medium"
+                  />
                   <FormSelect
                     name="statusFilter"
                     options={STATUS_OPTIONS}

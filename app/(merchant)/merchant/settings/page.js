@@ -182,13 +182,17 @@ export default function MerchantAccountSettings() {
                     <Upload className="w-3.5 h-3.5 text-[#F72853]" /> Store Logo
                   </Label>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="relative w-14 h-14 rounded-full overflow-hidden border border-slate-200/90 shadow-2xs bg-white shrink-0">
+                    <div className="relative w-14 h-14 rounded-full overflow-hidden border border-slate-200/90 shadow-2xs bg-slate-100 flex items-center justify-center shrink-0">
                       {/* biome-ignore lint/performance/noImgElement: logo preview */}
-                      <img
-                        src={logoUrl}
-                        alt="Store Logo"
-                        className="w-full h-full object-cover"
-                      />
+                      {logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt="Store Logo"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Store className="w-6 h-6 text-slate-400" />
+                      )}
                     </div>
                     <div className="flex-1 space-y-1.5">
                       <FormInput

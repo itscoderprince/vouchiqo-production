@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
@@ -47,7 +47,7 @@ import WizardHeader from "./onboarding-wizard/WizardHeader";
 export function MerchantOnboardingWizard() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user: authUser } = useUser();
+  const { user: authUser, isLoaded: sessionLoaded } = useUser();
 
   // Settings from Admin
   const { data: publicSettings } = useQuery({
@@ -137,22 +137,31 @@ export function MerchantOnboardingWizard() {
 
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
-  // Check if merchant already registered
+  // Check if user is already a registered merchant.
+  // - Waits for the session to resolve first so authUser is reliable
+  // - Uses AbortController with 8 s timeout so fetch can never hang indefinitely
   useEffect(() => {
+    // Don't run until Better Auth has finished resolving the session
+    if (!sessionLoaded) return;
+
     let isMounted = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     async function checkExisting() {
       try {
-        const isMerchantFlag =
-          typeof window !== "undefined" &&
-          sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+        // Guest with no session — show the registration form immediately
+        if (!authUser) {
+          if (isMounted) setCheckingExistingMerchant(false);
+          return;
+        }
 
-        const res = await fetch("/api/merchants/me");
+        const res = await fetch("/api/merchants/me", {
+          signal: controller.signal,
+        });
+
         if (!res.ok) {
-          if (isMerchantFlag && authUser) {
-            router.replace("/merchant/dashboard");
-            return;
-          }
+          // 401/403/404 all mean "not a merchant yet" — show the form
           if (isMounted) setCheckingExistingMerchant(false);
           return;
         }
@@ -160,10 +169,7 @@ export function MerchantOnboardingWizard() {
         const json = await res.json();
         const merchant = json?.data?.merchant || json?.data;
 
-        if (
-          merchant &&
-          (merchant._id || merchant.status || merchant.businessName)
-        ) {
+        if (merchant && (merchant._id || merchant.status || merchant.businessName)) {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("vouchiqo_is_merchant", "true");
           }
@@ -173,14 +179,13 @@ export function MerchantOnboardingWizard() {
             router.replace("/merchant/application-status");
           }
         } else {
-          if (isMerchantFlag && authUser) {
-            router.replace("/merchant/dashboard");
-            return;
-          }
           if (isMounted) setCheckingExistingMerchant(false);
         }
       } catch {
+        // AbortError (8 s timeout) or network error — always unlock the form
         if (isMounted) setCheckingExistingMerchant(false);
+      } finally {
+        clearTimeout(timeout);
       }
     }
 
@@ -188,8 +193,12 @@ export function MerchantOnboardingWizard() {
 
     return () => {
       isMounted = false;
+      controller.abort();
+      clearTimeout(timeout);
     };
-  }, [authUser, router]);
+  // Run once after sessionLoaded becomes true — not on every authUser mutation
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionLoaded, router]);
 
   // File Upload Handler
   const handleFileUpload = async (file, targetField, setUploadingState) => {

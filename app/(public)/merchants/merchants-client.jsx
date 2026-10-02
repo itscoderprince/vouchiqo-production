@@ -3,6 +3,7 @@
 import { Gift, LayoutGrid, MapPin, Search, Store, Tag } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import DirectoryLayout from "@/components/layout/DirectoryLayout";
 import { MOCK_MERCHANTS_SEED, TRENDING_STORES } from "@/lib/mock/mock-data";
 import {

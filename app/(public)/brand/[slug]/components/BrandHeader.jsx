@@ -145,11 +145,11 @@ export default function BrandHeader({
           <span className="hidden sm:inline">Share</span>
         </button>
 
-        {merchant.banner && (
+        {(merchant.banner || merchant.shopImage) && (
           <>
             {/* Full Bleed Banner with subtle darken overlay */}
             <img
-              src={merchant.banner}
+              src={merchant.banner || merchant.shopImage}
               alt={`${merchant.businessName} banner`}
               className="absolute inset-0 w-full h-full object-cover object-center opacity-85 group-hover:scale-105 transition-transform duration-700"
             />
@@ -209,7 +209,7 @@ export default function BrandHeader({
 
                 <p className="text-[11px] sm:text-[12px] text-slate-500 font-normal">
                   <span className="font-medium text-slate-800">
-                    {coupons.length} active deals
+                    {(coupons?.length || 0) + (affiliateProductsCount || 0)} active deals
                   </span>{" "}
                   · validated on{" "}
                   <span className="text-slate-700 font-normal">{todayStr}</span>

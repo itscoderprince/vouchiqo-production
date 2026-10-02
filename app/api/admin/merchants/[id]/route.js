@@ -31,6 +31,50 @@ export const GET = asyncHandler(async (request, { params }) => {
     throw new NotFoundError("Merchant");
   }
 
+  // Evict merchant profile & user role Redis caches
+  try {
+    const { redis } = await import("@/lib/redis");
+    const { REDIS_KEYS } = await import("@/utils/constants");
+    const authIdStr = merchant.authId ? String(merchant.authId) : null;
+    if (authIdStr) {
+      await redis.del(REDIS_KEYS.merchantProfile(authIdStr)).catch(() => {});
+      await redis.del(REDIS_KEYS.userRole(authIdStr)).catch(() => {});
+    }
+    if (merchant._id) {
+      await redis.del(REDIS_KEYS.merchantBadges(String(merchant._id))).catch(() => {});
+      await redis.del(REDIS_KEYS.merchantPublic(String(merchant._id))).catch(() => {});
+    }
+    if (merchant.slug) {
+      await redis.del(REDIS_KEYS.brandDetail(merchant.slug)).catch(() => {});
+    }
+  } catch (cErr) {
+    console.warn("[Admin Merchant Update Redis Evict Error]:", cErr?.message);
+  }
+
+  // If approved or active, ensure User and Session collections reflect role: "merchant"
+  if (body.status === "approved" || body.status === "active" || merchant.status === "approved" || merchant.status === "active") {
+    try {
+      const mongoose = (await import("mongoose")).default;
+      const authIdStr = merchant.authId ? String(merchant.authId) : null;
+      const targetEmail = merchant.contactEmail ? merchant.contactEmail.toLowerCase().trim() : null;
+      if (mongoose.connection?.db) {
+        const db = mongoose.connection.db;
+        await Promise.allSettled([
+          ...(authIdStr ? [
+            db.collection("user").updateMany({ $or: [{ id: authIdStr }, { _id: authIdStr }, ...(mongoose.Types.ObjectId.isValid(authIdStr) ? [{ _id: new mongoose.Types.ObjectId(authIdStr) }] : [])] }, { $set: { role: "merchant" } }),
+            db.collection("user_profiles").updateOne({ authId: authIdStr }, { $set: { role: "merchant" } }, { upsert: true }),
+            db.collection("session").updateMany({ userId: authIdStr }, { $set: { role: "merchant" } }),
+          ] : []),
+          ...(targetEmail ? [
+            db.collection("user").updateMany({ email: targetEmail }, { $set: { role: "merchant" } }),
+          ] : []),
+        ]);
+      }
+    } catch (dbErr) {
+      console.warn("[Admin Merchant Role Sync Error]:", dbErr?.message);
+    }
+  }
+
   // Fetch all coupons and affiliate deals for this merchant
   const [coupons, affiliateProducts] = await Promise.all([
     Coupon.find({ merchantId: id }).sort({ createdAt: -1 }).lean(),

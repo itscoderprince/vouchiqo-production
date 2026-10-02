@@ -19,10 +19,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/fetcher";
 import { showError, showSuccess } from "@/lib/toast";
+import TableSearch from "@/components/shared/data/TableSearch";
 
 export default function MerchantDemandReport() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState(null);
   const [outreachModalOpen, setOutreachModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -176,10 +178,17 @@ export default function MerchantDemandReport() {
         </div>
 
         <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 text-left">
+          <TableSearch
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search demand by business name or email..."
+          />
           <DataTable
             columns={columns}
             data={leads}
             loading={isLoading}
+            searchable={false}
+            externalSearch={true}
             searchable={true}
             searchPlaceholder="Search merchant leads by brand name, city..."
             defaultPageSize={10}

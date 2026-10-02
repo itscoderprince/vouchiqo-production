@@ -1,9 +1,11 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { dispatchEvent } from "@/lib/socket/dispatcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { requireRole } from "@/modules/auth/auth.middleware";
 import Campaign from "@/modules/merchant/campaign.model";
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import Merchant from "@/modules/merchant/merchant.model";
 import { created, ok } from "@/utils/api-response";
 import { ForbiddenError, NotFoundError } from "@/utils/app-error";
@@ -13,18 +15,42 @@ import { ROLES } from "@/utils/constants";
 /**
  * GET /api/campaigns
  * Returns all campaigns for the authenticated merchant.
+ * Redis-cached per merchant for 60 seconds.
  */
+
+/** Invalidate campaign cache for a merchant. */
+async function invalidateCampaignCache(merchantId) {
+  try {
+    await redis.del(REDIS_KEYS.merchantCampaigns(String(merchantId)));
+  } catch (_) {}
+}
 export const GET = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
 
-  const merchant = await Merchant.findOne({ authId: user.id });
+  const merchant = await Merchant.findOne({
+    $or: [
+      { authId: String(user.id) },
+      ...(user.email ? [{ contactEmail: user.email.toLowerCase().trim() }] : []),
+    ],
+  }).lean();
   if (!merchant) throw new NotFoundError("Merchant profile");
+
+  const cacheKey = REDIS_KEYS.merchantCampaigns(String(merchant._id));
+
+  // Fast path: Redis cache
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) return ok(JSON.parse(cached));
+  } catch (_) {}
 
   const campaigns = await Campaign.find({ merchantId: merchant._id })
     .populate("couponIds")
     .sort({ createdAt: -1 })
     .lean();
+
+  // Cache with fire-and-forget
+  redis.setex(cacheKey, REDIS_TTL.MERCHANT_CAMPAIGNS, JSON.stringify(campaigns)).catch(() => {});
 
   return ok(campaigns);
 });
@@ -37,7 +63,12 @@ export const POST = asyncHandler(async (request) => {
   await connectDB();
   const { user } = await requireRole(request, ROLES.MERCHANT, ROLES.ADMIN);
 
-  const merchant = await Merchant.findOne({ authId: user.id });
+  const merchant = await Merchant.findOne({
+    $or: [
+      { authId: String(user.id) },
+      ...(user.email ? [{ contactEmail: user.email.toLowerCase().trim() }] : []),
+    ],
+  });
   if (!merchant) throw new NotFoundError("Merchant profile");
 
   const body = await request.json();
@@ -167,6 +198,7 @@ export const POST = asyncHandler(async (request) => {
     },
   });
 
+    await invalidateCampaignCache(merchant._id);
   return created(campaign, "Campaign submitted for review successfully");
 });
 
@@ -202,6 +234,7 @@ export const PUT = asyncHandler(async (request) => {
     { new: true },
   );
   if (!campaign) throw new NotFoundError("Campaign");
+  await invalidateCampaignCache(campaign.merchantId);
   return ok(campaign, "Campaign updated successfully");
 });
 
@@ -230,6 +263,7 @@ export const DELETE = asyncHandler(async (request) => {
   }
 
   const deleted = await Campaign.deleteOne(filter);
+  await invalidateCampaignCache((filter.merchantId || id));
   if (!deleted.deletedCount) throw new NotFoundError("Campaign");
   return ok(null, "Campaign deleted successfully");
 });

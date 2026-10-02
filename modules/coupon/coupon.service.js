@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { sendMerchantOfferCreatedEmail } from "@/lib/email/merchant-email";
 import { analyticsQueue } from "@/lib/queue";
-import { redis } from "@/lib/redis";
+import { redis, scanDel } from "@/lib/redis";
 import { escapeRegex } from "@/lib/security";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
@@ -22,16 +22,28 @@ const SORTABLE_FIELDS = [
   "discountValue",
 ];
 
-async function invalidateCouponCaches() {
+export async function invalidateCouponCaches(coupon = null) {
   try {
-    await Promise.all([
-      redis.del(REDIS_KEYS.FEATURED_DEALS),
-      redis.del(REDIS_KEYS.TRENDING_DEALS),
-    ]);
-    const keys = await redis.keys("vouchiqo:coupons:list:*");
-    if (keys && keys.length > 0) {
-      await redis.del(...keys);
+    const keysToDel = [
+      REDIS_KEYS.FEATURED_DEALS,
+      REDIS_KEYS.TRENDING_DEALS,
+      REDIS_KEYS.HOMEPAGE_DATA,
+      REDIS_KEYS.PLATFORM_STATS,
+      REDIS_KEYS.CATEGORIES_SUMMARY,
+      REDIS_KEYS.BRANDS_LIST,
+      REDIS_KEYS.MERCHANTS_LIST,
+    ];
+
+    if (coupon) {
+      const id = String(coupon._id || coupon.id || coupon);
+      if (id) keysToDel.push(REDIS_KEYS.couponDetail(id));
+      if (coupon.category) keysToDel.push(REDIS_KEYS.categoryDeals(String(coupon.category).toLowerCase()));
+      const mSlug = coupon.merchantSlug || coupon.brandSlug || coupon.merchantId?.slug;
+      if (mSlug) keysToDel.push(REDIS_KEYS.brandDetail(String(mSlug).toLowerCase()));
     }
+
+    await Promise.allSettled(keysToDel.map((k) => redis.del(k)));
+    await scanDel("vouchiqo:coupons:list:*");
   } catch (_) {}
 }
 
@@ -45,19 +57,16 @@ async function invalidateCouponCaches() {
 export async function createCoupon(authId, data, userEmail = null) {
   const authIdStr = String(authId);
   let merchant = await Merchant.findOne({
-    authId: authIdStr,
-    status: MERCHANT_STATUS.APPROVED,
+    $or: [
+      { authId: authIdStr },
+      ...(userEmail ? [{ contactEmail: userEmail.toLowerCase().trim() }] : []),
+    ],
+    status: { $in: [MERCHANT_STATUS.APPROVED, "active"] },
   });
 
-  if (!merchant && userEmail) {
-    merchant = await Merchant.findOne({
-      contactEmail: userEmail.toLowerCase().trim(),
-      status: MERCHANT_STATUS.APPROVED,
-    });
-    if (merchant && (!merchant.authId || merchant.authId !== authIdStr)) {
-      merchant.authId = authIdStr;
-      await merchant.save().catch(() => {});
-    }
+  if (merchant && (!merchant.authId || merchant.authId !== authIdStr)) {
+    merchant.authId = authIdStr;
+    await merchant.save().catch(() => {});
   }
 
   if (!merchant) {
@@ -123,7 +132,7 @@ export async function createCoupon(authId, data, userEmail = null) {
   });
 
   await Merchant.findByIdAndUpdate(merchant._id, { $inc: { totalCoupons: 1 } });
-  invalidateCouponCaches().catch(() => {});
+  invalidateCouponCaches(coupon).catch(() => {});
 
   // Trigger Merchant Offer Created Email Notification
   const targetEmail = merchant.contactEmail || merchant.email;
@@ -152,6 +161,15 @@ export async function createCoupon(authId, data, userEmail = null) {
 export async function getCouponById(couponId) {
   if (!couponId) throw new NotFoundError("Coupon");
 
+  const cacheKey = REDIS_KEYS.couponDetail(couponId);
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      analyticsQueue.add(JOB_NAMES.RECORD_VIEW, { couponId }).catch(() => {});
+      return JSON.parse(cached);
+    }
+  } catch (_) {}
+
   // 1. Check MongoDB by ObjectId first
   if (mongoose.isValidObjectId(couponId)) {
     const dbCoupon = await Coupon.findById(couponId)
@@ -163,6 +181,7 @@ export async function getCouponById(couponId) {
 
     if (dbCoupon) {
       analyticsQueue.add(JOB_NAMES.RECORD_VIEW, { couponId }).catch(() => {});
+      redis.setex(cacheKey, REDIS_TTL.COUPON_DETAIL, JSON.stringify(dbCoupon)).catch(() => {});
       return dbCoupon;
     }
   }
@@ -393,10 +412,14 @@ export async function listCoupons(searchParams) {
   if (merchantId) filter.merchantId = merchantId;
 
   // Public active deals must be verified and unexpired (unless queried by merchant)
+  // Use $and to hold expiry clauses so they are NOT overwritten by the search $or below
+  const expiryConditions = [];
   if (filter.status === COUPON_STATUS.ACTIVE && !isMerchantSelfQuery) {
     filter.isVerified = { $ne: false };
     if (!searchParams.get("allDates")) {
-      filter.$or = [{ expiresAt: { $gt: new Date() } }, { expiresAt: null }];
+      expiryConditions.push({
+        $or: [{ expiresAt: { $gt: new Date() } }, { expiresAt: null }],
+      });
     }
   }
 
@@ -408,7 +431,42 @@ export async function listCoupons(searchParams) {
   if (category) filter.category = category;
   if (city) filter["location.city"] = new RegExp(escapeRegex(city), "i");
   if (discountType) filter.discountType = discountType;
-  if (search) filter.$text = { $search: search };
+  if (search && search.trim()) {
+    const rawSearch = search.trim();
+    const safeRegex = escapeRegex(rawSearch);
+    const regex = new RegExp(safeRegex, "i");
+
+    // Match by company name, slug, category, or short description
+    const matchedMerchants = await Merchant.find({
+      $or: [
+        { businessName: regex },
+        { slug: regex },
+        { category: regex },
+        { shortDescription: regex },
+      ],
+    })
+      .select("_id")
+      .lean();
+    const matchedMerchantIds = matchedMerchants.map((m) => m._id);
+
+    // Search conditions — does NOT overwrite expiry; combined via $and below
+    const searchConditions = [
+      { title: regex },
+      { description: regex },
+      { code: regex },
+      { category: regex },
+      { tags: regex },
+      ...(matchedMerchantIds.length > 0
+        ? [{ merchantId: { $in: matchedMerchantIds } }]
+        : []),
+    ];
+    expiryConditions.push({ $or: searchConditions });
+  }
+
+  // Apply all $and conditions (expiry + search combined safely)
+  if (expiryConditions.length > 0) {
+    filter.$and = expiryConditions;
+  }
 
   if (pincode) {
     const merchants = await Merchant.find({ "location.pincode": pincode })
@@ -600,7 +658,7 @@ export async function updateCoupon(couponId, authId, data) {
   if (data.expiresAt) coupon.expiresAt = new Date(data.expiresAt);
   await coupon.save();
 
-  invalidateCouponCaches().catch(() => {});
+  invalidateCouponCaches(coupon).catch(() => {});
 
   return coupon;
 }
@@ -623,7 +681,7 @@ export async function deleteCoupon(couponId, authId) {
 
   if (!coupon) throw new NotFoundError("Coupon");
 
-  invalidateCouponCaches().catch(() => {});
+  invalidateCouponCaches(coupon).catch(() => {});
 }
 
 /**
@@ -644,7 +702,7 @@ export async function setCouponStatus(couponId, authId, newStatus) {
   );
 
   if (!coupon) throw new NotFoundError("Coupon");
-  invalidateCouponCaches().catch(() => {});
+  invalidateCouponCaches(coupon).catch(() => {});
   return coupon;
 }
 

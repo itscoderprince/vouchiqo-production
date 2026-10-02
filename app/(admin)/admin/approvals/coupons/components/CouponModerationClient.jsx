@@ -21,7 +21,9 @@ import {
   MapPin,
   Phone,
   RefreshCw,
+  RotateCcw,
   Search,
+  SlidersHorizontal,
   ShieldCheck,
   Store,
   Tag,
@@ -59,6 +61,8 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { cn } from "@/lib/utils";
+import TableSearch from "@/components/shared/data/TableSearch";
+import FormSelect from "@/components/shared/form/FormSelect";
 
 // 8 Distinct Colorful Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
@@ -126,6 +130,26 @@ export default function CouponModerationClient() {
   const rejectMutation = useRejectAdminCoupon();
 
   const [activeTab, setActiveTab] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Dynamically extract unique categories from actual coupon data
+  const categoryOptions = useMemo(() => {
+    const set = new Set();
+    allCoupons.forEach((c) => {
+      if (c.category) set.add(c.category.trim());
+    });
+    const sorted = Array.from(set).sort();
+    return [
+      { value: "all", label: "All Categories" },
+      ...sorted.map((cat) => ({
+        value: cat.toLowerCase(),
+        label: cat.charAt(0).toUpperCase() + cat.slice(1),
+      })),
+    ];
+  }, [allCoupons]);
 
   // Audit details modal state
   const [selectedCoupon, setSelectedCoupon] = useState(null);
@@ -138,29 +162,49 @@ export default function CouponModerationClient() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejectOpen, setIsRejectOpen] = useState(false);
 
-  // Tab filtered coupons
+  // Filtered coupons: combines activeTab, statusFilter, categoryFilter, and typeFilter
   const filteredCoupons = useMemo(() => {
-    if (activeTab === "pending") {
-      return allCoupons.filter(
-        (c) =>
-          c.status === "pending" || (!c.isVerified && c.status !== "rejected"),
-      );
-    }
-    if (activeTab === "approved") {
-      return allCoupons.filter(
-        (c) => c.status === "active" || c.status === "approved" || c.isVerified,
-      );
-    }
-    if (activeTab === "rejected") {
-      return allCoupons.filter(
-        (c) =>
-          c.status === "rejected" ||
-          c.status === "inactive" ||
-          c.status === "expired",
-      );
-    }
-    return allCoupons;
-  }, [allCoupons, activeTab]);
+    return allCoupons.filter((c) => {
+      // 1. Status Filter
+      const effectiveStatus = statusFilter !== "all" ? statusFilter : activeTab;
+      if (effectiveStatus === "pending") {
+        const isPending =
+          c.status === "pending" || (!c.isVerified && c.status !== "rejected");
+        if (!isPending) return false;
+      } else if (effectiveStatus === "approved" || effectiveStatus === "active") {
+        const isApproved =
+          c.status === "active" || c.status === "approved" || c.isVerified;
+        if (!isApproved) return false;
+      } else if (effectiveStatus === "rejected") {
+        if (c.status !== "rejected") return false;
+      } else if (effectiveStatus === "expired") {
+        const isExpired =
+          c.status === "expired" || c.status === "inactive";
+        if (!isExpired) return false;
+      }
+
+      // 2. Category Filter
+      if (categoryFilter !== "all") {
+        const cat = (c.category || "").toLowerCase();
+        if (cat !== categoryFilter.toLowerCase()) return false;
+      }
+
+      // 3. Offer / Discount Type Filter
+      if (typeFilter !== "all") {
+        const dType = (c.discountType || "").toLowerCase();
+        const dVal = String(c.discount || "").toLowerCase();
+        if (typeFilter === "percent") {
+          if (dType !== "percentage" && dType !== "percent" && !dVal.includes("%")) return false;
+        } else if (typeFilter === "flat") {
+          if (dType !== "flat" && dType !== "fixed" && !dVal.includes("₹") && !dVal.includes("rs")) return false;
+        } else if (typeFilter === "bogo") {
+          if (dType !== "bogo" && dType !== "free" && !dVal.includes("free") && !dVal.includes("bogo")) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allCoupons, activeTab, statusFilter, categoryFilter, typeFilter]);
 
   const stats = useMemo(() => {
     const total = allCoupons.length;
@@ -179,6 +223,39 @@ export default function CouponModerationClient() {
     ).length;
     return { total, pending, approved, rejected };
   }, [allCoupons]);
+
+  const displayCoupons = useMemo(() => {
+    if (!searchQuery.trim()) return filteredCoupons;
+    const q = searchQuery.toLowerCase().trim();
+    return filteredCoupons.filter((m) => {
+      const merchantObj = m.merchantId || {};
+      const merchantName = m.merchantName || merchantObj.businessName || "";
+      const merchantEmail = merchantObj.email || "";
+      const title = m.title || "";
+      const code = m.code || m.couponCode || "";
+      const category = m.category || "";
+      const discount = String(m.discount || "");
+
+      return [title, code, merchantName, merchantEmail, category, discount].some(
+        (v) => String(v).toLowerCase().includes(q)
+      );
+    });
+  }, [filteredCoupons, searchQuery]);
+
+  const hasActiveFilters =
+    statusFilter !== "all" ||
+    categoryFilter !== "all" ||
+    typeFilter !== "all" ||
+    activeTab !== "all" ||
+    Boolean(searchQuery.trim());
+
+  const handleResetFilters = () => {
+    setStatusFilter("all");
+    setCategoryFilter("all");
+    setTypeFilter("all");
+    setActiveTab("all");
+    setSearchQuery("");
+  };
 
   // Real-time listener: invalidates TanStack Query cache instantly on submission & status updates
   useRealtime(SOCKET_EVENTS.COUPON_SUBMITTED, () => {
@@ -449,7 +526,7 @@ export default function CouponModerationClient() {
         {/* 4 Mini KPI Overview Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <Card
-            onClick={() => setActiveTab("all")}
+            onClick={() => { setActiveTab("all"); setStatusFilter("all"); }}
             className={cn(
               "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
               activeTab === "all"
@@ -473,7 +550,7 @@ export default function CouponModerationClient() {
           </Card>
 
           <Card
-            onClick={() => setActiveTab("pending")}
+            onClick={() => { setActiveTab("pending"); setStatusFilter("pending"); }}
             className={cn(
               "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
               activeTab === "pending"
@@ -497,7 +574,7 @@ export default function CouponModerationClient() {
           </Card>
 
           <Card
-            onClick={() => setActiveTab("approved")}
+            onClick={() => { setActiveTab("approved"); setStatusFilter("active"); }}
             className={cn(
               "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
               activeTab === "approved"
@@ -521,7 +598,7 @@ export default function CouponModerationClient() {
           </Card>
 
           <Card
-            onClick={() => setActiveTab("rejected")}
+            onClick={() => { setActiveTab("rejected"); setStatusFilter("rejected"); }}
             className={cn(
               "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
               activeTab === "rejected"
@@ -546,12 +623,91 @@ export default function CouponModerationClient() {
         </div>
 
         {/* Main Table Card */}
-        <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+        <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-4 shadow-2xs font-sans overflow-hidden">
+          {/* Controls Bar: Search on left/top + Dropdown Filters on right */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 mb-3.5 pb-3 border-b border-slate-100">
+            <div className="flex-1 min-w-0">
+              <TableSearch
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search coupons by title, code, or merchant..."
+              />
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
+              {/* Status Filter */}
+              <div className="w-full sm:w-auto">
+                <FormSelect
+                  value={statusFilter}
+                  onValueChange={(val) => {
+                    setStatusFilter(val);
+                    if (val === "pending") setActiveTab("pending");
+                    else if (val === "active") setActiveTab("approved");
+                    else if (val === "rejected") setActiveTab("rejected");
+                    else if (val === "all") setActiveTab("all");
+                    else setActiveTab("none");
+                  }}
+                  placeholder="All Statuses"
+                  options={[
+                    { value: "all", label: `All Statuses (${stats.total})` },
+                    { value: "pending", label: `Pending (${stats.pending})` },
+                    { value: "active", label: `Approved / Live (${stats.approved})` },
+                    { value: "rejected", label: `Rejected (${stats.rejected})` },
+                    { value: "expired", label: "Expired / Inactive" },
+                  ]}
+                  triggerClassName="w-full sm:w-[145px] h-8 text-[11.5px] bg-slate-50 hover:bg-slate-100 border-slate-200/90 rounded-lg font-medium cursor-pointer shadow-2xs"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <div className="w-full sm:w-auto">
+                <FormSelect
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                  placeholder="All Categories"
+                  options={categoryOptions}
+                  triggerClassName="w-full sm:w-[140px] h-8 text-[11.5px] bg-slate-50 hover:bg-slate-100 border-slate-200/90 rounded-lg font-medium cursor-pointer shadow-2xs"
+                />
+              </div>
+
+              {/* Discount Type Filter */}
+              <div className="w-full sm:w-auto">
+                <FormSelect
+                  value={typeFilter}
+                  onValueChange={setTypeFilter}
+                  placeholder="All Offer Types"
+                  options={[
+                    { value: "all", label: "All Offer Types" },
+                    { value: "percent", label: "Percentage (%)" },
+                    { value: "flat", label: "Flat (₹) Off" },
+                    { value: "bogo", label: "BOGO / Free" },
+                  ]}
+                  triggerClassName="w-full sm:w-[135px] h-8 text-[11.5px] bg-slate-50 hover:bg-slate-100 border-slate-200/90 rounded-lg font-medium cursor-pointer shadow-2xs"
+                />
+              </div>
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetFilters}
+                  className="h-8 px-2.5 text-[11px] font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
+                  title="Reset all filters"
+                >
+                  <RotateCcw className="w-3 h-3 mr-1" />
+                  Reset
+                </Button>
+              )}
+            </div>
+          </div>
+
           <DataTable
             columns={columns}
-            data={filteredCoupons}
+            data={displayCoupons}
             loading={isLoading}
-            searchKey="headline"
+            searchable={false}
+            externalSearch={true}
             getRowClassName={getRowClassName}
           />
         </Card>

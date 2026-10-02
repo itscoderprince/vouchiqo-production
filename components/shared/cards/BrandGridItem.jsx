@@ -3,25 +3,33 @@
 import Link from "next/link";
 import { useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
+import TwitterVerifiedBadge from "@/components/shared/TwitterVerifiedBadge";
 
-function TwitterVerifiedTick({ className = "w-3.5 h-3.5" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-label="Verified store"
-      className={`${className} shrink-0 inline-block`}
-    >
-      <path
-        fill="#1D9BF0"
-        d="M22.25 12c0-1.43-.88-2.67-2.19-3.26.16-.42.24-.88.24-1.35 0-2.13-1.73-3.86-3.86-3.86-.47 0-.93.08-1.35.24C14.5 2.45 13.26 1.57 11.83 1.57s-2.67.88-3.26 2.19c-.42-.16-.88-.24-1.35-.24-2.13 0-3.86 1.73-3.86 3.86 0 .47.08.93.24 1.35C2.32 9.33 1.44 10.57 1.44 12s.88 2.67 2.19 3.26c-.16.42-.24.88-.24 1.35 0 2.13 1.73 3.86 3.86 3.86.47 0 .93-.08 1.35-.24.59 1.31 1.83 2.19 3.26 2.19s2.67-.88 3.26-2.19c.42.16.88.24 1.35.24 2.13 0 3.86-1.73 3.86-3.86 0-.47-.08-.93-.24-1.35 1.31-.59 2.19-1.83 2.19-3.26z"
-      />
-      <path
-        fill="#ffffff"
-        d="M10.85 16.54l-4.14-4.14 1.41-1.41 2.73 2.73 6.09-6.09 1.41 1.41-7.5 7.5z"
-      />
-    </svg>
-  );
-}
+const CATEGORY_FALLBACK_BANNERS = {
+  jewellery:
+    "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=600&auto=format&fit=crop",
+  fashion:
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600&auto=format&fit=crop",
+  electronics:
+    "https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=600&auto=format&fit=crop",
+  beauty:
+    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=600&auto=format&fit=crop",
+  food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop",
+  grocery:
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop",
+  fitness:
+    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop",
+  home: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop",
+  "home-improvement":
+    "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop",
+  travel:
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=600&auto=format&fit=crop",
+  education:
+    "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=600&auto=format&fit=crop",
+};
+
+const DEFAULT_BANNER =
+  "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop";
 
 export default function BrandGridItem({
   name,
@@ -35,10 +43,13 @@ export default function BrandGridItem({
 }) {
   const [imgError, setImgError] = useState(false);
 
+  const catKey = (category || "").toLowerCase().trim();
+  const fallbackBanner = CATEGORY_FALLBACK_BANNERS[catKey] || DEFAULT_BANNER;
+
   const bgBanner =
     banner && typeof banner === "string" && banner.trim() !== ""
       ? banner
-      : "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=400&auto=format&fit=crop";
+      : fallbackBanner;
 
   const validLogo =
     logo && typeof logo === "string" && logo.trim() !== "" ? logo : null;
@@ -50,16 +61,17 @@ export default function BrandGridItem({
       style={{ textDecoration: "none" }}
     >
       {/* ── 1. Top Half: Visual Imagery & Category Tag ── */}
-      <div className="relative w-full h-1/2 overflow-hidden bg-slate-100">
+      <div className="relative w-full h-1/2 overflow-hidden bg-slate-900">
         <SafeImage
           src={bgBanner}
           alt={name || "Store Banner"}
           fill
+          fallbackSrc={fallbackBanner}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {/* Soft Dark Vignette for Pristine Legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-black/35 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/35 pointer-events-none" />
 
         {/* Category Label (Flush in Top Left Corner) */}
         <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10">
@@ -97,7 +109,7 @@ export default function BrandGridItem({
             {name}
           </h4>
           {isVerified && (
-            <TwitterVerifiedTick className="w-3.5 h-3.5 shrink-0" />
+            <TwitterVerifiedBadge className="w-3.5 h-3.5 shrink-0" />
           )}
         </div>
 

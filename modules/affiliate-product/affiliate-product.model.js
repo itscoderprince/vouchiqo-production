@@ -88,6 +88,7 @@ affiliateProductSchema.pre("save", function () {
 
 affiliateProductSchema.index({ merchantId: 1, status: 1 });
 affiliateProductSchema.index({ status: 1, category: 1 });
+affiliateProductSchema.index({ status: 1, category: 1, createdAt: -1 });
 affiliateProductSchema.index({ status: 1, createdAt: -1 });
 
 const AffiliateProduct = mongoose.models.AffiliateProduct || mongoose.model("AffiliateProduct", affiliateProductSchema);

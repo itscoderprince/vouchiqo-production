@@ -315,6 +315,8 @@ merchantSchema.pre("save", function () {
 });
 
 merchantSchema.index({ status: 1, category: 1 });
+merchantSchema.index({ status: 1, businessName: 1 });
+merchantSchema.index({ status: 1, createdAt: -1 });
 merchantSchema.index({ status: 1, totalCoupons: -1, totalRedemptions: -1, createdAt: -1 });
 merchantSchema.index({ "location.city": 1, status: 1 });
 merchantSchema.index({ contactEmail: 1 }, { unique: true, sparse: true });

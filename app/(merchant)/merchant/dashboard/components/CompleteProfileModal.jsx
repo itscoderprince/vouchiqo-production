@@ -165,14 +165,19 @@ export default function CompleteProfileModal({ merchant, isOpen, onClose }) {
   // Controlled vs uncontrolled open state
   const open = isOpen !== undefined ? isOpen : internalOpen;
 
-  const isApproved = merchant?.status === "approved";
-  const isPending = merchant?.status === "pending";
+  const isApproved = merchant?.status === "approved" || merchant?.status === "active";
+  const isPending = merchant?.status === "pending" || merchant?.status === "form_accepted" || merchant?.status === "under_review";
   const isRejected = merchant?.status === "rejected";
 
   useEffect(() => {
     if (!merchant) return;
 
-    if (isProfileComplete && isApproved) {
+    if (isApproved) {
+      if (isOpen === undefined) setInternalOpen(false);
+      return;
+    }
+
+    if (isProfileComplete) {
       if (isOpen === undefined) setInternalOpen(false);
       return;
     }

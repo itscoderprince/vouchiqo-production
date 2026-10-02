@@ -1,15 +1,15 @@
-﻿// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // User Roles
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const ROLES = {
   CUSTOMER: "customer",
   MERCHANT: "merchant",
   ADMIN: "admin",
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Coupon
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const COUPON_STATUS = {
   PENDING: "pending",
   ACTIVE: "active",
@@ -68,18 +68,18 @@ export function normalizeCategory(raw) {
   return "others";
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Claim
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const CLAIM_STATUS = {
   ACTIVE: "active",
   REDEEMED: "redeemed",
   EXPIRED: "expired",
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Merchant
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const MERCHANT_STATUS = {
   PENDING: "pending",
   APPROVED: "approved",
@@ -87,27 +87,27 @@ export const MERCHANT_STATUS = {
   SUSPENDED: "suspended",
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Revival
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const REVIVAL_STATUS = {
   PENDING: "pending",
   APPROVED: "approved",
   REJECTED: "rejected",
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pagination
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_LIMIT: 20,
   MAX_LIMIT: 100,
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HTTP Status Codes
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const HTTP = {
   OK: 200,
   CREATED: 201,
@@ -122,9 +122,9 @@ export const HTTP = {
   INTERNAL_ERROR: 500,
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Razorpay Plan IDs & Subscription Matrix (Task 6)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const RAZORPAY_PLANS = {
   GROWTH_MONTHLY: "vouchiqo_growth_monthly",
   GROWTH_ANNUAL: "vouchiqo_growth_annual",
@@ -247,6 +247,22 @@ export const REDIS_TTL = {
   AUTH_USER: 300,      // 5 minutes -- cached user role lookup
   MERCHANT_PROFILE: 300, // 5 minutes -- cached merchant profile lookup
   MERCHANT_BADGES: 30,   // 30 seconds -- cached merchant badge counts
+  // Public data caches (high-traffic, read-heavy)
+  PLATFORM_STATS: 120,     // 2 minutes - countDocuments expensive
+  PLATFORM_PLANS: 3600,    // 1 hour - plans change rarely
+  MERCHANT_ANALYTICS: 120, // 2 minutes - 8 aggregations per request
+  MERCHANT_CAMPAIGNS: 60,  // 60 seconds - per-merchant campaign list
+  COUPON_DETAIL: 120,      // 2 minutes - individual coupon page
+  CATEGORIES: 3600,        // 1 hour - static category list
+  BRANDS_LIST: 300,        // 5 minutes - public /brands listing
+  MERCHANTS_LIST: 300,    // 5 minutes - public /merchants listing
+  BRAND_DETAIL: 300,       // 5 minutes - public brand page /brand/[slug]
+  CATEGORIES_SUMMARY: 3600,// 1 hour - public categories summary
+  CATEGORY_DEALS: 300,     // 5 minutes - public deals in category /category/[slug]
+  ADMIN_ANALYTICS: 60,     // 60 seconds - admin dashboard KPIs
+  ADMIN_REVENUE: 120,      // 2 minutes - admin revenue stats
+  MERCHANT_PUBLIC: 300,    // 5 minutes - single merchant public profile
+  SEARCH_GLOBAL: 60,       // 60 seconds - public search query cache
 };
 
 export const REDIS_KEYS = {
@@ -264,11 +280,32 @@ export const REDIS_KEYS = {
   userRole: (userId) => `auth:user:${userId}`,
   merchantProfile: (authId) => `auth:merchant:${authId}`,
   merchantBadges: (merchantId) => `auth:badges:${merchantId}`,
+  // Public platform data keys
+  PLATFORM_STATS: "platform:stats",
+  PLATFORM_PLANS: "platform:plans",
+  CATEGORIES: "platform:categories",
+  // Merchant-specific data caches
+  merchantAnalytics: (merchantId, period) => `merchant:analytics:${merchantId}:${period}`,
+  merchantCampaigns: (merchantId) => `merchant:campaigns:${merchantId}`,
+  couponDetail: (couponId) => `coupon:detail:${couponId}`,
+  merchantPublic: (id) => `merchant:public:${id}`,
+  brandDetail: (slug) => `brand:detail:${slug}`,
+  categoryDeals: (slug) => `category:deals:${slug}`,
+  BRANDS_LIST: "platform:brands",
+  MERCHANTS_LIST: "platform:merchants",
+  CATEGORIES_SUMMARY: "platform:categories:summary",
+  HOMEPAGE_DATA: "vouchiqo:homepage:data:v3",
+  ADMIN_ANALYTICS: "admin:analytics:overview",
+  ADMIN_REVENUE: "admin:revenue:summary",
+  // Real-time Sorted Sets for trending leaderboards
+  TRENDING_COUPONS_ZSET: "zset:trending:coupons",
+  POPULAR_BRANDS_ZSET: "zset:popular:brands",
+  searchGlobal: (q) => `search:global:${q}`,
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Queues
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const QUEUE_NAMES = {
   NOTIFICATIONS: "notifications",
   ANALYTICS: "analytics",

@@ -1,3 +1,4 @@
+import { redis } from "@/lib/redis";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { requireRole } from "@/modules/auth/auth.middleware";
@@ -8,7 +9,7 @@ import Redemption from "@/modules/redemption/redemption.model";
 import UserProfile from "@/modules/user/user.model";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
-import { ROLES } from "@/utils/constants";
+import { REDIS_KEYS, REDIS_TTL, ROLES } from "@/utils/constants";
 
 export const dynamic = "force-dynamic";
 

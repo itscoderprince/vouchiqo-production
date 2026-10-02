@@ -286,11 +286,90 @@ function MerchantNoticeBanner() {
   );
 }
 
+function MerchantRouteGuard({ children }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { role, isLoaded, isLoggedIn, user: authUser } = useUser();
+  const { isLocked, isPending, isProfileIncomplete, isApproved, merchant } = useMerchantLock();
+
+  useEffect(() => {
+    if (!isLoaded || !isLoggedIn) return;
+
+    if (pathname.startsWith("/merchant")) {
+      const isRegisteredMerchant =
+        typeof window !== "undefined" &&
+        sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+      const isRestrictedPath =
+        pathname.startsWith("/merchant/coupons") ||
+        pathname.startsWith("/merchant/analytics") ||
+        pathname.startsWith("/merchant/campaigns") ||
+        pathname.startsWith("/merchant/notifications") ||
+        pathname.startsWith("/merchant/affiliates") ||
+        pathname.startsWith("/merchant/affiliate-products") ||
+        pathname.startsWith("/merchant/revivals");
+
+      // Only lock restricted paths if not approved
+      if (isLocked && isRestrictedPath && !isApproved) {
+        if (isPending) {
+          router.push("/merchant/application-status");
+          return;
+        }
+        if (isProfileIncomplete) {
+          router.push("/merchant/profile?edit=true");
+          return;
+        }
+      }
+
+      // If user session still says customer, sync with DB/cookieCache
+      if (role !== "merchant" && role !== "admin") {
+        if (isRegisteredMerchant || isApproved || merchant) {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("vouchiqo_is_merchant", "true");
+          }
+          authClient
+            .getSession({ query: { disableCookieCache: true } })
+            .catch(() => {});
+        } else if (authUser?.id || authUser?.email) {
+          fetch("/api/merchants/me")
+            .then((r) => {
+              if (r.ok) {
+                if (typeof window !== "undefined") {
+                  sessionStorage.setItem("vouchiqo_is_merchant", "true");
+                }
+                authClient
+                  .getSession({ query: { disableCookieCache: true } })
+                  .catch(() => {});
+              } else {
+                router.push("/customer/dashboard");
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    }
+  }, [
+    isLoaded,
+    isLoggedIn,
+    pathname,
+    isLocked,
+    isPending,
+    isProfileIncomplete,
+    isApproved,
+    merchant,
+    role,
+    router,
+    authUser?.id,
+    authUser?.email,
+  ]);
+
+  return children;
+}
+
 export default function DashboardLayout({ title, user, children }) {
   const router = useRouter();
   const pathname = usePathname();
   const { role, isLoaded, isLoggedIn, user: authUser } = useUser();
-  const { isLocked, isPending, isProfileIncomplete } = useMerchantLock();
   const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
@@ -306,73 +385,8 @@ export default function DashboardLayout({ title, user, children }) {
       if (role !== "admin") {
         router.push("/");
       }
-      return;
     }
-
-    // Verify merchant access & restricted route protection when account is locked (pending/incomplete/rejected)
-    if (pathname.startsWith("/merchant")) {
-      const isRegisteredMerchant =
-        typeof window !== "undefined" &&
-        sessionStorage.getItem("vouchiqo_is_merchant") === "true";
-
-      const isRestrictedPath =
-        pathname.startsWith("/merchant/coupons") ||
-        pathname.startsWith("/merchant/analytics") ||
-        pathname.startsWith("/merchant/campaigns") ||
-        pathname.startsWith("/merchant/notifications") ||
-        pathname.startsWith("/merchant/affiliates") ||
-        pathname.startsWith("/merchant/affiliate-products") ||
-        pathname.startsWith("/merchant/revivals");
-
-      if (isLocked && isRestrictedPath) {
-        if (isPending) {
-          router.push("/merchant/application-status");
-          return;
-        }
-        if (isProfileIncomplete) {
-          router.push("/merchant/profile?edit=true");
-          return;
-        }
-      }
-
-      if (role === "merchant" || role === "admin" || isRegisteredMerchant)
-        return;
-
-      // Session says "customer" — verify against DB before redirecting
-      if (authUser?.id || authUser?.email) {
-        fetch("/api/merchants/me")
-          .then((r) => {
-            if (r.ok) {
-              if (typeof window !== "undefined") {
-                sessionStorage.setItem("vouchiqo_is_merchant", "true");
-              }
-              // Force-refresh client session cache so useUser() reflects role: "merchant"
-              authClient
-                .getSession({ query: { disableCookieCache: true } })
-                .catch(() => {});
-            } else if (!isRegisteredMerchant) {
-              router.push("/customer/dashboard");
-            }
-          })
-          .catch(() => {
-            // Network error — be permissive, don't redirect
-          });
-      } else if (!isRegisteredMerchant) {
-        router.push("/customer/dashboard");
-      }
-    }
-  }, [
-    isLoaded,
-    isLoggedIn,
-    role,
-    isLocked,
-    isPending,
-    isProfileIncomplete,
-    authUser?.id,
-    authUser?.email,
-    pathname,
-    router,
-  ]);
+  }, [isLoaded, isLoggedIn, role, pathname, router]);
 
   const [mounted, setMounted] = useState(false);
 
@@ -392,6 +406,7 @@ export default function DashboardLayout({ title, user, children }) {
 
   return (
     <MerchantLockProvider isMerchant={isMerchant}>
+      <MerchantRouteGuard>
       <TooltipProvider>
         <SidebarProvider style={{ "--sidebar-width": "250px" }}>
           <div className="min-h-screen flex bg-white text-slate-900 font-sans w-full pb-14 md:pb-0">
@@ -419,6 +434,7 @@ export default function DashboardLayout({ title, user, children }) {
           {isMerchant && <MerchantLockModalRenderer />}
         </SidebarProvider>
       </TooltipProvider>
+    </MerchantRouteGuard>
     </MerchantLockProvider>
   );
 }

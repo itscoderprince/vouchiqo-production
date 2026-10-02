@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import DataTable from "@/components/shared/data/DataTable";
+import TableSearch from "@/components/shared/data/TableSearch";
 import StatusBadge from "@/components/shared/data/StatusBadge";
 import { LiveIndicator } from "@/components/shared/LiveIndicator";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +93,7 @@ export default function MerchantApprovalsClient() {
   const [selectedMerchant, setSelectedMerchant] = useState(null);
   const [kycDialogOpen, setKycDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Tab filtered merchants
   const filteredMerchants = useMemo(() => {
@@ -108,6 +110,16 @@ export default function MerchantApprovalsClient() {
     }
     return allMerchants;
   }, [allMerchants, activeTab]);
+
+  const displayMerchants = useMemo(() => {
+    if (!searchQuery.trim()) return filteredMerchants;
+    const q = searchQuery.toLowerCase();
+    return filteredMerchants.filter((m) =>
+      [m.businessName, m.contactEmail, m.category, m.plan, m.location?.city]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q))
+    );
+  }, [filteredMerchants, searchQuery]);
 
   const stats = useMemo(() => {
     const total = allMerchants.length;
@@ -518,11 +530,20 @@ export default function MerchantApprovalsClient() {
 
         {/* Main Table Card */}
         <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+          <div className="mb-3">
+            <TableSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search by name, email, category, city..."
+              resultCount={!isLoading ? displayMerchants.length : null}
+            />
+          </div>
           <DataTable
             columns={columns}
-            data={filteredMerchants}
+            data={displayMerchants}
             loading={isLoading}
-            searchKey="businessName"
+            searchable={false}
+            externalSearch={true}
             getRowClassName={getRowClassName}
             renderMobileCard={(row) => {
               const imageSrc =

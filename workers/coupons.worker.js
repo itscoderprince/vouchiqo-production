@@ -26,10 +26,15 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
+let connectionPromise = null;
 async function connectDB() {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(MONGODB_URI, { bufferCommands: false });
-  console.log("[coupons-worker] MongoDB connected");
+  if (mongoose.connection.readyState === 1) return;
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(MONGODB_URI, { bufferCommands: true }).then(() => {
+      console.log("[coupons-worker] MongoDB connected");
+    });
+  }
+  await connectionPromise;
 }
 
 const couponSchema = new mongoose.Schema(

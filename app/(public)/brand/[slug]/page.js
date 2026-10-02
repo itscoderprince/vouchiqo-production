@@ -1,3 +1,5 @@
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/mongodb";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -140,7 +142,7 @@ const MOCK_MERCHANTS = {
   },
   amazon: {
     businessName: "Amazon",
-    category: "grocery",
+    category: "others",
     logo: "https://cdn.grabon.in/gograbon/images/merchant/1614838752233/amazon-logo.jpg",
     description:
       "Online shopping from the Earth's biggest selection of books, magazines, music, DVDs, videos, electronics, computers, software, apparel & accessories.",
@@ -208,7 +210,7 @@ function getMockMerchant(slug) {
     _id: hexId,
     businessName: titleName,
     slug,
-    category: "grocery",
+    category: "others",
     logo: "",
     description: `Verified discount offers and promo codes for ${titleName}. Grab the latest deals and save today.`,
     longDescription: `${titleName} is a verified partner brand offering premium products and services. Shop online using our exclusive discount offers and get the best savings on every checkout.`,
@@ -238,7 +240,7 @@ function getMockCoupons(slug, merchantId) {
       _id: `mock_cpn_${slug}_1`,
       merchantId,
       title: `Sitewide Discount: Flat 15% OFF on all ${brandName} orders`,
-      description: `Fly or shop with ${brandName} and get an exclusive 15% discount on base fares or standard pricing. Limit one per customer.`,
+      description: `Shop with ${brandName} and get an exclusive 15% discount on your order. Limit one per customer.`,
       code: "SAVE15",
       discountValue: 15,
       discountType: "percentage",
@@ -248,7 +250,7 @@ function getMockCoupons(slug, merchantId) {
     {
       _id: `mock_cpn_${slug}_2`,
       merchantId,
-      title: `Special Promo: Flat ₹500 Cashback on bookings above ₹4,999`,
+      title: `Special Promo: Flat ₹500 OFF on orders above ₹4,999`,
       description: `Get a flat ₹500 discount when your transaction value exceeds ₹4,999. Applicable to all verified digital checkouts.`,
       code: "CASH500",
       discountValue: 500,
@@ -259,8 +261,8 @@ function getMockCoupons(slug, merchantId) {
     {
       _id: `mock_cpn_${slug}_3`,
       merchantId,
-      title: `Exclusive Offer: Enjoy up to 85% OFF on Seasonal Sales`,
-      description: `Unlock high value discounts on selected items or routes. No promo code needed, discount applied automatically.`,
+      title: `Exclusive Offer: Up to 85% OFF on Seasonal Sale`,
+      description: `Unlock high value discounts on selected items. No promo code needed, discount applied automatically.`,
       code: "",
       discountValue: 85,
       discountType: "percentage",
@@ -292,15 +294,79 @@ function getMockExpiredCoupons(slug, merchantId) {
 /**
  * Generate dynamic SEO metadata for the Brand page.
  */
+
+/**
+ * Smart resolver to find a merchant by slug, aliases, or fuzzy name.
+ */
+async function resolveMerchant(slug) {
+  const cleanSlug = (slug || "").toLowerCase().trim();
+  if (!cleanSlug) return null;
+
+  // 1. Direct slug match
+  let merchant = await Merchant.findOne({
+    slug: cleanSlug,
+    status: "approved",
+  }).lean();
+  if (merchant) return merchant;
+
+  // 2. Known brand aliases
+  const BRAND_ALIASES = {
+    blackberrys: "blackberry",
+    blackberry: "blackberry",
+    blissclub: "bliss-club",
+    "bliss-club": "bliss-club",
+    bliss: "bliss-club",
+    zandu: "emami-zandu",
+    "emami-zandu": "emami-zandu",
+    nilkamal: "nilkamal-furniture",
+    "nilkamal-furniture": "nilkamal-furniture",
+    lifestyle: "lifestyle-international-private-limited",
+    "lifestyle-international-private-limited": "lifestyle-international-private-limited",
+    uniqlo: "uniqlo-india",
+    "uniqlo-india": "uniqlo-india",
+    kama: "kama-ayurveda",
+    "kama-ayurveda": "kama-ayurveda",
+    cosmic: "cosmic-byte",
+    "cosmic-byte": "cosmic-byte",
+    bewakoof: "bewakoof",
+    milton: "milton",
+    salty: "salty",
+    asus: "asus",
+    nveda: "nveda",
+  };
+
+  const aliasSlug = BRAND_ALIASES[cleanSlug] || BRAND_ALIASES[cleanSlug.replace(/-/g, "")];
+  if (aliasSlug) {
+    merchant = await Merchant.findOne({
+      slug: aliasSlug,
+      status: "approved",
+    }).lean();
+    if (merchant) return merchant;
+  }
+
+  // 3. Fallback fuzzy search on slug and businessName
+  const compact = cleanSlug.replace(/[^a-z0-9]/g, "");
+  const withoutS = compact.replace(/s$/, "");
+
+  merchant = await Merchant.findOne({
+    status: "approved",
+    $or: [
+      { slug: new RegExp(`^${cleanSlug}`, "i") },
+      { slug: new RegExp(`^${withoutS}`, "i") },
+      { businessName: new RegExp(cleanSlug.replace(/-/g, "[\\s-]*"), "i") },
+      { businessName: new RegExp(withoutS, "i") },
+    ],
+  }).lean();
+
+  return merchant;
+}
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   await connectDB();
 
   try {
-    let merchant = await Merchant.findOne({
-      slug,
-      status: "approved",
-    }).lean();
+    let merchant = await resolveMerchant(slug);
 
     if (!merchant) {
       merchant = getMockMerchant(slug);
@@ -334,6 +400,26 @@ export async function generateMetadata({ params }) {
  */
 export default async function BrandPage({ params }) {
   const { slug } = await params;
+  const cleanSlug = (slug || "").toLowerCase().trim();
+
+  // Fast path: Redis cache (5 minutes)
+  const cacheKey = REDIS_KEYS.brandDetail(cleanSlug);
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      const data = JSON.parse(cached);
+      return (
+        <BrandClient
+          merchant={data.merchant}
+          coupons={data.coupons}
+          expiredCoupons={data.expiredCoupons}
+          affiliateProducts={data.affiliateProducts}
+          relatedBrands={data.relatedBrands}
+        />
+      );
+    }
+  } catch (_) {}
+
   await connectDB();
 
   let merchant;
@@ -343,11 +429,7 @@ export default async function BrandPage({ params }) {
   let relatedBrands = [];
 
   try {
-    // Fetch the merchant — full fields needed for brand page
-    merchant = await Merchant.findOne({
-      slug: { $regex: new RegExp(`^${slug.toLowerCase()}$`, "i") },
-      status: "approved",
-    }).lean();
+    merchant = await resolveMerchant(cleanSlug);
 
     if (!merchant) {
       // Fallback to mock data so the page never 404s for demo brands

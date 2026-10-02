@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Clock, Search, ShieldCheck, Store, X } from "lucide-react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
@@ -79,7 +80,7 @@ export default function BrandsClient({ brands = [] }) {
                 key={brand._id}
                 name={brand.businessName}
                 logo={brand.logo}
-                banner={brand.banner}
+                banner={brand.banner || brand.shopImage}
                 category={brand.category || "Top Brand"}
                 href={`/brand/${brand.slug}`}
                 coupons={

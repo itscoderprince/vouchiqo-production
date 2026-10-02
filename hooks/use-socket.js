@@ -19,8 +19,14 @@ export function useSocket(options = {}) {
   useEffect(() => {
     if (!socket || !autoConnect) return;
 
-    if (userId) {
+    if (userId && (!socket.auth?.userId || socket.auth.userId !== userId)) {
       socket.auth = { userId, role };
+      if (socket.connected) {
+        socket.disconnect().connect();
+      }
+    }
+    if (userId && socket.connected) {
+      socket.emit("room:join", `user:${userId}`);
     }
 
     if (!socket.connected) {

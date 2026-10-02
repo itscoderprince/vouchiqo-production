@@ -75,9 +75,9 @@ export async function GET(req) {
     }
 
     if (merchant) {
-      const isApproved = merchant.status === "approved";
+      const isApproved = merchant.status === "approved" || merchant.status === "active";
       const isRejected = merchant.status === "rejected";
-      const isPending = merchant.status === "pending";
+      const isPending = merchant.status === "pending" || merchant.status === "form_accepted" || merchant.status === "under_review" || !merchant.status;
       const progressPercentage = isApproved
         ? 100
         : isRejected

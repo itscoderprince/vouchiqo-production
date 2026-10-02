@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
@@ -199,11 +202,7 @@ export default async function CategoriesPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 font-sans">
       <Navbar />
-      <CategoriesClient
-        categories={categories}
-        totalCategories={categories.length}
-        totalOffers={totalOffersCount}
-      />
+      <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading categories...</div>}><CategoriesClient categories={categories} totalCategories={categories.length} totalOffers={totalOffersCount} /></Suspense>
       <Footer />
     </div>
   );

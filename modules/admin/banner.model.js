@@ -101,6 +101,7 @@ const promoBannerSchema = new Schema(
     collection: "promo_banners",
   },
 );
+promoBannerSchema.index({ status: 1, priority: -1, createdAt: -1 });
 
 const PromoBanner =
   mongoose.models.PromoBanner ||

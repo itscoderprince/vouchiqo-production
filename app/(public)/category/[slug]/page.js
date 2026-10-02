@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import { notFound } from "next/navigation";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
@@ -140,7 +143,7 @@ export default async function CategoryPage({ params }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 font-sans">
       <Navbar />
-      <CategoryClient
+      <Suspense fallback={<div className="min-h-screen bg-slate-50" />}><CategoryClient
         categoryInfo={{
           ...categoryInfo,
           slug: cleanSlug,
@@ -148,6 +151,7 @@ export default async function CategoryPage({ params }) {
         coupons={coupons}
         affiliateProducts={affiliateProducts}
       />
+      </Suspense>
       <Footer />
     </div>
   );

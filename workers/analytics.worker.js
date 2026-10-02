@@ -22,8 +22,8 @@ if (typeof process !== "undefined" && process.cwd) {
 
 import { Worker } from "bullmq";
 import mongoose from "mongoose";
-import { createQueueConnection } from "../lib/redis.js";
-import { JOB_NAMES, QUEUE_NAMES } from "../utils/constants.js";
+import { redis, createQueueConnection } from "../lib/redis.js";
+import { JOB_NAMES, QUEUE_NAMES, REDIS_KEYS } from "../utils/constants.js";
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Bootstrap DB connection
@@ -36,10 +36,15 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
+let connectionPromise = null;
 async function connectDB() {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(MONGODB_URI, { bufferCommands: false });
-  console.log("[analytics-worker] MongoDB connected");
+  if (mongoose.connection.readyState === 1) return;
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(MONGODB_URI, { bufferCommands: true }).then(() => {
+      console.log("[analytics-worker] MongoDB connected");
+    });
+  }
+  await connectionPromise;
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -123,6 +128,10 @@ async function recordDailyEvent({
 // Worker
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+function isValidId(id) {
+  return Boolean(id && mongoose.Types.ObjectId.isValid(String(id)));
+}
+
 const connection = createQueueConnection();
 
 export const worker = new Worker(
@@ -133,20 +142,21 @@ export const worker = new Worker(
 
     switch (job.name) {
       case JOB_NAMES.RECORD_VIEW: {
-        if (!couponId) return;
+        if (!isValidId(couponId)) return;
         await Coupon.updateOne({ _id: couponId }, { $inc: { viewCount: 1 } });
+        if (couponId && redis && redis.status === "ready") { redis.zincrby(REDIS_KEYS.TRENDING_COUPONS_ZSET, 1, String(couponId)).catch(() => {}); }
         break;
       }
 
       case JOB_NAMES.RECORD_IMPRESSION: {
-        if (couponId) {
+        if (isValidId(couponId)) {
           const coupon = await Coupon.findByIdAndUpdate(
             couponId,
             { $inc: { impressionCount: 1 } },
             { new: true },
           );
           const derivedMerchantId = merchantId || coupon?.merchantId;
-          if (derivedMerchantId) {
+          if (isValidId(derivedMerchantId)) {
             await Merchant.updateOne({ _id: derivedMerchantId }, { $inc: { totalImpressions: 1 } });
           }
           await recordDailyEvent({
@@ -155,7 +165,7 @@ export const worker = new Worker(
             eventType: "impression",
             source,
           });
-        } else if (merchantId) {
+        } else if (isValidId(merchantId)) {
           await Merchant.updateOne({ _id: merchantId }, { $inc: { totalImpressions: 1 } });
           await recordDailyEvent({
             merchantId,
@@ -168,14 +178,14 @@ export const worker = new Worker(
       }
 
       case JOB_NAMES.RECORD_CLICK: {
-        if (couponId) {
+        if (isValidId(couponId)) {
           const coupon = await Coupon.findByIdAndUpdate(
             couponId,
             { $inc: { clickCount: 1 } },
             { new: true },
           );
           const derivedMerchantId = merchantId || coupon?.merchantId;
-          if (derivedMerchantId) {
+          if (isValidId(derivedMerchantId)) {
             await Merchant.updateOne({ _id: derivedMerchantId }, { $inc: { totalClicks: 1 } });
           }
           await recordDailyEvent({
@@ -184,7 +194,7 @@ export const worker = new Worker(
             eventType: "click",
             source,
           });
-        } else if (merchantId) {
+        } else if (isValidId(merchantId)) {
           await Merchant.updateOne({ _id: merchantId }, { $inc: { totalClicks: 1 } });
           await recordDailyEvent({
             merchantId,
@@ -197,7 +207,7 @@ export const worker = new Worker(
       }
 
       case JOB_NAMES.RECORD_COPY_CODE: {
-        if (couponId) {
+        if (isValidId(couponId)) {
           const coupon = await Coupon.findByIdAndUpdate(
             couponId,
             { $inc: { copyCodeCount: 1 } },
@@ -237,7 +247,7 @@ export const worker = new Worker(
       }
 
       case JOB_NAMES.RECORD_UNIQUE_CODE_GEN: {
-        if (couponId) {
+        if (isValidId(couponId)) {
           const coupon = await Coupon.findByIdAndUpdate(
             couponId,
             { $inc: { uniqueCodeGenCount: 1 } },

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, History, Loader2, Ticket } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
@@ -15,11 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/hooks/use-user";
+import TableSearch from "@/components/shared/data/TableSearch";
 
 export default function ClaimedCoupons() {
   const { user: authUser } = useUser();
   const user = authUser || { name: "User", role: "customer" };
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [redemptions, setRedemptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +45,21 @@ export default function ClaimedCoupons() {
     }
     loadRedemptions();
   }, []);
+
+  const filteredRedemptions = useMemo(() => {
+    if (!searchQuery.trim()) return redemptions;
+    const q = searchQuery.toLowerCase();
+    return redemptions.filter((r) => {
+      const brand = r.merchantId?.businessName || "";
+      const title = r.couponId?.title || "";
+      const code = r.couponCode || "";
+      return (
+        brand.toLowerCase().includes(q) ||
+        title.toLowerCase().includes(q) ||
+        code.toLowerCase().includes(q)
+      );
+    });
+  }, [redemptions, searchQuery]);
 
   const handleCopy = (code, idx) => {
     navigator.clipboard.writeText(code);
@@ -90,7 +107,7 @@ export default function ClaimedCoupons() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-slate-100 font-normal text-slate-700">
-                  {redemptions.map((red, idx) => {
+                  {filteredRedemptions.map((red, idx) => {
                     const dateStr = new Date(red.createdAt).toLocaleDateString(
                       "en-IN",
                       {

@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/fetcher";
 import { qk } from "@/lib/query-keys";
+import { authClient } from "@/lib/auth-client";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { useRealtime } from "./use-realtime";
 import { useSocket } from "./use-socket";
@@ -24,16 +25,24 @@ export function useApplicationStatus() {
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: true,
     retry: 3,
-    // Fallback to polling every 30s if socket is NOT connected
-    refetchInterval: isConnected ? false : 30000,
+    refetchInterval: (q) => {
+      const data = q?.state?.data;
+      const isApproved = data?.status === "approved" || data?.status === "active";
+      return !isApproved ? 4000 : false;
+    },
   });
 
   // Listen for real-time application status change
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, (data) => {
     if (data?.status) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("vouchiqo_is_merchant", "true");
+        authClient.getSession({ query: { disableCookieCache: true } }).catch(() => {});
+      }
+
       queryClient.setQueryData(qk.merchant.applicationStatus(), (old) => {
         if (!old) return old;
-        const isApproved = data.status === "approved";
+        const isApproved = data.status === "approved" || data.status === "active";
         const isRejected = data.status === "rejected";
         const isPending = data.status === "pending";
         const progressPercentage = isApproved
@@ -59,6 +68,9 @@ export function useApplicationStatus() {
       });
       queryClient.invalidateQueries({
         queryKey: qk.merchant.profile(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["merchant-profile"],
       });
       queryClient.invalidateQueries({
         queryKey: ["merchant-badges"],

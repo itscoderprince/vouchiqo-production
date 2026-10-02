@@ -35,6 +35,7 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { adminFetchCampaignQueue } from "@/lib/api-helpers";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { cn } from "@/lib/utils";
+import TableSearch from "@/components/shared/data/TableSearch";
 
 // 8 Distinct Colorful Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
@@ -105,6 +106,7 @@ const PLAN_OPTIONS = [
 
 export default function AdminCampaignQueuePage() {
   const [campaigns, setCampaigns] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("all");
   const [planFilter, setPlanFilter] = useState("all");
@@ -172,6 +174,19 @@ export default function AdminCampaignQueuePage() {
       return matchesType && matchesPlan;
     });
   }, [scoredQueue, typeFilter, planFilter, activeTab]);
+
+  const displayCampaigns = useMemo(() => {
+    if (!searchQuery.trim()) return filteredQueue;
+    const q = searchQuery.toLowerCase();
+    return filteredQueue.filter((m) => {
+      const merchantName = m.merchantId?.businessName || m.merchantName || "";
+      const title = m.name || m.campaignName || m.title || "";
+      const type = m.type || m.campaignType || "";
+      return [merchantName, title, type].some((v) =>
+        String(v).toLowerCase().includes(q)
+      );
+    });
+  }, [filteredQueue, searchQuery]);
 
   const getRowClassName = (row, index) => {
     const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
@@ -461,11 +476,17 @@ export default function AdminCampaignQueuePage() {
 
           {/* Table Container */}
           <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden text-left">
+            <TableSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search campaigns by title, type, or merchant..."
+            />
             <DataTable
               columns={columns}
-              data={filteredQueue}
+              data={displayCampaigns}
               loading={loading}
-              searchable={true}
+              searchable={false}
+              externalSearch={true}
               searchPlaceholder="Search campaigns by merchant name, title..."
               getRowClassName={getRowClassName}
               rightActions={

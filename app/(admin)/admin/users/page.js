@@ -6,11 +6,11 @@ import {
   Ban,
   CheckCircle2,
   FileSpreadsheet,
+  Loader2,
   Mail,
   RefreshCw,
   Search,
   Trash2,
-  User,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -22,13 +22,6 @@ import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -44,58 +37,139 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { cn } from "@/lib/utils";
 
-// 8 Distinct Colorful Row Palettes (Clearly visible without hover)
+// ── Skeleton components ───────────────────────────────────────────────────────
+
+/** Single animated shimmer cell */
+function SkeletonCell({ className = "" }) {
+  return (
+    <div
+      className={cn(
+        "h-3 rounded-md bg-slate-200 animate-pulse",
+        className,
+      )}
+    />
+  );
+}
+
+/** One skeleton table row matching the 7-column layout */
+function SkeletonRow({ index }) {
+  return (
+    <tr
+      className="border-b border-slate-100"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      {/* Customer & Email */}
+      <td className="p-3.5">
+        <div className="flex items-center gap-2">
+          <div className="w-6.5 h-6.5 rounded-md bg-slate-200 animate-pulse shrink-0" />
+          <div className="space-y-1.5 flex-1">
+            <SkeletonCell className="w-28" />
+            <SkeletonCell className="w-36 h-2" />
+          </div>
+        </div>
+      </td>
+      {/* Role */}
+      <td className="p-3.5"><SkeletonCell className="w-16 h-4" /></td>
+      {/* Savings & Claims */}
+      <td className="p-3.5">
+        <div className="space-y-1.5">
+          <SkeletonCell className="w-20" />
+          <SkeletonCell className="w-24 h-2" />
+        </div>
+      </td>
+      {/* Registered */}
+      <td className="p-3.5"><SkeletonCell className="w-20" /></td>
+      {/* Newsletter */}
+      <td className="p-3.5"><SkeletonCell className="w-16 h-4" /></td>
+      {/* Status */}
+      <td className="p-3.5"><SkeletonCell className="w-14 h-4" /></td>
+      {/* Actions */}
+      <td className="p-3.5">
+        <div className="flex items-center justify-end gap-1">
+          <div className="w-6.5 h-6.5 rounded-md bg-slate-200 animate-pulse" />
+          <div className="w-6.5 h-6.5 rounded-md bg-slate-200 animate-pulse" />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+/** Full skeleton table — shown on initial load */
+function SkeletonTable({ rows = 8 }) {
+  return (
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-left text-xs">
+        <thead>
+          <tr className="border-b border-slate-200/80 bg-slate-50/60">
+            {["Customer & Email", "Role", "Savings & Claims", "Registered", "Newsletter", "Status", "Action"].map((h) => (
+              <th key={h} className="p-3.5 text-[10.5px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: rows }).map((_, i) => (
+            <SkeletonRow key={i} index={i} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** KPI card skeleton */
+function SkeletonKPICard() {
+  return (
+    <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-2.5 w-20 rounded bg-slate-200 animate-pulse" />
+          <div className="h-4 w-8 rounded bg-slate-200 animate-pulse" />
+        </div>
+        <div className="w-7 h-7 rounded-lg bg-slate-200 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+// ── Row colour themes ─────────────────────────────────────────────────────────
+
 const ROW_COLOR_THEMES = [
-  {
-    row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900",
-  },
-  {
-    row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900",
-  },
-  {
-    row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900",
-  },
-  {
-    row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900",
-  },
-  {
-    row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900",
-  },
-  {
-    row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900",
-  },
-  {
-    row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900",
-  },
-  {
-    row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900",
-  },
+  { row: "bg-blue-100/65 hover:bg-blue-100/90 border-l-[3.5px] border-l-blue-600 border-b border-blue-200/80 text-slate-900" },
+  { row: "bg-emerald-100/65 hover:bg-emerald-100/90 border-l-[3.5px] border-l-emerald-600 border-b border-emerald-200/80 text-slate-900" },
+  { row: "bg-amber-100/65 hover:bg-amber-100/90 border-l-[3.5px] border-l-amber-600 border-b border-amber-200/80 text-slate-900" },
+  { row: "bg-purple-100/65 hover:bg-purple-100/90 border-l-[3.5px] border-l-purple-600 border-b border-purple-200/80 text-slate-900" },
+  { row: "bg-indigo-100/65 hover:bg-indigo-100/90 border-l-[3.5px] border-l-indigo-600 border-b border-indigo-200/80 text-slate-900" },
+  { row: "bg-rose-100/65 hover:bg-rose-100/90 border-l-[3.5px] border-l-rose-600 border-b border-rose-200/80 text-slate-900" },
+  { row: "bg-teal-100/65 hover:bg-teal-100/90 border-l-[3.5px] border-l-teal-600 border-b border-teal-200/80 text-slate-900" },
+  { row: "bg-orange-100/65 hover:bg-orange-100/90 border-l-[3.5px] border-l-orange-600 border-b border-orange-200/80 text-slate-900" },
 ];
+
+// ── Page component ────────────────────────────────────────────────────────────
 
 export default function UserManagement() {
   const queryClient = useQueryClient();
 
-  // Socket.IO Real-time listeners for live user updates
+  // Real-time socket listeners
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, () => {
     queryClient.invalidateQueries({ queryKey: qk.admin.users() });
   });
-
   useRealtime(SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, () => {
     queryClient.invalidateQueries({ queryKey: ["admin-users"] });
   });
 
-  // ── Filters — Customer Users Only ──────────────────────────────────────
+  // ── Filter state ────────────────────────────────────────────────────────
   const [isActive, setIsActive] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [rawSearch, setRawSearch] = useState("");
-
   const [deleteAuthId, setDeleteAuthId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Defer search so keystrokes don't block the UI
+  // useDeferredValue lets React keep the UI responsive during typing
   const search = useDeferredValue(rawSearch);
 
-  // Debounced search ref to prevent re-fetching on every keystroke
+  // 400 ms server-side debounce — avoids firing a query on every keystroke
   const debounceTimer = useRef(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const handleSearchChange = (e) => {
@@ -107,18 +181,29 @@ export default function UserManagement() {
     );
   };
 
-  // Force role = "customer" to restrict Directory strictly to Customer Users
+  // True while the user has typed something but the debounce hasn't fired yet
+  const isTyping = rawSearch !== debouncedSearch;
+
   const filters = {
     role: "customer",
     isActive: activeTab === "active" ? "true" : activeTab === "suspended" ? "false" : isActive,
     search: debouncedSearch,
   };
 
-  const { data: users = [], isFetching, refetch } = useAdminUsers(filters);
+  const {
+    data: users = [],
+    isFetching,
+    isLoading,       // true only on the very first load (no cached data yet)
+    refetch,
+  } = useAdminUsers(filters);
+
   const { mutate: toggleStatus } = useToggleUserStatus();
   const { mutate: exportSubs, isPending: exporting } = useExportSubscribers();
 
-  // Filter based on newsletter if subscriber tab is active
+  // Combined loading indicator: typing debounce OR network request in flight
+  const isSearchLoading = isTyping || isFetching;
+
+  // ── Derived data ────────────────────────────────────────────────────────
   const filteredUsers = useMemo(() => {
     if (activeTab === "subscribers") {
       return users.filter((u) => u.emailNotifications !== false);
@@ -134,7 +219,7 @@ export default function UserManagement() {
     return { total, active, subscribers, suspended };
   }, [users]);
 
-  // ── Delete Customer Handler ──────────────────────────────────────────
+  // ── Handlers ────────────────────────────────────────────────────────────
   const handleDeleteUser = async () => {
     if (!deleteAuthId) return;
     setIsDeleting(true);
@@ -145,16 +230,13 @@ export default function UserManagement() {
       const json = await res.json().catch(() => ({}));
       if (res.ok) {
         toast.success(
-          json.message ||
-            "Customer account and all associated records deleted permanently!",
+          json.message || "Customer account and all associated records deleted permanently!",
         );
         queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
         refetch();
       } else {
-        toast.error(
-          json.error?.message || json.message || "Failed to delete customer user.",
-        );
+        toast.error(json.error?.message || json.message || "Failed to delete customer user.");
       }
     } catch (err) {
       console.error(err);
@@ -165,7 +247,6 @@ export default function UserManagement() {
     }
   };
 
-  // ── Newsletter CSV export ────────────────────────────────────────────
   const handleExport = () => {
     exportSubs(undefined, {
       onSuccess: (subs) => {
@@ -193,13 +274,12 @@ export default function UserManagement() {
     });
   };
 
-  // ── Colorful Row Background Callback ────────────────────────────────
   const getCustomerRowColor = (row, index) => {
     const theme = ROW_COLOR_THEMES[index % ROW_COLOR_THEMES.length];
     return cn("transition-all", theme.row);
   };
 
-  // ── Table columns ────────────────────────────────────────────────────
+  // ── Table columns ────────────────────────────────────────────────────────
   const columns = useMemo(
     () => [
       {
@@ -213,7 +293,6 @@ export default function UserManagement() {
             .slice(0, 2)
             .join("")
             .toUpperCase();
-
           return (
             <div className="flex items-center gap-2 py-0.5 min-w-[200px]">
               <div className="w-6.5 h-6.5 rounded-md bg-white text-slate-800 border border-slate-300/90 flex items-center justify-center font-medium text-[10px] shrink-0 shadow-2xs">
@@ -307,7 +386,6 @@ export default function UserManagement() {
         align: "right",
         cell: (user) => (
           <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-            {/* Suspend / Activate Tooltip Action */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -333,7 +411,6 @@ export default function UserManagement() {
               </TooltipContent>
             </Tooltip>
 
-            {/* Delete Tooltip Action */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -357,8 +434,7 @@ export default function UserManagement() {
     [toggleStatus],
   );
 
-  const isSearchStale = rawSearch !== search;
-
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <DashboardLayout
       title="User Management"
@@ -366,7 +442,8 @@ export default function UserManagement() {
     >
       <TooltipProvider delayDuration={100}>
         <div className="space-y-3 font-sans w-full pb-12 text-left">
-          {/* Header */}
+
+          {/* ── Header ── */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
             <div>
               <h1 className="text-base sm:text-lg font-medium tracking-tight text-slate-900">
@@ -402,223 +479,196 @@ export default function UserManagement() {
             </div>
           </div>
 
-          {/* 4 Mini KPI Overview Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <Card
-              onClick={() => {
-                setActiveTab("all");
-                setIsActive("");
-              }}
-              className={cn(
-                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
-                activeTab === "all" && !isActive
-                  ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300"
-                  : "bg-white border-slate-200/80 hover:border-slate-300",
-              )}
-            >
-              <CardContent className="p-0 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
-                    Total Customers
-                  </span>
-                  <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
-                    {stats.total}
-                  </span>
-                </div>
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
-                  <Users className="w-3.5 h-3.5" />
-                </div>
-              </CardContent>
-            </Card>
+          {/* ── KPI Cards (skeleton on initial load) ── */}
+          {isLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {[0, 1, 2, 3].map((i) => <SkeletonKPICard key={i} />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {[
+                {
+                  id: "all",
+                  label: "Total Customers",
+                  value: stats.total,
+                  color: "blue",
+                  icon: <Users className="w-3.5 h-3.5" />,
+                  active: activeTab === "all" && !isActive,
+                  onClick: () => { setActiveTab("all"); setIsActive(""); },
+                },
+                {
+                  id: "active",
+                  label: "Active Shoppers",
+                  value: stats.active,
+                  color: "emerald",
+                  icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+                  active: activeTab === "active" || isActive === "true",
+                  onClick: () => { setActiveTab("active"); setIsActive("true"); },
+                },
+                {
+                  id: "subscribers",
+                  label: "Subscribers",
+                  value: stats.subscribers,
+                  color: "purple",
+                  icon: <Mail className="w-3.5 h-3.5" />,
+                  active: activeTab === "subscribers",
+                  onClick: () => { setActiveTab("subscribers"); setIsActive(""); },
+                },
+                {
+                  id: "suspended",
+                  label: "Suspended Accounts",
+                  value: stats.suspended,
+                  color: "rose",
+                  icon: <Ban className="w-3.5 h-3.5" />,
+                  active: activeTab === "suspended" || isActive === "false",
+                  onClick: () => { setActiveTab("suspended"); setIsActive("false"); },
+                },
+              ].map((card) => (
+                <Card
+                  key={card.id}
+                  onClick={card.onClick}
+                  className={cn(
+                    "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
+                    card.active
+                      ? `bg-${card.color}-50/70 border-${card.color}-300 ring-1 ring-${card.color}-300`
+                      : "bg-white border-slate-200/80 hover:border-slate-300",
+                  )}
+                >
+                  <CardContent className="p-0 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                        {card.label}
+                      </span>
+                      <span className={`text-base font-medium mt-0.5 block leading-none text-${card.color === "blue" ? "slate-900" : card.color + "-700"}`}>
+                        {card.value}
+                      </span>
+                    </div>
+                    <div className={`w-7 h-7 rounded-lg bg-${card.color}-50 text-${card.color}-600 border border-${card.color}-200/60 flex items-center justify-center shrink-0`}>
+                      {card.icon}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
-            <Card
-              onClick={() => {
-                setActiveTab("active");
-                setIsActive("true");
-              }}
-              className={cn(
-                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
-                activeTab === "active" || isActive === "true"
-                  ? "bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-300"
-                  : "bg-white border-slate-200/80 hover:border-slate-300",
-              )}
-            >
-              <CardContent className="p-0 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
-                    Active Shoppers
-                  </span>
-                  <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
-                    {stats.active}
-                  </span>
-                </div>
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              onClick={() => {
-                setActiveTab("subscribers");
-                setIsActive("");
-              }}
-              className={cn(
-                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
-                activeTab === "subscribers"
-                  ? "bg-purple-50/70 border-purple-300 ring-1 ring-purple-300"
-                  : "bg-white border-slate-200/80 hover:border-slate-300",
-              )}
-            >
-              <CardContent className="p-0 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
-                    Subscribers
-                  </span>
-                  <span className="text-base font-medium text-purple-700 mt-0.5 block leading-none">
-                    {stats.subscribers}
-                  </span>
-                </div>
-                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
-                  <Mail className="w-3.5 h-3.5" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              onClick={() => {
-                setActiveTab("suspended");
-                setIsActive("false");
-              }}
-              className={cn(
-                "rounded-xl border p-2.5 cursor-pointer transition-all duration-200 shadow-2xs font-sans",
-                activeTab === "suspended" || isActive === "false"
-                  ? "bg-rose-50/70 border-rose-300 ring-1 ring-rose-300"
-                  : "bg-white border-slate-200/80 hover:border-slate-300",
-              )}
-            >
-              <CardContent className="p-0 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
-                    Suspended Accounts
-                  </span>
-                  <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none">
-                    {stats.suspended}
-                  </span>
-                </div>
-                <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
-                  <Ban className="w-3.5 h-3.5" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Card Container */}
+          {/* ── Main Table Card ── */}
           <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pb-3">
+
+              {/* Search input with inline spinner */}
               <div className="relative flex-1 w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                {isSearchLoading ? (
+                  <Loader2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-blue-500 pointer-events-none animate-spin" />
+                ) : (
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                )}
                 <Input
                   placeholder="Search customer name or email…"
                   value={rawSearch}
                   onChange={handleSearchChange}
-                  className={`pl-8 text-[11px] h-7.5 rounded-lg border-slate-200 bg-white transition-opacity ${
-                    isSearchStale ? "opacity-70" : "opacity-100"
-                  }`}
+                  className={cn(
+                    "pl-8 text-[11px] h-7.5 rounded-lg border-slate-200 bg-white transition-all duration-200",
+                    isSearchLoading && "border-blue-300 ring-1 ring-blue-200",
+                  )}
                 />
               </div>
 
-              {/* Status Tabs */}
-              <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none self-end sm:self-auto">
-                {[
-                  {
-                    id: "all",
-                    label: "All",
-                    count: stats.total,
-                    description: "View all registered customer accounts",
-                  },
-                  {
-                    id: "active",
-                    label: "Active",
-                    count: stats.active,
-                    description: "Filter to active shoppers with login access",
-                  },
-                  {
-                    id: "subscribers",
-                    label: "Subscribers",
-                    count: stats.subscribers,
-                    description: "Filter to customers subscribed to newsletter & emails",
-                  },
-                  {
-                    id: "suspended",
-                    label: "Suspended",
-                    count: stats.suspended,
-                    description: "Filter to suspended or blocked accounts",
-                  },
-                ].map((tab) => (
-                  <Tooltip key={tab.id}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab(tab.id);
-                          if (tab.id === "all" || tab.id === "subscribers") setIsActive("");
-                          else if (tab.id === "active") setIsActive("true");
-                          else if (tab.id === "suspended") setIsActive("false");
-                        }}
-                        className={cn(
-                          "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
-                          activeTab === tab.id
-                            ? "bg-white text-blue-600 shadow-2xs"
-                            : "text-slate-500 hover:text-slate-800 bg-transparent",
-                        )}
-                      >
-                        <span>{tab.label}</span>
-                        <span
+              {/* Status tabs + searching pill */}
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                {/* Searching status pill — visible while debounce is pending or fetch is in flight */}
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-[10px] font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 transition-all duration-300",
+                    isSearchLoading && debouncedSearch
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 pointer-events-none -translate-y-1",
+                  )}
+                  aria-live="polite"
+                  aria-label="Search in progress"
+                >
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>Searching…</span>
+                </div>
+
+                {/* Tab filters */}
+                <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
+                  {[
+                    { id: "all",         label: "All",         count: stats.total,       desc: "View all registered customer accounts" },
+                    { id: "active",      label: "Active",      count: stats.active,      desc: "Filter to active shoppers with login access" },
+                    { id: "subscribers", label: "Subscribers", count: stats.subscribers, desc: "Filter to customers subscribed to newsletter & emails" },
+                    { id: "suspended",   label: "Suspended",   count: stats.suspended,   desc: "Filter to suspended or blocked accounts" },
+                  ].map((tab) => (
+                    <Tooltip key={tab.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab(tab.id);
+                            if (tab.id === "all" || tab.id === "subscribers") setIsActive("");
+                            else if (tab.id === "active") setIsActive("true");
+                            else if (tab.id === "suspended") setIsActive("false");
+                          }}
                           className={cn(
-                            "text-[9px] px-1 rounded-full",
+                            "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
                             activeTab === tab.id
-                              ? "bg-blue-50 text-blue-600"
-                              : "bg-slate-200/70 text-slate-600",
+                              ? "bg-white text-blue-600 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-800 bg-transparent",
                           )}
                         >
-                          {tab.count}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                      {tab.description}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
+                          <span>{tab.label}</span>
+                          <span
+                            className={cn(
+                              "text-[9px] px-1 rounded-full",
+                              activeTab === tab.id
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-slate-200/70 text-slate-600",
+                            )}
+                          >
+                            {tab.count}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                        {tab.desc}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Table Container */}
-            <div className="w-full overflow-x-auto">
-              <div
-                className="transition-opacity duration-200"
-                style={{ opacity: isFetching ? 0.55 : 1 }}
-              >
-                <DataTable
-                  columns={columns}
-                  data={filteredUsers}
-                  loading={false}
-                  searchable={false}
-                  defaultPageSize={15}
-                  getRowClassName={getCustomerRowColor}
-                  emptyState={
-                    debouncedSearch || isActive
-                      ? "No customer accounts match your current search."
-                      : "No registered customer accounts found."
-                  }
-                />
+            {/* ── Table area ── */}
+            {isLoading ? (
+              // Initial full skeleton — no data cached yet
+              <SkeletonTable rows={8} />
+            ) : (
+              <div className="w-full overflow-x-auto">
+                {/* Skeleton overlay rows during search refetch */}
+                {isFetching ? (
+                  <SkeletonTable rows={5} />
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={filteredUsers}
+                    loading={false}
+                    searchable={false}
+                    defaultPageSize={15}
+                    getRowClassName={getCustomerRowColor}
+                    emptyState={
+                      debouncedSearch || isActive
+                        ? "No customer accounts match your current search."
+                        : "No registered customer accounts found."
+                    }
+                  />
+                )}
               </div>
-            </div>
+            )}
           </Card>
 
-          {/* Confirm Delete Modal */}
+          {/* ── Confirm Delete Modal ── */}
           <ConfirmDeleteModal
             open={!!deleteAuthId}
             onOpenChange={(open) => !open && setDeleteAuthId(null)}

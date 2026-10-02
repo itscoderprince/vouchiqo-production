@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+import { redis } from "@/lib/redis";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
@@ -15,6 +18,20 @@ export const metadata = {
 };
 
 export default async function BrandsPage() {
+  // Fast path: Redis cache (5 minutes)
+  try {
+    const cached = await redis.get(REDIS_KEYS.BRANDS_LIST);
+    if (cached) {
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-50/50">
+          <Navbar />
+          <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading brands...</div>}><BrandsClient brands={JSON.parse(cached)} /></Suspense>
+          <Footer />
+        </div>
+      );
+    }
+  } catch (_) {}
+
   await connectDB();
 
   // Parallel database execution (Rule 74 — eliminate request waterfalls)
@@ -78,10 +95,15 @@ export default async function BrandsPage() {
     };
   });
 
+  // Cache processed brands list in Redis
+  try {
+    redis.setex(REDIS_KEYS.BRANDS_LIST, REDIS_TTL.BRANDS_LIST, JSON.stringify(brandsList)).catch(() => {});
+  } catch (_) {}
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/50">
       <Navbar />
-      <BrandsClient brands={brandsList} />
+      <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading brands...</div>}><BrandsClient brands={brandsList} /></Suspense>
       <Footer />
     </div>
   );

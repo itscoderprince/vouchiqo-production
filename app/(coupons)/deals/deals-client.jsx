@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 import { Search, Tag } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import CouponCard from "@/components/shared/cards/CouponCard";
@@ -50,7 +51,16 @@ function SkeletonCard() {
 }
 
 export default function DealsClient() {
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams?.get("search") || searchParams?.get("q") || "";
+  const [search, setSearch] = useState(urlSearch);
+
+  useEffect(() => {
+    const currentQ = searchParams?.get("search") || searchParams?.get("q") || "";
+    if (currentQ !== search) {
+      setSearch(currentQ);
+    }
+  }, [searchParams]);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
 

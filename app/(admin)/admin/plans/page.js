@@ -15,6 +15,7 @@ import {
   Tag,
   Trash2,
   TrendingUp,
+  X,
   Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";

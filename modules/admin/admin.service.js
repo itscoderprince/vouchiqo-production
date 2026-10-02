@@ -1,3 +1,4 @@
+﻿import { invalidateCouponCaches } from "@/modules/coupon/coupon.service";
 import mongoose from "mongoose";
 import { redis } from "@/lib/redis";
 import Coupon from "@/modules/coupon/coupon.model";
@@ -11,7 +12,13 @@ import { buildMeta, parsePagination } from "@/utils/pagination";
 // ─────────────────────────────────────────────
 
 /**
- * List all users with pagination. Joining auth 'user' collection for names and emails.
+ * List all users with pagination.
+ * Joins auth 'user' collection for names and emails.
+ *
+ * Production-grade approach:
+ * - Search ($match on name/email) fires BEFORE $lookup stages — uses collection indexes
+ * - Single $facet aggregation returns paginated data + total in one DB round-trip
+ * - Inline escapeRegex prevents ReDoS attacks on user input
  *
  * @param {URLSearchParams} searchParams
  */
@@ -33,52 +40,84 @@ export async function listUsers(searchParams) {
   const role = searchParams.get("role");
   const isActive = searchParams.get("isActive");
   const merchantStatus = searchParams.get("merchantStatus");
-  const search = searchParams.get("search");
+  const search = (searchParams.get("search") || "").trim();
 
-  const filter = {};
-  if (role) filter.role = role.toLowerCase();
-  if (isActive !== null && isActive !== undefined) {
-    filter.isActive = isActive === "true";
+  // ── Stage 1: Pre-pipeline match — runs BEFORE expensive $lookup stages ──
+  // Applying filters here lets MongoDB use native indexes on the 'user' collection.
+  const preMatch = {};
+
+  if (role) {
+    preMatch.role = role.toLowerCase();
+  } else {
+    // Default: exclude admin accounts from the customer directory
+    preMatch.role = { $ne: "admin" };
   }
 
+  if (isActive !== null && isActive !== undefined && isActive !== "") {
+    preMatch.isActive = isActive === "true";
+  }
+
+  if (search) {
+    // Escape special regex chars to prevent ReDoS attacks
+    const safeQ = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Match on raw 'user' collection fields (before $project renames them)
+    preMatch.$or = [
+      { name: { $regex: safeQ, $options: "i" } },
+      { email: { $regex: safeQ, $options: "i" } },
+    ];
+  }
+
+  // ── Pipeline definition ─────────────────────────────────────────────────
   const pipeline = [
-    { $match: filter },
+    // Fast pre-filter using collection indexes
+    { $match: preMatch },
+
     { $sort: { createdAt: -1 } },
-    {
-      $addFields: {
-        authIdStr: { $toString: "$_id" },
-      },
-    },
+
+    // Stringify ObjectId for cross-collection string joins
+    { $addFields: { authIdStr: { $toString: "$_id" } } },
+
+    // Join user profile (totalSavings, emailNotifications)
     {
       $lookup: {
         from: "userprofiles",
         let: { uId: "$authIdStr" },
         pipeline: [
           { $match: { $expr: { $eq: ["$authId", "$$uId"] } } },
+          { $limit: 1 },
         ],
         as: "profile",
       },
     },
+
+    // Join merchant profile (businessName, status, plan) — $limit: 1 optimises lookup
     {
       $lookup: {
         from: "merchants",
         let: { uId: "$authIdStr" },
         pipeline: [
           { $match: { $expr: { $eq: ["$authId", "$$uId"] } } },
+          { $limit: 1 },
+          { $project: { businessName: 1, status: 1, plan: 1 } },
         ],
         as: "merchantProfile",
       },
     },
+
+    // Count claims instead of pulling every document
     {
       $lookup: {
         from: "claims",
         let: { uId: "$authIdStr" },
         pipeline: [
           { $match: { $expr: { $eq: ["$userId", "$$uId"] } } },
+          { $count: "total" },
         ],
-        as: "userClaims",
+        as: "claimsCount",
       },
     },
+
+    // Project the clean output shape consumed by the frontend
     {
       $project: {
         _id: 1,
@@ -90,7 +129,7 @@ export async function listUsers(searchParams) {
         createdAt: 1,
         totalSavings: { $ifNull: [{ $arrayElemAt: ["$profile.totalSavings", 0] }, 0] },
         emailNotifications: { $ifNull: [{ $arrayElemAt: ["$profile.emailNotifications", 0] }, true] },
-        couponsSaved: { $size: "$userClaims" },
+        couponsSaved: { $ifNull: [{ $arrayElemAt: ["$claimsCount.total", 0] }, 0] },
         businessName: { $arrayElemAt: ["$merchantProfile.businessName", 0] },
         merchantStatus: { $arrayElemAt: ["$merchantProfile.status", 0] },
         merchantPlan: { $arrayElemAt: ["$merchantProfile.plan", 0] },
@@ -98,26 +137,25 @@ export async function listUsers(searchParams) {
     },
   ];
 
-  const postFilters = {};
-  if (merchantStatus) postFilters.merchantStatus = merchantStatus;
-  if (search) {
-    const safe = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    postFilters.$or = [
-      { name: { $regex: safe, $options: "i" } },
-      { email: { $regex: safe, $options: "i" } },
-      { businessName: { $regex: safe, $options: "i" } },
-    ];
-  }
-  if (Object.keys(postFilters).length > 0) {
-    pipeline.push({ $match: postFilters });
+  // Post-projection filter: merchantStatus only exists after $project
+  if (merchantStatus) {
+    pipeline.push({ $match: { merchantStatus } });
   }
 
-  const [users, countResult] = await Promise.all([
-    db.collection("user").aggregate([...pipeline, { $skip: skip }, { $limit: limit }]).toArray(),
-    db.collection("user").aggregate([...pipeline, { $count: "total" }]).toArray(),
-  ]);
+  // ── Single $facet pass: data + count in one DB round-trip ──────────────
+  const [facetResult] = await db.collection("user").aggregate([
+    ...pipeline,
+    {
+      $facet: {
+        data: [{ $skip: skip }, { $limit: limit }],
+        count: [{ $count: "total" }],
+      },
+    },
+  ]).toArray();
 
-  const total = countResult[0]?.total ?? 0;
+  const users = facetResult?.data || [];
+  const total = facetResult?.count?.[0]?.total ?? 0;
+
   return { users, meta: buildMeta(total, page, limit) };
 }
 
@@ -206,11 +244,7 @@ export async function setCouponFlags(couponId, flags) {
 
   if (!coupon) throw new NotFoundError("Coupon");
 
-  // Bust homepage caches
-  await Promise.all([
-    redis.del(REDIS_KEYS.FEATURED_DEALS),
-    redis.del(REDIS_KEYS.TRENDING_DEALS),
-  ]);
+  await invalidateCouponCaches(coupon).catch(() => {});
 
   return coupon;
 }
@@ -230,11 +264,7 @@ export async function updateCouponModerationState(couponId, update) {
 
   if (!coupon) throw new NotFoundError("Coupon");
 
-  // Bust homepage caches
-  await Promise.all([
-    redis.del(REDIS_KEYS.FEATURED_DEALS),
-    redis.del(REDIS_KEYS.TRENDING_DEALS),
-  ]);
+  await invalidateCouponCaches(coupon).catch(() => {});
 
   return coupon;
 }
@@ -248,11 +278,7 @@ export async function deleteAdminCoupon(couponId) {
   const coupon = await Coupon.findByIdAndDelete(couponId);
   if (!coupon) throw new NotFoundError("Coupon");
 
-  // Bust homepage caches
-  await Promise.all([
-    redis.del(REDIS_KEYS.FEATURED_DEALS),
-    redis.del(REDIS_KEYS.TRENDING_DEALS),
-  ]);
+  await invalidateCouponCaches(coupon).catch(() => {});
 
   return coupon;
 }

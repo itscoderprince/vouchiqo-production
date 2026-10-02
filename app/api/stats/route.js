@@ -1,18 +1,26 @@
 import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import UserProfile from "@/modules/user/user.model";
 import { ok } from "@/utils/api-response";
 import { asyncHandler } from "@/utils/async-handler";
-import { COUPON_STATUS, MERCHANT_STATUS } from "@/utils/constants";
+import { COUPON_STATUS, MERCHANT_STATUS, REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 
 /**
  * GET /api/stats
  * Public endpoint to fetch high-trust real platform stats.
  * activeDeals includes both coupons AND affiliate products.
+ * Results are Redis-cached for 2 minutes (4 countDocuments are expensive).
  */
 export const GET = asyncHandler(async () => {
+  // Fast path: Redis cache
+  try {
+    const cached = await redis.get(REDIS_KEYS.PLATFORM_STATS);
+    if (cached) return ok(JSON.parse(cached));
+  } catch (_) {}
+
   await connectDB();
 
   const now = new Date();
@@ -38,9 +46,14 @@ export const GET = asyncHandler(async () => {
   const dbSavings = savingsResult[0]?.total || 0;
   const totalSavings = Math.max(dbSavings, 450000); // Minimum base of 4.5L INR savings
 
-  return ok({
+  const payload = {
     verifiedBrands: Math.max(verifiedBrands, 12), // Fallback to 12 if db is fresh
     activeDeals: Math.max(activeDeals, 40),        // Fallback to 40 if db is fresh
     totalSavings,
-  });
+  };
+
+  // Cache with fire-and-forget (non-blocking)
+  redis.setex(REDIS_KEYS.PLATFORM_STATS, REDIS_TTL.PLATFORM_STATS, JSON.stringify(payload)).catch(() => {});
+
+  return ok(payload);
 });

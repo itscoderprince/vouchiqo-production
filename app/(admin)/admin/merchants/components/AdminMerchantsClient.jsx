@@ -23,6 +23,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DataTable from "@/components/shared/data/DataTable";
+import TableSearch from "@/components/shared/data/TableSearch";
 import FormSelect from "@/components/shared/form/FormSelect";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Badge } from "@/components/ui/badge";
@@ -695,81 +696,72 @@ export default function AdminMerchantsClient({
 
         {/* Main Card Container */}
         <Card className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs font-sans overflow-hidden">
+          {/* ── Unified Toolbar: Search + Plan Filter + Status Tabs ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 mb-1 border-b border-slate-100">
+            {/* Left: Search */}
+            <TableSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search by name, plan, status, email..."
+              resultCount={!isLoading ? filteredMerchants.length : null}
+              className="flex-1 max-w-xs min-w-[200px]"
+            />
+
+            {/* Right: Plan filter + Status tabs */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              <FormSelect
+                value={planFilter}
+                onValueChange={setPlanFilter}
+                options={PLAN_OPTIONS}
+                triggerClassName="w-[110px] h-7.5 text-[11px] border-slate-200 bg-white font-medium"
+              />
+
+              <div className="flex items-center gap-0.5 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
+                {[
+                  { id: "all",       label: "All",       count: stats.total,     desc: "View all onboarded merchant accounts" },
+                  { id: "pending",   label: "Pending",   count: stats.pending,   desc: "Awaiting verification" },
+                  { id: "approved",  label: "Active",    count: stats.active,    desc: "Approved active partners" },
+                  { id: "suspended", label: "Suspended", count: stats.suspended, desc: "Suspended or restricted partners" },
+                ].map((tab) => (
+                  <Tooltip key={tab.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab(tab.id)}
+                        className={cn(
+                          "text-[10.5px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
+                          activeTab === tab.id
+                            ? "bg-white text-blue-600 shadow-sm"
+                            : "text-slate-500 hover:text-slate-800 bg-transparent",
+                        )}
+                      >
+                        <span>{tab.label}</span>
+                        <span className={cn(
+                          "text-[9px] px-1.5 py-px rounded-full font-medium",
+                          activeTab === tab.id
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-slate-200/80 text-slate-600",
+                        )}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
+                      {tab.desc}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <DataTable
             columns={columns}
             data={filteredMerchants}
             loading={isLoading}
-            searchKey="businessName"
+            searchable={false}
+            externalSearch={true}
             getRowClassName={getMerchantRowColor}
-            rightActions={
-              <div className="flex items-center gap-2">
-                <FormSelect
-                  value={planFilter}
-                  onValueChange={setPlanFilter}
-                  options={PLAN_OPTIONS}
-                  triggerClassName="w-[120px] h-7 text-[11px] border-slate-200 bg-white font-medium"
-                />
-
-                <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/80 select-none">
-                  {[
-                    {
-                      id: "all",
-                      label: "All",
-                      count: stats.total,
-                      description: "View all onboarded merchant accounts",
-                    },
-                    {
-                      id: "pending",
-                      label: "Pending",
-                      count: stats.pending,
-                      description: "Filter to merchant submissions awaiting verification",
-                    },
-                    {
-                      id: "approved",
-                      label: "Active",
-                      count: stats.active,
-                      description: "Filter to approved active merchant partners",
-                    },
-                    {
-                      id: "suspended",
-                      label: "Suspended",
-                      count: stats.suspended,
-                      description: "Filter to suspended or restricted merchant partners",
-                    },
-                  ].map((tab) => (
-                    <Tooltip key={tab.id}>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab(tab.id)}
-                          className={cn(
-                            "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
-                            activeTab === tab.id
-                              ? "bg-white text-blue-600 shadow-2xs"
-                              : "text-slate-500 hover:text-slate-800 bg-transparent",
-                          )}
-                        >
-                          <span>{tab.label}</span>
-                          <span
-                            className={cn(
-                              "text-[9px] px-1 rounded-full",
-                              activeTab === tab.id
-                                ? "bg-blue-50 text-blue-600"
-                                : "bg-slate-200/70 text-slate-600",
-                            )}
-                          >
-                            {tab.count}
-                          </span>
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md">
-                        {tab.description}
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
-              </div>
-            }
           />
         </Card>
 

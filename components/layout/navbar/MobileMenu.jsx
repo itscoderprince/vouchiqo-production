@@ -108,7 +108,7 @@ export const MobileMenu = () => {
       {isOpen && (
         <div
           data-lenis-prevent="true"
-          className="fixed inset-0 w-full h-[100dvh] bg-white shadow-2xl z-[99999] flex flex-col animate-slide-in-right overflow-y-auto isolate"
+          className="fixed inset-0 w-full h-[100dvh] bg-white shadow-2xl z-[99999] flex flex-col animate-slide-in-right overflow-y-auto isolate max-w-[380px] ml-auto border-l border-slate-200"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
@@ -120,7 +120,7 @@ export const MobileMenu = () => {
               className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition cursor-pointer bg-transparent border-0"
               aria-label="Close menu"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -140,7 +140,7 @@ export const MobileMenu = () => {
                 href={href}
                 prefetch={true}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-5 py-3.5 text-[14px] font-normal text-slate-700 hover:bg-rose-50/60 hover:text-[#F72853] active:bg-rose-100/60 transition-all border-b border-slate-100/50"
+                className="flex items-center gap-3 px-5 py-3.5 text-[14px] font-medium text-slate-700 hover:bg-rose-50/60 hover:text-[#F72853] active:bg-rose-100/60 transition-all border-b border-slate-100/50"
               >
                 <Icon className="h-4.5 w-4.5 stroke-[1.8] text-slate-400 shrink-0" />
                 <span>{label}</span>
@@ -213,7 +213,7 @@ export const MobileMenu = () => {
               <Link
                 href="/login"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#F72853] text-white hover:bg-[#df1c44] text-[13px] font-medium rounded-lg transition-all shadow-sm"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#F72853] text-white hover:bg-[#df1c44] text-[13px] font-medium rounded-lg transition-all shadow-xs"
               >
                 <User className="h-4 w-4" />
                 Login
@@ -226,14 +226,14 @@ export const MobileMenu = () => {
   );
 
   return (
-    <div className="md:hidden relative">
-      {/* Burger Toggle Button */}
+    <div className="lg:hidden relative shrink-0">
+      {/* Burger Toggle Button: visible below lg (<1024px) */}
       <button
         onClick={() => setIsOpen(true)}
-        className="p-1.5 text-gray-700 hover:text-gray-900 transition cursor-pointer bg-transparent border-0"
-        aria-label="Open mobile menu"
+        className="p-1 sm:p-1.5 text-slate-700 hover:text-slate-900 transition cursor-pointer bg-transparent border-0 rounded-lg hover:bg-slate-100 flex items-center justify-center"
+        aria-label="Open navigation menu"
       >
-        <Menu className="h-6 w-6" />
+        <Menu className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
       </button>
 
       {/* Render drawer via Portal to escape all local stacking contexts */}

@@ -740,7 +740,7 @@ export default function CampaignsClient({
                 Updated Daily
               </span>
               <span className="bg-slate-50 px-2.5 py-0.5 rounded-md border border-slate-200 flex items-center gap-1 shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Tag className="w-3.5 h-3.5 text-rose-500" />
                 Free to Claim
               </span>
             </div>

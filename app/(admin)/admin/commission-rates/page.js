@@ -72,7 +72,7 @@ const DEFAULT_COMMISSION_TABLE = [
     category: "Home & Living",
     rate: "5%",
     model: "CPA",
-    notes: "Furniture and dÃ©cor",
+    notes: "Furniture and décor",
   },
   {
     id: "home-improvement",

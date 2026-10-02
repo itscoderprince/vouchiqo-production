@@ -11,6 +11,7 @@ import {
   Eye,
   GripVertical,
   ImageIcon,
+  Info,
   Layers,
   Layout,
   Pencil,
@@ -49,7 +50,12 @@ const SLOTS = [
   {
     id: "hero",
     label: "Top Hero Section",
-    recommendedSize: "1200 Ã— 430 px (~2.8:1)",
+    width: 1200,
+    height: 430,
+    aspectRatio: "2.8:1 (Wide)",
+    recommendedSize: "1200 x 430 px (~2.8:1)",
+    format: "WebP, JPG, PNG",
+    maxSize: "2 MB",
     aliases: ["hero", "left-hero", "top-hero"],
     badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
     activeTabBg: "bg-blue-600 text-white shadow-2xs",
@@ -64,7 +70,12 @@ const SLOTS = [
   {
     id: "trending",
     label: "Trending Offers",
-    recommendedSize: "1400 Ã— 300 px (~4.6:1)",
+    width: 1400,
+    height: 300,
+    aspectRatio: "4.6:1 (Panoramic)",
+    recommendedSize: "1400 x 300 px (~4.6:1)",
+    format: "WebP, JPG, PNG",
+    maxSize: "2 MB",
     aliases: ["trending", "trending-offer"],
     badgeColor: "bg-purple-50 text-purple-700 border-purple-200",
     activeTabBg: "bg-purple-600 text-white shadow-2xs",
@@ -79,7 +90,12 @@ const SLOTS = [
   {
     id: "popup",
     label: "Popup Banner Modal",
-    recommendedSize: "600 Ã— 400 px (3:2)",
+    width: 600,
+    height: 400,
+    aspectRatio: "3:2 (Standard)",
+    recommendedSize: "600 x 400 px (3:2)",
+    format: "WebP, JPG, PNG",
+    maxSize: "2 MB",
     aliases: ["popup", "popup-modal"],
     badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
     activeTabBg: "bg-emerald-600 text-white shadow-2xs",
@@ -701,7 +717,7 @@ export default function BannerManagement() {
                       side="top"
                       className="text-[10.5px] font-normal py-1 px-2 bg-slate-900 text-white rounded-md shadow-md"
                     >
-                      {slot.description} â€¢ Optimal ratio:{" "}
+                      {slot.description} • Optimal ratio:{" "}
                       {slot.recommendedSize}
                     </TooltipContent>
                   </Tooltip>
@@ -709,12 +725,23 @@ export default function BannerManagement() {
               })}
             </div>
 
-            <span className="text-[10.5px] font-medium text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
-              Upload Size:{" "}
-              <span className="font-normal text-slate-800">
-                {currentSlotConfig.recommendedSize}
+            <div className="inline-flex items-center gap-2 flex-wrap text-[11px] bg-slate-50 border border-slate-200/90 rounded-xl px-2.5 py-1 shadow-2xs select-none">
+              <div className="flex items-center gap-1 text-slate-500 font-medium">
+                <ImageIcon className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Upload Specs:</span>
+              </div>
+              <span className="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs">
+                {currentSlotConfig.width || 1200} x {currentSlotConfig.height || 430} px
               </span>
-            </span>
+              <span className="text-slate-300 font-normal">|</span>
+              <span className="text-slate-600 font-medium">
+                Ratio: <span className="font-semibold text-slate-800">{currentSlotConfig.aspectRatio || "2.8:1"}</span>
+              </span>
+              <span className="text-slate-300 font-normal">|</span>
+              <span className="text-slate-500 text-[10px]">
+                {currentSlotConfig.format || "WebP, JPG, PNG"} (Max {currentSlotConfig.maxSize || "2 MB"})
+              </span>
+            </div>
           </div>
 
           {/* Compact Form Card */}
@@ -757,9 +784,14 @@ export default function BannerManagement() {
                 {/* Banner Image */}
                 <div className="space-y-0.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10.5px] font-medium text-slate-700">
-                      Banner Image <span className="text-rose-500">*</span>
-                    </label>
+                    <div>
+                      <label className="text-[10.5px] font-medium text-slate-700">
+                        Banner Image <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="ml-2 text-[10px] text-slate-400 font-normal hidden sm:inline">
+                        (Recommended: {currentSlotConfig.width || 1200} x {currentSlotConfig.height || 430} px, {currentSlotConfig.aspectRatio || "2.8:1"})
+                      </span>
+                    </div>
                     <input
                       type="file"
                       ref={imageInputRef}

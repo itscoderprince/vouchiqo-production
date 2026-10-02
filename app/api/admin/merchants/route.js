@@ -51,6 +51,12 @@ export const PUT = asyncHandler(async (request) => {
   // Broadcast to Admin desk
   await dispatchEvent({ target: "admins", event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED, payload });
 
+  await dispatchEvent({
+    target: "merchants",
+    event: SOCKET_EVENTS.APPLICATION_STATUS_CHANGED,
+    payload,
+  });
+
   // Direct socket & DB notification to merchant user
   const merchantUserId = merchant?.authId || merchant?.userId;
   if (merchantUserId) {

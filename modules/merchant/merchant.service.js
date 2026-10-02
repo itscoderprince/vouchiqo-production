@@ -348,11 +348,24 @@ export async function createMerchant(authId, data) {
  * @param {boolean} publicOnly - If true, only return approved merchants
  */
 export async function getMerchantById(merchantId, publicOnly = true) {
+  const cacheKey = publicOnly ? REDIS_KEYS.merchantPublic(String(merchantId)) : null;
+  if (cacheKey) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch (_) {}
+  }
+
   const query = { _id: merchantId };
   if (publicOnly) query.status = MERCHANT_STATUS.APPROVED;
 
   const merchant = await Merchant.findOne(query).lean();
   if (!merchant) throw new NotFoundError("Merchant");
+
+  if (cacheKey) {
+    redis.setex(cacheKey, REDIS_TTL.MERCHANT_PUBLIC, JSON.stringify(merchant)).catch(() => {});
+  }
+
   return merchant;
 }
 
@@ -488,6 +501,8 @@ export async function updateMerchant(
         ]
       : []),
   ]);
+
+  invalidateMerchantPublicCaches(merchant).catch(() => {});
 
   return merchant;
 }
@@ -706,4 +721,25 @@ export async function reviewMerchant(merchantId, status, rejectionReason) {
   }
 
   return merchant;
+}
+
+
+export async function invalidateMerchantPublicCaches(merchant) {
+  try {
+    const keysToDel = [
+      REDIS_KEYS.BRANDS_LIST,
+      REDIS_KEYS.MERCHANTS_LIST,
+      REDIS_KEYS.HOMEPAGE_DATA,
+      REDIS_KEYS.PLATFORM_STATS,
+    ];
+    if (merchant) {
+      if (merchant.authId) keysToDel.push(REDIS_KEYS.merchantProfile(String(merchant.authId)));
+      if (merchant._id) {
+        keysToDel.push(REDIS_KEYS.merchantBadges(String(merchant._id)));
+        keysToDel.push(REDIS_KEYS.merchantPublic(String(merchant._id)));
+      }
+      if (merchant.slug) keysToDel.push(REDIS_KEYS.brandDetail(String(merchant.slug).toLowerCase()));
+    }
+    await Promise.allSettled(keysToDel.map((k) => redis.del(k)));
+  } catch (_) {}
 }

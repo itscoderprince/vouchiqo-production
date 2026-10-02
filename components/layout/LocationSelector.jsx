@@ -62,10 +62,10 @@ export default function LocationSelector({
   const displayLabel = isDetecting
     ? "Detecting…"
     : city
-      ? city.length > 12
-        ? `${city.slice(0, 12)}…`
+      ? city.length > 10
+        ? `${city.slice(0, 9)}…`
         : city
-      : "Set Location";
+      : "Location";
 
   /* ─── Trigger Button ─── */
   const trigger = (
@@ -82,11 +82,11 @@ export default function LocationSelector({
             ? "w-full px-4 py-3 text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] border-b border-slate-100"
             : isMobile
               ? "text-[11px] text-[#2563eb] bg-[#2563eb]/5 border border-[#2563eb]/20 rounded-md px-2.5 py-1.5 hover:bg-[#2563eb]/10"
-              : "h-9 text-[13px] text-blue-700 bg-blue-50/50 border border-blue-200/80 rounded-lg px-3.5 hover:bg-blue-100/60 hover:border-blue-300 hover:shadow-sm"
+              : "h-8 sm:h-8.5 xl:h-9 text-xs xl:text-[13px] text-blue-700 bg-blue-50/50 border border-blue-200/80 rounded-lg px-2 sm:px-2.5 xl:px-3 hover:bg-blue-100/60 hover:border-blue-300 hover:shadow-xs shrink-0 max-w-[125px] sm:max-w-[135px] xl:max-w-[160px]"
         }
       `}
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 xl:gap-1.5 min-w-0">
         {isDetecting ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-500 shrink-0" />
         ) : (
@@ -101,25 +101,22 @@ export default function LocationSelector({
         </span>
       </div>
       <ChevronDown
-        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+        className={`w-3 h-3 xl:w-3.5 xl:h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ml-1 ${
           open ? "rotate-180 text-blue-500" : ""
         }`}
       />
     </button>
   );
 
-  /* ─── Dropdown Panel (Desktop & Mobile Nav overlay) ─── */
+  /* ─── Dropdown Panel (Desktop & Tablet Nav overlay) ─── */
   const dropdown = open && (
     <div
       className="
         absolute top-full mt-2 w-[240px] bg-white rounded-xl
         shadow-xl border border-slate-100 z-[200] overflow-hidden
         animate-[fadeInScale_0.15s_ease-out]
+        right-0 lg:right-auto lg:left-0
       "
-      style={{
-        right: isMobile ? 0 : "auto",
-        left: isMobile ? "auto" : 0,
-      }}
     >
       <div className="p-2.5 space-y-2">
         {/* GPS Detect Button */}
@@ -195,7 +192,7 @@ export default function LocationSelector({
           )}
         </div>
 
-        {/* Clear option (Slight soft red button) */}
+        {/* Clear option */}
         {city && (
           <button
             type="button"
@@ -288,7 +285,7 @@ export default function LocationSelector({
         )}
       </div>
 
-      {/* Clear option (Slight soft red button) */}
+      {/* Clear option */}
       {city && (
         <button
           type="button"
@@ -305,7 +302,7 @@ export default function LocationSelector({
   );
 
   return (
-    <div className={inDrawer ? "w-full" : "relative"} ref={panelRef}>
+    <div className={inDrawer ? "w-full" : "relative shrink-0"} ref={panelRef}>
       {trigger}
       {!inDrawer && dropdown}
       {inDrawer && inlinePanel}

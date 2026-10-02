@@ -35,6 +35,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import ProductOfferCard from "@/components/shared/cards/ProductOfferCard";
@@ -191,7 +192,16 @@ export default function CategoryClient({
   const [minDiscount, setMinDiscount] = useState(0); // 0, 30, 50, 70
   const [priceRange, setPriceRange] = useState("all"); // 'all', 'under-1000', '1000-5000', '5000-20000', 'above-20000'
   const [offerType, setOfferType] = useState("all"); // 'all' | 'deals' | 'coupons'
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams?.get("search") || searchParams?.get("q") || "";
+  const [searchQuery, setSearchQuery] = useState(urlQuery);
+
+  useEffect(() => {
+    const q = searchParams?.get("search") || searchParams?.get("q") || "";
+    if (q && q !== searchQuery) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
   const [brandSearch, setBrandSearch] = useState("");
   const [sortBy, setSortBy] = useState("featured"); // 'featured' | 'discount-desc' | 'price-asc' | 'price-desc' | 'latest'
   const [copiedId, setCopiedId] = useState(null);
@@ -200,7 +210,7 @@ export default function CategoryClient({
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const rawSlug = categoryInfo?.slug || "electronics";
-  const CategoryIcon = CATEGORY_ICONS[rawSlug] || Sparkles;
+  const CategoryIcon = CATEGORY_ICONS[rawSlug] || Tag;
 
   // Monitor scroll for back-to-top button
   useEffect(() => {
@@ -1276,7 +1286,7 @@ export default function CategoryClient({
         <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/80 shadow-2xs">
           <div className="mb-4 text-left">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#F72853] bg-rose-50 px-2.5 py-0.5 rounded-full mb-1">
-              <Sparkles className="w-3 h-3" />
+              <Tag className="w-3.5 h-3.5 text-rose-500" />
               <span>Smart Shopping Guide</span>
             </div>
             <h2 className="text-base font-bold text-slate-900">
