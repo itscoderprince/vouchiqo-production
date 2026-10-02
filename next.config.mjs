@@ -16,6 +16,8 @@ const nextConfig = {
       { protocol: "https", hostname: "commons.wikimedia.org", pathname: "/**" },
       { protocol: "https", hostname: "companieslogo.com", pathname: "/**" },
       { protocol: "https", hostname: "ui-avatars.com", pathname: "/**" },
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
     ],
   },
   experimental: {

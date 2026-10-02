@@ -279,6 +279,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                       alt={slide.title || slide.name || "Banner slide"}
                       fill
                       priority={sIdx === 0}
+                      fetchPriority={sIdx === 0 ? "high" : "low"}
                       loading={sIdx === 0 ? "eager" : "lazy"}
                       sizes="(max-width: 1440px) 100vw, 1440px"
                       className="object-cover object-center cursor-pointer select-none pointer-events-none"
@@ -428,6 +429,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
                       alt={titleText}
                       width={80}
                       height={36}
+                      loading="lazy"
                       className="max-w-full max-h-full w-auto h-auto object-contain rounded-md select-none pointer-events-none"
                     />
                   ) : (

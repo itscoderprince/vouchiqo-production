@@ -1,7 +1,7 @@
 "use client";
 
 import dynamicImport from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import toast from "react-hot-toast";
 
 // Core components & layout
@@ -120,37 +120,55 @@ export function HomeClient({
       {/* Main Container */}
       <main className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
         {/* Popular Offers of the Day */}
-        <PopularOffers coupons={initialCoupons} />
+        <Suspense fallback={<div className="w-full h-64 bg-slate-100/60 rounded-2xl animate-pulse" />}>
+          <PopularOffers coupons={initialCoupons} />
+        </Suspense>
 
         {/* Popular Stores (with Store of the Month) */}
-        <PopularStores merchants={popularMerchants} />
+        <Suspense fallback={<div className="w-full h-80 bg-slate-100/60 rounded-2xl animate-pulse" />}>
+          <PopularStores merchants={popularMerchants} />
+        </Suspense>
       </main>
 
       {/* Full-bleed Edge-to-Edge Sections */}
-      <RevivalPromo />
+      <Suspense fallback={<div className="w-full h-48 bg-slate-100/60 animate-pulse" />}>
+        <RevivalPromo />
+      </Suspense>
 
       {/* Main Container */}
       <main className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
         {/* Trending Offer Banner */}
-        <TrendingOffer banners={banners} />
+        <Suspense fallback={<div className="w-full h-48 bg-slate-100/60 rounded-2xl animate-pulse" />}>
+          <TrendingOffer banners={banners} />
+        </Suspense>
 
         {/* Deals of the Day / Affiliate Products */}
-        <DealsOfTheDay affiliateProducts={affiliateProducts} />
+        <Suspense fallback={<div className="w-full h-72 bg-slate-100/60 rounded-2xl animate-pulse" />}>
+          <DealsOfTheDay affiliateProducts={affiliateProducts} />
+        </Suspense>
 
         {/* Latest Articles carousel */}
-        <LatestArticles />
+        <Suspense fallback={<div className="w-full h-64 bg-slate-100/60 rounded-2xl animate-pulse" />}>
+          <LatestArticles />
+        </Suspense>
       </main>
 
       {/* FAQ Section — full width on mobile */}
       <div className="w-full px-2.5 sm:px-4 md:px-5 py-4 mb-2">
-        <FaqSection />
+        <Suspense fallback={<div className="w-full h-48 bg-slate-100/60 rounded-2xl animate-pulse" />}>
+          <FaqSection />
+        </Suspense>
       </div>
 
       {/* Subscribe Now — full width, flush to footer */}
-      <NewsletterSubscription />
+      <Suspense fallback={<div className="w-full h-32 bg-slate-100/60 animate-pulse" />}>
+        <NewsletterSubscription />
+      </Suspense>
 
       {/* Footer */}
-      <Footer />
+      <Suspense fallback={<div className="w-full h-64 bg-slate-900/10" />}>
+        <Footer />
+      </Suspense>
 
       {/* Personalisation Preferences slide-in Sheet panel */}
       {isMounted && user && (
