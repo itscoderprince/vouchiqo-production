@@ -1,12 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { DEFAULT_PLACEHOLDER, getOptimizedImageUrl } from "@/lib/image-utils";
 
+/**
+ * Production-ready resilient Image wrapper.
+ * - Automatically injects Cloudinary (f_auto, q_auto, responsive width) transformations
+ * - Optimizes Unsplash parameters
+ * - Prevents layout shift (CLS) with intrinsic dimensions and responsive sizes
+ * - Graceful fallback to lightweight placeholder upon network error
+ *
+ * @param {import("next/image").ImageProps} props
+ */
 export default function SafeImage({
   src,
   alt = "Image",
-  fallbackSrc = "/placeholder-brand.png",
+  fallbackSrc = DEFAULT_PLACEHOLDER,
   className = "",
   fill = false,
   width,
@@ -17,47 +27,70 @@ export default function SafeImage({
   sizes,
   style,
   unoptimized,
+  quality,
   ...rest
 }) {
-  const [imgSrc, setImgSrc] = useState(src || fallbackSrc);
   const [hasError, setHasError] = useState(false);
 
-  // Sync state if src or fallbackSrc changes
+  // Transform remote Cloudinary/Unsplash image if dimensions provided
+  const optimizedSrc = useMemo(() => {
+    if (!src || typeof src !== "string") return fallbackSrc;
+    // For fixed width/height, calculate 2x retina target
+    const targetWidth = width ? width * 2 : undefined;
+    const targetHeight = height ? height * 2 : undefined;
+
+    return getOptimizedImageUrl(src, {
+      width: targetWidth,
+      height: targetHeight,
+      crop: fill ? "fill" : "limit",
+    });
+  }, [src, width, height, fill, fallbackSrc]);
+
+  const [currentSrc, setCurrentSrc] = useState(optimizedSrc);
+
+  // Sync state if source changes
   useEffect(() => {
-    setImgSrc(src || fallbackSrc);
+    setCurrentSrc(optimizedSrc);
     setHasError(false);
-  }, [src, fallbackSrc]);
+  }, [optimizedSrc]);
 
-  const finalSrc = hasError || !imgSrc ? fallbackSrc : imgSrc;
+  const finalSrc = hasError || !currentSrc ? fallbackSrc : currentSrc;
 
-  // Determine if image should bypass Next.js image optimization (e.g. data URI, blob, or svg)
+  // Determine if image should bypass Next.js image optimization (data URI, blob, or svg)
   const isDataOrBlob =
     typeof finalSrc === "string" &&
     (finalSrc.startsWith("data:") ||
       finalSrc.startsWith("blob:") ||
       finalSrc.endsWith(".svg") ||
       finalSrc.includes("data:image"));
+
   const shouldBeUnoptimized =
     typeof unoptimized === "boolean" ? unoptimized : isDataOrBlob;
+
+  // Default responsive sizes for fill images if not explicitly specified
+  const effectiveSizes =
+    sizes ||
+    (fill ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" : undefined);
 
   return (
     <Image
       src={finalSrc}
-      alt={alt}
+      alt={alt || "Image"}
       fill={fill}
       width={!fill ? width : undefined}
       height={!fill ? height : undefined}
       priority={priority}
-      loading={priority ? undefined : (loading || "lazy")}
-      fetchPriority={fetchPriority}
-      sizes={sizes}
+      loading={priority ? "eager" : (loading || "lazy")}
+      fetchPriority={fetchPriority || (priority ? "high" : "auto")}
+      sizes={effectiveSizes}
       unoptimized={shouldBeUnoptimized}
       className={className}
       style={style}
+      quality={quality || 80}
       onError={() => {
         if (!hasError) {
           setHasError(true);
-          setImgSrc(fallbackSrc);
+          setCurrentSrc(fallbackSrc);
         }
       }}
       {...rest}

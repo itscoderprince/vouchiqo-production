@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
 // Mock coupons database for the 4 collection brands
 const BRAND_COUPONS = {
@@ -109,9 +110,11 @@ export default function CollectionCard({ title, logo, image, href = "#" }) {
       {/* Header */}
       <div className="p-4 flex items-center gap-3 border-b border-slate-100 bg-white">
         <div className="w-10 h-10 rounded-full border border-slate-200 p-0.5 bg-white flex items-center justify-center overflow-hidden shrink-0">
-          <img
+          <SafeImage
             src={logo}
             alt={title}
+            width={40}
+            height={40}
             className="w-full h-full object-contain"
           />
         </div>
@@ -124,9 +127,11 @@ export default function CollectionCard({ title, logo, image, href = "#" }) {
       <div className="relative flex-1 bg-slate-50 overflow-hidden">
         {/* Product image (always rendered, underlay when hovered) */}
         <div className="absolute inset-0 p-4">
-          <img
+          <SafeImage
             src={image}
             alt={`${title} Banner`}
+            fill
+            sizes="(max-width: 768px) 100vw, 360px"
             className="w-full h-full object-cover rounded-md transition-all duration-500"
           />
         </div>

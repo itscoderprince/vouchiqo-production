@@ -1,8 +1,12 @@
 "use client";
 
-import { ExternalLink, ShoppingBag, Tag } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
 export default function AffiliateProductCard({ product }) {
+  const [isFavorite, setIsFavorite] = useState(false);
+
   if (!product) return null;
 
   const {
@@ -18,32 +22,37 @@ export default function AffiliateProductCard({ product }) {
     description,
   } = product;
 
-  const displayTitle = typeof title === "string" ? title : String(title?.title || "Special Deal");
-  const displayDesc = typeof description === "string" ? description : String(description?.text || "");
-  const numOrig = typeof originalPrice === "number" ? originalPrice : (Number(originalPrice) || 0);
-  const numDisc = typeof discountPrice === "number" ? discountPrice : (Number(discountPrice) || 0);
+  const displayTitle =
+    typeof title === "string" ? title : String(title?.title || "Baby Product");
+  const numOrig =
+    typeof originalPrice === "number"
+      ? originalPrice
+      : Number(originalPrice) || 0;
+  const numDisc =
+    typeof discountPrice === "number"
+      ? discountPrice
+      : Number(discountPrice) || 0;
 
   const hasExactPricing = numOrig > 0 && numDisc > 0;
   const hasFixedPrice = numDisc > 0 && numOrig === 0;
   const savings = hasExactPricing ? Math.max(0, numOrig - numDisc) : 0;
   const percentOff = hasExactPricing
     ? Math.round((savings / numOrig) * 100)
-    : (discountPercentage || 0);
+    : discountPercentage || 0;
 
   let topBadge = discountText || null;
   if (!topBadge) {
-    if (hasExactPricing) {
+    if (hasExactPricing || percentOff > 0) {
       topBadge = `${percentOff}% OFF`;
     } else if (hasFixedPrice) {
-      topBadge = `JUST @ ₹${numDisc}`;
-    } else if (percentOff > 0) {
-      topBadge = `${percentOff}% OFF`;
+      topBadge = `₹${numDisc}`;
     }
   }
 
-  const categoryName = typeof category === "object" ? String(category?.title || category?.name || "Special") : String(category || "Special");
+  const handleClick = (e) => {
+    // If heart button was clicked, don't navigate
+    if (e.target.closest(".wishlist-btn")) return;
 
-  const handleClick = () => {
     try {
       const payload = JSON.stringify({ action: "click", productId: _id });
       if (typeof navigator !== "undefined" && navigator.sendBeacon) {
@@ -62,95 +71,78 @@ export default function AffiliateProductCard({ product }) {
     window.open(affiliateUrl || "#", "_blank", "noopener,noreferrer");
   };
 
+  const toggleWishlist = (e) => {
+    e.stopPropagation();
+    setIsFavorite((prev) => !prev);
+  };
+
   return (
-    <div className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-row items-center gap-2.5 sm:gap-3.5 justify-between shadow-2xs hover:shadow-[0_8px_20px_rgba(247,40,83,0.14)] hover:border-[#F72853] transition-all duration-200 text-left font-sans group">
-      {/* Product Image & Badge */}
-      <div className="relative w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 rounded-lg sm:rounded-xl overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center">
+    <div
+      onClick={handleClick}
+      className="w-[155px] sm:w-[170px] md:w-[185px] shrink-0 bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-all group flex flex-col justify-between cursor-pointer select-none text-left font-sans"
+    >
+      {/* Product Image Container with Floating Wishlist Heart */}
+      <div className="relative w-full aspect-square bg-[#FAF9F6] overflow-hidden flex items-center justify-center p-2">
         {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <SafeImage
             src={imageUrl}
-            alt={typeof title === "string" ? title : "Product"}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-lg sm:rounded-xl"
-            onError={(e) => {
-              e.target.src =
-                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop";
-            }}
+            alt={displayTitle}
+            fill
+            sizes="(max-width: 640px) 155px, (max-width: 768px) 170px, 185px"
+            className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+            fallbackSrc="https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=400&auto=format&fit=crop"
           />
         ) : (
-          <ShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 text-slate-300" />
+          <ShoppingBag className="w-8 h-8 text-slate-300" />
         )}
-        {topBadge && (
-          <div className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 bg-emerald-600 text-white text-[8px] sm:text-[9px] font-medium px-1 sm:px-1.5 py-0.5 rounded shadow-2xs max-w-[80px] sm:max-w-[100px] truncate flex items-center gap-0.5">
-            <Tag className="w-2 h-2 sm:w-2.5 sm:h-2.5 shrink-0" />
-            <span>{topBadge}</span>
-          </div>
-        )}
+
+        {/* Floating Heart Wishlist Button on Top Right */}
+        <button
+          type="button"
+          onClick={toggleWishlist}
+          title={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
+          className="wishlist-btn absolute top-2 right-2 w-7 h-7 rounded-full bg-white/95 hover:bg-white shadow-xs border border-slate-200/80 flex items-center justify-center cursor-pointer active:scale-90 transition-all z-10"
+        >
+          <Heart
+            className={`w-3.5 h-3.5 transition-colors ${
+              isFavorite
+                ? "fill-rose-500 text-rose-500"
+                : "text-slate-400 group-hover:text-slate-600"
+            }`}
+          />
+        </button>
       </div>
 
-      {/* Middle Details */}
-      <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
-        <div className="inline-flex items-center bg-blue-50 border border-blue-100/80 text-blue-700 text-[8.5px] sm:text-[9.5px] font-medium uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-md">
-          <span>Brand Deal · {String(categoryName)}</span>
-        </div>
-
-        <h3 className="text-xs sm:text-[13.5px] font-medium text-slate-800 leading-snug group-hover:text-blue-600 transition-colors line-clamp-1 tracking-normal">
+      {/* Product Details Below Image */}
+      <div className="p-2 sm:p-2.5 flex flex-col justify-between flex-1 space-y-1">
+        <h4 className="text-xs sm:text-[13px] font-medium text-slate-800 line-clamp-1 leading-snug group-hover:text-indigo-600 transition-colors">
           {displayTitle}
-        </h3>
+        </h4>
 
-        {displayDesc ? (
-          <p className="text-[10px] sm:text-xs text-slate-500 font-normal line-clamp-1 leading-normal hidden sm:block">
-            {displayDesc}
-          </p>
-        ) : null}
-
-        {/* Price & Offer Tag Row */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-0.5">
-          {hasExactPricing ? (
+        {/* Price Row with Clean Discount Pill */}
+        <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+          {numDisc > 0 ? (
             <>
-              <span className="text-sm sm:text-[17px] font-semibold text-slate-800">
+              <span className="text-xs sm:text-sm font-bold text-slate-900">
                 ₹{numDisc.toLocaleString()}
               </span>
-              <span className="text-[10px] sm:text-xs font-normal text-slate-400 line-through">
-                ₹{numOrig.toLocaleString()}
-              </span>
-              {savings > 0 && (
-                <span className="text-[9px] sm:text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1 sm:px-1.5 py-0.5 rounded-md border border-emerald-200/80">
-                  Save ₹{savings.toLocaleString()}
+              {numOrig > numDisc && (
+                <span className="text-[10px] sm:text-[11px] text-slate-400 line-through">
+                  ₹{numOrig.toLocaleString()}
+                </span>
+              )}
+              {topBadge && (
+                <span className="text-[9.5px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100/80 px-1.5 py-0.2 rounded-full">
+                  {topBadge}
                 </span>
               )}
             </>
-          ) : hasFixedPrice ? (
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-[10px] sm:text-xs font-normal text-slate-500 hidden sm:inline">Offer Price:</span>
-              <span className="text-sm sm:text-[17px] font-semibold text-emerald-600">
-                ₹{numDisc.toLocaleString()}
-              </span>
-              {discountText && (
-                <span className="text-[9px] sm:text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-200/80 truncate max-w-[120px] sm:max-w-[180px]">
-                  {discountText}
-                </span>
-              )}
-            </div>
           ) : (
-            <span className="text-[11px] sm:text-sm font-medium text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg border border-emerald-200/80">
-              {topBadge || "SPECIAL BRAND OFFER"}
+            <span className="text-xs font-semibold text-emerald-600">
+              Special Offer
             </span>
           )}
         </div>
-      </div>
-
-      {/* CTA Button */}
-      <div className="shrink-0">
-        <button
-          onClick={handleClick}
-          type="button"
-          className="px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] sm:text-xs font-medium rounded-lg sm:rounded-xl shadow-2xs transition-all duration-200 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap"
-        >
-          <span>Claim</span>
-          <span className="hidden sm:inline">Offer</span>
-          <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-        </button>
       </div>
     </div>
   );

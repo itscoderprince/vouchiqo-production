@@ -1,82 +1,100 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { getSocket } from "@/lib/socket/client";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * Custom hook to connect and manage Socket.IO client instance.
+ * Custom hook to connect and manage Socket.IO client instance asynchronously.
+ * Defers loading of socket.io-client until autoConnect is true (backoffice roles only),
+ * keeping the public storefront bundles completely free of socket dependencies.
  *
  * @param {{ userId?: string, role?: string, autoConnect?: boolean }} [options]
- * @returns {{ isConnected: boolean, isAuthenticated: boolean, socket: import("socket.io-client").Socket, emit: Function }}
+ * @returns {{ isConnected: boolean, isAuthenticated: boolean, socket: any, emit: Function }}
  */
 export function useSocket(options = {}) {
   const { userId, role, autoConnect = true } = options;
   const [isConnected, setIsConnected] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const socket = getSocket({ userId, role });
+  const [socket, setSocket] = useState(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
-    if (!socket || !autoConnect) return;
+    if (!autoConnect || typeof window === "undefined") return;
 
-    if (userId && (!socket.auth?.userId || socket.auth.userId !== userId)) {
-      socket.auth = { userId, role };
-      if (socket.connected) {
-        socket.disconnect().connect();
+    let isCancelled = false;
+
+    // Dynamically load socket client on-demand so public visitors never bundle socket.io-client
+    import("@/lib/socket/client").then(({ getSocket }) => {
+      if (isCancelled) return;
+
+      const s = getSocket({ userId, role });
+      if (!s) return;
+
+      socketRef.current = s;
+      setSocket(s);
+
+      if (userId && (!s.auth?.userId || s.auth.userId !== userId)) {
+        s.auth = { userId, role };
+        if (s.connected) {
+          s.disconnect().connect();
+        }
       }
-    }
-    if (userId && socket.connected) {
-      socket.emit("room:join", `user:${userId}`);
-    }
 
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    function onConnect() {
-      setIsConnected(true);
-      setIsAuthenticated(true);
-    }
-
-    function onDisconnect(reason) {
-      setIsConnected(false);
-      setIsAuthenticated(false);
-      if (reason === "io server disconnect") {
-        // Server disconnected the socket, manual reconnect required
-        socket.connect();
+      if (userId && s.connected) {
+        s.emit("room:join", `user:${userId}`);
       }
-    }
 
-    function onConnectError(err) {
-      setIsConnected(false);
-      setIsAuthenticated(false);
-      console.warn("[useSocket] Socket connection error:", err.message);
-    }
+      if (!s.connected) {
+        s.connect();
+      }
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("connect_error", onConnectError);
+      function onConnect() {
+        setIsConnected(true);
+        setIsAuthenticated(true);
+      }
 
-    // Initial state check
-    if (socket.connected) {
-      setIsConnected(true);
-      setIsAuthenticated(true);
-    }
+      function onDisconnect(reason) {
+        setIsConnected(false);
+        setIsAuthenticated(false);
+        if (reason === "io server disconnect") {
+          s.connect();
+        }
+      }
+
+      function onConnectError(err) {
+        setIsConnected(false);
+        setIsAuthenticated(false);
+        console.warn("[useSocket] Socket connection error:", err.message);
+      }
+
+      s.on("connect", onConnect);
+      s.on("disconnect", onDisconnect);
+      s.on("connect_error", onConnectError);
+
+      if (s.connected) {
+        setIsConnected(true);
+        setIsAuthenticated(true);
+      }
+    });
 
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
-      socket.off("connect_error", onConnectError);
+      isCancelled = true;
+      const s = socketRef.current;
+      if (s) {
+        s.off("connect");
+        s.off("disconnect");
+        s.off("connect_error");
+      }
     };
-  }, [socket, userId, role, autoConnect]);
+  }, [userId, role, autoConnect]);
 
   const emit = useCallback(
     (eventName, data) => {
-      if (socket && isConnected) {
-        socket.emit(eventName, data);
+      const s = socketRef.current;
+      if (s && isConnected) {
+        s.emit(eventName, data);
       }
     },
-    [socket, isConnected],
+    [isConnected],
   );
 
   return { isConnected, isAuthenticated, socket, emit };

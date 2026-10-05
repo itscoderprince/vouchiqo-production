@@ -96,6 +96,7 @@ export default function Sidebar({
             <Link
               key={m.label}
               href={m.href}
+              prefetch={true}
               className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors py-0.5"
             >
               {m.label}

@@ -57,6 +57,7 @@ export default function BrandGridItem({
   return (
     <Link
       href={href || "#"}
+      prefetch={true}
       className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white shadow-2xs hover:shadow-md hover:border-rose-300/80 transition-all duration-200 overflow-hidden select-none text-left w-full h-[168px] sm:h-[176px]"
       style={{ textDecoration: "none" }}
     >

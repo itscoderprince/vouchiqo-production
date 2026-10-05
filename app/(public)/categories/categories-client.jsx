@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import SafeImage from "@/components/shared/SafeImage";
 import {
   Baby,
   Car,
@@ -149,15 +150,13 @@ export default function CategoriesClient({
                 >
                   {/* ── 1. Top 50%: Photographic Hero ── */}
                   <div className="relative w-full h-[50%] overflow-hidden bg-slate-100 shrink-0">
-                    <img
+                    <SafeImage
                       src={cat.image}
                       alt={cat.title}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 select-none pointer-events-none"
-                      draggable={false}
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
-                      }}
+                      fallbackSrc="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                   </div>

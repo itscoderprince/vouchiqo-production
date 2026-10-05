@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+import SafeImage from "@/components/shared/SafeImage";
 
 export default function RelatedFooter({ relatedBrands = [], merchant = {} }) {
   if (!relatedBrands || relatedBrands.length === 0) return null;
@@ -10,7 +11,7 @@ export default function RelatedFooter({ relatedBrands = [], merchant = {} }) {
 
   return (
     <section className="w-full bg-white border-t border-slate-200/90 py-5 sm:py-7 select-none font-sans">
-      <div className="w-full px-2.5 sm:px-4 md:px-5">
+      <div className="w-full max-w-[1440px] mx-auto px-2.5 sm:px-4 md:px-5 lg:px-6">
         {/* Section Header */}
         <div className="flex items-center justify-between gap-2.5 mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
@@ -42,10 +43,11 @@ export default function RelatedFooter({ relatedBrands = [], merchant = {} }) {
               {/* Brand Logo Avatar */}
               <div className="w-8.5 h-8.5 sm:w-9.5 sm:h-9.5 rounded-lg bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-blue-300 transition-colors overflow-hidden">
                 {brand.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <SafeImage
                     src={brand.logo}
                     alt={brand.businessName}
+                    width={38}
+                    height={38}
                     className="w-full h-full object-contain"
                   />
                 ) : (

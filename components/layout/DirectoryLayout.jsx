@@ -1,8 +1,15 @@
 "use client";
 
+import {
+  ChevronRight,
+  Gift,
+  LayoutGrid,
+  MapPin,
+  Store,
+  Tag,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronRight, Gift, LayoutGrid, MapPin, Store, Tag } from "lucide-react";
 import {
   POPULAR_MERCHANTS_SIDEBAR,
   SIDEBAR_NAV,
@@ -54,7 +61,14 @@ export default function DirectoryLayout({
     : POPULAR_MERCHANTS_SIDEBAR.slice(0, 6);
 
   return (
-    <main style={{ background: "#ffffff", minHeight: "80vh", paddingBottom: 60, width: "100%" }}>
+    <main
+      style={{
+        background: "#ffffff",
+        minHeight: "80vh",
+        paddingBottom: 60,
+        width: "100%",
+      }}
+    >
       {/* ── BREADCRUMB ── */}
       <div style={{ borderBottom: "1px solid #f3f4f6", background: "#ffffff" }}>
         <div
@@ -98,18 +112,30 @@ export default function DirectoryLayout({
               </h1>
 
               {/* Mobile Stats */}
-              <div className="flex md:hidden items-center gap-3 text-[11px] text-slate-600 mt-0.5" suppressHydrationWarning>
+              <div
+                className="flex md:hidden items-center gap-3 text-[11px] text-slate-600 mt-0.5"
+                suppressHydrationWarning
+              >
                 <span>
-                  {stat1?.shortLabel || stat1?.label} : <strong className="font-bold text-slate-900">{stat1?.count}</strong>
+                  {stat1?.shortLabel || stat1?.label} :{" "}
+                  <strong className="font-bold text-slate-900">
+                    {stat1?.count}
+                  </strong>
                 </span>
                 <span>
-                  Coupons &amp; Offers : <strong className="font-bold text-slate-900">{stat2?.count}</strong>
+                  Coupons &amp; Offers :{" "}
+                  <strong className="font-bold text-slate-900">
+                    {stat2?.count}
+                  </strong>
                 </span>
               </div>
             </div>
 
             {/* Desktop Stats */}
-            <div className="hidden md:flex items-center gap-7 pl-5 border-l border-slate-200" suppressHydrationWarning>
+            <div
+              className="hidden md:flex items-center gap-7 pl-5 border-l border-slate-200"
+              suppressHydrationWarning
+            >
               <div>
                 <span className="text-lg font-extrabold text-slate-900 block leading-none mb-1">
                   {stat1?.count}
@@ -133,8 +159,21 @@ export default function DirectoryLayout({
           {/* Far Right: Action element + Verified On Date */}
           <div className="flex items-center gap-4">
             {actionElement}
-            <div className="hidden md:block text-xs text-slate-500 font-medium" suppressHydrationWarning>
-              Verified On: {mounted ? new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", weekday: "short" }).toUpperCase() : "22 JUL 2026 (WED)"}
+            <div
+              className="hidden md:block text-xs text-slate-500 font-medium"
+              suppressHydrationWarning
+            >
+              Verified On:{" "}
+              {mounted
+                ? new Date()
+                    .toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      weekday: "short",
+                    })
+                    .toUpperCase()
+                : "22 JUL 2026 (WED)"}
             </div>
           </div>
         </div>
@@ -283,6 +322,7 @@ export default function DirectoryLayout({
                 <Link
                   key={m.label}
                   href={m.href}
+                  prefetch={true}
                   style={{
                     fontSize: 12,
                     color: "#4b5563",

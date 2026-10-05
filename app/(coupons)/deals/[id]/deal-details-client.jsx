@@ -17,9 +17,12 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
-import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
+import SafeImage from "@/components/shared/SafeImage";
+
+const Footer = dynamic(() => import("@/components/layout/Footer"));
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -326,14 +329,14 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
           <div className="lg:col-span-8 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
             {/* ── Merchant Hero Banner & Brand Identity ── */}
             <div className="relative w-full h-48 sm:h-60 md:h-72 bg-slate-900 overflow-hidden select-none group">
-              <img
+              <SafeImage
                 src={bannerUrl}
                 alt={merchantName}
+                fill
+                priority={true}
+                sizes="(max-width: 1024px) 100vw, 800px"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                onError={(e) => {
-                  e.target.src =
-                    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&auto=format&fit=crop&q=80";
-                }}
+                fallbackSrc="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&auto=format&fit=crop&q=80"
               />
               {/* Refined multi-stop dark gradient overlay for crystal clear contrast */}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/45 to-slate-950/30 pointer-events-none" />
@@ -360,14 +363,12 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
                 <div className="flex items-end gap-3 min-w-0">
                   {/* High-Contrast Crisp Merchant Logo Container */}
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 sm:p-2 shadow-xl border-2 border-white/90 shrink-0 flex items-center justify-center overflow-hidden">
-                    <img
+                    <SafeImage
                       src={logoUrl}
                       alt={merchantName}
+                      width={80}
+                      height={80}
                       className="w-full h-full object-contain rounded-xl"
-                      onError={(e) => {
-                        e.target.src =
-                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-                      }}
                     />
                   </div>
 

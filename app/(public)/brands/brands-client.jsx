@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Search, Store, X } from "lucide-react";
 import Link from "next/link";
-import { Clock, Search, ShieldCheck, Store, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
 
 export default function BrandsClient({ brands = [] }) {
@@ -19,7 +18,7 @@ export default function BrandsClient({ brands = [] }) {
         (b) =>
           b.businessName?.toLowerCase().includes(q) ||
           b.slug?.toLowerCase().includes(q) ||
-          (b.category && b.category.toLowerCase().includes(q)),
+          b.category?.toLowerCase().includes(q),
       );
     }
 
@@ -87,7 +86,7 @@ export default function BrandsClient({ brands = [] }) {
                   (brand.totalCoupons || 0) +
                   (brand.totalAffiliateProducts || 0)
                 }
-                isVerified={brand.isVerified ?? (brand.status === "approved")}
+                isVerified={brand.isVerified ?? brand.status === "approved"}
               />
             ))}
           </div>

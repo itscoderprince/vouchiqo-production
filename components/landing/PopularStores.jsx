@@ -1,11 +1,7 @@
 // components/landing/PopularStores.jsx
 "use client";
 
-import {
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
@@ -70,10 +66,7 @@ export default function PopularStores({ merchants = [] }) {
   const storeOfTheMonth = useMemo(() => {
     return (
       merchants.find(
-        (m) =>
-          (m.totalCoupons || 0) > 0 &&
-          m.logo &&
-          (m.banner || m.shopImage),
+        (m) => (m.totalCoupons || 0) > 0 && m.logo && (m.banner || m.shopImage),
       ) ||
       merchants.find((m) => (m.totalCoupons || 0) > 0 && m.logo) ||
       merchants.find((m) => (m.totalCoupons || 0) > 0) ||
@@ -92,9 +85,7 @@ export default function PopularStores({ merchants = [] }) {
   const somCatKey = (storeOfTheMonth?.category || "").toLowerCase().trim();
   const somFallback = CATEGORY_FALLBACK_BANNERS[somCatKey] || DEFAULT_BANNER;
   const somBanner =
-    storeOfTheMonth?.banner ||
-    storeOfTheMonth?.shopImage ||
-    somFallback;
+    storeOfTheMonth?.banner || storeOfTheMonth?.shopImage || somFallback;
   const somLogo = storeOfTheMonth?.logo || "/placeholder-brand.png";
   const somHref = storeOfTheMonth ? `/brand/${storeOfTheMonth.slug}` : "/deals";
   const somCoupons = storeOfTheMonth ? storeOfTheMonth.totalCoupons || 0 : 0;
@@ -256,6 +247,7 @@ export default function PopularStores({ merchants = [] }) {
         <div className="w-full lg:w-1/4 shrink-0 flex flex-col self-stretch">
           <Link
             href={somHref}
+            prefetch={true}
             className="flex-1 relative flex flex-col no-underline cursor-pointer rounded-2xl overflow-hidden border border-slate-200/90 bg-white shadow-2xs group transition-all duration-300 hover:shadow-[0_12px_28px_rgba(247,40,83,0.16)] hover:border-[#F72853]/60 h-full min-h-[380px] sm:min-h-[460px] lg:min-h-0"
           >
             {/* 1. Hero Visual Cover (Rich, vibrant banner - 100% opacity with subtle dark scrim) */}
@@ -330,15 +322,21 @@ export default function PopularStores({ merchants = [] }) {
 
                   <div className="grid grid-cols-2 gap-2 pt-0.5 text-center">
                     <div className="bg-white/95 backdrop-blur-xs rounded-xl p-2 border border-slate-100 shadow-2xs">
-                      <div className="text-[10px] text-slate-500 font-semibold">Live Offers</div>
+                      <div className="text-[10px] text-slate-500 font-semibold">
+                        Live Offers
+                      </div>
                       <div className="text-sm font-black text-[#F72853]">
                         {somCoupons > 0 ? `${somCoupons} Deals` : "Active"}
                       </div>
                     </div>
                     <div className="bg-white/95 backdrop-blur-xs rounded-xl p-2 border border-slate-100 shadow-2xs">
-                      <div className="text-[10px] text-slate-500 font-semibold">Access</div>
+                      <div className="text-[10px] text-slate-500 font-semibold">
+                        Access
+                      </div>
                       <div className="text-sm font-black text-emerald-600">
-                        {somMaxDiscount ? somMaxDiscount.replace(/^Up to\s*/i, "") : "100% Free"}
+                        {somMaxDiscount
+                          ? somMaxDiscount.replace(/^Up to\s*/i, "")
+                          : "100% Free"}
                       </div>
                     </div>
                   </div>
@@ -349,7 +347,9 @@ export default function PopularStores({ merchants = [] }) {
               <div className="pt-1 mt-auto">
                 <div className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-[#F72853] to-[#e01e47] text-white font-bold text-xs sm:text-sm text-center shadow-md shadow-rose-500/20 group-hover:shadow-lg group-hover:shadow-rose-500/30 group-hover:from-[#e01e47] group-hover:to-[#c7173e] transition-all flex items-center justify-center gap-2">
                   <span>
-                    {somCoupons > 0 ? `Explore All ${somCoupons} Offers` : "Explore Store Offers"}
+                    {somCoupons > 0
+                      ? `Explore All ${somCoupons} Offers`
+                      : "Explore Store Offers"}
                   </span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

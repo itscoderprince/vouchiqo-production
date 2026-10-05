@@ -1,16 +1,20 @@
 "use client";
 
+import { ArrowRight, ChevronDown, Tag } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
+import AffiliateDealCard from "./components/AffiliateDealCard";
 import AffiliateProductCard from "./components/AffiliateProductCard";
 import BrandHeader from "./components/BrandHeader";
 import BrandStats from "./components/BrandStats";
 import CouponCard from "./components/CouponCard";
 import ExpiredOfferCard from "./components/ExpiredOfferCard";
-import RelatedFooter from "./components/RelatedFooter";
 import SidebarSection from "./components/SidebarSection";
+
+const Footer = dynamic(() => import("@/components/layout/Footer"));
+const RelatedFooter = dynamic(() => import("./components/RelatedFooter"));
 
 export default function BrandClient({
   merchant,
@@ -21,6 +25,7 @@ export default function BrandClient({
 }) {
   const track = useTrackEvent();
   const [activeTab, setActiveTab] = useState("all");
+  const [affiliateSort, setAffiliateSort] = useState("featured");
 
   useEffect(() => {
     if (merchant?._id) {
@@ -104,6 +109,49 @@ export default function BrandClient({
       affiliateProducts.length,
     [coupons, affiliateProducts],
   );
+
+  const affiliateSubtitle = useMemo(() => {
+    const cat = (merchant.category || "").toLowerCase();
+    if (
+      cat.includes("baby") ||
+      cat.includes("kid") ||
+      (merchant.slug || "").includes("mom")
+    ) {
+      return "Handpicked deals for your little ones 🩷";
+    }
+    if (cat.includes("fashion") || cat.includes("bag")) {
+      return "Handpicked fashion deals & trending accessories ✨";
+    }
+    if (cat.includes("travel")) {
+      return "Handpicked travel deals & special bookings ✈️";
+    }
+    if (cat.includes("electronics")) {
+      return "Handpicked tech deals & gadget offers ⚡";
+    }
+    return `Handpicked deals curated for ${merchant.businessName} ✨`;
+  }, [merchant.category, merchant.slug, merchant.businessName]);
+
+  const sortedAffiliateProducts = useMemo(() => {
+    const list = [...affiliateProducts];
+    if (affiliateSort === "discount") {
+      return list.sort(
+        (a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0),
+      );
+    }
+    if (affiliateSort === "price-low") {
+      return list.sort(
+        (a, b) =>
+          (a.discountPrice || a.price || 0) - (b.discountPrice || b.price || 0),
+      );
+    }
+    if (affiliateSort === "price-high") {
+      return list.sort(
+        (a, b) =>
+          (b.discountPrice || b.price || 0) - (a.discountPrice || a.price || 0),
+      );
+    }
+    return list;
+  }, [affiliateProducts, affiliateSort]);
 
   const handleFollow = () => {
     if (isFollowing) {
@@ -215,12 +263,12 @@ export default function BrandClient({
         affiliateProductsCount={affiliateProducts.length}
       />
 
-      {/* Main content area - full width */}
-      <main className="w-full px-2.5 sm:px-4 md:px-5 py-4 sm:py-6 flex-grow">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
-          {/* Left: Coupons & Affiliate Products (8 cols) */}
+      {/* Main content area */}
+      <main className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 py-4 sm:py-6 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+          {/* Left: Stats, Products & Coupons (8 cols on desktop, full width on mobile) */}
           <div className="lg:col-span-8 space-y-4">
-            {/* Stats row */}
+            {/* 4-Column Stats card */}
             <BrandStats
               coupons={coupons}
               merchant={merchant}
@@ -228,69 +276,143 @@ export default function BrandClient({
               affiliateCount={affiliateProducts.length}
             />
 
-            {/* Affiliate Products section if activeTab is 'all', 'affiliate', or 'dl' (Offers) */}
-            {(activeTab === "all" ||
-              activeTab === "affiliate" ||
-              activeTab === "dl") &&
-              affiliateProducts.length > 0 && (
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs sm:text-[13px] font-medium uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                      <span>
-                        {activeTab === "dl"
-                          ? "Affiliate Deals & Offers"
-                          : "Affiliate Products"}
-                      </span>
-                      <span className="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-full text-[10px] font-normal">
-                        {affiliateProducts.length}
-                      </span>
+            {/* Quick Carousel (visible when activeTab === "all") */}
+            {affiliateProducts.length > 0 && activeTab === "all" && (
+              <section className="space-y-3 pt-1">
+                {/* Section Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                      Featured Deals
                     </h3>
+                    <span className="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-full text-xs font-bold">
+                      {affiliateProducts.length}
+                    </span>
                   </div>
-                  <div className="space-y-3">
-                    {affiliateProducts.map((prod) => (
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("affiliate")}
+                    className="text-indigo-600 hover:text-indigo-700 font-bold text-xs sm:text-sm flex items-center gap-1 transition-colors border-0 bg-transparent cursor-pointer"
+                  >
+                    <span>View All</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Horizontal Scroll Carousel */}
+                <div className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-3 px-3 sm:mx-0 sm:px-0">
+                  {affiliateProducts.map((prod) => (
+                    <div key={prod._id} className="snap-start shrink-0">
                       <AffiliateProductCard
+                        product={prod}
+                        merchant={merchant}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── Affiliate Products Deals List (Clean Minimalist Matching Screenshot) ── */}
+            {sortedAffiliateProducts.length > 0 &&
+              (activeTab === "all" ||
+                activeTab === "affiliate" ||
+                activeTab === "dl") && (
+                <section className="space-y-3 pt-2">
+                  {/* Section Header: Title + Badge + Subtitle + Sort Dropdown */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                          Affiliate Products
+                        </h3>
+                        <span className="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-100">
+                          {sortedAffiliateProducts.length}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-normal mt-0.5">
+                        {affiliateSubtitle}
+                      </p>
+                    </div>
+
+                    {/* Sort Dropdown */}
+                    <div className="relative shrink-0 self-start sm:self-auto">
+                      <select
+                        value={affiliateSort}
+                        onChange={(e) => setAffiliateSort(e.target.value)}
+                        className="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-xl px-3 py-1.5 pr-7 appearance-none shadow-2xs hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                      >
+                        <option value="featured">Sort by: Featured</option>
+                        <option value="discount">Sort by: Best Discount</option>
+                        <option value="price-low">
+                          Sort by: Price: Low to High
+                        </option>
+                        <option value="price-high">
+                          Sort by: Price: High to Low
+                        </option>
+                      </select>
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Clean Minimalist List of Deal Cards */}
+                  <div className="space-y-3">
+                    {sortedAffiliateProducts.map((prod) => (
+                      <AffiliateDealCard
                         key={prod._id}
                         product={prod}
                         merchant={merchant}
                       />
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
             {/* Coupon & Deal list */}
             {activeTab !== "affiliate" && (
               <div className="space-y-3 pt-2">
-                {filteredCoupons.length > 0
-                  ? filteredCoupons.map((coupon) => (
-                      <CouponCard
-                        key={coupon._id}
-                        coupon={coupon}
-                        isExpanded={expandedCouponId === coupon._id}
-                        toggleDetails={() => toggleDetails(coupon._id)}
-                        copiedCouponId={copiedCouponId}
-                        handleCopyCode={handleCopyCode}
-                        merchant={merchant}
-                      />
-                    ))
-                  : activeTab !== "all" &&
-                    !(activeTab === "dl" && affiliateProducts.length > 0) && (
-                      <div className="py-16 text-center bg-white border border-gray-100 rounded-xl">
-                        <p className="text-[14px] text-gray-500 font-normal">
-                          No deals match your current filter.
-                        </p>
-                        <button
-                          onClick={() => {
-                            setActiveTab("all");
-                            setExistingUser(false);
-                          }}
-                          type="button"
-                          className="mt-3 text-blue-600 font-medium text-sm hover:underline border-0 bg-transparent cursor-pointer"
-                        >
-                          Reset filters
-                        </button>
-                      </div>
+                {filteredCoupons.length > 0 ? (
+                  filteredCoupons.map((coupon) => (
+                    <CouponCard
+                      key={coupon._id}
+                      coupon={coupon}
+                      isExpanded={expandedCouponId === coupon._id}
+                      toggleDetails={() => toggleDetails(coupon._id)}
+                      copiedCouponId={copiedCouponId}
+                      handleCopyCode={handleCopyCode}
+                      merchant={merchant}
+                    />
+                  ))
+                ) : (
+                  <div className="py-12 sm:py-16 text-center bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center mb-3">
+                      <Tag className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h4 className="text-base font-bold text-slate-800">
+                      {activeTab === "all"
+                        ? "No active offers available right now"
+                        : "No deals match your current filter"}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1">
+                      {activeTab === "all"
+                        ? `${merchant.businessName} currently has no active promo codes or deals. Check back soon!`
+                        : "Try switching to the 'All' tab to see all available promotions."}
+                    </p>
+                    {activeTab !== "all" && (
+                      <button
+                        onClick={() => {
+                          setActiveTab("all");
+                          setExistingUser(false);
+                        }}
+                        type="button"
+                        className="mt-3 text-blue-600 font-medium text-sm hover:underline border-0 bg-transparent cursor-pointer"
+                      >
+                        Reset filters
+                      </button>
                     )}
+                  </div>
+                )}
               </div>
             )}
 

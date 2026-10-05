@@ -17,15 +17,10 @@ const CACHE_KEY = "vouchiqo:homepage:data:v3";
 const CACHE_TTL_SECONDS = 300;
 
 async function fetchHomepageData() {
-  // 1. Check Redis cache first with strict timeout (1.5s) for instant response
+  // 1. Fast path: Check Redis cache first for instant response (< 2ms)
   try {
-    if (redis && redis.status === "ready") {
-      const cached = await Promise.race([
-        redis.get(CACHE_KEY),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Redis cache get timeout")), 1500),
-        ),
-      ]);
+    if (redis) {
+      const cached = await redis.get(CACHE_KEY);
       if (cached) {
         return JSON.parse(cached);
       }
@@ -44,26 +39,21 @@ async function fetchHomepageData() {
   });
 
   // 3. Parallel fetch all 5 data sources concurrently
-  const [
-    rawCoupons,
-    latestResult,
-    rawMerchants,
-    rawBanners,
-    rawProducts,
-  ] = await Promise.all([
-    getFeaturedCoupons().catch(() => []),
-    listCoupons(latestParams).catch(() => ({ coupons: [] })),
-    Merchant.find({ status: "approved" })
-      .select(
-        "businessName slug logo banner category maxDiscount shortDescription location totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
-      )
-      .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
-      .limit(36)
-      .lean()
-      .catch(() => []),
-    getPromoBanners().catch(() => []),
-    getPublicAffiliateProducts().catch(() => []),
-  ]);
+  const [rawCoupons, latestResult, rawMerchants, rawBanners, rawProducts] =
+    await Promise.all([
+      getFeaturedCoupons().catch(() => []),
+      listCoupons(latestParams).catch(() => ({ coupons: [] })),
+      Merchant.find({ status: "approved" })
+        .select(
+          "businessName slug logo banner category maxDiscount shortDescription location totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
+        )
+        .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
+        .limit(200)
+        .lean()
+        .catch(() => []),
+      getPromoBanners().catch(() => []),
+      getPublicAffiliateProducts().catch(() => []),
+    ]);
 
   const payload = {
     featuredCoupons: JSON.parse(JSON.stringify(rawCoupons || [])),
@@ -75,13 +65,10 @@ async function fetchHomepageData() {
 
   // 4. Cache in Redis non-blocking in the background
   try {
-    if (redis && redis.status === "ready") {
-      Promise.race([
-        redis.set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Redis cache set timeout")), 2000),
-        ),
-      ]).catch(() => {});
+    if (redis) {
+      redis
+        .set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS)
+        .catch(() => {});
     }
   } catch (_) {}
 

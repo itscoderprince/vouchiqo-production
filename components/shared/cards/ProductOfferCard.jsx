@@ -43,7 +43,7 @@ export default function ProductOfferCard({ product }) {
     merchantObj.logo ||
     (merchantName && merchantName !== "Partner Store"
       ? `https://ui-avatars.com/api/?name=${encodeURIComponent(merchantName)}&background=08214d&color=ffffff&size=64&bold=true`
-      : "/navbarlogovouchiqo.webp");
+      : "/placeholder-brand.webp");
 
   const coverImage =
     imageUrl ||

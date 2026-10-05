@@ -1,17 +1,27 @@
-﻿/** @type {import('next').NextConfig} */
+/** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
       { protocol: "https", hostname: "*.cloudinary.com", pathname: "/**" },
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
-      { protocol: "https", hostname: "cdn.grabon.in", pathname: "/**" },
-      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
-      { protocol: "https", hostname: "avatars.githubusercontent.com", pathname: "/**" },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+        pathname: "/**",
+      },
       { protocol: "https", hostname: "upload.wikimedia.org", pathname: "/**" },
       { protocol: "https", hostname: "commons.wikimedia.org", pathname: "/**" },
       { protocol: "https", hostname: "companieslogo.com", pathname: "/**" },
@@ -35,6 +45,13 @@ const nextConfig = {
       "@radix-ui/react-label",
       "@radix-ui/react-slot",
       "@tanstack/react-query",
+      "clsx",
+      "tailwind-merge",
+      "class-variance-authority",
+      "date-fns",
+      "react-day-picker",
+      "@hookform/resolvers",
+      "input-otp",
     ],
   },
   async headers() {
@@ -87,7 +104,7 @@ const nextConfig = {
               `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://checkout.razorpay.com https://*.razorpay.com https://maps.googleapis.com https://unpkg.com https://www.gstatic.com`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://*.razorpay.com",
               "font-src 'self' https://fonts.gstatic.com data:",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://unpkg.com https://images.unsplash.com https://cdn.grabon.in https://companieslogo.com https://upload.wikimedia.org https://commons.wikimedia.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.razorpay.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://unpkg.com https://images.unsplash.com https://companieslogo.com https://upload.wikimedia.org https://commons.wikimedia.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.razorpay.com",
               `connect-src 'self' https://api.razorpay.com https://*.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com https://maps.googleapis.com https://nominatim.openstreetmap.org https://fcmregistrations.googleapis.com https://*.firebaseio.com https://firebase.googleapis.com https://firebaseinstallations.googleapis.com${isProd ? " wss://vouchiqo.com wss://www.vouchiqo.com" : " ws://localhost:3000 ws://127.0.0.1:3000"}`,
               "frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://*.razorpay.com https://maps.google.com",
               "object-src 'none'",

@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
 // Animated typewriter placeholder phrases (concise and punchy so they never get truncated)
 const PLACEHOLDER_PHRASES = [
@@ -361,14 +362,12 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
                             {item.emoji || "🏷️"}
                           </span>
                         ) : item.logo && typeof item.logo === "string" ? (
-                          <img
+                          <SafeImage
                             src={item.logo}
                             alt={item.title}
+                            width={32}
+                            height={32}
                             className="w-full h-full object-contain p-0.5"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.style.display = "none";
-                            }}
                           />
                         ) : item.iconType === "deal" ? (
                           <Tag className="w-4 h-4 text-amber-500" />

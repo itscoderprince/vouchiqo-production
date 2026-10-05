@@ -2,6 +2,7 @@
 
 import { ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
+import SafeImage from "@/components/shared/SafeImage";
 import { Badge } from "@/components/ui/badge";
 
 /**
@@ -27,9 +28,11 @@ export default function NearbyCouponCard({ coupon, showMap, onCardClick }) {
       {/* Merchant logo */}
       <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm flex-shrink-0 overflow-hidden">
         {coupon.merchantId?.logo
-          ? <img
+          ? <SafeImage
               src={coupon.merchantId.logo}
               alt={brandName}
+              width={48}
+              height={48}
               className="w-full h-full object-cover"
             />
           : <div className="w-full h-full bg-brand-navy text-white font-black flex items-center justify-center text-[15px]">

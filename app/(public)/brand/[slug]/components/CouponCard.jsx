@@ -1,18 +1,13 @@
 "use client";
 
 import {
-  Calendar,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   Clock,
   ExternalLink,
-  Gift,
   Lock,
-  MapPin,
   ShieldCheck,
-  Tag,
-  Ticket,
   Users,
 } from "lucide-react";
 
@@ -33,7 +28,7 @@ export default function CouponCard({
     rawVal !== null &&
     rawVal !== undefined &&
     rawVal !== "" &&
-    !isNaN(Number(rawVal));
+    !Number.isNaN(Number(rawVal));
 
   let topSaveLabel = "Save";
   let mainDiscountBadge = null;
@@ -42,7 +37,8 @@ export default function CouponCard({
   if (offerType === "deal" && coupon.salePrice) {
     if (coupon.originalPrice && coupon.originalPrice > coupon.salePrice) {
       const pct = Math.round(
-        ((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) * 100,
+        ((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) *
+          100,
       );
       topSaveLabel = "Save";
       mainDiscountBadge = `${pct}%`;
@@ -65,7 +61,7 @@ export default function CouponCard({
     if (coupon.specialOfferType) {
       mainDiscountBadge = coupon.specialOfferType.split(" ")[0];
     } else if (typeof rawVal === "string" && rawVal.trim() && !isNumericValue) {
-      mainDiscountBadge = rawVal.length > 8 ? rawVal.slice(0, 7) + "…" : rawVal;
+      mainDiscountBadge = rawVal.length > 8 ? `${rawVal.slice(0, 7)}…` : rawVal;
     } else {
       mainDiscountBadge = "BOGO";
     }
@@ -75,7 +71,7 @@ export default function CouponCard({
     mainDiscountBadge = isNumericValue
       ? `${rawVal}%`
       : String(rawVal).length > 8
-        ? String(rawVal).slice(0, 7) + "…"
+        ? `${String(rawVal).slice(0, 7)}…`
         : String(rawVal);
     bottomTag = "OFF";
   }
@@ -166,17 +162,20 @@ export default function CouponCard({
               <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-bold text-slate-600">
                 {coupon.minOrderValue && (
                   <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3 text-blue-600" /> Min Bill: ₹{coupon.minOrderValue}
+                    <ShieldCheck className="w-3 h-3 text-blue-600" /> Min Bill:
+                    ₹{coupon.minOrderValue}
                   </span>
                 )}
                 {coupon.maxCap && (
                   <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-slate-500" /> Max Cap: ₹{coupon.maxCap}
+                    <Lock className="w-3 h-3 text-slate-500" /> Max Cap: ₹
+                    {coupon.maxCap}
                   </span>
                 )}
                 {coupon.validHours && (
                   <span className="bg-blue-50 border border-blue-100 text-blue-700 px-2 py-0.5 rounded flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-blue-600" /> {coupon.validHours}
+                    <Clock className="w-3 h-3 text-blue-600" />{" "}
+                    {coupon.validHours}
                   </span>
                 )}
               </div>
@@ -242,8 +241,14 @@ export default function CouponCard({
               </p>
             ) : (
               <ul className="space-y-1 text-xs text-slate-600 font-medium list-disc pl-4">
-                <li>Applicable only on verified purchases at participating merchant counters.</li>
-                <li>Discount applies to base invoice total; taxes and fees excluded.</li>
+                <li>
+                  Applicable only on verified purchases at participating
+                  merchant counters.
+                </li>
+                <li>
+                  Discount applies to base invoice total; taxes and fees
+                  excluded.
+                </li>
                 <li>Cannot be combined with other ongoing store promotions.</li>
               </ul>
             )}

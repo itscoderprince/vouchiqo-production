@@ -13,10 +13,16 @@ const SocketContext = createContext({
 
 export function SocketProvider({ children }) {
   const { user } = useUser();
+  // Only connect real-time socket for authenticated staff (admin/merchant).
+  // Public guests and shoppers never open WebSocket connections.
+  const isStaffRole = Boolean(
+    user && (user.role === "admin" || user.role === "merchant"),
+  );
+
   const socketState = useSocket({
     userId: user?.id || user?._id,
     role: user?.role || "customer",
-    autoConnect: true,
+    autoConnect: isStaffRole,
   });
 
   return (

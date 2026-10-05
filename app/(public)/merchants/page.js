@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { redis } from "@/lib/redis";
-import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
 import AffiliateProduct from "@/modules/affiliate-product/affiliate-product.model";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
+import { REDIS_KEYS, REDIS_TTL } from "@/utils/constants";
 import MerchantsClient from "./merchants-client";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,19 @@ export default async function MerchantsPage() {
       return (
         <div className="min-h-screen flex flex-col bg-white">
           <Navbar />
-          <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading merchants...</div>}><MerchantsClient merchants={data.merchantsList} totalMerchants={data.totalMerchantsCount} totalCoupons={data.totalCouponsCount} /></Suspense>
+          <Suspense
+            fallback={
+              <div className="p-8 text-center text-slate-400">
+                Loading merchants...
+              </div>
+            }
+          >
+            <MerchantsClient
+              merchants={data.merchantsList}
+              totalMerchants={data.totalMerchantsCount}
+              totalCoupons={data.totalCouponsCount}
+            />
+          </Suspense>
           <Footer />
         </div>
       );
@@ -36,7 +48,9 @@ export default async function MerchantsPage() {
   await connectDB();
 
   // Find all approved merchants
-  const dbMerchants = await Merchant.find({ status: "approved" }).select("businessName slug logo category isVerified").lean();
+  const dbMerchants = await Merchant.find({ status: "approved" })
+    .select("businessName slug logo category isVerified")
+    .lean();
 
   // Get active coupon counts grouped by merchantId
   const [couponCounts, affiliateCounts] = await Promise.all([
@@ -101,14 +115,36 @@ export default async function MerchantsPage() {
 
   // Cache processed merchants data in Redis
   try {
-    const cachePayload = { merchantsList, totalMerchantsCount, totalCouponsCount };
-    redis.setex(REDIS_KEYS.MERCHANTS_LIST, REDIS_TTL.MERCHANTS_LIST, JSON.stringify(cachePayload)).catch(() => {});
+    const cachePayload = {
+      merchantsList,
+      totalMerchantsCount,
+      totalCouponsCount,
+    };
+    redis
+      .setex(
+        REDIS_KEYS.MERCHANTS_LIST,
+        REDIS_TTL.MERCHANTS_LIST,
+        JSON.stringify(cachePayload),
+      )
+      .catch(() => {});
   } catch (_) {}
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-      <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading merchants...</div>}><MerchantsClient merchants={merchantsList} totalMerchants={totalMerchantsCount} totalCoupons={totalCouponsCount} /></Suspense>
+      <Suspense
+        fallback={
+          <div className="p-8 text-center text-slate-400">
+            Loading merchants...
+          </div>
+        }
+      >
+        <MerchantsClient
+          merchants={merchantsList}
+          totalMerchants={totalMerchantsCount}
+          totalCoupons={totalCouponsCount}
+        />
+      </Suspense>
       <Footer />
     </div>
   );

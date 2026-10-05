@@ -3,9 +3,8 @@
 import { Gift, LayoutGrid, MapPin, Search, Store, Tag } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import DirectoryLayout from "@/components/layout/DirectoryLayout";
-import { MOCK_MERCHANTS_SEED, TRENDING_STORES } from "@/lib/mock/mock-data";
+import SafeImage from "@/components/shared/SafeImage";
 import {
   ALPHA_LETTERS,
   POPULAR_MERCHANTS_SIDEBAR,
@@ -33,6 +32,77 @@ function getSidebarIcon(label, isActive) {
   );
 }
 
+function StoreCard({ store, imgHeight = 65 }) {
+  const totalOffers = (store.coupons || 0) + (store.offers || 0);
+  return (
+    <Link
+      href={`/brand/${store.slug}`}
+      prefetch={true}
+      style={{ textDecoration: "none" }}
+    >
+      <div
+        style={{
+          border: "1px solid #e5e7eb",
+          borderRadius: 6,
+          background: "#ffffff",
+          padding: "10px 12px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          transition: "all 0.2s ease-in-out",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+        }}
+        className="brand-card-hover"
+      >
+        <div
+          style={{
+            height: imgHeight,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#ffffff",
+          }}
+        >
+          <SafeImage
+            src={store.logo}
+            alt={store.businessName}
+            width={80}
+            height={50}
+            style={{
+              maxHeight: "85%",
+              maxWidth: "85%",
+              objectFit: "contain",
+            }}
+          />
+        </div>
+        <div style={{ height: 1, background: "#f3f4f6" }} />
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#000000",
+              margin: "0 0 2px 0",
+            }}
+          >
+            {store.businessName}
+          </p>
+          <p
+            style={{
+              fontSize: 11,
+              color: "#2563eb",
+              fontWeight: 600,
+              margin: 0,
+            }}
+          >
+            {totalOffers} Active Offers
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function MerchantsClient({
   merchants,
   totalMerchants,
@@ -57,39 +127,15 @@ export default function MerchantsClient({
     }
   }, []);
 
-  // Combine database merchants with mock merchants
+  // Format database merchants
   const allMergedMerchants = useMemo(() => {
-    const dbFormatted = merchants.map((m, idx) => {
-      let storeLogo = m.logo;
-      if (!storeLogo) {
-        const mockMatch = MOCK_MERCHANTS_SEED.find(
-          (mock) =>
-            mock.slug === m.slug ||
-            mock.businessName.toLowerCase() === m.businessName.toLowerCase(),
-        );
-        storeLogo = mockMatch ? mockMatch.logo : "";
-      }
-      return {
-        businessName: m.businessName,
-        slug: m.slug,
-        logo: storeLogo || `/brandlogos/${10002 + (idx % 42)}.jpg`,
-        coupons: m.totalCoupons || 4,
-        offers: Math.ceil((m.totalCoupons || 4) * 0.7) + 2,
-      };
-    });
-
-    const dbSlugs = new Set(dbFormatted.map((m) => m.slug));
-    const mocks = MOCK_MERCHANTS_SEED.map((m, idx) => ({
+    return (merchants || []).map((m, idx) => ({
       businessName: m.businessName,
       slug: m.slug,
-      logo:
-        m.logo ||
-        `/brandlogos/${10002 + ((idx + dbFormatted.length) % 42)}.jpg`,
-      coupons: m.coupons || 12 + (idx % 25),
-      offers: m.offers || 8 + (idx % 15),
-    })).filter((m) => !dbSlugs.has(m.slug));
-
-    return [...dbFormatted, ...mocks];
+      logo: m.logo || `/brandlogos/${10002 + (idx % 42)}.jpg`,
+      coupons: m.totalCoupons || 0,
+      offers: m.totalCoupons ? Math.ceil(m.totalCoupons * 0.7) : 0,
+    }));
   }, [merchants]);
 
   const filteredMerchantsList = useMemo(() => {
@@ -124,11 +170,15 @@ export default function MerchantsClient({
     });
   }, [mounted]);
 
+  const trendingStores = useMemo(() => {
+    return allMergedMerchants.slice(0, 10);
+  }, [allMergedMerchants]);
+
   const visibleSidebarMerchants = showAllMerchants
     ? POPULAR_MERCHANTS_SIDEBAR
     : POPULAR_MERCHANTS_SIDEBAR.slice(0, 8);
 
-  const totalOffersCount = totalCoupons + 450;
+  const totalOffersCount = totalCoupons || 0;
 
   return (
     <DirectoryLayout
@@ -136,7 +186,7 @@ export default function MerchantsClient({
       title="Stores"
       icon={Store}
       stat1={{
-        count: totalMerchants + 120,
+        count: totalMerchants || allMergedMerchants.length || 0,
         label: "Total Stores",
         shortLabel: "Stores",
       }}
@@ -175,78 +225,9 @@ export default function MerchantsClient({
             gap: 12,
           }}
         >
-          {TRENDING_STORES.map((store) => {
-            const totalOffers = store.coupons + store.offers;
-            return (
-              <Link
-                key={store.businessName}
-                href={`/brand/${store.slug}`}
-                style={{ textDecoration: "none" }}
-              >
-                <div
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    background: "#ffffff",
-                    padding: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                    transition: "all 0.2s ease-in-out",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                  }}
-                  className="brand-card-hover"
-                >
-                  <div
-                    style={{
-                      height: 75,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "#ffffff",
-                    }}
-                  >
-                    <img
-                      src={store.logo}
-                      alt={store.businessName}
-                      style={{
-                        maxHeight: "85%",
-                        maxWidth: "85%",
-                        objectFit: "contain",
-                      }}
-                      onError={(e) => {
-                        e.target.src =
-                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='1'/%3E%3C/svg%3E";
-                      }}
-                    />
-                  </div>
-                  <div style={{ height: 1, background: "#f3f4f6" }} />
-                  <div style={{ textAlign: "center" }}>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: "#000000",
-                        margin: "0 0 2px 0",
-                      }}
-                    >
-                      {store.businessName}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 11,
-                        color: "#2563eb",
-                        fontWeight: 600,
-                        margin: 0,
-                      }}
-                    >
-                      {totalOffers} Active Offers
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+          {trendingStores.map((store) => (
+            <StoreCard key={store.slug} store={store} imgHeight={75} />
+          ))}
         </div>
       </section>
 
@@ -411,78 +392,9 @@ export default function MerchantsClient({
             }}
             className="all-stores-responsive-grid"
           >
-            {filteredMerchantsList.map((m) => {
-              const totalOffers = m.coupons + m.offers;
-              return (
-                <Link
-                  key={m.slug}
-                  href={`/brand/${m.slug}`}
-                  style={{ textDecoration: "none" }}
-                >
-                  <div
-                    style={{
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 6,
-                      background: "#ffffff",
-                      padding: "10px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 6,
-                      transition: "all 0.2s ease-in-out",
-                      boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                    }}
-                    className="brand-card-hover"
-                  >
-                    <div
-                      style={{
-                        height: 60,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "#ffffff",
-                      }}
-                    >
-                      <img
-                        src={m.logo}
-                        alt={m.businessName}
-                        style={{
-                          maxHeight: "85%",
-                          maxWidth: "85%",
-                          objectFit: "contain",
-                        }}
-                        onError={(e) => {
-                          e.target.src =
-                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='1'/%3E%3C/svg%3E";
-                        }}
-                      />
-                    </div>
-                    <div style={{ height: 1, background: "#f3f4f6" }} />
-                    <div style={{ textAlign: "center" }}>
-                      <p
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#000000",
-                          margin: "0 0 1px 0",
-                        }}
-                      >
-                        {m.businessName}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 10,
-                          color: "#2563eb",
-                          fontWeight: 600,
-                          margin: 0,
-                        }}
-                      >
-                        {totalOffers} Offers
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {filteredMerchantsList.map((m) => (
+              <StoreCard key={m.slug} store={m} imgHeight={60} />
+            ))}
           </div>
         ) : (
           <div

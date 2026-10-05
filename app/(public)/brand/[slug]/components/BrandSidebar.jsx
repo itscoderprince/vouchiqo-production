@@ -89,13 +89,17 @@ export default function BrandSidebar({ merchant, copiedLink, onShare }) {
           {merchant.contactPhone && (
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-blue-600 flex-shrink-0" />
-              <span className="text-slate-600 font-medium">{merchant.contactPhone}</span>
+              <span className="text-slate-600 font-medium">
+                {merchant.contactPhone}
+              </span>
             </div>
           )}
           {merchant.contactEmail && (
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-blue-600 flex-shrink-0" />
-              <span className="text-slate-600 font-medium">{merchant.contactEmail}</span>
+              <span className="text-slate-600 font-medium">
+                {merchant.contactEmail}
+              </span>
             </div>
           )}
         </div>

@@ -17,6 +17,12 @@ export default function SmoothScrollProvider({ children }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // On touch-only mobile devices, preserve native 120Hz GPU momentum scrolling
+    const isTouchOnly =
+      window.matchMedia("(pointer: coarse)").matches &&
+      !window.matchMedia("(pointer: fine)").matches;
+    if (isTouchOnly) return;
+
     let lenis = null;
     let rafId = null;
     let handleAnchorClick = null;

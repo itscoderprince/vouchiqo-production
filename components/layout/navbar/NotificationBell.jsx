@@ -50,7 +50,7 @@ export const NotificationBell = () => {
       setReadIds(Array.isArray(savedRead) ? savedRead : []);
       setClearedIds(Array.isArray(savedCleared) ? savedCleared : []);
     } catch (_) {}
-  }, [open]);
+  }, []);
 
   // Fetch 100% REAL database activities (Coupons, Merchants, Notifications)
   useEffect(() => {
@@ -153,7 +153,7 @@ export const NotificationBell = () => {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [open]);
 
   // Filter out cleared notifications and apply read status
   const visibleActivities = activities

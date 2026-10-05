@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import LocationPromptModal from "@/components/shared/modals/LocationPromptModal";
+import SafeImage from "@/components/shared/SafeImage";
 import { OnboardingModal } from "@/features/auth/components/onboarding-modal";
 import { signOut, useSession } from "@/lib/auth-client";
 
@@ -169,9 +170,11 @@ export const UserMenu = () => {
   const renderNavAvatar = () => {
     if (session.user.image) {
       return (
-        <img
+        <SafeImage
           src={session.user.image}
           alt={session.user.name || "User profile"}
+          width={28}
+          height={28}
           className="h-7 w-7 rounded-full object-cover shadow-2xs border border-slate-200"
         />
       );
