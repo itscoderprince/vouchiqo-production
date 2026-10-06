@@ -29,50 +29,61 @@ async function fetchHomepageData() {
     // Graceful fallback to database
   }
 
-  // 2. Connect DB
-  await connectDB();
-
-  const latestParams = new URLSearchParams({
-    limit: "6",
-    sortBy: "createdAt",
-    sortOrder: "desc",
-  });
-
-  // 3. Parallel fetch all 5 data sources concurrently
-  const [rawCoupons, latestResult, rawMerchants, rawBanners, rawProducts] =
-    await Promise.all([
-      getFeaturedCoupons().catch(() => []),
-      listCoupons(latestParams).catch(() => ({ coupons: [] })),
-      Merchant.find({ status: "approved" })
-        .select(
-          "businessName slug logo banner category maxDiscount shortDescription location totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
-        )
-        .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
-        .limit(200)
-        .lean()
-        .catch(() => []),
-      getPromoBanners().catch(() => []),
-      getPublicAffiliateProducts().catch(() => []),
-    ]);
-
-  const payload = {
-    featuredCoupons: JSON.parse(JSON.stringify(rawCoupons || [])),
-    latestCoupons: JSON.parse(JSON.stringify(latestResult?.coupons || [])),
-    popularMerchants: JSON.parse(JSON.stringify(rawMerchants || [])),
-    banners: JSON.parse(JSON.stringify(rawBanners || [])),
-    affiliateProducts: JSON.parse(JSON.stringify(rawProducts || [])),
-  };
-
-  // 4. Cache in Redis non-blocking in the background
   try {
-    if (redis) {
-      redis
-        .set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS)
-        .catch(() => {});
-    }
-  } catch (_) {}
+    // 2. Connect DB
+    await connectDB();
 
-  return payload;
+    const latestParams = new URLSearchParams({
+      limit: "6",
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    });
+
+    // 3. Parallel fetch all 5 data sources concurrently
+    const [rawCoupons, latestResult, rawMerchants, rawBanners, rawProducts] =
+      await Promise.all([
+        getFeaturedCoupons().catch(() => []),
+        listCoupons(latestParams).catch(() => ({ coupons: [] })),
+        Merchant.find({ status: "approved" })
+          .select(
+            "businessName slug logo banner category maxDiscount shortDescription location totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
+          )
+          .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
+          .limit(200)
+          .lean()
+          .catch(() => []),
+        getPromoBanners().catch(() => []),
+        getPublicAffiliateProducts().catch(() => []),
+      ]);
+
+    const payload = {
+      featuredCoupons: JSON.parse(JSON.stringify(rawCoupons || [])),
+      latestCoupons: JSON.parse(JSON.stringify(latestResult?.coupons || [])),
+      popularMerchants: JSON.parse(JSON.stringify(rawMerchants || [])),
+      banners: JSON.parse(JSON.stringify(rawBanners || [])),
+      affiliateProducts: JSON.parse(JSON.stringify(rawProducts || [])),
+    };
+
+    // 4. Cache in Redis non-blocking in the background
+    try {
+      if (redis) {
+        redis
+          .set(CACHE_KEY, JSON.stringify(payload), "EX", CACHE_TTL_SECONDS)
+          .catch(() => {});
+      }
+    } catch (_) {}
+
+    return payload;
+  } catch (err) {
+    console.error("fetchHomepageData DB error:", err?.message || err);
+    return {
+      featuredCoupons: [],
+      latestCoupons: [],
+      popularMerchants: [],
+      banners: [],
+      affiliateProducts: [],
+    };
+  }
 }
 
 export default async function Home() {
