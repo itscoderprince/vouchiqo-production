@@ -32,6 +32,8 @@ import {
 import { cn } from "@/lib/utils";
 import MobileTableCard from "@/components/shared/data/MobileTableCard";
 
+import { useAdminCampaignRevenue } from "@/hooks/use-admin";
+
 // 8 Distinct Pastel Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
   {
@@ -61,31 +63,14 @@ const ROW_COLOR_THEMES = [
 ];
 
 export default function AdminCampaignRevenuePage() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    isLoading: loading,
+    refetch: fetchRevenue,
+  } = useAdminCampaignRevenue();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [downloadingId, setDownloadingId] = useState(null);
-
-  const fetchRevenue = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/campaigns/revenue");
-      const json = await res.json();
-      if (json.success && json.data) {
-        setData(json.data);
-      }
-    } catch (err) {
-      console.error("Error fetching campaign revenue:", err);
-      toast.error("Failed to load live campaign revenue data.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRevenue();
-  }, [fetchRevenue]);
 
   const transactions = data?.transactions || [];
 
@@ -390,15 +375,31 @@ export default function AdminCampaignRevenuePage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
                   {loading
-                    ? <tr>
-                        <td
-                          colSpan={7}
-                          className="py-8 text-center text-slate-400 text-xs"
-                        >
-                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                          Loading transaction ledger from database...
-                        </td>
-                      </tr>
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <tr key={i} className="animate-pulse">
+                          <td className="py-2.5 px-3">
+                            <div className="h-4 w-20 bg-slate-200/80 rounded" />
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="h-4 w-24 bg-slate-100 rounded" />
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="h-4 w-32 bg-slate-200/80 rounded" />
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="h-4 w-40 bg-slate-100 rounded" />
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <div className="h-4 w-16 bg-slate-200/80 rounded ml-auto" />
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <div className="h-5 w-20 bg-slate-100 rounded mx-auto" />
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <div className="h-6 w-6 bg-slate-200/80 rounded ml-auto" />
+                          </td>
+                        </tr>
+                      ))
                     : filteredTransactions.length === 0
                       ? <tr>
                           <td
@@ -501,10 +502,19 @@ export default function AdminCampaignRevenuePage() {
             {/* Mobile Card View - Transactions (Reference Card Design) */}
             <div className="md:hidden space-y-3">
               {loading
-                ? <div className="py-8 text-center text-slate-400 text-xs">
-                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                    Loading transaction records...
-                  </div>
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="p-3 bg-white border border-slate-200/80 rounded-xl space-y-2 animate-pulse shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 w-32 bg-slate-200 rounded" />
+                        <div className="h-4 w-16 bg-slate-200 rounded" />
+                      </div>
+                      <div className="h-3 w-48 bg-slate-100 rounded" />
+                      <div className="h-3 w-24 bg-slate-100 rounded" />
+                    </div>
+                  ))
                 : filteredTransactions.length === 0
                   ? <div className="py-8 text-center text-slate-400 text-xs">
                       No transaction records found matching your filter.

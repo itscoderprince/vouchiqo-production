@@ -16,6 +16,9 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/fetcher";
+import { qk } from "@/lib/query-keys";
 
 const CITY_COORDINATES = {
   ranchi: [23.3441, 85.3096],
@@ -43,8 +46,16 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 export default function NearbyOffersTab() {
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: couponsData, isLoading: loading } = useQuery({
+    queryKey: [...qk.coupons.all(), "nearby", 50],
+    queryFn: async () => {
+      const json = await apiFetch("/api/coupons?limit=50&includeAllBrands=true");
+      return json.data?.coupons || (Array.isArray(json.data) ? json.data : []);
+    },
+    staleTime: 60_000,
+  });
+
+  const coupons = couponsData || [];
   const [selectedCity, setSelectedCity] = useState("ranchi");
   const [radius, setRadius] = useState("5");
   const [selectedCouponId, setSelectedCouponId] = useState(null);
@@ -81,25 +92,6 @@ export default function NearbyOffersTab() {
     document.head.appendChild(script);
   }, []);
 
-  // Fetch offers
-  useEffect(() => {
-    async function loadDeals() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/coupons?limit=50&includeAllBrands=true");
-        if (res.ok) {
-          const json = await res.json();
-          const items = json.data?.coupons || (Array.isArray(json.data) ? json.data : []);
-          setCoupons(items);
-        }
-      } catch (err) {
-        console.error("Error loading nearby offers:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDeals();
-  }, []);
 
   // Process & spread coordinates
   const processedDeals = useMemo(() => {

@@ -40,6 +40,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavMain } from "@/components/layout/NavMain";
 import { NavUser } from "@/components/layout/NavUser";
+import SafeImage from "@/components/shared/SafeImage";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -49,9 +50,12 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAdminAnalytics } from "@/hooks/use-admin";
 import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
+import { apiFetch } from "@/lib/fetcher";
+import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 
 // Map DB plan slug → display label shown in the sidebar badge
@@ -68,13 +72,6 @@ export function AppSidebar({ ...props }) {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [merchantPlan, setMerchantPlan] = useState(null);
-
-  // Real-time admin pending action badge counts
-  const [adminBadges, setAdminBadges] = useState({
-    pendingMerchants: 0,
-    pendingCoupons: 0,
-    pendingCampaigns: 0,
-  });
 
   const userRole = authUser?.role;
   const isAdmin = userRole === "admin" || pathname.startsWith("/admin");
@@ -93,9 +90,7 @@ export function AppSidebar({ ...props }) {
     queryKey: ["merchant-badges"],
     queryFn: async () => {
       if (!isMerchant) return null;
-      const res = await fetch("/api/merchant/badges");
-      if (!res.ok) return null;
-      const json = await res.json();
+      const json = await apiFetch("/api/merchant/badges");
       return json?.data || null;
     },
     enabled: isMerchant,
@@ -150,41 +145,28 @@ export function AppSidebar({ ...props }) {
     }
   });
 
-  // Real-time polling for admin notification counts from merchant submissions
-  const fetchAdminBadges = useCallback(async () => {
-    if (!isAdmin) return;
-    try {
-      const res = await fetch("/api/admin/analytics");
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json?.data?.badges) {
-        setAdminBadges({
-          pendingMerchants: json.data.badges.pendingMerchants || 0,
-          pendingCoupons: json.data.badges.pendingCoupons || 0,
-          pendingCampaigns: json.data.badges.pendingCampaigns || 0,
-        });
-      }
-    } catch {
-      // Ignore network errors gracefully
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    fetchAdminBadges();
-    const interval = setInterval(fetchAdminBadges, 15000);
-    return () => clearInterval(interval);
-  }, [isAdmin, fetchAdminBadges]);
+  // Live admin pending action badge counts via TanStack Query
+  const { data: adminAnalytics } = useAdminAnalytics();
+  const adminBadges = useMemo(
+    () => ({
+      pendingMerchants: adminAnalytics?.badges?.pendingMerchants || 0,
+      pendingCoupons: adminAnalytics?.badges?.pendingCoupons || 0,
+      pendingCampaigns: adminAnalytics?.badges?.pendingCampaigns || 0,
+    }),
+    [adminAnalytics],
+  );
 
   const queryClient = useQueryClient();
 
   // Real-time instant updates for sidebar badges on all platform WebSocket events
   const handleRealtimeBadgeUpdate = useCallback(() => {
-    if (isAdmin) fetchAdminBadges();
+    if (isAdmin) {
+      queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
+    }
     if (isMerchant) {
       queryClient.invalidateQueries({ queryKey: ["merchant-badges"] });
     }
-  }, [isAdmin, isMerchant, fetchAdminBadges, queryClient]);
+  }, [isAdmin, isMerchant, queryClient]);
 
   useRealtime(SOCKET_EVENTS.APPLICATION_NEW, handleRealtimeBadgeUpdate);
   useRealtime(
@@ -746,9 +728,11 @@ export function AppSidebar({ ...props }) {
               </div>
             ) : role === "merchant" ? (
               merchantLogo ? (
-                <img
+                <SafeImage
                   src={merchantLogo}
                   alt={merchantName || "Merchant Logo"}
+                  width={36}
+                  height={36}
                   className="w-full h-full object-contain p-0.5 bg-white"
                 />
               ) : (

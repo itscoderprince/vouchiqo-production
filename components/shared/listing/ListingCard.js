@@ -1,22 +1,9 @@
-"use client";
-
 import { Tag } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
-/**
- * Shared listing card for brands/merchants grids.
- * Renders a card with logo, divider, name, and coupons/offers counts.
- *
- * @param {string} name - Display name
- * @param {string} slug - URL slug for the link
- * @param {string} logo - Logo image URL
- * @param {number} coupons - Number of coupons
- * @param {number} offers - Number of offers
- * @param {string} href - Link href (defaults to /brand/{slug})
- * @param {number} logoHeight - Logo container height in px (default 80)
- * @param {boolean} showStats - Whether to show coupons/offers row (default true)
- */
-export default function ListingCard({
+export const ListingCard = memo(function ListingCard({
   name,
   slug,
   logo,
@@ -63,18 +50,13 @@ export default function ListingCard({
             background: "#fff",
           }}
         >
-          <img
+          <SafeImage
             src={logo}
             alt={name}
-            style={{
-              maxHeight: "85%",
-              maxWidth: "85%",
-              objectFit: "contain",
-            }}
-            onError={(e) => {
-              e.target.src =
-                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='1' ry='1'/%3E%3C/svg%3E";
-            }}
+            width={72}
+            height={72}
+            fallbackSrc="/placeholder-brand.webp"
+            className="max-h-[85%] max-w-[85%] object-contain"
           />
         </div>
         {/* Divider */}
@@ -110,4 +92,6 @@ export default function ListingCard({
       </div>
     </Link>
   );
-}
+});
+
+export default ListingCard;

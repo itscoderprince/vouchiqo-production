@@ -10,9 +10,27 @@ import { qk } from "@/lib/query-keys";
  * Single source of truth for admin data fetching, mutations, and cache management.
  */
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────
+// Admin Overview Analytics
+// ─────────────────────────────────────────────
+
+/**
+ * Fetch platform-wide admin analytics and KPI metrics.
+ */
+export function useAdminAnalytics() {
+  return useQuery({
+    queryKey: qk.admin.analytics(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/analytics");
+      return json.data || null;
+    },
+    staleTime: 30_000,
+  });
+}
+
+// ─────────────────────────────────────────────
 // Admin Coupons / Moderation / Offers
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────
 
 /**
  * Fetch coupons with server-side filters (status, search, isVerified).
@@ -247,6 +265,26 @@ export function useUpdateAdminMerchant(merchantId) {
   });
 }
 
+/**
+ * Delete merchant partner from admin portal.
+ */
+export function useDeleteAdminMerchant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (merchantId) =>
+      apiFetch(`/api/admin/merchants/${merchantId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
+      queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
+      toast.success("Merchant partner and associated data deleted!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete merchant.");
+    },
+  });
+}
+
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Campaign Moderation & Management
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -331,9 +369,126 @@ export function useReviewCampaign() {
   });
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/**
+ * Deploy/Create admin campaign broadcast.
+ */
+export function useCreateAdminCampaign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload) =>
+      apiFetch("/api/admin/campaigns", {
+        method: "POST",
+        body: payload,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-campaigns"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.campaignQueue() });
+      toast.success("Platform Multi-Channel Broadcast successfully deployed live!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to deploy broadcast.");
+    },
+  });
+}
+
+/**
+ * Fetch campaign revenue and transactions.
+ */
+export function useAdminCampaignRevenue() {
+  return useQuery({
+    queryKey: qk.admin.campaignRevenue(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/campaigns/revenue");
+      return json.data || { kpis: {}, transactions: [] };
+    },
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * Fetch affiliate products for admin moderation.
+ */
+export function useAdminAffiliateProducts({ status = "", search = "" } = {}) {
+  const params = new URLSearchParams();
+  if (status && status !== "all") params.set("status", status);
+  if (search) params.set("search", search);
+  const qs = params.toString();
+
+  return useQuery({
+    queryKey: qk.admin.affiliateProducts({ status, search }),
+    queryFn: async () => {
+      const json = await apiFetch(`/api/admin/affiliate-products${qs ? `?${qs}` : ""}`);
+      return json.data || json || [];
+    },
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * Update affiliate product status or details.
+ */
+export function useUpdateAffiliateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }) =>
+      apiFetch(`/api/admin/affiliate-products/${id}`, {
+        method: "PUT",
+        body: updateData,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-affiliate-products"],
+        exact: false,
+      });
+      toast.success("Affiliate product updated!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update affiliate product.");
+    },
+  });
+}
+
+/**
+ * Delete affiliate product.
+ */
+export function useDeleteAffiliateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id) =>
+      apiFetch(`/api/admin/affiliate-products/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-affiliate-products"],
+        exact: false,
+      });
+      toast.success("Affiliate product deleted!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete affiliate product.");
+    },
+  });
+}
+
+/**
+ * Fetch broadcast email recipients.
+ */
+export function useBroadcastRecipients() {
+  return useQuery({
+    queryKey: qk.admin.broadcastRecipients(),
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/broadcast/email");
+      return json.data || null;
+    },
+    staleTime: 60_000,
+  });
+}
+
+// ─────────────────────────────────────────────
 // Banners Management
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────
 
 /**
  * Fetch homepage/category promotional banners.
@@ -405,6 +560,30 @@ export function useDeleteBanner() {
     },
     onError: (err) => {
       toast.error(err.message || "Failed to delete banner.");
+    },
+  });
+}
+
+/**
+ * Reorder promotional banners.
+ */
+export function useReorderBanners() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (arg) => {
+      const bannerIds = Array.isArray(arg) ? arg : arg?.bannerIds || arg?.items;
+      return apiFetch("/api/admin/banners/reorder", {
+        method: "PUT",
+        body: { bannerIds },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.admin.banners() });
+      toast.success("Banner display order updated!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to save banner reorder.");
     },
   });
 }
@@ -494,14 +673,21 @@ export function useReviewMerchantRevival() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ revivalId, status }) =>
+    mutationFn: async ({ revivalId, status, reviewNote }) =>
       apiFetch("/api/revivals", {
         method: "PUT",
-        body: { revivalId, status, reviewNote: "Moderated by admin" },
+        body: {
+          revivalId,
+          status,
+          reviewNote: reviewNote || (status === "approved" ? "Approved by admin" : "Rejected by admin"),
+        },
       }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: qk.admin.merchantRevivals() });
-      toast.success("Revival request reviewed.");
+      toast.success(`Revival request ${variables.status}!`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update revival status.");
     },
   });
 }
@@ -597,3 +783,21 @@ export function useExportSubscribers() {
     },
   });
 }
+
+export function useDeleteAdminUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (authId) =>
+      apiFetch(`/api/admin/users?authId=${authId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
+      toast.success("Customer account and all associated records deleted permanently!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete customer user.");
+    },
+  });
+}
+

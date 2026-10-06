@@ -16,8 +16,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
-import { signOut, useSession } from "@/lib/auth-client";
+import SafeImage from "@/components/shared/SafeImage";
 import { useLenis } from "@/components/shared/SmoothScrollProvider";
+import { signOut, useSession } from "@/lib/auth-client";
 import LocationSelector from "../LocationSelector";
 import Logo from "./Logo";
 
@@ -182,9 +183,11 @@ export const MobileMenu = () => {
 
                 <div className="flex items-center gap-3 px-2">
                   {session.user.image ? (
-                    <img
+                    <SafeImage
                       src={session.user.image}
                       alt={session.user.name}
+                      width={32}
+                      height={32}
                       className="h-8 w-8 rounded-full object-cover"
                     />
                   ) : (

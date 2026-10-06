@@ -13,102 +13,50 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+  useDeleteMerchantAffiliateProduct,
+  useMerchantAffiliateProducts,
+  useUpdateMerchantAffiliateProduct,
+} from "@/hooks/use-merchant";
 import AffiliateProductPreviewCard, {
   CATEGORIES,
 } from "./components/AffiliateProductPreviewCard";
 
 export default function MerchantAffiliateProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [statusFilter]);
-
-  async function fetchProducts() {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams();
-      if (statusFilter !== "all") query.set("status", statusFilter);
-
-      const res = await fetch(
-        `/api/merchant/affiliate-products?${query.toString()}`,
-      );
-      if (res.ok) {
-        const json = await res.json();
-        setProducts(json.data || []);
-      } else {
-        toast.error("Failed to load affiliate products.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Network error while fetching products.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data: products = [], isLoading: loading } =
+    useMerchantAffiliateProducts(statusFilter);
+  const updateMutation = useUpdateMerchantAffiliateProduct();
+  const deleteMutation = useDeleteMerchantAffiliateProduct();
 
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
     toast.success("Affiliate link copied to clipboard!");
   };
 
-  const handleToggleStatus = async (product) => {
+  const handleToggleStatus = (product) => {
     const nextStatus = product.status === "active" ? "paused" : "active";
     setTogglingId(product._id);
-    try {
-      const res = await fetch(
-        `/api/merchant/affiliate-products/${product._id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: nextStatus }),
-        },
-      );
-
-      if (res.ok) {
-        setProducts((prev) =>
-          prev.map((p) =>
-            p._id === product._id ? { ...p, status: nextStatus } : p,
-          ),
-        );
-        toast.success(`Product listing set to ${nextStatus}`);
-      } else {
-        toast.error("Failed to update status.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error updating status.");
-    } finally {
-      setTogglingId(null);
-    }
+    updateMutation.mutate(
+      { id: product._id, status: nextStatus },
+      {
+        onSettled: () => setTogglingId(null),
+      },
+    );
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!confirm("Are you sure you want to delete this affiliate product?"))
       return;
     setDeletingId(id);
-    try {
-      const res = await fetch(`/api/merchant/affiliate-products/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setProducts((prev) => prev.filter((p) => p._id !== id));
-        toast.success("Affiliate product deleted successfully.");
-      } else {
-        toast.error("Failed to delete affiliate product.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error deleting product.");
-    } finally {
-      setDeletingId(null);
-    }
+    deleteMutation.mutate(id, {
+      onSettled: () => setDeletingId(null),
+    });
   };
 
   // Filtered Products

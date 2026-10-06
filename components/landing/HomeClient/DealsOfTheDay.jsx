@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProductOfferCard from "@/components/shared/cards/ProductOfferCard";
 import { TODAY_PRODUCT_DEALS } from "./constants";
 
@@ -23,13 +23,20 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
     if (affiliateProducts && affiliateProducts.length > 0) {
       return affiliateProducts.map((p) => ({
         _id: p._id,
-        title: typeof p.title === "string" ? p.title : p.title?.title || "Special Deal",
+        title:
+          typeof p.title === "string"
+            ? p.title
+            : p.title?.title || "Special Deal",
         originalPrice: p.originalPrice || 0,
         discountPrice: p.discountPrice || 0,
         discountPercentage: p.discountPercentage || 0,
-        discountText: p.discountText || (p.discountPercentage ? `${p.discountPercentage}% OFF` : null),
-        merchantName: p.merchantId?.businessName || p.merchantName || "Partner Brand",
-        merchantLogo: p.merchantId?.logo || p.merchantLogo || "/placeholder-brand.png",
+        discountText:
+          p.discountText ||
+          (p.discountPercentage ? `${p.discountPercentage}% OFF` : null),
+        merchantName:
+          p.merchantId?.businessName || p.merchantName || "Partner Brand",
+        merchantLogo:
+          p.merchantId?.logo || p.merchantLogo || "/placeholder-brand.webp",
         productImage: p.imageUrl || p.productImage,
         imageUrl: p.imageUrl,
         affiliateUrl: p.affiliateUrl || p.href,
@@ -50,22 +57,29 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
     return () => clearInterval(timer);
   }, [totalSlides]);
 
-  const slides = [];
-  for (let i = 0; i < totalSlides; i++) {
-    slides.push(
-      displayItems.slice(i * itemsPerPage, (i + 1) * itemsPerPage),
-    );
-  }
+  const slides = useMemo(() => {
+    const list = [];
+    for (let i = 0; i < totalSlides; i++) {
+      list.push(displayItems.slice(i * itemsPerPage, (i + 1) * itemsPerPage));
+    }
+    return list;
+  }, [displayItems, itemsPerPage, totalSlides]);
 
-  const handlePrev = (e) => {
-    e?.preventDefault();
-    setSelectedIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-  };
+  const handlePrev = useCallback(
+    (e) => {
+      e?.preventDefault();
+      setSelectedIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
+    },
+    [totalSlides],
+  );
 
-  const handleNext = (e) => {
-    e?.preventDefault();
-    setSelectedIndex((prev) => (prev + 1) % totalSlides);
-  };
+  const handleNext = useCallback(
+    (e) => {
+      e?.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % totalSlides);
+    },
+    [totalSlides],
+  );
 
   // Drag and swipe gestures
   const dragStart = useRef(0);
@@ -149,13 +163,13 @@ export const DealsOfTheDay = ({ affiliateProducts = [] }) => {
             style={{ transform: `translateX(-${selectedIndex * 100}%)` }}
           >
             {slides.map((slideItems, slideIdx) => (
-              <div
-                key={slideIdx}
-                className="w-full flex-shrink-0"
-              >
+              <div key={slideIdx} className="w-full flex-shrink-0">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5 items-stretch">
                   {slideItems.map((product, idx) => (
-                    <ProductOfferCard key={product._id || idx} product={product} />
+                    <ProductOfferCard
+                      key={product._id || idx}
+                      product={product}
+                    />
                   ))}
                 </div>
               </div>

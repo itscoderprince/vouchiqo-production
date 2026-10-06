@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { qk } from "@/lib/query-keys";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Bookmark,
   History,
@@ -16,7 +15,13 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import ConfirmationModal from "@/components/shared/modals/ConfirmationModal";
 import CouponCard from "@/components/shared/cards/CouponCard";
 import KPICard from "@/components/shared/cards/KPICard";
-import { useUser } from "@/hooks/use-user";
+import { useMerchantProfile } from "@/hooks/use-merchant";
+import {
+  useCustomerRevivalStats,
+  useUser,
+  useUserClaims,
+  useUserSavings,
+} from "@/hooks/use-user";
 
 export default function CustomerDashboard() {
   const router = useRouter();
@@ -27,64 +32,42 @@ export default function CustomerDashboard() {
   const { user: authUser, role, isLoaded } = useUser();
   const user = authUser || { name: "Aditya Kumar", role: "customer" };
 
+  const isRegisteredMerchant =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+
+  const shouldCheckMerchant =
+    isLoaded &&
+    Boolean(authUser?.id || authUser?.email) &&
+    role !== "merchant" &&
+    !isRegisteredMerchant;
+
+  const { data: merchantProfile } = useMerchantProfile({
+    enabled: shouldCheckMerchant,
+  });
+
   // ── Merchant Guard ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isLoaded) return;
-    const isRegisteredMerchant =
-      typeof window !== "undefined" &&
-      sessionStorage.getItem("vouchiqo_is_merchant") === "true";
 
     if (role === "merchant" || isRegisteredMerchant) {
       router.replace("/merchant/dashboard");
       return;
     }
-    if (authUser?.id || authUser?.email) {
-      fetch("/api/merchants/me")
-        .then((r) => {
-          if (r.ok) {
-            if (typeof window !== "undefined") {
-              sessionStorage.setItem("vouchiqo_is_merchant", "true");
-            }
-            router.replace("/merchant/dashboard");
-          }
-        })
-        .catch(() => {});
+
+    if (shouldCheckMerchant && merchantProfile) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("vouchiqo_is_merchant", "true");
+      }
+      router.replace("/merchant/dashboard");
     }
-  }, [isLoaded, role, authUser?.id, authUser?.email, router]);
+  }, [isLoaded, role, isRegisteredMerchant, shouldCheckMerchant, merchantProfile, router]);
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Fetch actual savings data
-  const { data: savingsData } = useQuery({
-    queryKey: qk.user.savings(),
-    queryFn: async () => {
-      const res = await fetch("/api/users/savings");
-      if (!res.ok) throw new Error("Failed to fetch savings data");
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  // Fetch actual active saved claims
-  const { data: claimsData } = useQuery({
-    queryKey: qk.user.claims("active"),
-    queryFn: async () => {
-      const res = await fetch("/api/claims?status=active");
-      if (!res.ok) throw new Error("Failed to fetch claims data");
-      const json = await res.json();
-      return json.data?.claims || [];
-    },
-  });
-
-  // Fetch actual customer revival stats
-  const { data: revivalsData } = useQuery({
-    queryKey: qk.user.revivals(),
-    queryFn: async () => {
-      const res = await fetch("/api/revivals/customer");
-      if (!res.ok) throw new Error("Failed to fetch revivals stats");
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  // Fetch actual savings, claims, and revivals data
+  const { data: savingsData } = useUserSavings();
+  const { data: claimsData } = useUserClaims("active");
+  const { data: revivalsData } = useCustomerRevivalStats();
 
   // Map active claims to coupon details
   const coupons = (claimsData || []).map((claim) => ({

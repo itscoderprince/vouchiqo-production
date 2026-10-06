@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useReviewMerchantRevival } from "@/hooks/use-admin";
 
 /**
  * WinBackModal — Reusable dialog for reviewing revival outreach and updating status.
@@ -21,37 +20,25 @@ export default function WinBackModal({
   revival,
   onStatusUpdated,
 }) {
-  const [loading, setLoading] = useState(false);
+  const reviewMutation = useReviewMerchantRevival();
 
   if (!revival) return null;
 
-  const handleReviewAction = async (status) => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/revivals", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          revivalId: revival._id || revival.id,
-          status,
-          reviewNote:
-            status === "approved" ? "Approved by admin" : "Rejected by admin",
-        }),
-      });
-
-      if (res.ok) {
-        toast.success(`Revival request ${status}!`);
-        onOpenChange(false);
-        if (onStatusUpdated) onStatusUpdated();
-      } else {
-        const json = await res.json().catch(() => ({}));
-        toast.error(json.message || "Failed to update revival status.");
-      }
-    } catch (err) {
-      toast.error("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  const handleReviewAction = (status) => {
+    reviewMutation.mutate(
+      {
+        revivalId: revival._id || revival.id,
+        status,
+        reviewNote:
+          status === "approved" ? "Approved by admin" : "Rejected by admin",
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          if (onStatusUpdated) onStatusUpdated();
+        },
+      },
+    );
   };
 
   return (
@@ -104,7 +91,7 @@ export default function WinBackModal({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading}
+            disabled={reviewMutation.isPending}
             className="text-xs font-bold rounded-xl"
           >
             Cancel
@@ -113,14 +100,14 @@ export default function WinBackModal({
           <div className="flex gap-2">
             <Button
               variant="outline"
-              disabled={loading}
+              disabled={reviewMutation.isPending}
               onClick={() => handleReviewAction("rejected")}
               className="bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 text-xs font-bold rounded-xl"
             >
               Reject
             </Button>
             <Button
-              disabled={loading}
+              disabled={reviewMutation.isPending}
               onClick={() => handleReviewAction("approved")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl"
             >

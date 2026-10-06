@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, History, Loader2, Ticket } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useUser } from "@/hooks/use-user";
+import { useUser, useUserRedemptions } from "@/hooks/use-user";
 import TableSearch from "@/components/shared/data/TableSearch";
 
 export default function ClaimedCoupons() {
@@ -22,29 +22,7 @@ export default function ClaimedCoupons() {
   const user = authUser || { name: "User", role: "customer" };
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [redemptions, setRedemptions] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadRedemptions() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/redemptions");
-        if (res.ok) {
-          const payload = await res.json();
-          if (payload.success) {
-            setRedemptions(payload.data.redemptions || []);
-          }
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load redemption history.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadRedemptions();
-  }, []);
+  const { data: redemptions = [], isLoading: loading } = useUserRedemptions();
 
   const filteredRedemptions = useMemo(() => {
     if (!searchQuery.trim()) return redemptions;

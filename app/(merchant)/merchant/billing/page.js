@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
+import { useMerchantProfile } from "@/hooks/use-merchant";
+import { apiFetch } from "@/lib/fetcher";
 import BillingHistoryTable from "./components/BillingHistoryTable";
 import CheckoutModal from "./components/CheckoutModal";
 import CurrentPlanCard from "./components/CurrentPlanCard";
@@ -35,25 +37,13 @@ export default function MerchantSubscription() {
     data: merchant,
     isLoading: isLoadingMerchant,
     refetch: refetchMerchant,
-  } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      return json.data;
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-  });
+  } = useMerchantProfile({ staleTime: 0, refetchOnWindowFocus: true });
 
   // 2. Fetch live coupons from DB to calculate active listings count
   const { data: coupons = [] } = useQuery({
     queryKey: ["merchant-coupons-count"],
     queryFn: async () => {
-      const res = await fetch("/api/coupons?merchant=me");
-      if (!res.ok) return [];
-      const json = await res.json();
+      const json = await apiFetch("/api/coupons?merchant=me");
       return json.data?.coupons || (Array.isArray(json.data) ? json.data : []);
     },
   });
@@ -62,27 +52,17 @@ export default function MerchantSubscription() {
   const { data: campaigns = [] } = useQuery({
     queryKey: ["merchant-campaigns-count"],
     queryFn: async () => {
-      const res = await fetch("/api/campaigns");
-      if (!res.ok) return [];
-      const json = await res.json();
+      const json = await apiFetch("/api/campaigns");
       return Array.isArray(json.data) ? json.data : [];
     },
   });
 
   const upgradeMutation = useMutation({
-    mutationFn: async (payload) => {
-      const res = await fetch("/api/merchants/me/upgrade", {
+    mutationFn: async (payload) =>
+      apiFetch("/api/merchants/me/upgrade", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.message || "Upgrade payment failed.");
-      }
-      return res.json();
-    },
+        body: payload,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
       queryClient.invalidateQueries({ queryKey: ["merchant-coupons-count"] });
@@ -103,9 +83,7 @@ export default function MerchantSubscription() {
   const { data: plansData, isLoading: isLoadingPlans } = useQuery({
     queryKey: ["public-plans"],
     queryFn: async () => {
-      const res = await fetch("/api/plans");
-      if (!res.ok) return null;
-      const json = await res.json();
+      const json = await apiFetch("/api/plans");
       return json?.data?.plans || json?.plans || null;
     },
   });
@@ -174,9 +152,7 @@ export default function MerchantSubscription() {
     {
       queryKey: ["merchant-payment-history"],
       queryFn: async () => {
-        const res = await fetch("/api/payments");
-        if (!res.ok) return null;
-        const json = await res.json();
+        const json = await apiFetch("/api/payments");
         return json.data;
       },
       staleTime: 0,

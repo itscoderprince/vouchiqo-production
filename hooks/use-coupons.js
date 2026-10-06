@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -32,7 +32,7 @@ export function useMerchantCoupons(merchantId) {
       );
       return json.data?.coupons || [];
     },
-    staleTime: 30_000,        // real-time updates handled by socket invalidation
+    staleTime: 30_000, // real-time updates handled by socket invalidation
     refetchOnWindowFocus: false,
   });
 }
@@ -128,4 +128,23 @@ export function validateExpiryDate(expiresAt) {
     return false;
   }
   return true;
+}
+
+/**
+ * Fetch public banners with client-side caching.
+ */
+export function usePublicBanners(initialData = []) {
+  return useQuery({
+    queryKey: ["public-banners"],
+    queryFn: async () => {
+      const json = await apiFetch("/api/banners");
+      return json?.data || [];
+    },
+    initialData:
+      initialData && initialData.length > 0 ? initialData : undefined,
+    initialDataUpdatedAt:
+      initialData && initialData.length > 0 ? () => Date.now() : undefined,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 }

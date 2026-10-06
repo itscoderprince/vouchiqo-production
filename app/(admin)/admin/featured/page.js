@@ -15,8 +15,9 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { useAdminCoupons, useUpdateAdminCoupon } from "@/hooks/use-admin";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,57 +61,30 @@ const ROW_COLOR_THEMES = [
 
 export default function FeaturedDeals() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [togglingId, setTogglingId] = useState(null);
 
-  const fetchCoupons = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/coupons");
-      const json = await res.json();
-      if (json.success && json.data) {
-        setCoupons(json.data.coupons || []);
-      }
-    } catch (err) {
-      console.error("Error fetching admin coupons:", err);
-      toast.error("Failed to load deals catalog.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCoupons();
-  }, [fetchCoupons]);
+  const {
+    data: coupons = [],
+    isLoading: loading,
+    refetch: fetchCoupons,
+  } = useAdminCoupons();
+  const updateCouponMutation = useUpdateAdminCoupon();
 
   const handleToggleFeatured = async (couponId, isFeatured) => {
     setTogglingId(couponId);
     try {
-      const res = await fetch("/api/admin/coupons", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ couponId, isFeatured: !isFeatured }),
+      await updateCouponMutation.mutateAsync({
+        couponId,
+        isFeatured: !isFeatured,
       });
-      const json = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setCoupons((prev) =>
-          prev.map((c) =>
-            c._id === couponId ? { ...c, isFeatured: !isFeatured } : c,
-          ),
-        );
-        toast.success(
-          !isFeatured
-            ? "Deal pinned to Homepage Featured section!"
-            : "Deal removed from Homepage Featured section.",
-        );
-      } else {
-        toast.error(json.error || "Failed to update featured status.");
-      }
+      toast.success(
+        !isFeatured
+          ? "Deal pinned to Homepage Featured section!"
+          : "Deal removed from Homepage Featured section.",
+      );
     } catch (err) {
       console.error("Error toggling featured status:", err);
-      toast.error("Network error while updating featured status.");
     } finally {
       setTogglingId(null);
     }

@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMerchantNotifications } from "@/hooks/use-merchant-notifications";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 
 function formatNotificationType(type) {
   if (!type) return "System Notice";
@@ -133,15 +134,7 @@ export default function MerchantNotifications() {
   const [activeTab, setActiveTab] = useState("all");
 
   // Fetch live merchant profile from DB
-  const { data: merchant } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  const { data: merchant } = useMerchantProfile();
 
   // Use real-time socket + DB notifications hook
   const {

@@ -1,9 +1,9 @@
 "use client";
 
-import SafeImage from "@/components/shared/SafeImage";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
 const ARTICLES = [
   {
@@ -80,7 +80,7 @@ const ARTICLES = [
   },
 ];
 
-function ArticleCard({ article }) {
+const ArticleCard = memo(function ArticleCard({ article }) {
   return (
     <Link
       href={article.href}
@@ -127,7 +127,7 @@ function ArticleCard({ article }) {
       </div>
     </Link>
   );
-}
+});
 
 export function LatestArticles() {
   const scrollRef = useRef(null);

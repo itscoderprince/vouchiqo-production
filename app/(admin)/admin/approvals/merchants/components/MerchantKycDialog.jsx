@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateAdminMerchant } from "@/hooks/use-admin";
 import {
   Building2,
   Calendar,
@@ -39,7 +40,8 @@ export default function MerchantKycDialog({
   onAction,
 }) {
   const queryClient = useQueryClient();
-  const [isExtending, setIsExtending] = useState(false);
+  const updateMerchantMutation = useUpdateAdminMerchant(merchant?._id);
+  const isExtending = updateMerchantMutation.isPending;
 
   const isPaymentDone =
     merchant?.paymentStatus === "completed" ||
@@ -90,26 +92,12 @@ export default function MerchantKycDialog({
     return () => clearInterval(interval);
   }, [merchant?.planExpiry]);
 
-  const handleControlPlan = async (actionPayload) => {
-    setIsExtending(true);
-    toast.loading(`Processing admin action...`, { id: "ctrl-plan" });
-    try {
-      const res = await fetch(`/api/admin/merchants/${merchant._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(actionPayload),
-      });
-      if (!res.ok) throw new Error("Failed to update merchant plan status.");
-      toast.dismiss("ctrl-plan");
-      toast.success(`Merchant plan updated successfully!`);
-      queryClient.invalidateQueries();
-      if (onOpenChange) onOpenChange(false);
-    } catch (err) {
-      toast.dismiss("ctrl-plan");
-      toast.error(err.message || "Failed to update plan");
-    } finally {
-      setIsExtending(false);
-    }
+  const handleControlPlan = (actionPayload) => {
+    updateMerchantMutation.mutate(actionPayload, {
+      onSuccess: () => {
+        if (onOpenChange) onOpenChange(false);
+      },
+    });
   };
 
   if (!merchant) return null;

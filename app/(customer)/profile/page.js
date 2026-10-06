@@ -10,7 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 // Layout & Global Components
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -18,7 +18,18 @@ import ConfirmationModal from "@/components/shared/modals/ConfirmationModal";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/use-user";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMerchantProfile } from "@/hooks/use-merchant";
+import {
+  useDeleteClaim,
+  useUpdateUserProfile,
+  useUser,
+  useUserClaims,
+  useUserProfile,
+  useUserSavings,
+} from "@/hooks/use-user";
+import { apiFetch } from "@/lib/fetcher";
+import { qk } from "@/lib/query-keys";
 import dynamic from "next/dynamic";
 
 // Modular Tab Components (Code-split dynamically per Rule 57)
@@ -89,9 +100,8 @@ function ConfettiOverlay({ active }) {
 function ProfileContent() {
   const { user: authUser, role, isLoaded } = useUser();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("savings");
-  const [loading, setLoading] = useState(true);
-  const [savingsData, setSavingsData] = useState(null);
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -103,7 +113,6 @@ function ProfileContent() {
     smsNotifications: false,
     expiryAlerts: true,
   });
-  const [savedClaims, setSavedClaims] = useState([]);
   const [savingSettings, setSavingSettings] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -119,24 +128,25 @@ function ProfileContent() {
   const tabsContainerRef = useRef(null);
 
   // ── Merchant Guard ──────────────────────────────────────────────────────────
-  // If a merchant lands on this customer profile page (e.g. via stale link or
-  // cached session redirect), immediately send them to their own dashboard.
+  const shouldCheckMerchant =
+    isLoaded &&
+    role !== "merchant" &&
+    Boolean(authUser?.id);
+
+  const { data: merchantProfile } = useMerchantProfile({
+    enabled: shouldCheckMerchant,
+  });
+
   useEffect(() => {
     if (!isLoaded) return;
-    // Session role says merchant → redirect
     if (role === "merchant") {
       router.replace("/merchant/dashboard");
       return;
     }
-    // Session role is customer but user has a merchant record → redirect
-    if (authUser?.id) {
-      fetch("/api/merchants/me")
-        .then((r) => {
-          if (r.ok) router.replace("/merchant/dashboard");
-        })
-        .catch(() => {});
+    if (shouldCheckMerchant && merchantProfile) {
+      router.replace("/merchant/dashboard");
     }
-  }, [isLoaded, role, authUser?.id, router]);
+  }, [isLoaded, role, shouldCheckMerchant, merchantProfile, router]);
   // ───────────────────────────────────────────────────────────────────────────
 
   const searchParams = useSearchParams();
@@ -194,65 +204,45 @@ function ProfileContent() {
     }
   };
 
-  // Main data load
-  const loadData = async () => {
-    try {
-      setLoading(true);
+  // TanStack Query Hooks
+  const { data: savingsData, isLoading: isSavingsLoading } = useUserSavings();
+  const { data: rawProfile, isLoading: isProfileLoading } = useUserProfile();
+  const { data: rawClaims, isLoading: isClaimsLoading } = useUserClaims("active");
+  const updateUserMutation = useUpdateUserProfile();
+  const deleteClaimMutation = useDeleteClaim();
 
-      // Fetch Savings / redemptions
-      const savingsRes = await fetch("/api/users/savings");
-      if (savingsRes.ok) {
-        const payload = await savingsRes.json();
-        if (payload.success) {
-          setSavingsData(payload.data);
-          checkAndTriggerConfetti(payload.data.milestones);
-        }
-      }
+  const loading = isSavingsLoading || isProfileLoading || isClaimsLoading;
 
-      // Fetch User settings profile
-      const userRes = await fetch("/api/users");
-      if (userRes.ok) {
-        const payload = await userRes.json();
-        if (payload.success) {
-          const { user, profile } = payload.data;
-          setProfileData({
-            name: user.name || "",
-            email: user.email || "",
-            phone: user.phone || user.phoneNumber || "",
-            city: profile?.location?.city || "",
-            state: profile?.location?.state || "",
-            interests: profile?.interests || [],
-            emailNotifications: profile?.emailNotifications ?? true,
-            smsNotifications: profile?.smsNotifications ?? false,
-            expiryAlerts: profile?.expiryAlerts ?? true,
-          });
-        }
-      }
-
-      // Fetch active saved claims
-      const claimsRes = await fetch("/api/claims?status=active");
-      if (claimsRes.ok) {
-        const payload = await claimsRes.json();
-        if (payload.success) {
-          const mapped = (payload.data.claims || []).map((claim) => ({
-            ...claim.couponId,
-            claimId: claim._id,
-          }));
-          setSavedClaims(mapped);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to sync profile data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only load profile data on initial mount
+  // Sync profile settings state when query data updates
   useEffect(() => {
-    loadData();
-  }, []);
+    if (rawProfile) {
+      const { user, profile } = rawProfile;
+      setProfileData({
+        name: user?.name || "",
+        email: user?.email || "",
+        phone: user?.phone || user?.phoneNumber || "",
+        city: profile?.location?.city || "",
+        state: profile?.location?.state || "",
+        interests: profile?.interests || [],
+        emailNotifications: profile?.emailNotifications ?? true,
+        smsNotifications: profile?.smsNotifications ?? false,
+        expiryAlerts: profile?.expiryAlerts ?? true,
+      });
+    }
+  }, [rawProfile]);
+
+  const savedClaims = useMemo(() => {
+    return (rawClaims || []).map((claim) => ({
+      ...claim.couponId,
+      claimId: claim._id,
+    }));
+  }, [rawClaims]);
+
+  useEffect(() => {
+    if (savingsData?.milestones) {
+      checkAndTriggerConfetti(savingsData.milestones);
+    }
+  }, [savingsData?.milestones]);
 
   const checkAndTriggerConfetti = (milestones) => {
     try {
@@ -283,36 +273,21 @@ function ProfileContent() {
     e.preventDefault();
     setSavingSettings(true);
     try {
-      const res = await fetch("/api/users", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: profileData.name,
-          phone: profileData.phone,
-          location: {
-            city: profileData.city,
-            state: profileData.state,
-            country: "IN",
-          },
-          interests: profileData.interests,
-          emailNotifications: profileData.emailNotifications,
-          smsNotifications: profileData.smsNotifications,
-          expiryAlerts: profileData.expiryAlerts,
-        }),
+      await updateUserMutation.mutateAsync({
+        name: profileData.name,
+        phone: profileData.phone,
+        location: {
+          city: profileData.city,
+          state: profileData.state,
+          country: "IN",
+        },
+        interests: profileData.interests,
+        emailNotifications: profileData.emailNotifications,
+        smsNotifications: profileData.smsNotifications,
+        expiryAlerts: profileData.expiryAlerts,
       });
-
-      if (res.ok) {
-        const payload = await res.json();
-        if (payload.success) {
-          toast.success("Profile saved!");
-          loadData(); // reload
-        } else {
-          toast.error(payload.message || "Failed to update profile.");
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error saving profile settings.");
+    } catch {
+      // Error handled by mutation
     } finally {
       setSavingSettings(false);
     }
@@ -334,11 +309,7 @@ function ProfileContent() {
     if (!removeClaimTarget) return;
     try {
       setRemoveClaimPending(true);
-      const res = await fetch(`/api/claims/${removeClaimTarget}`, { method: "DELETE" });
-      if (res.ok) {
-        toast.success("Bookmark removed.");
-        setSavedClaims((prev) => prev.filter((c) => c.claimId !== removeClaimTarget));
-      }
+      await deleteClaimMutation.mutateAsync(removeClaimTarget);
     } catch (err) {
       console.error(err);
     } finally {
@@ -352,21 +323,16 @@ function ProfileContent() {
     const couponObj = savedClaims.find((c) => c._id === couponId);
     if (!couponObj || !couponObj.claimId) throw new Error("Claim ID not found");
 
-    const res = await fetch("/api/redemptions", {
+    const payload = await apiFetch("/api/redemptions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ claimId: couponObj.claimId, couponId: couponId }),
+      body: { claimId: couponObj.claimId, couponId },
     });
 
-    if (res.ok) {
-      const payload = await res.json();
-      if (payload.success) {
-        toast.success("Voucher claimed!");
-        loadData();
-        return payload.data.couponCode;
-      }
-    }
-    throw new Error("Failed to redeem coupon.");
+    toast.success("Voucher claimed!");
+    queryClient.invalidateQueries({ queryKey: qk.user.savings() });
+    queryClient.invalidateQueries({ queryKey: qk.user.claims("active") });
+    queryClient.invalidateQueries({ queryKey: qk.user.redemptions() });
+    return payload?.data?.couponCode;
   };
 
   const handleShareSavings = () => {

@@ -12,6 +12,8 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/fetcher";
 import {
   Popover,
   PopoverContent,
@@ -32,8 +34,6 @@ function formatRelativeTime(dateString) {
 }
 
 export const NotificationBell = () => {
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [clearedIds, setClearedIds] = useState([]);
   const [readIds, setReadIds] = useState([]);
   const [open, setOpen] = useState(false);
@@ -52,108 +52,93 @@ export const NotificationBell = () => {
     } catch (_) {}
   }, []);
 
-  // Fetch 100% REAL database activities (Coupons, Merchants, Notifications)
-  useEffect(() => {
-    if (!open) return;
-    let isCancelled = false;
+  // Fetch real activities with TanStack Query caching
+  const { data: activitiesData, isLoading: loading } = useQuery({
+    queryKey: ["navbar-notifications"],
+    queryFn: async () => {
+      const [resCoupons, resNotifs] = await Promise.all([
+        apiFetch("/api/coupons?limit=30").catch(() => null),
+        apiFetch("/api/notifications").catch(() => null),
+      ]);
 
-    async function fetchRealActivities() {
-      try {
-        setLoading(true);
-        const [resCoupons, resNotifs] = await Promise.all([
-          fetch("/api/coupons?limit=30").then((r) => (r.ok ? r.json() : null)),
-          fetch("/api/notifications").then((r) => (r.ok ? r.json() : null)),
-        ]);
+      const dbCoupons =
+        resCoupons?.data?.coupons || resCoupons?.coupons || [];
+      const dbNotifs =
+        resNotifs?.data?.notifications || resNotifs?.notifications || [];
 
-        if (isCancelled) return;
+      const realList = [];
 
-        const dbCoupons =
-          resCoupons?.data?.coupons || resCoupons?.coupons || [];
-        const dbNotifs =
-          resNotifs?.data?.notifications || resNotifs?.notifications || [];
-
-        const realList = [];
-
-        // 1. Map real DB notifications if any
-        if (Array.isArray(dbNotifs)) {
-          dbNotifs.forEach((n) => {
-            const id = `notif_${n._id}`;
-            realList.push({
-              id,
-              title: n.title || "Notification Update",
-              message: n.message || n.content || "Check out latest offers.",
-              time: formatRelativeTime(n.createdAt),
-              createdAt: new Date(n.createdAt || Date.now()).getTime(),
-              type: "notification",
-              unread: !n.read,
-              href: n.link || "/deals",
-            });
+      // 1. Map real DB notifications if any
+      if (Array.isArray(dbNotifs)) {
+        dbNotifs.forEach((n) => {
+          const id = `notif_${n._id}`;
+          realList.push({
+            id,
+            title: n.title || "Notification Update",
+            message: n.message || n.content || "Check out latest offers.",
+            time: formatRelativeTime(n.createdAt),
+            createdAt: new Date(n.createdAt || Date.now()).getTime(),
+            type: "notification",
+            unread: !n.read,
+            href: n.link || "/deals",
           });
-        }
-
-        // 2. Extract both New Partner Brands and New Codes from real coupons data
-        if (Array.isArray(dbCoupons)) {
-          const seenMerchants = new Set();
-
-          dbCoupons.forEach((c) => {
-            const m = c.merchantId;
-            const brandName = m?.businessName || c.brandName || "Partner Brand";
-            const mId = m?._id || m?.id || c._id;
-
-            // Add brand listing if not yet added
-            if (m && mId && !seenMerchants.has(String(mId))) {
-              seenMerchants.add(String(mId));
-              realList.push({
-                id: `merchant_${mId}`,
-                title: "New Partner Store Listed",
-                message: `${brandName} is now live on Vouchiqo!`,
-                time: formatRelativeTime(m.createdAt || c.createdAt),
-                createdAt: new Date(
-                  m.createdAt || c.createdAt || Date.now(),
-                ).getTime(),
-                type: "brand",
-                unread: true,
-                href: m.slug ? `/brand/${m.slug}` : `/deals/${c._id}`,
-              });
-            }
-
-            // Add coupon code update
-            const codeText = c.code ? `Code: ${c.code}` : "Exclusive Offer";
-            realList.push({
-              id: `coupon_${c._id}`,
-              title: `${brandName} Added New Code`,
-              message: `${c.title || "Exclusive Offer"}. ${codeText}`,
-              time: formatRelativeTime(c.createdAt),
-              createdAt: new Date(c.createdAt || Date.now()).getTime(),
-              type: "coupon",
-              unread: true,
-              href: `/deals/${c._id}`,
-            });
-          });
-        }
-
-        // Sort strictly newest first (descending timestamp) and take top 7
-        realList.sort((a, b) => b.createdAt - a.createdAt);
-
-        // Deduplicate by ID
-        const uniqueList = Array.from(
-          new Map(realList.map((item) => [item.id, item])).values(),
-        ).slice(0, 7);
-
-        setActivities(uniqueList);
-      } catch (err) {
-        console.error("Error fetching real activity notifications:", err);
-      } finally {
-        if (!isCancelled) setLoading(false);
+        });
       }
-    }
 
-    fetchRealActivities();
+      // 2. Extract both New Partner Brands and New Codes from real coupons data
+      if (Array.isArray(dbCoupons)) {
+        const seenMerchants = new Set();
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [open]);
+        dbCoupons.forEach((c) => {
+          const m = c.merchantId;
+          const brandName = m?.businessName || c.brandName || "Partner Brand";
+          const mId = m?._id || m?.id || c._id;
+
+          // Add brand listing if not yet added
+          if (m && mId && !seenMerchants.has(String(mId))) {
+            seenMerchants.add(String(mId));
+            realList.push({
+              id: `merchant_${mId}`,
+              title: "New Partner Store Listed",
+              message: `${brandName} is now live on Vouchiqo!`,
+              time: formatRelativeTime(m.createdAt || c.createdAt),
+              createdAt: new Date(
+                m.createdAt || c.createdAt || Date.now(),
+              ).getTime(),
+              type: "brand",
+              unread: true,
+              href: m.slug ? `/brand/${m.slug}` : `/deals/${c._id}`,
+            });
+          }
+
+          // Add coupon code update
+          const codeText = c.code ? `Code: ${c.code}` : "Exclusive Offer";
+          realList.push({
+            id: `coupon_${c._id}`,
+            title: `${brandName} Added New Code`,
+            message: `${c.title || "Exclusive Offer"}. ${codeText}`,
+            time: formatRelativeTime(c.createdAt),
+            createdAt: new Date(c.createdAt || Date.now()).getTime(),
+            type: "coupon",
+            unread: true,
+            href: `/deals/${c._id}`,
+          });
+        });
+      }
+
+      // Sort strictly newest first (descending timestamp) and take top 7
+      realList.sort((a, b) => b.createdAt - a.createdAt);
+
+      // Deduplicate by ID
+      return Array.from(
+        new Map(realList.map((item) => [item.id, item])).values(),
+      ).slice(0, 7);
+    },
+    staleTime: 30_000,
+    enabled: open,
+  });
+
+  const activities = activitiesData || [];
 
   // Filter out cleared notifications and apply read status
   const visibleActivities = activities

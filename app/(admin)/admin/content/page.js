@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   FolderOpen,
@@ -15,11 +15,16 @@ import StatusBadge from "@/components/shared/data/StatusBadge";
 import { FormInput } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { adminFetchSettings, adminUpdateSetting } from "@/lib/api-helpers";
+import { useAdminSettings, useUpdateAdminSetting } from "@/hooks/use-admin";
 import { showError, showSuccess } from "@/lib/toast";
 
 export default function PlatformContentSettings() {
-  const [loading, setLoading] = useState(true);
+  const {
+    data: settingsData,
+    isLoading: loading,
+    refetch: fetchSettings,
+  } = useAdminSettings();
+  const updateSettingMutation = useUpdateAdminSetting();
   const [savingKey, setSavingKey] = useState("");
 
   const [statsForm, setStatsForm] = useState({
@@ -64,32 +69,21 @@ export default function PlatformContentSettings() {
     theme: "blue",
   });
 
-  const fetchSettings = async () => {
-    try {
-      setLoading(true);
-      const data = await adminFetchSettings();
-      if (data.revival_stats) setStatsForm(data.revival_stats);
-      if (data.social_proof) setTestimonials(data.social_proof);
-      if (data.categories) setCategories(data.categories);
-      if (data.merchant_plans) setPlans(data.merchant_plans);
-      if (data.master_cpa_rates) setCpaRates(data.master_cpa_rates);
-    } catch (err) {
-      showError("Error loading settings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+    if (!settingsData) return;
+    if (settingsData.revival_stats) setStatsForm(settingsData.revival_stats);
+    if (settingsData.social_proof) setTestimonials(settingsData.social_proof);
+    if (settingsData.categories) setCategories(settingsData.categories);
+    if (settingsData.merchant_plans) setPlans(settingsData.merchant_plans);
+    if (settingsData.master_cpa_rates) setCpaRates(settingsData.master_cpa_rates);
+  }, [settingsData]);
 
   const handleSaveSetting = async (key, value) => {
     try {
       setSavingKey(key);
-      await adminUpdateSetting(key, value);
+      await updateSettingMutation.mutateAsync({ key, value });
       showSuccess(`Setting '${key}' saved!`);
-    } catch (err) {
+    } catch {
       showError(`Failed to save setting '${key}'`);
     } finally {
       setSavingKey("");

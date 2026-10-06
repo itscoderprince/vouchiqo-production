@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   useAdminUsers,
+  useDeleteAdminUser,
   useExportSubscribers,
   useToggleUserStatus,
 } from "@/hooks/use-admin";
@@ -164,7 +165,6 @@ export default function UserManagement() {
   const [activeTab, setActiveTab] = useState("all");
   const [rawSearch, setRawSearch] = useState("");
   const [deleteAuthId, setDeleteAuthId] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // useDeferredValue lets React keep the UI responsive during typing
   const search = useDeferredValue(rawSearch);
@@ -199,6 +199,7 @@ export default function UserManagement() {
 
   const { mutate: toggleStatus } = useToggleUserStatus();
   const { mutate: exportSubs, isPending: exporting } = useExportSubscribers();
+  const deleteUserMutation = useDeleteAdminUser();
 
   // Combined loading indicator: typing debounce OR network request in flight
   const isSearchLoading = isTyping || isFetching;
@@ -220,31 +221,14 @@ export default function UserManagement() {
   }, [users]);
 
   // ── Handlers ────────────────────────────────────────────────────────────
-  const handleDeleteUser = async () => {
+  const handleDeleteUser = () => {
     if (!deleteAuthId) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`/api/admin/users?authId=${deleteAuthId}`, {
-        method: "DELETE",
-      });
-      const json = await res.json().catch(() => ({}));
-      if (res.ok) {
-        toast.success(
-          json.message || "Customer account and all associated records deleted permanently!",
-        );
-        queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
+    deleteUserMutation.mutate(deleteAuthId, {
+      onSuccess: () => {
+        setDeleteAuthId(null);
         refetch();
-      } else {
-        toast.error(json.error?.message || json.message || "Failed to delete customer user.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error deleting customer user.");
-    } finally {
-      setIsDeleting(false);
-      setDeleteAuthId(null);
-    }
+      },
+    });
   };
 
   const handleExport = () => {
@@ -675,7 +659,7 @@ export default function UserManagement() {
             title="Delete Customer Account & All Data"
             description="This action cannot be undone. This will permanently delete the customer account, all claimed coupons, redemptions, and user credentials from the database."
             onConfirm={handleDeleteUser}
-            isPending={isDeleting}
+            isPending={deleteUserMutation.isPending}
           />
         </div>
       </TooltipProvider>

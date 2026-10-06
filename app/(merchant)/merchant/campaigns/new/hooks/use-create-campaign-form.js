@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useZodForm } from "@/hooks/use-zod-form";
+import { apiFetch } from "@/lib/fetcher";
 import { campaignSchema, STEP_FIELDS } from "../schemas/campaign-schema";
 
 /**
@@ -61,48 +63,32 @@ export function useCreateCampaignForm() {
     },
   });
 
-  const { data: merchant, isLoading: loadingProfile } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  const { data: merchant, isLoading: loadingProfile } = useMerchantProfile();
 
   // Fetch both standard coupons and affiliate link deals for attachment to campaign
   const { data: coupons = [] } = useQuery({
     queryKey: ["merchant-coupons-for-campaign", merchant?._id],
     queryFn: async () => {
       if (!merchant) return [];
-      const [couponsRes, affiliatesRes] = await Promise.all([
-        fetch(`/api/coupons?limit=50`).catch(() => null),
-        fetch(`/api/merchant/affiliate-products`).catch(() => null),
+      const [couponsData, affiliatesData] = await Promise.all([
+        apiFetch("/api/coupons?limit=50").catch(() => null),
+        apiFetch("/api/merchant/affiliate-products").catch(() => null),
       ]);
 
-      let couponList = [];
-      if (couponsRes?.ok) {
-        const json = await couponsRes.json();
-        couponList = (json.data?.coupons || []).filter(
-          (c) =>
-            c.merchantId?._id === merchant._id || c.merchantId === merchant._id,
-        );
-      }
+      const couponList = (couponsData?.data?.coupons || []).filter(
+        (c) =>
+          c.merchantId?._id === merchant._id || c.merchantId === merchant._id,
+      );
 
-      let affiliateList = [];
-      if (affiliatesRes?.ok) {
-        const json = await affiliatesRes.json();
-        affiliateList = (json.data || []).map((a) => ({
-          _id: a._id,
-          title: a.title,
-          code: "Affiliate Link",
-          discountType: "percentage",
-          discountValue: a.discountPercentage || 0,
-          isAffiliate: true,
-          affiliateUrl: a.affiliateUrl,
-        }));
-      }
+      const affiliateList = (affiliatesData?.data || []).map((a) => ({
+        _id: a._id,
+        title: a.title,
+        code: "Affiliate Link",
+        discountType: "percentage",
+        discountValue: a.discountPercentage || 0,
+        isAffiliate: true,
+        affiliateUrl: a.affiliateUrl,
+      }));
 
       return [...couponList, ...affiliateList];
     },

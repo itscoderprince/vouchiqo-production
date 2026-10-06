@@ -40,10 +40,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  adminFetchMerchantDetails,
-  adminReviewMerchant,
-  adminUpdateMerchantDetails,
-} from "@/lib/api-helpers";
+  useAdminMerchantDetail,
+  useReviewMerchant,
+  useUpdateAdminMerchant,
+} from "@/hooks/use-admin";
 
 const PLAN_OVERRIDE_OPTIONS = [
   { value: "starter", label: "Starter Free (₹0)" },
@@ -56,9 +56,12 @@ export default function MerchantDetailPage({ params }) {
   const resolvedParams = use(params);
   const merchantId = resolvedParams.id;
 
-  const [loading, setLoading] = useState(true);
-  const [merchant, setMerchant] = useState(null);
-  const [coupons, setCoupons] = useState([]);
+  const { data: detailData, isLoading: loading } =
+    useAdminMerchantDetail(merchantId);
+  const merchant = detailData?.merchant || null;
+  const updateMerchantMutation = useUpdateAdminMerchant(merchantId);
+  const reviewMerchantMutation = useReviewMerchant();
+
   const [activeTab, setActiveTab] = useState("profile");
 
   // API Action Loading States
@@ -70,36 +73,25 @@ export default function MerchantDetailPage({ params }) {
   const [isChangePlanOpen, setIsChangePlanOpen] = useState(false);
   const [targetPlan, setTargetPlan] = useState("pro");
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await adminFetchMerchantDetails(merchantId);
-      if (data.merchant) {
-        setMerchant(data.merchant);
-        setTargetPlan(data.merchant.plan || "starter");
-      }
-      const allOffers = [
-        ...(data.coupons || []),
-        ...(data.affiliateProducts || []).map((a) => ({
-          ...a,
-          code: "Affiliate Link",
-          discountType: "percentage",
-          discountValue: a.discountPercentage || 0,
-          isAffiliate: true,
-        })),
-      ];
-      setCoupons(allOffers);
-    } catch (err) {
-      console.error("Error loading merchant detail:", err);
-      toast.error("Failed to load merchant profile data.");
-    } finally {
-      setLoading(false);
-    }
-  }, [merchantId]);
-
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (merchant?.plan) {
+      setTargetPlan(merchant.plan);
+    }
+  }, [merchant?.plan]);
+
+  const coupons = useMemo(() => {
+    if (!detailData) return [];
+    return [
+      ...(detailData.coupons || []),
+      ...(detailData.affiliateProducts || []).map((a) => ({
+        ...a,
+        code: "Affiliate Link",
+        discountType: "percentage",
+        discountValue: a.discountPercentage || 0,
+        isAffiliate: true,
+      })),
+    ];
+  }, [detailData]);
 
   // Handle Adding Revival Credits
   const handleAddCredits = useCallback(async () => {
@@ -108,17 +100,16 @@ export default function MerchantDetailPage({ params }) {
     const newCredits = currentCredits + 25;
     try {
       setIsAddingCredits(true);
-      const updated = await adminUpdateMerchantDetails(merchantId, {
+      await updateMerchantMutation.mutateAsync({
         revivalCredits: newCredits,
       });
-      setMerchant(updated || { ...merchant, revivalCredits: newCredits });
       toast.success(`Added +25 Revival Credits! (Total: ${newCredits})`);
     } catch (err) {
       toast.error(err.message || "Failed to add revival credits.");
     } finally {
       setIsAddingCredits(false);
     }
-  }, [merchant, merchantId]);
+  }, [merchant, updateMerchantMutation]);
 
   // Handle Suspend / Reactivate Account
   const handleToggleSuspend = useCallback(async () => {
@@ -127,12 +118,11 @@ export default function MerchantDetailPage({ params }) {
     const nextStatus = isCurrentlySuspended ? "approved" : "suspended";
     try {
       setIsTogglingSuspend(true);
-      await adminReviewMerchant(
+      await reviewMerchantMutation.mutateAsync({
         merchantId,
-        nextStatus,
-        isCurrentlySuspended ? "" : "Suspended by admin",
-      );
-      setMerchant((prev) => ({ ...prev, status: nextStatus }));
+        status: nextStatus,
+        rejectionReason: isCurrentlySuspended ? "" : "Suspended by admin",
+      });
       toast.success(
         `Merchant account ${isCurrentlySuspended ? "reactivated" : "suspended"}.`,
       );
@@ -141,16 +131,15 @@ export default function MerchantDetailPage({ params }) {
     } finally {
       setIsTogglingSuspend(false);
     }
-  }, [merchant, merchantId]);
+  }, [merchant, merchantId, reviewMerchantMutation]);
 
   // Handle Changing Subscription Plan
   const handleChangePlan = useCallback(async () => {
     try {
       setIsChangingPlan(true);
-      const updated = await adminUpdateMerchantDetails(merchantId, {
+      await updateMerchantMutation.mutateAsync({
         plan: targetPlan,
       });
-      setMerchant(updated || { ...merchant, plan: targetPlan });
       toast.success(
         `Merchant subscription updated to ${targetPlan.toUpperCase()}!`,
       );
@@ -160,7 +149,7 @@ export default function MerchantDetailPage({ params }) {
     } finally {
       setIsChangingPlan(false);
     }
-  }, [merchant, merchantId, targetPlan]);
+  }, [merchantId, targetPlan, updateMerchantMutation]);
 
   // Listings Column Definitions
   const listingColumns = useMemo(

@@ -36,7 +36,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAdminMerchants, useReviewMerchant } from "@/hooks/use-admin";
+import {
+  useAdminMerchants,
+  useDeleteAdminMerchant,
+  useReviewMerchant,
+} from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -97,6 +101,7 @@ export default function AdminMerchantsClient({
   const queryClient = useQueryClient();
   const { data: merchants = [], isLoading, refetch } = useAdminMerchants({ limit: 500 });
   const reviewMutation = useReviewMerchant();
+  const deleteMerchantMutation = useDeleteAdminMerchant();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -107,7 +112,6 @@ export default function AdminMerchantsClient({
   const [kycDialogOpen, setKycDialogOpen] = useState(false);
 
   const [deleteId, setDeleteId] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const stats = useMemo(() => {
     const total = merchants.length;
@@ -117,27 +121,14 @@ export default function AdminMerchantsClient({
     return { total, active, pending, suspended };
   }, [merchants]);
 
-  const handleDeleteMerchant = async () => {
+  const handleDeleteMerchant = () => {
     if (!deleteId) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`/api/admin/merchants/${deleteId}`, { method: "DELETE" });
-      const json = await res.json().catch(() => ({}));
-      if (res.ok) {
-        toast.success(json.message || "Merchant partner and all associated data deleted permanently!");
-        queryClient.invalidateQueries({ queryKey: qk.admin.merchants() });
-        queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
+    deleteMerchantMutation.mutate(deleteId, {
+      onSuccess: () => {
+        setDeleteId(null);
         refetch();
-      } else {
-        toast.error(json.error?.message || json.message || "Failed to delete merchant.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Network error while deleting merchant.");
-    } finally {
-      setIsDeleting(false);
-      setDeleteId(null);
-    }
+      },
+    });
   };
 
   const handleOpenKyc = (merchant) => {
@@ -781,7 +772,7 @@ export default function AdminMerchantsClient({
           title="Delete Merchant Account & All Associated Data"
           description="This action cannot be undone. This will permanently delete the merchant partner account, all their posted offer listings, active customer claims, redemptions, campaigns, and user profile data from the database."
           onConfirm={handleDeleteMerchant}
-          isPending={isDeleting}
+          isPending={deleteMerchantMutation.isPending}
         />
       </div>
     </TooltipProvider>

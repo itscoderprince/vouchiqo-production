@@ -291,7 +291,14 @@ function MerchantRouteGuard({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const { role, isLoaded, isLoggedIn, user: authUser } = useUser();
-  const { isLocked, isPending, isProfileIncomplete, isApproved, merchant } = useMerchantLock();
+  const {
+    isLocked,
+    isPending,
+    isProfileIncomplete,
+    isApproved,
+    merchant,
+    isFetched,
+  } = useMerchantLock();
 
   useEffect(() => {
     if (!isLoaded || !isLoggedIn) return;
@@ -331,21 +338,8 @@ function MerchantRouteGuard({ children }) {
           authClient
             .getSession({ query: { disableCookieCache: true } })
             .catch(() => {});
-        } else if (authUser?.id || authUser?.email) {
-          fetch("/api/merchants/me")
-            .then((r) => {
-              if (r.ok) {
-                if (typeof window !== "undefined") {
-                  sessionStorage.setItem("vouchiqo_is_merchant", "true");
-                }
-                authClient
-                  .getSession({ query: { disableCookieCache: true } })
-                  .catch(() => {});
-              } else {
-                router.push("/customer/dashboard");
-              }
-            })
-            .catch(() => {});
+        } else if (isFetched && !merchant) {
+          router.push("/customer/dashboard");
         }
       }
     }
@@ -358,10 +352,9 @@ function MerchantRouteGuard({ children }) {
     isProfileIncomplete,
     isApproved,
     merchant,
+    isFetched,
     role,
     router,
-    authUser?.id,
-    authUser?.email,
   ]);
 
   return children;

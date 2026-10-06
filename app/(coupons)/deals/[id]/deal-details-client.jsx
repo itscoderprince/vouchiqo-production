@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useUser } from "@/hooks/use-user";
+import { useUser, useUserClaims } from "@/hooks/use-user";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
 
 function CountdownTimer({ expiresAt }) {
@@ -92,15 +92,7 @@ export default function DealDetailsClient({ coupon, relatedCoupons = [] }) {
   }, [coupon._id, isMockCoupon]);
 
   // Fetch active saved claims for the user
-  const { data: claims = [], refetch: refetchClaims } = useQuery({
-    queryKey: qk.user.claims("active"),
-    queryFn: async () => {
-      if (!isLoggedIn) return [];
-      const res = await fetch("/api/claims?status=active");
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data?.claims || [];
-    },
+  const { data: claims = [], refetch: refetchClaims } = useUserClaims("active", {
     enabled: isLoggedIn && !isMockCoupon,
   });
 

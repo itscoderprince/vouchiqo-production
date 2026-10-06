@@ -16,7 +16,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { adminFetchSettings, adminUpdateSetting } from "@/lib/api-helpers";
+import { useAdminSettings, useUpdateAdminSetting } from "@/hooks/use-admin";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -168,7 +168,13 @@ const ROW_COLOR_THEMES = [
 ];
 
 export default function CommissionRatesEditorPage() {
-  const [loading, setLoading] = useState(true);
+  const {
+    data: settingsData,
+    isLoading: loading,
+    refetch: fetchCpaRates,
+  } = useAdminSettings();
+  const updateSettingMutation = useUpdateAdminSetting();
+
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -182,37 +188,27 @@ export default function CommissionRatesEditorPage() {
     notes: "",
   });
 
-  const fetchCpaRates = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await adminFetchSettings();
-      if (
-        data?.master_cpa_rates &&
-        Array.isArray(data.master_cpa_rates) &&
-        data.master_cpa_rates.length > 0
-      ) {
-        setCpaRates(data.master_cpa_rates);
-      } else {
-        setCpaRates(DEFAULT_COMMISSION_TABLE);
-      }
-    } catch (err) {
-      showError("Error loading master CPA rates from database.");
-      setCpaRates(DEFAULT_COMMISSION_TABLE);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchCpaRates();
-  }, [fetchCpaRates]);
+    if (
+      settingsData?.master_cpa_rates &&
+      Array.isArray(settingsData.master_cpa_rates) &&
+      settingsData.master_cpa_rates.length > 0
+    ) {
+      setCpaRates(settingsData.master_cpa_rates);
+    } else if (settingsData) {
+      setCpaRates(DEFAULT_COMMISSION_TABLE);
+    }
+  }, [settingsData]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      await adminUpdateSetting("master_cpa_rates", cpaRates);
+      await updateSettingMutation.mutateAsync({
+        key: "master_cpa_rates",
+        value: cpaRates,
+      });
       showSuccess("Master Performance Commission Rates saved successfully!");
-    } catch (err) {
+    } catch {
       showError("Failed to save commission rates to database.");
     } finally {
       setSaving(false);

@@ -1,10 +1,9 @@
 "use client";
 
-import SafeImage from "@/components/shared/SafeImage";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import EmblaCarouselControls from "@/components/shared/EmblaCarouselControls";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
 
 const CATEGORY_GRADIENTS = {
   fashion: "linear-gradient(135deg, #f472b6, #db2777)",
@@ -25,14 +24,21 @@ const CATEGORY_GRADIENTS = {
   other: "linear-gradient(135deg, #38bdf8, #0284c7)",
 };
 
-function PopularOfferCard({ coupon }) {
+const PopularOfferCard = memo(function PopularOfferCard({ coupon }) {
   const val = coupon.rawDiscountValue || coupon.discountValue;
-  const isNum = val !== null && val !== undefined && val !== "" && !isNaN(Number(val));
+  const isNum =
+    val !== null &&
+    val !== undefined &&
+    val !== "" &&
+    !Number.isNaN(Number(val));
   let discountFormatted = "SPECIAL DEAL";
 
   if (coupon.offerType === "deal" && coupon.salePrice) {
     if (coupon.originalPrice && coupon.originalPrice > coupon.salePrice) {
-      const pct = Math.round(((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) * 100);
+      const pct = Math.round(
+        ((coupon.originalPrice - coupon.salePrice) / coupon.originalPrice) *
+          100,
+      );
       discountFormatted = `${pct}% OFF`;
     } else {
       discountFormatted = `₹${coupon.salePrice} DEAL`;
@@ -60,9 +66,7 @@ function PopularOfferCard({ coupon }) {
     "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop";
 
   const logoUrl =
-    coupon.merchantId?.logo ||
-    coupon.logo ||
-    "/placeholder-brand.png";
+    coupon.merchantId?.logo || coupon.logo || "/placeholder-brand.webp";
 
   const isExclusive = coupon.isFeatured;
 
@@ -144,7 +148,7 @@ function PopularOfferCard({ coupon }) {
       </div>
     </Link>
   );
-}
+});
 
 /* ============================================
    POPULAR OFFERS SECTION (Single-Row Carousel)
@@ -192,10 +196,13 @@ export default function PopularOffers({ coupons = [] }) {
     return () => clearInterval(timer);
   }, [totalSlides]);
 
-  const slides = [];
-  for (let i = 0; i < totalSlides; i++) {
-    slides.push(finalItems.slice(i * itemsPerPage, (i + 1) * itemsPerPage));
-  }
+  const slides = useMemo(() => {
+    const list = [];
+    for (let i = 0; i < totalSlides; i++) {
+      list.push(finalItems.slice(i * itemsPerPage, (i + 1) * itemsPerPage));
+    }
+    return list;
+  }, [finalItems, itemsPerPage, totalSlides]);
 
   const handlePrev = useCallback(() => {
     setSelectedIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
@@ -324,17 +331,16 @@ export default function PopularOffers({ coupons = [] }) {
         >
           <div
             className={`w-full flex ${
-              isDragging.current ? "transition-none" : "transition-transform duration-500 ease-in-out"
+              isDragging.current
+                ? "transition-none"
+                : "transition-transform duration-500 ease-in-out"
             }`}
             style={{
               transform: `translateX(calc(-${selectedIndex * 100}% + ${dragOffset}px))`,
             }}
           >
             {slides.map((slideItems, slideIdx) => (
-              <div
-                key={slideIdx}
-                className="w-full flex-shrink-0 min-w-full"
-              >
+              <div key={slideIdx} className="w-full flex-shrink-0 min-w-full">
                 {/* Single Row: 2 columns on mobile, 4 columns on desktop */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 items-stretch">
                   {slideItems.map((coupon) => (
@@ -380,5 +386,3 @@ export default function PopularOffers({ coupons = [] }) {
     </section>
   );
 }
-
-

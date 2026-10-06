@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
+import { apiFetch } from "@/lib/fetcher";
 
 // Animated typewriter placeholder phrases (concise and punchy so they never get truncated)
 const PLACEHOLDER_PHRASES = [
@@ -145,10 +146,11 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
     let isCancelled = false;
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=6`);
-        if (!res.ok || isCancelled) return;
+        const json = await apiFetch(
+          `/api/search?q=${encodeURIComponent(q)}&limit=6`,
+        ).catch(() => null);
+        if (!json || isCancelled) return;
 
-        const json = await res.json();
         const data = json.data || {};
 
         const brandItems = (data.brands || []).map((b) => ({

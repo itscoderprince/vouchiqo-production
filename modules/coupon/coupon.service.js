@@ -37,9 +37,14 @@ export async function invalidateCouponCaches(coupon = null) {
     if (coupon) {
       const id = String(coupon._id || coupon.id || coupon);
       if (id) keysToDel.push(REDIS_KEYS.couponDetail(id));
-      if (coupon.category) keysToDel.push(REDIS_KEYS.categoryDeals(String(coupon.category).toLowerCase()));
-      const mSlug = coupon.merchantSlug || coupon.brandSlug || coupon.merchantId?.slug;
-      if (mSlug) keysToDel.push(REDIS_KEYS.brandDetail(String(mSlug).toLowerCase()));
+      if (coupon.category)
+        keysToDel.push(
+          REDIS_KEYS.categoryDeals(String(coupon.category).toLowerCase()),
+        );
+      const mSlug =
+        coupon.merchantSlug || coupon.brandSlug || coupon.merchantId?.slug;
+      if (mSlug)
+        keysToDel.push(REDIS_KEYS.brandDetail(String(mSlug).toLowerCase()));
     }
 
     await Promise.allSettled(keysToDel.map((k) => redis.del(k)));
@@ -56,7 +61,7 @@ export async function invalidateCouponCaches(coupon = null) {
  */
 export async function createCoupon(authId, data, userEmail = null) {
   const authIdStr = String(authId);
-  let merchant = await Merchant.findOne({
+  const merchant = await Merchant.findOne({
     $or: [
       { authId: authIdStr },
       ...(userEmail ? [{ contactEmail: userEmail.toLowerCase().trim() }] : []),
@@ -181,7 +186,9 @@ export async function getCouponById(couponId) {
 
     if (dbCoupon) {
       analyticsQueue.add(JOB_NAMES.RECORD_VIEW, { couponId }).catch(() => {});
-      redis.setex(cacheKey, REDIS_TTL.COUPON_DETAIL, JSON.stringify(dbCoupon)).catch(() => {});
+      redis
+        .setex(cacheKey, REDIS_TTL.COUPON_DETAIL, JSON.stringify(dbCoupon))
+        .catch(() => {});
       return dbCoupon;
     }
   }
@@ -561,8 +568,14 @@ export async function listCoupons(searchParams) {
  * Get featured coupons — cached in Redis for 5 minutes.
  */
 export async function getFeaturedCoupons() {
-  const cached = await redis.get(REDIS_KEYS.FEATURED_DEALS);
-  if (cached) return JSON.parse(cached);
+  try {
+    if (redis) {
+      const cached = await redis
+        .get(REDIS_KEYS.FEATURED_DEALS)
+        .catch(() => null);
+      if (cached) return JSON.parse(cached);
+    }
+  } catch (_) {}
 
   let coupons = await Coupon.find({
     isFeatured: true,
@@ -593,11 +606,17 @@ export async function getFeaturedCoupons() {
       .lean();
   }
 
-  await redis.setex(
-    REDIS_KEYS.FEATURED_DEALS,
-    REDIS_TTL.FEATURED,
-    JSON.stringify(coupons),
-  );
+  try {
+    if (redis && coupons?.length > 0) {
+      await redis
+        .setex(
+          REDIS_KEYS.FEATURED_DEALS,
+          REDIS_TTL.FEATURED,
+          JSON.stringify(coupons),
+        )
+        .catch(() => {});
+    }
+  } catch (_) {}
   return coupons;
 }
 
@@ -605,8 +624,14 @@ export async function getFeaturedCoupons() {
  * Get hot/trending coupons — cached in Redis for 2 minutes.
  */
 export async function getTrendingCoupons() {
-  const cached = await redis.get(REDIS_KEYS.TRENDING_DEALS);
-  if (cached) return JSON.parse(cached);
+  try {
+    if (redis) {
+      const cached = await redis
+        .get(REDIS_KEYS.TRENDING_DEALS)
+        .catch(() => null);
+      if (cached) return JSON.parse(cached);
+    }
+  } catch (_) {}
 
   const coupons = await Coupon.find({
     isHot: true,
@@ -619,11 +644,17 @@ export async function getTrendingCoupons() {
     .limit(20)
     .lean();
 
-  await redis.setex(
-    REDIS_KEYS.TRENDING_DEALS,
-    REDIS_TTL.TRENDING,
-    JSON.stringify(coupons),
-  );
+  try {
+    if (redis && coupons?.length > 0) {
+      await redis
+        .setex(
+          REDIS_KEYS.TRENDING_DEALS,
+          REDIS_TTL.TRENDING,
+          JSON.stringify(coupons),
+        )
+        .catch(() => {});
+    }
+  } catch (_) {}
   return coupons;
 }
 

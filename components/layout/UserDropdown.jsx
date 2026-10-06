@@ -18,8 +18,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMerchantLock } from "@/components/shared/MerchantLockProvider";
+import SafeImage from "@/components/shared/SafeImage";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,37 +59,23 @@ export default function UserDropdown({
     };
   }, []);
 
-  const [effectiveRole, setEffectiveRole] = useState(
-    pathname.startsWith("/admin")
-      ? "admin"
-      : pathname.startsWith("/merchant")
-        ? "merchant"
-        : user?.role || authUser?.role || "customer",
-  );
-
   const { data: merchantProfile } = useMerchantProfile({
-    enabled: effectiveRole === "merchant",
+    enabled: !!(user || authUser),
   });
 
-  useEffect(() => {
-    if (pathname.startsWith("/admin")) {
-      setEffectiveRole("admin");
-    } else if (pathname.startsWith("/merchant")) {
-      setEffectiveRole("merchant");
-    } else if (user?.role === "merchant" || user?.role === "admin") {
-      setEffectiveRole(user.role);
-    } else {
-      fetch("/api/merchants/me")
-        .then((r) =>
-          setEffectiveRole(
-            r.ok ? "merchant" : user?.role || authUser?.role || "customer",
-          ),
-        )
-        .catch(() =>
-          setEffectiveRole(user?.role || authUser?.role || "customer"),
-        );
+  const effectiveRole = useMemo(() => {
+    if (pathname.startsWith("/admin")) return "admin";
+    if (pathname.startsWith("/merchant")) return "merchant";
+    if (
+      user?.role === "merchant" ||
+      authUser?.role === "merchant" ||
+      merchantProfile
+    ) {
+      return "merchant";
     }
-  }, [user?.role, authUser?.role, pathname]);
+    if (user?.role === "admin" || authUser?.role === "admin") return "admin";
+    return user?.role || authUser?.role || "customer";
+  }, [pathname, user?.role, authUser?.role, merchantProfile]);
 
   const merchantLogo =
     merchant?.logo ||
@@ -213,9 +200,11 @@ export default function UserDropdown({
         <div className="flex items-center gap-2.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
           <div className="h-9 w-9 rounded-[7px] border border-slate-200 shrink-0 overflow-hidden bg-white flex items-center justify-center shadow-2xs">
             {currentImage ? (
-              <img
+              <SafeImage
                 src={currentImage}
                 alt={currentName}
+                width={36}
+                height={36}
                 className="w-full h-full object-contain p-0.5"
               />
             ) : (
@@ -262,9 +251,11 @@ export default function UserDropdown({
             }`}
           >
             {currentImage ? (
-              <img
+              <SafeImage
                 src={currentImage}
                 alt={currentName}
+                width={32}
+                height={32}
                 className="w-full h-full object-contain p-0.5"
               />
             ) : (
@@ -284,9 +275,11 @@ export default function UserDropdown({
           <div className="flex items-center gap-2.5 text-left">
             <div className="h-9 w-9 rounded-[7px] border border-slate-200 shrink-0 overflow-hidden bg-white flex items-center justify-center shadow-2xs">
               {currentImage ? (
-                <img
+                <SafeImage
                   src={currentImage}
                   alt={currentName}
+                  width={36}
+                  height={36}
                   className="w-full h-full object-contain p-0.5"
                 />
               ) : (

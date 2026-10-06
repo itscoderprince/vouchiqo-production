@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMerchantAnalytics, useMerchantProfile } from "@/hooks/use-merchant";
 import {
   Calendar,
   CheckCircle2,
@@ -64,29 +64,10 @@ export default function MerchantAnalytics() {
   const [couponFilter, setCouponFilter] = useState("all");
 
   // ── 1. TANSTACK QUERY DATA FETCHING ──
-  const { data: merchant, isLoading: loadingProfile } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) throw new Error("Failed to fetch merchant profile");
-      const json = await res.json();
-      return json.data;
-    },
-    staleTime: 30000,
-  });
+  const { data: merchant, isLoading: loadingProfile } = useMerchantProfile();
 
-  const { data: analyticsData, isLoading: loadingAnalytics } = useQuery({
-    queryKey: ["merchant-analytics", timeRange],
-    queryFn: async () => {
-      const period =
-        timeRange === "7" ? "7d" : timeRange === "90" ? "90d" : "30d";
-      const res = await fetch(`/api/analytics?period=${period}`);
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-    staleTime: 30000,
-  });
+  const period = timeRange === "7" ? "7d" : timeRange === "90" ? "90d" : "30d";
+  const { data: analyticsData, isLoading: loadingAnalytics } = useMerchantAnalytics(period);
 
   // ── 2. COMPUTED METRICS FROM DB ──
   const plan = merchant?.plan || "starter";

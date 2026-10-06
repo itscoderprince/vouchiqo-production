@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
 import TwitterVerifiedBadge from "@/components/shared/TwitterVerifiedBadge";
 
@@ -31,7 +31,7 @@ const CATEGORY_FALLBACK_BANNERS = {
 const DEFAULT_BANNER =
   "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop";
 
-export default function BrandGridItem({
+export const BrandGridItem = memo(function BrandGridItem({
   name,
   logo,
   banner,
@@ -126,4 +126,6 @@ export default function BrandGridItem({
       </div>
     </Link>
   );
-}
+});
+
+export default BrandGridItem;

@@ -26,7 +26,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusBadge from "@/components/shared/data/StatusBadge";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
@@ -45,6 +45,13 @@ import { uploadFile } from "@/lib/fetcher";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import MobileTableCard from "@/components/shared/data/MobileTableCard";
+import {
+  useAdminBanners,
+  useCreateBanner,
+  useDeleteBanner,
+  useReorderBanners,
+  useUpdateBanner,
+} from "@/hooks/use-admin";
 
 const SLOTS = [
   {
@@ -166,8 +173,16 @@ const INITIAL_FORM = {
 };
 
 export default function BannerManagement() {
-  const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: banners = [],
+    isLoading: loading,
+    refetch: fetchBanners,
+  } = useAdminBanners();
+  const createBannerMutation = useCreateBanner();
+  const updateBannerMutation = useUpdateBanner();
+  const deleteBannerMutation = useDeleteBanner();
+  const reorderBannersMutation = useReorderBanners();
+
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("hero");
   const [editingId, setEditingId] = useState(null);
@@ -178,25 +193,6 @@ export default function BannerManagement() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const imageInputRef = useRef(null);
   const logoInputRef = useRef(null);
-
-  const fetchBanners = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/banners");
-      const json = await res.json();
-      if (json.success && json.data) {
-        setBanners(json.data);
-      }
-    } catch (err) {
-      showError("Failed to load promo banners.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBanners();
-  }, [fetchBanners]);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -277,8 +273,6 @@ export default function BannerManagement() {
 
     setSaving(true);
     try {
-      const endpoint = "/api/admin/banners";
-      const method = editingId ? "PUT" : "POST";
       const payload = {
         ...form,
         slot: form.slot || activeTab,
@@ -288,26 +282,15 @@ export default function BannerManagement() {
 
       if (editingId) {
         payload.id = editingId;
-      }
-
-      const res = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showSuccess(
-          editingId ? "Promo banner updated!" : "Promo banner added!",
-        );
-        handleCancelEdit();
-        fetchBanners();
+        await updateBannerMutation.mutateAsync(payload);
+        showSuccess("Promo banner updated!");
       } else {
-        showError(json.error || "Failed to save banner.");
+        await createBannerMutation.mutateAsync(payload);
+        showSuccess("Promo banner added!");
       }
+      handleCancelEdit();
     } catch (err) {
-      showError("An error occurred while saving the banner.");
+      showError(err.message || "An error occurred while saving the banner.");
     } finally {
       setSaving(false);
     }
@@ -316,25 +299,11 @@ export default function BannerManagement() {
   const handleToggleSponsored = async (bannerId, currentIsPaid) => {
     const nextIsPaid = !currentIsPaid;
     try {
-      const res = await fetch("/api/admin/banners", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: bannerId, isPaid: nextIsPaid }),
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showSuccess(
-          `Placement updated to ${nextIsPaid ? "Sponsored" : "Standard"}.`,
-        );
-        setBanners((prev) =>
-          prev.map((b) =>
-            b._id === bannerId ? { ...b, isPaid: nextIsPaid } : b,
-          ),
-        );
-      } else {
-        showError(json.error || "Failed to update placement type.");
-      }
-    } catch (err) {
+      await updateBannerMutation.mutateAsync({ id: bannerId, isPaid: nextIsPaid });
+      showSuccess(
+        `Placement updated to ${nextIsPaid ? "Sponsored" : "Standard"}.`,
+      );
+    } catch {
       showError("Failed to update placement type.");
     }
   };
@@ -342,23 +311,9 @@ export default function BannerManagement() {
   const handleToggleStatus = async (bannerId, currentStatus) => {
     const nextStatus = currentStatus === "active" ? "inactive" : "active";
     try {
-      const res = await fetch("/api/admin/banners", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: bannerId, status: nextStatus }),
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showSuccess(`Banner status updated to ${nextStatus}.`);
-        setBanners((prev) =>
-          prev.map((b) =>
-            b._id === bannerId ? { ...b, status: nextStatus } : b,
-          ),
-        );
-      } else {
-        showError(json.error || "Failed to toggle status.");
-      }
-    } catch (err) {
+      await updateBannerMutation.mutateAsync({ id: bannerId, status: nextStatus });
+      showSuccess(`Banner status updated to ${nextStatus}.`);
+    } catch {
       showError("Failed to update status.");
     }
   };
@@ -374,18 +329,10 @@ export default function BannerManagement() {
     if (!deleteTarget?._id) return;
     try {
       setDeletePending(true);
-      const res = await fetch(`/api/admin/banners?id=${deleteTarget._id}`, {
-        method: "DELETE",
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showSuccess("Banner deleted.");
-        setBanners((prev) => prev.filter((b) => b._id !== deleteTarget._id));
-      } else {
-        showError(json.error || "Failed to delete banner.");
-      }
+      await deleteBannerMutation.mutateAsync(deleteTarget._id);
+      showSuccess("Banner deleted.");
     } catch (err) {
-      showError("Failed to delete banner.");
+      showError(err.message || "Failed to delete banner.");
     } finally {
       setDeletePending(false);
       setDeleteTarget(null);
@@ -418,36 +365,10 @@ export default function BannerManagement() {
   const syncReorderedList = async (reorderedSubset) => {
     try {
       setReordering(true);
-      const total = reorderedSubset.length;
-      const updatedSubset = reorderedSubset.map((b, idx) => ({
-        ...b,
-        priority: (total - idx) * 10,
-      }));
-
-      // Optimistic update
-      setBanners((prev) => {
-        const otherBanners = prev.filter(
-          (b) => !reorderedSubset.some((r) => r._id === b._id),
-        );
-        return [...updatedSubset, ...otherBanners];
-      });
-
       const bannerIds = reorderedSubset.map((b) => b._id);
-      const res = await fetch("/api/admin/banners/reorder", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bannerIds }),
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showSuccess("Banner order updated & synced to homepage!");
-      } else {
-        showError(json.error || "Failed to update banner order.");
-        fetchBanners();
-      }
+      await reorderBannersMutation.mutateAsync(bannerIds);
     } catch (err) {
-      showError("Error saving banner order.");
-      fetchBanners();
+      showError(err.message || "Error saving banner order.");
     } finally {
       setReordering(false);
     }
@@ -511,17 +432,9 @@ export default function BannerManagement() {
     }
     setEditingPriorityId(null);
     try {
-      const res = await fetch("/api/admin/banners", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: bannerId, priority: num }),
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showSuccess("Priority updated.");
-        fetchBanners();
-      }
-    } catch (err) {
+      await updateBannerMutation.mutateAsync({ id: bannerId, priority: num });
+      showSuccess("Priority updated.");
+    } catch {
       showError("Failed to update priority.");
     }
   };

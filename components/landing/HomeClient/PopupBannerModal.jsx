@@ -1,32 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import SafeImage from "@/components/shared/SafeImage";
+import { usePublicBanners } from "@/hooks/use-coupons";
 
 export function PopupBannerModal({ banners: initialBanners = [] }) {
-  const [banners, setBanners] = useState(initialBanners);
+  const { data: banners = initialBanners } = usePublicBanners(initialBanners);
   const [open, setOpen] = useState(false);
   const [activeBanner, setActiveBanner] = useState(null);
-
-  useEffect(() => {
-    if (initialBanners && initialBanners.length > 0) {
-      setBanners(initialBanners);
-    }
-  }, [initialBanners]);
-
-  useEffect(() => {
-    if (!initialBanners || initialBanners.length === 0) {
-      fetch("/api/banners")
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setBanners(json.data);
-          }
-        })
-        .catch((err) => console.error("Failed to fetch popup banners:", err));
-    }
-  }, [initialBanners]);
 
   useEffect(() => {
     // Find active popup banner
@@ -41,7 +24,9 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
     const bannerId = selected._id || "default";
 
     // Check if dismissed in this session
-    const isDismissed = sessionStorage.getItem(`popup-banner-dismissed-${bannerId}`);
+    const isDismissed = sessionStorage.getItem(
+      `popup-banner-dismissed-${bannerId}`,
+    );
     if (!isDismissed) {
       setActiveBanner(selected);
       const timer = setTimeout(() => {
@@ -54,7 +39,10 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
   const handleClose = () => {
     setOpen(false);
     if (activeBanner?._id) {
-      sessionStorage.setItem(`popup-banner-dismissed-${activeBanner._id}`, "true");
+      sessionStorage.setItem(
+        `popup-banner-dismissed-${activeBanner._id}`,
+        "true",
+      );
     }
   };
 
@@ -63,7 +51,10 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
   const isExternal =
     activeBanner.link?.startsWith("http://") ||
     activeBanner.link?.startsWith("https://");
-  const targetUrl = activeBanner.link && activeBanner.link !== "#" ? activeBanner.link : "/deals";
+  const targetUrl =
+    activeBanner.link && activeBanner.link !== "#"
+      ? activeBanner.link
+      : "/deals";
 
   const modalBody = (
     <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-700/50 group">
@@ -86,10 +77,13 @@ export function PopupBannerModal({ banners: initialBanners = [] }) {
         className="relative w-full flex items-center justify-center bg-slate-950"
         style={{ aspectRatio: "600 / 400" }}
       >
-        <img
+        <SafeImage
           src={activeBanner.image}
           alt={activeBanner.title || "Promotional Banner"}
-          className="w-full h-full object-cover cursor-pointer"
+          fill
+          priority
+          sizes="(max-width: 640px) 95vw, 520px"
+          className="object-cover cursor-pointer"
         />
       </div>
     </div>

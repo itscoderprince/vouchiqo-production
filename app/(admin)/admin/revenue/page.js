@@ -3,36 +3,39 @@
 import {
   Check,
   CheckCircle2,
-  CreditCard,
-  Download,
   FileText,
   IndianRupee,
-  Layers,
   Receipt,
   RefreshCw,
   Search,
-  ShieldCheck,
   TrendingUp,
   Users,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import MobileTableCard from "@/components/shared/data/MobileTableCard";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  adminFetchRevenueData,
-  adminUpdatePayoutStatus,
-} from "@/lib/api-helpers";
-import { showError, showSuccess } from "@/lib/toast";
+import { useAdminRevenue, useUpdatePayoutStatus } from "@/hooks/use-admin";
+import { showError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import MobileTableCard from "@/components/shared/data/MobileTableCard";
 
 // 8 Distinct Pastel Row Palettes (Clearly visible without hover)
 const ROW_COLOR_THEMES = [
@@ -63,42 +66,18 @@ const ROW_COLOR_THEMES = [
 ];
 
 export default function PlatformRevenue() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, refetch: loadData } = useAdminRevenue();
+  const updatePayoutMutation = useUpdatePayoutStatus();
   const [actionLoading, setActionLoading] = useState(false);
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [invoiceTab, setInvoiceTab] = useState("all");
   const [payoutSearch, setPayoutSearch] = useState("");
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const resData = await adminFetchRevenueData();
-      setData(resData);
-    } catch (err) {
-      showError("Failed to fetch live platform revenue details.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
   const handleMarkAsPaid = async (payoutId) => {
     try {
       setActionLoading(true);
-      await adminUpdatePayoutStatus(payoutId, "paid");
-      showSuccess("Payout marked as paid!");
-      setData((prev) => {
-        if (!prev) return prev;
-        const updatedPayouts = (prev.payouts || []).map((p) =>
-          p.id === payoutId ? { ...p, status: "paid" } : p,
-        );
-        return { ...prev, payouts: updatedPayouts };
-      });
-    } catch (err) {
+      await updatePayoutMutation.mutateAsync({ payoutId, status: "paid" });
+    } catch {
       showError("Failed to update payout status.");
     } finally {
       setActionLoading(false);
@@ -164,9 +143,12 @@ export default function PlatformRevenue() {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs flex items-center gap-1">
+              <Badge
+                variant="outline"
+                className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[9.5px] font-medium px-2 py-0.5 rounded-md shadow-2xs flex items-center gap-1"
+              >
                 <CheckCircle2 className="w-3 h-3" /> Auto-Billing Active
-              </span>
+              </Badge>
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -276,22 +258,24 @@ export default function PlatformRevenue() {
 
               <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <div className="relative w-full sm:w-52">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                  <input
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
+                  <Input
                     type="text"
                     placeholder="Search invoices..."
                     value={invoiceSearch}
                     onChange={(e) => setInvoiceSearch(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs h-7.5"
                   />
                   {invoiceSearch && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setInvoiceSearch("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 hover:text-slate-600 p-0"
                     >
                       <X className="w-3 h-3" />
-                    </button>
+                    </Button>
                   )}
                 </div>
 
@@ -313,29 +297,32 @@ export default function PlatformRevenue() {
                       ).length,
                     },
                   ].map((tab) => (
-                    <button
+                    <Button
                       key={tab.id}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setInvoiceTab(tab.id)}
                       className={cn(
-                        "text-[10.5px] font-medium px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
+                        "text-[10.5px] font-medium px-2 py-0.5 h-6 rounded-md transition-all cursor-pointer flex items-center gap-1 border-0",
                         invoiceTab === tab.id
-                          ? "bg-white text-blue-600 shadow-2xs"
+                          ? "bg-white text-blue-600 shadow-2xs hover:bg-white hover:text-blue-600"
                           : "text-slate-500 hover:text-slate-800 bg-transparent",
                       )}
                     >
                       <span>{tab.label}</span>
-                      <span
+                      <Badge
+                        variant="secondary"
                         className={cn(
-                          "text-[9px] px-1 rounded-full",
+                          "text-[9px] px-1 h-4 min-w-4 flex items-center justify-center rounded-full font-normal border-0",
                           invoiceTab === tab.id
                             ? "bg-blue-50 text-blue-600"
                             : "bg-slate-200/70 text-slate-600",
                         )}
                       >
                         {tab.count}
-                      </span>
-                    </button>
+                      </Badge>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -343,71 +330,103 @@ export default function PlatformRevenue() {
 
             {/* Colorful Invoices Table */}
             <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/90">
-              <table className="w-full border-collapse text-left font-sans">
-                <thead>
-                  <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
-                    <th className="py-2 px-3 w-28">Invoice ID</th>
-                    <th className="py-2 px-3 w-52">Merchant Partner</th>
-                    <th className="py-2 px-3 w-40">Subscription Tier</th>
-                    <th className="py-2 px-3 w-32">Invoice Date</th>
-                    <th className="py-2 px-3 text-right w-28">Amount</th>
-                    <th className="py-2 px-3 text-center w-28">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+              <Table className="w-full text-left font-sans">
+                <TableHeader>
+                  <TableRow className="bg-slate-50/90 border-b border-slate-200 hover:bg-slate-50/90">
+                    <TableHead className="py-2 px-3 w-28 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Invoice ID
+                    </TableHead>
+                    <TableHead className="py-2 px-3 w-52 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Merchant Partner
+                    </TableHead>
+                    <TableHead className="py-2 px-3 w-40 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Subscription Tier
+                    </TableHead>
+                    <TableHead className="py-2 px-3 w-32 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Invoice Date
+                    </TableHead>
+                    <TableHead className="py-2 px-3 text-right w-28 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Amount
+                    </TableHead>
+                    <TableHead className="py-2 px-3 text-center w-28 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Status
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-slate-100 text-xs text-slate-700">
                   {loading
-                    ? <tr>
-                        <td
-                          colSpan={6}
-                          className="py-8 text-center text-slate-400 text-xs"
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <TableRow
+                          key={i}
+                          className="animate-pulse border-b border-slate-100"
                         >
-                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                          Loading billing invoices...
-                        </td>
-                      </tr>
+                          <TableCell className="py-2.5 px-3">
+                            <div className="h-4 w-20 bg-slate-200/80 rounded" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <div className="h-4 w-32 bg-slate-200/80 rounded" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <div className="h-4 w-28 bg-slate-100 rounded" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <div className="h-4 w-24 bg-slate-100 rounded" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-right">
+                            <div className="h-4 w-16 bg-slate-200/80 rounded ml-auto" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-center">
+                            <div className="h-5 w-16 bg-slate-100 rounded mx-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ))
                     : filteredInvoices.length === 0
-                      ? <tr>
-                          <td
+                      ? <TableRow>
+                          <TableCell
                             colSpan={6}
                             className="py-8 text-center text-slate-400 text-xs"
                           >
                             No billing invoices found.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       : filteredInvoices.map((inv, idx) => {
                           const theme =
                             ROW_COLOR_THEMES[idx % ROW_COLOR_THEMES.length];
                           const isPaid = inv.status?.toLowerCase() === "paid";
 
                           return (
-                            <tr
+                            <TableRow
                               key={inv.id || idx}
                               className={cn(
-                                "transition-all duration-150",
+                                "transition-all duration-150 border-b",
                                 theme.row,
                               )}
                             >
-                              <td className="py-2 px-3">
+                              <TableCell className="py-2 px-3">
                                 <span className="font-mono text-[11px] font-medium text-slate-900 bg-white/95 border border-slate-300/90 px-1.5 py-0.5 rounded shadow-2xs">
                                   {inv.id}
                                 </span>
-                              </td>
-                              <td className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
+                              </TableCell>
+                              <TableCell className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
                                 {inv.merchantName}
-                              </td>
-                              <td className="py-2 px-3">
-                                <span className="text-[10px] font-medium text-blue-700 bg-white/95 border border-blue-200 px-1.5 py-0.2 rounded shadow-2xs">
+                              </TableCell>
+                              <TableCell className="py-2 px-3">
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-white/95 text-blue-700 border border-blue-200 text-[10px] font-medium px-1.5 py-0.5 rounded shadow-2xs"
+                                >
                                   {inv.plan}
-                                </span>
-                              </td>
-                              <td className="py-2 px-3 font-mono text-[10.5px] text-slate-600">
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="py-2 px-3 font-mono text-[10.5px] text-slate-600">
                                 {inv.date}
-                              </td>
-                              <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
+                              </TableCell>
+                              <TableCell className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
                                 ₹{inv.amount.toLocaleString("en-IN")}
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span
+                              </TableCell>
+                              <TableCell className="py-2 px-3 text-center">
+                                <Badge
+                                  variant="outline"
                                   className={cn(
                                     "px-2 py-0.5 text-[9.5px] font-medium rounded-md border shadow-2xs inline-block whitespace-nowrap",
                                     isPaid
@@ -416,22 +435,31 @@ export default function PlatformRevenue() {
                                   )}
                                 >
                                   {inv.status}
-                                </span>
-                              </td>
-                            </tr>
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
                           );
                         })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             {/* Mobile Card View - Invoices (Reference Card Design) */}
             <div className="md:hidden space-y-3">
               {loading
-                ? <div className="py-8 text-center text-slate-400 text-xs">
-                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                    Loading billing invoices...
-                  </div>
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="p-3 bg-white border border-slate-200/80 rounded-xl space-y-2 animate-pulse shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 w-32 bg-slate-200 rounded" />
+                        <div className="h-4 w-16 bg-slate-200 rounded" />
+                      </div>
+                      <div className="h-3 w-48 bg-slate-100 rounded" />
+                      <div className="h-3 w-24 bg-slate-100 rounded" />
+                    </div>
+                  ))
                 : filteredInvoices.length === 0
                   ? <div className="py-8 text-center text-slate-400 text-xs">
                       No billing invoices found.
@@ -489,60 +517,83 @@ export default function PlatformRevenue() {
               </div>
 
               <div className="relative w-full sm:w-56">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                <input
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
+                <Input
                   type="text"
                   placeholder="Search payout merchant or bank..."
                   value={payoutSearch}
                   onChange={(e) => setPayoutSearch(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs h-7.5"
                 />
                 {payoutSearch && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setPayoutSearch("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 hover:text-slate-600 p-0"
                   >
                     <X className="w-3 h-3" />
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
 
             {/* Colorful Payout Queue Table */}
             <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/90">
-              <table className="w-full border-collapse text-left font-sans">
-                <thead>
-                  <tr className="bg-slate-50/90 border-b border-slate-200 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
-                    <th className="py-2 px-3 w-52">Merchant Partner</th>
-                    <th className="py-2 px-3 w-32 text-right">
+              <Table className="w-full text-left font-sans">
+                <TableHeader>
+                  <TableRow className="bg-slate-50/90 border-b border-slate-200 hover:bg-slate-50/90">
+                    <TableHead className="py-2 px-3 w-52 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Merchant Partner
+                    </TableHead>
+                    <TableHead className="py-2 px-3 w-32 text-right text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
                       Settlement Value
-                    </th>
-                    <th className="py-2 px-3">Bank Details &amp; Period</th>
-                    <th className="py-2 px-3 text-center w-28">Status</th>
-                    <th className="py-2 px-3 text-right w-28">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                    </TableHead>
+                    <TableHead className="py-2 px-3 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Bank Details &amp; Period
+                    </TableHead>
+                    <TableHead className="py-2 px-3 text-center w-28 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Status
+                    </TableHead>
+                    <TableHead className="py-2 px-3 text-right w-28 text-[10.5px] font-medium text-slate-600 uppercase tracking-wider">
+                      Action
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-slate-100 text-xs text-slate-700">
                   {loading
-                    ? <tr>
-                        <td
-                          colSpan={5}
-                          className="py-8 text-center text-slate-400 text-xs"
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow
+                          key={i}
+                          className="animate-pulse border-b border-slate-100"
                         >
-                          <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                          Loading settlement payouts...
-                        </td>
-                      </tr>
+                          <TableCell className="py-2.5 px-3">
+                            <div className="h-4 w-32 bg-slate-200/80 rounded" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-right">
+                            <div className="h-4 w-20 bg-slate-200/80 rounded ml-auto" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <div className="h-4 w-40 bg-slate-100 rounded" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-center">
+                            <div className="h-5 w-16 bg-slate-100 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-right">
+                            <div className="h-6 w-16 bg-slate-200/80 rounded ml-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ))
                     : filteredPayouts.length === 0
-                      ? <tr>
-                          <td
+                      ? <TableRow>
+                          <TableCell
                             colSpan={5}
                             className="py-8 text-center text-slate-400 text-xs"
                           >
                             No pending settlement records found.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       : filteredPayouts.map((p, idx) => {
                           const theme =
                             ROW_COLOR_THEMES[
@@ -551,20 +602,20 @@ export default function PlatformRevenue() {
                           const isPaid = p.status === "paid";
 
                           return (
-                            <tr
+                            <TableRow
                               key={p.id || idx}
                               className={cn(
-                                "transition-all duration-150",
+                                "transition-all duration-150 border-b",
                                 theme.row,
                               )}
                             >
-                              <td className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
+                              <TableCell className="py-2 px-3 font-medium text-slate-900 text-[11.5px]">
                                 {p.merchantName}
-                              </td>
-                              <td className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
+                              </TableCell>
+                              <TableCell className="py-2 px-3 text-right font-mono font-medium text-slate-900 text-[11.5px]">
                                 ₹{p.amount.toLocaleString("en-IN")}
-                              </td>
-                              <td className="py-2 px-3">
+                              </TableCell>
+                              <TableCell className="py-2 px-3">
                                 <span className="font-mono text-[10.5px] text-slate-700 block">
                                   {p.bankDetails ||
                                     "HDFC Bank - A/C: 50100100000 - IFSC: HDFC0000123"}
@@ -572,9 +623,10 @@ export default function PlatformRevenue() {
                                 <span className="text-[9.5px] text-slate-500 block">
                                   Period: {p.period || "Current Month"}
                                 </span>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span
+                              </TableCell>
+                              <TableCell className="py-2 px-3 text-center">
+                                <Badge
+                                  variant="outline"
                                   className={cn(
                                     "px-2 py-0.5 text-[9.5px] font-medium rounded-md border shadow-2xs inline-block whitespace-nowrap",
                                     isPaid
@@ -583,9 +635,9 @@ export default function PlatformRevenue() {
                                   )}
                                 >
                                   {isPaid ? "Settled" : "Pending Payout"}
-                                </span>
-                              </td>
-                              <td className="py-2 px-3 text-right">
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="py-2 px-3 text-right">
                                 {!isPaid
                                   ? <Tooltip>
                                       <TooltipTrigger asChild>
@@ -607,23 +659,35 @@ export default function PlatformRevenue() {
                                         &amp; completed
                                       </TooltipContent>
                                     </Tooltip>
-                                  : <span className="text-[10px] font-medium text-slate-400 uppercase">
+                                  : <Badge
+                                      variant="secondary"
+                                      className="text-[10px] font-medium text-slate-400 uppercase bg-slate-100"
+                                    >
                                       Completed
-                                    </span>}
-                              </td>
-                            </tr>
+                                    </Badge>}
+                              </TableCell>
+                            </TableRow>
                           );
                         })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
             {/* Mobile Card View - Payouts (Reference Card Design) */}
             <div className="md:hidden space-y-3">
               {loading
-                ? <div className="py-8 text-center text-slate-400 text-xs">
-                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1.5 text-blue-500" />
-                    Loading settlement payouts...
-                  </div>
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="p-3 bg-white border border-slate-200/80 rounded-xl space-y-2 animate-pulse shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 w-32 bg-slate-200 rounded" />
+                        <div className="h-4 w-16 bg-slate-200 rounded" />
+                      </div>
+                      <div className="h-3 w-48 bg-slate-100 rounded" />
+                      <div className="h-3 w-24 bg-slate-100 rounded" />
+                    </div>
+                  ))
                 : filteredPayouts.length === 0
                   ? <div className="py-8 text-center text-slate-400 text-xs">
                       No pending settlement records found.

@@ -18,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useBroadcastRecipients } from "@/hooks/use-admin";
 
 export default function EmailBlastBuilderPage() {
   const [headline, setHeadline] = useState(
@@ -50,33 +51,16 @@ export default function EmailBlastBuilderPage() {
   const [recipientType, setRecipientType] = useState("all"); // "all" | "users" | "merchants"
 
   // Real DB Data & Loading States
-  const [recipientsData, setRecipientsData] = useState(null);
-  const [loadingRecipients, setLoadingRecipients] = useState(true);
+  const { data: recipientsData, isLoading: loadingRecipients } =
+    useBroadcastRecipients();
+
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
   const fileInputRef = useRef(null);
 
-  // Fetch real registered users from MongoDB
-  const fetchRecipients = useCallback(async () => {
-    try {
-      setLoadingRecipients(true);
-      const res = await fetch("/api/admin/broadcast/email");
-      const json = await res.json();
-      if (json.success && json.data) {
-        setRecipientsData(json.data);
-      }
-    } catch (err) {
-      console.error("Error fetching recipients:", err);
-    } finally {
-      setLoadingRecipients(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    fetchRecipients();
-  }, [fetchRecipients]);
 
   // Cloudinary Direct Image Upload Handler
   const handleBannerFileUpload = async (e) => {

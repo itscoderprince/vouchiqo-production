@@ -19,12 +19,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/fetcher";
 import { showError, showSuccess } from "@/lib/toast";
-import TableSearch from "@/components/shared/data/TableSearch";
 
 export default function MerchantDemandReport() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+
   const [selectedLead, setSelectedLead] = useState(null);
   const [outreachModalOpen, setOutreachModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -150,47 +149,40 @@ export default function MerchantDemandReport() {
       user={{ name: "Platform Admin", role: "admin" }}
     >
       <div className="space-y-6 text-left font-sans w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-3">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-blue-600" /> High-Demand
-              Merchant Lead Generation
-            </h1>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              Aggregated unlisted &amp; churned merchant leads submitted by
-              customers via expired offer revivals.
-            </p>
-          </div>
-
-          <FormSelect
-            value={status}
-            onValueChange={setStatus}
-            options={[
-              { value: "all", label: "All Demand Leads" },
-              { value: "never_listed", label: "Never Listed (Unclaimed)" },
-              {
-                value: "previously_listed",
-                label: "Previously Listed (Churned)",
-              },
-            ]}
-            triggerClassName="w-48 bg-white h-9 border-slate-200"
-          />
+        <div className="border-b border-slate-100 pb-3">
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-blue-600" /> High-Demand Merchant
+            Lead Generation
+          </h1>
+          <p className="text-xs text-slate-500 font-semibold mt-0.5">
+            Aggregated unlisted &amp; churned merchant leads submitted by
+            customers via expired offer revivals.
+          </p>
         </div>
 
         <Card className="border-slate-200/80 shadow-xs rounded-2xl bg-white p-5 text-left">
-          <TableSearch
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search demand by business name or email..."
-          />
           <DataTable
             columns={columns}
             data={leads}
             loading={isLoading}
-            searchable={false}
-            externalSearch={true}
             searchable={true}
             searchPlaceholder="Search merchant leads by brand name, city..."
+            searchKeys={["businessName", "city", "state"]}
+            rightActions={
+              <FormSelect
+                value={status}
+                onValueChange={setStatus}
+                options={[
+                  { value: "all", label: "All Demand Leads" },
+                  { value: "never_listed", label: "Never Listed (Unclaimed)" },
+                  {
+                    value: "previously_listed",
+                    label: "Previously Listed (Churned)",
+                  },
+                ]}
+                triggerClassName="w-48 bg-white h-8 text-xs border-slate-200 font-medium"
+              />
+            }
             defaultPageSize={10}
             emptyState="No merchant demand leads found."
           />

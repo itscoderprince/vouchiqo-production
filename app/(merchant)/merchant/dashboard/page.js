@@ -23,6 +23,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { useRealtime } from "@/hooks/use-realtime";
+import {
+  useMerchantAffiliateProducts,
+  useMerchantAnalytics,
+  useMerchantProfile,
+  useMerchantRecentClaims,
+  useMerchantRecentRedemptions,
+} from "@/hooks/use-merchant";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import KpiCards from "./components/KpiCards";
@@ -74,60 +81,12 @@ export default function MerchantDashboard() {
     });
   });
 
-  // Fetch merchant analytics from real API
-  const { data: analyticsData } = useQuery({
-    queryKey: qk.merchant.analytics(),
-    queryFn: async () => {
-      const res = await fetch("/api/analytics");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  // Fetch merchant profile (plan info)
-  const { data: merchantProfile } = useQuery({
-    queryKey: qk.merchant.profile(),
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  // Fetch recent redemptions
-  const { data: redemptionsData } = useQuery({
-    queryKey: qk.merchant.recentRedemptions(),
-    queryFn: async () => {
-      const res = await fetch("/api/redemptions?limit=5");
-      if (!res.ok) return { redemptions: [] };
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  // Fetch recent claims
-  const { data: claimsData } = useQuery({
-    queryKey: ["merchant-recent-claims"],
-    queryFn: async () => {
-      const res = await fetch("/api/claims?limit=5");
-      if (!res.ok) return { claims: [] };
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  // Fetch merchant affiliate products
-  const { data: affiliateProductsData = [] } = useQuery({
-    queryKey: ["merchant-affiliate-products"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchant/affiliate-products");
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data || [];
-    },
-  });
+  // Fetch merchant analytics, profile, redemptions, claims, and affiliate products via cached hooks
+  const { data: analyticsData } = useMerchantAnalytics();
+  const { data: merchantProfile } = useMerchantProfile();
+  const { data: redemptionsData } = useMerchantRecentRedemptions(5);
+  const { data: claimsData } = useMerchantRecentClaims(5);
+  const { data: affiliateProductsData = [] } = useMerchantAffiliateProducts();
 
   const trendData = analyticsData?.trend ?? [];
   const merchant = { ...merchantProfile, ...analyticsData?.merchant };

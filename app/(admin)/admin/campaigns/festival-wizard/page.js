@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useCreateAdminCampaign } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -58,62 +59,37 @@ export default function PlatformBroadcastWizardPage() {
   const [pushTargetPlatform, setPushTargetPlatform] = useState("all");
 
   // Step 3: Deployment State
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createCampaignMutation = useCreateAdminCampaign();
+  const isSubmitting = createCampaignMutation.isPending;
   const [deployedCampaign, setDeployedCampaign] = useState(null);
 
-  const handleConfirmFullActivation = useCallback(async () => {
-    try {
-      setIsSubmitting(true);
-      const payload = {
-        name: emailSubject,
-        type: "platform_broadcast",
-        objective: "multi_channel_announcement",
-        headline: pushTitle,
-        subHeadline: pushBody,
-        description: `Super Admin Platform Broadcast with Email Blast and Instant Push Notifications for ${targetCity}.`,
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        audience: targetAudience,
-        targetCity,
-        addOns: [
-          "Targeted Push Notification Broadcast",
-          `Email Blast Template (${emailTemplate})`,
-          "Platform Homepage Featured Banner",
-        ],
-        emailSubject,
-        status: "live",
-      };
+  const handleConfirmFullActivation = () => {
+    const payload = {
+      name: emailSubject,
+      type: "platform_broadcast",
+      objective: "multi_channel_announcement",
+      headline: pushTitle,
+      subHeadline: pushBody,
+      description: `Super Admin Platform Broadcast with Email Blast and Instant Push Notifications for ${targetCity}.`,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      audience: targetAudience,
+      targetCity,
+      addOns: [
+        "Targeted Push Notification Broadcast",
+        `Email Blast Template (${emailTemplate})`,
+        "Platform Homepage Featured Banner",
+      ],
+      emailSubject,
+      status: "live",
+    };
 
-      const res = await fetch("/api/admin/campaigns", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json().catch(() => ({}));
-
-      if (res.ok && json.data) {
-        setDeployedCampaign(json.data.campaign);
-        toast.success(
-          `Platform Multi-Channel Broadcast successfully deployed live!`,
-        );
-      } else {
-        toast.error(json.error || "Failed to deploy broadcast.");
-      }
-    } catch (err) {
-      console.error("Broadcast deployment error:", err);
-      toast.error("Network error while deploying broadcast.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    emailSubject,
-    pushTitle,
-    pushBody,
-    targetAudience,
-    targetCity,
-    emailTemplate,
-  ]);
+    createCampaignMutation.mutate(payload, {
+      onSuccess: (res) => {
+        setDeployedCampaign(res?.data?.campaign || res?.campaign || res);
+      },
+    });
+  };
 
   return (
     <DashboardLayout

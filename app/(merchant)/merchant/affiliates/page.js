@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowUpRight,
@@ -9,8 +9,8 @@ import {
   Calendar,
   CheckCircle2,
   CreditCard,
-  FileSpreadsheet,
   Edit2,
+  FileSpreadsheet,
   Loader2,
   Percent,
   Plus,
@@ -54,6 +54,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  useMerchantAffiliateProducts,
+  useMerchantProfile,
+  useMerchantRecentRedemptions,
+} from "@/hooks/use-merchant";
 
 export default function MerchantAffiliatesPage() {
   const queryClient = useQueryClient();
@@ -66,47 +71,21 @@ export default function MerchantAffiliatesPage() {
     data: merchant,
     isLoading: isLoadingMerchant,
     refetch: refetchMerchant,
-  } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  } = useMerchantProfile();
 
   // 2. Fetch live redemptions / transactions from DB
   const {
     data: redemptionsData = [],
     isLoading: isLoadingRedemptions,
     refetch: refetchRedemptions,
-  } = useQuery({
-    queryKey: ["merchant-redemptions"],
-    queryFn: async () => {
-      const res = await fetch("/api/redemptions");
-      if (!res.ok) return [];
-      const json = await res.json();
-      return (
-        json.data?.redemptions || (Array.isArray(json.data) ? json.data : [])
-      );
-    },
-  });
+  } = useMerchantRecentRedemptions(500);
 
   // 3. Fetch live affiliate products listed by this merchant
   const {
     data: affiliateProducts = [],
     isLoading: isLoadingAffiliates,
     refetch: refetchAffiliates,
-  } = useQuery({
-    queryKey: ["merchant-affiliate-products"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchant/affiliate-products");
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data || [];
-    },
-  });
+  } = useMerchantAffiliateProducts();
 
   // Bank Form State synced with live merchant DB record
   const [bankForm, setBankForm] = useState({
@@ -134,19 +113,25 @@ export default function MerchantAffiliatesPage() {
 
   // Derived real metrics
   const activeAffiliateCount = useMemo(() => {
-    return affiliateProducts.filter((p) => p.status === "active").length;
+    const list = Array.isArray(affiliateProducts)
+      ? affiliateProducts
+      : (affiliateProducts?.products ?? []);
+    return list.filter((p) => p.status === "active").length;
   }, [affiliateProducts]);
 
   const totalAffiliateClicks = useMemo(() => {
-    return affiliateProducts.reduce(
-      (sum, p) => sum + (Number(p.clickCount) || 0),
-      0,
-    );
+    const list = Array.isArray(affiliateProducts)
+      ? affiliateProducts
+      : (affiliateProducts?.products ?? []);
+    return list.reduce((sum, p) => sum + (Number(p.clickCount) || 0), 0);
   }, [affiliateProducts]);
 
   // Formatted real transactions from redemptionsData
   const transactions = useMemo(() => {
-    return redemptionsData.map((red) => {
+    const list = Array.isArray(redemptionsData)
+      ? redemptionsData
+      : (redemptionsData?.redemptions ?? []);
+    return list.map((red) => {
       const idStr = red._id
         ? red._id.toString().slice(-6).toUpperCase()
         : "TXN";

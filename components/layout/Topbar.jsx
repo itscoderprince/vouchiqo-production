@@ -1,8 +1,9 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, BellOff, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -10,6 +11,7 @@ import { useMerchantProfile } from "@/hooks/use-merchant";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUser } from "@/hooks/use-user";
+import { apiFetch } from "@/lib/fetcher";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import UserDropdown from "./UserDropdown";
 
@@ -31,69 +33,52 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
     unsubscribe: disablePush,
   } = usePushNotifications({ userId: authUser?.id });
 
-  const [notifications, setNotifications] = useState([]);
-  const [loadingNotifs, setLoadingNotifs] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: rawNotifs = [], isLoading: loadingNotifs } = useQuery({
+    queryKey: ["notifications", authUser?.id],
+    enabled: !!authUser,
+    queryFn: async () => {
+      const json = await apiFetch("/api/notifications");
+      return (
+        json.data?.notifications || (Array.isArray(json.data) ? json.data : [])
+      );
+    },
+    staleTime: 30_000,
+  });
 
-  // Fetch real database notifications
-  const fetchRealNotifications = useCallback(async () => {
-    try {
-      setLoadingNotifs(true);
-      const res = await fetch("/api/notifications");
-      if (res.ok) {
-        const json = await res.json();
-        const raw =
-          json.data?.notifications ||
-          (Array.isArray(json.data) ? json.data : []);
-        const formatted = raw.map((item) => ({
-          id: item._id || item.id,
-          message: item.message || item.title,
-          time: item.createdAt
-            ? new Date(item.createdAt).toLocaleDateString("en-IN", {
-                month: "short",
-                day: "numeric",
-              })
-            : "Recently",
-          read: Boolean(item.isRead || item.read),
-          timestamp: item.createdAt
-            ? new Date(item.createdAt).getTime()
-            : Date.now(),
-        }));
-        formatted.sort((a, b) => b.timestamp - a.timestamp);
-        setNotifications(formatted);
-      }
-    } catch (err) {
-      console.error("Error fetching notifications for topbar:", err);
-    } finally {
-      setLoadingNotifs(false);
-    }
-  }, []);
+  const notifications = useMemo(() => {
+    const formatted = rawNotifs.map((item) => ({
+      id: item._id || item.id,
+      message: item.message || item.title,
+      time: item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString("en-IN", {
+            month: "short",
+            day: "numeric",
+          })
+        : "Recently",
+      read: Boolean(item.isRead || item.read),
+      timestamp: item.createdAt
+        ? new Date(item.createdAt).getTime()
+        : Date.now(),
+    }));
+    return [...formatted].sort((a, b) => b.timestamp - a.timestamp);
+  }, [rawNotifs]);
+
+  const invalidateNotifs = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["notifications", authUser?.id],
+    });
+  }, [queryClient, authUser?.id]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (mounted && authUser) {
-      fetchRealNotifications();
-    }
-  }, [mounted, authUser, fetchRealNotifications]);
-
   // Real-time Socket.IO Listeners for Topbar Bell Badge Updates
-  useRealtime(SOCKET_EVENTS.NOTIFICATION_NEW, () => {
-    fetchRealNotifications();
-  });
-
-  useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, () => {
-    fetchRealNotifications();
-  });
-
-  useRealtime(SOCKET_EVENTS.CAMPAIGN_STATUS_CHANGED, () => {
-    fetchRealNotifications();
-  });
-
-  useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, () => {
-    fetchRealNotifications();
-  });
+  useRealtime(SOCKET_EVENTS.NOTIFICATION_NEW, invalidateNotifs);
+  useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, invalidateNotifs);
+  useRealtime(SOCKET_EVENTS.CAMPAIGN_STATUS_CHANGED, invalidateNotifs);
+  useRealtime(SOCKET_EVENTS.COUPON_REDEEMED, invalidateNotifs);
 
   const handleSearchSubmit = (e) => {
     if (e.key === "Enter" && searchVal.trim()) {
@@ -109,12 +94,11 @@ export default function Topbar({ title = "Dashboard", user: propUser = null }) {
 
   const markAllRead = async () => {
     try {
-      await fetch("/api/notifications", {
+      await apiFetch("/api/notifications", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: {},
       });
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      invalidateNotifs();
     } catch {
       // Ignore
     }

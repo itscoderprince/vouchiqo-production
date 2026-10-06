@@ -3,15 +3,25 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  BadgeCheck,
+  Building2,
   CheckCircle2,
   Clock,
   Edit2,
   FileCheck,
+  FileText,
   HelpCircle,
   Home,
+  Mail,
+  MapPin,
   MessageSquare,
+  Phone,
+  Receipt,
   RefreshCw,
+  ShieldCheck,
   Store,
+  Tag,
+  User,
   XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -457,109 +467,162 @@ export default function ApplicationTracker({ initialData }) {
         </div>
 
         {/* Business Details Grid — 4 columns on lg */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Business Name
-            </span>
-            <span className="font-medium text-slate-800 block truncate text-xs">
-              {businessName}
-            </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Building2 className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Business Name
+              </span>
+              <span className="font-semibold text-slate-800 block truncate text-xs">
+                {businessName}
+              </span>
+            </div>
           </div>
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Category
-            </span>
-            <span className="font-medium text-blue-600 block truncate text-xs capitalize">
-              {category}
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Tag className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Category
+              </span>
+              <span className="font-semibold text-blue-600 block truncate text-xs capitalize">
+                {category}
+              </span>
+            </div>
           </div>
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Liaison Representative
-            </span>
-            <span className="font-medium text-slate-800 block truncate text-xs">
-              {ownerName}
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+              <User className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Liaison Representative
+              </span>
+              <span className="font-semibold text-slate-800 block truncate text-xs">
+                {ownerName}
+              </span>
+            </div>
           </div>
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Contact Email
-            </span>
-            <span className="font-medium text-slate-800 block truncate text-xs">
-              {email}
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-violet-50 text-violet-600 border border-violet-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Mail className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Contact Email
+              </span>
+              <span
+                className="font-semibold text-slate-800 block truncate text-xs"
+                title={email}
+              >
+                {email}
+              </span>
+            </div>
           </div>
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Phone Number
-            </span>
-            <span className="font-medium text-slate-800 block text-xs">
-              {phone}
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Phone className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Phone Number
+              </span>
+              <span className="font-semibold text-slate-800 block text-xs">
+                {phone}
+              </span>
+            </div>
           </div>
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Location
-            </span>
-            <span className="font-medium text-slate-800 block truncate text-xs">
-              {city}, {state}
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+              <MapPin className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Location
+              </span>
+              <span className="font-semibold text-slate-800 block truncate text-xs">
+                {city}, {state}
+              </span>
+            </div>
           </div>
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              GSTIN
-            </span>
-            <span className="font-medium text-slate-800 block text-xs">
-              {gstin}
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Receipt className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                GSTIN
+              </span>
+              <span className="font-semibold text-slate-800 block text-xs">
+                {gstin}
+              </span>
+            </div>
           </div>
 
           {docType && (
-            <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-                Identity Document
-              </span>
-              <span className="font-medium text-slate-800 block truncate text-xs">
-                {docType}
-              </span>
+            <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0 mt-0.5">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                  Identity Document
+                </span>
+                <span className="font-semibold text-slate-800 block truncate text-xs">
+                  {docType}
+                </span>
+              </div>
             </div>
           )}
 
-          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 space-y-0.5">
-            <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
-              Review Desk
-            </span>
-            <span className="font-medium text-slate-800 block text-xs">
-              Vouchiqo Audit Desk #4
-            </span>
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+              <BadgeCheck className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <span className="text-[10px] uppercase font-medium text-slate-400 block tracking-wider">
+                Review Desk
+              </span>
+              <span className="font-semibold text-slate-800 block text-xs">
+                Vouchiqo Audit Desk #4
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Uploaded Documents */}
         {documents.length > 0 && (
           <div className="space-y-2 pt-3 mt-3 border-t border-slate-100">
-            <h4 className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
-              Verification Documents ({documents.length})
+            <h4 className="text-[10px] font-medium text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <FileCheck className="w-3.5 h-3.5 text-blue-600" />
+              <span>Verification Documents ({documents.length})</span>
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {documents.map((doc, idx) => (
                 <div
                   key={idx}
-                  className="p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between text-xs gap-2"
+                  className="p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-slate-50 transition-colors flex items-center justify-between text-xs gap-2"
                 >
-                  <span className="font-medium text-slate-700 truncate flex items-center gap-1">
-                    <FileCheck className="w-3 h-3 text-blue-600 shrink-0" />
-                    <span className="truncate text-[11px]">{doc.name}</span>
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                      <FileText className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="font-medium text-slate-700 truncate text-[11.5px]">
+                      {doc.name}
+                    </span>
+                  </div>
                   <Badge
-                    className={`text-[9px] font-medium border-0 shrink-0 capitalize ${
+                    className={`text-[9.5px] font-medium border-0 shrink-0 capitalize ${
                       doc.status === "verified"
                         ? "bg-emerald-100 text-emerald-800"
                         : "bg-amber-100 text-amber-800"

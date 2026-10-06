@@ -46,7 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDeleteCoupon, useMerchantCoupons } from "@/hooks/use-coupons";
-import { useMerchantProfile } from "@/hooks/use-merchant";
+import { useMerchantAffiliateProducts, useMerchantProfile } from "@/hooks/use-merchant";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 
@@ -180,16 +180,7 @@ function MerchantCouponsContent() {
 
   // 2. Fetch Affiliate Products listed by merchant
   const { data: affiliateProductsData = [], isLoading: loadingAffiliates } =
-    useQuery({
-      queryKey: ["merchant-affiliate-products", merchant?._id],
-      queryFn: async () => {
-        const res = await fetch("/api/merchant/affiliate-products");
-        if (!res.ok) return [];
-        const json = await res.json();
-        return Array.isArray(json?.data) ? json.data : [];
-      },
-      enabled: !!merchant?._id,
-    });
+    useMerchantAffiliateProducts();
 
   // Real-time Socket Event Listeners for Coupons
   useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, (data) => {

@@ -22,6 +22,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/fetcher";
 
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
@@ -64,7 +66,6 @@ export default function SearchClient() {
   const [activeQuery, setActiveQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState("all"); // 'all' | 'brands' | 'coupons' | 'products' | 'categories'
   const [sortBy, setSortBy] = useState("relevance"); // 'relevance' | 'discount' | 'newest' | 'price-asc' | 'price-desc'
-  const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
   // Filters State
@@ -74,64 +75,37 @@ export default function SearchClient() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Raw API Search Data
-  const [searchData, setSearchData] = useState({
-    brands: [],
-    coupons: [],
-    categories: [],
-    products: [],
-    total: 0,
-  });
-
   // Sync with URL query parameter
   useEffect(() => {
     const q = searchParams?.get("q") || searchParams?.get("search") || "";
     setActiveQuery(q);
   }, [searchParams]);
 
-  // Fetch search results whenever active query changes
-  useEffect(() => {
-    if (!activeQuery.trim()) {
-      setSearchData({
-        brands: [],
-        coupons: [],
-        categories: [],
-        products: [],
-        total: 0,
-      });
-      setLoading(false);
-      return;
-    }
+  const trimmedQuery = activeQuery.trim();
 
-    let isCancelled = false;
-    setLoading(true);
+  // Unified Search Query with TanStack caching
+  const { data: rawSearchData, isLoading: queryLoading } = useQuery({
+    queryKey: ["search", trimmedQuery],
+    queryFn: async () => {
+      if (!trimmedQuery) return null;
+      const res = await apiFetch(
+        `/api/search?q=${encodeURIComponent(trimmedQuery)}&limit=36`,
+      );
+      return res.data;
+    },
+    enabled: Boolean(trimmedQuery),
+    staleTime: 60_000,
+  });
 
-    fetch(`/api/search?q=${encodeURIComponent(activeQuery.trim())}&limit=36`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        if (isCancelled) return;
-        if (json?.data) {
-          setSearchData(json.data);
-        } else {
-          setSearchData({
-            brands: [],
-            coupons: [],
-            categories: [],
-            products: [],
-            total: 0,
-          });
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Search API error:", err);
-        if (!isCancelled) setLoading(false);
-      });
+  const searchData = rawSearchData || {
+    brands: [],
+    coupons: [],
+    categories: [],
+    products: [],
+    total: 0,
+  };
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [activeQuery]);
+  const loading = Boolean(trimmedQuery) && queryLoading;
 
   // Available Categories in Results
   const availableCategories = useMemo(() => {

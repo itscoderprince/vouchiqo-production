@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   LogOut,
@@ -11,12 +12,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import LocationPromptModal from "@/components/shared/modals/LocationPromptModal";
 import SafeImage from "@/components/shared/SafeImage";
 import { OnboardingModal } from "@/features/auth/components/onboarding-modal";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { signOut, useSession } from "@/lib/auth-client";
+import { apiFetch } from "@/lib/fetcher";
 
 export const UserMenu = () => {
   const { data: session, isPending } = useSession();
@@ -26,65 +29,45 @@ export const UserMenu = () => {
   const [mounted, setMounted] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const [effectiveRole, setEffectiveRole] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!mounted || !session?.user) return;
-    const sessionRole = session?.user?.role || "customer";
-    if (sessionRole === "admin" || sessionRole === "merchant") {
-      setEffectiveRole(sessionRole);
-      return;
-    }
-    const isMerchantFlag =
-      typeof window !== "undefined" &&
-      sessionStorage.getItem("vouchiqo_is_merchant") === "true";
-    if (isMerchantFlag) setEffectiveRole("merchant");
-    fetch("/api/merchants/me")
-      .then((r) => {
-        if (r.ok) {
-          setEffectiveRole("merchant");
-          if (typeof window !== "undefined")
-            sessionStorage.setItem("vouchiqo_is_merchant", "true");
-        } else if (!isMerchantFlag) {
-          setEffectiveRole("customer");
-        }
-      })
-      .catch(() => { if (!isMerchantFlag) setEffectiveRole("customer"); });
-  }, [mounted, session]);
+  const { data: merchantProfile } = useMerchantProfile({
+    enabled: !!session?.user,
+  });
+
+  const effectiveRole = useMemo(() => {
+    if (!session?.user) return null;
+    const sessionRole = session.user.role || "customer";
+    if (sessionRole === "admin" || sessionRole === "merchant") return sessionRole;
+    if (merchantProfile) return "merchant";
+    return "customer";
+  }, [session?.user, merchantProfile]);
+
+  const { data: userData } = useQuery({
+    queryKey: ["user-customer-profile", session?.user?.id],
+    enabled: !!session?.user && effectiveRole === "customer",
+    queryFn: async () => {
+      const json = await apiFetch("/api/users");
+      return json?.data || null;
+    },
+    staleTime: 60_000,
+  });
+
+  const userProfile = userData?.profile || null;
 
   useEffect(() => {
-    if (!mounted || !session?.user) return;
-    if (effectiveRole === null) return;
-    if (effectiveRole === "admin" || effectiveRole === "merchant") return;
+    if (!userProfile || !session?.user) return;
     const storageKey = `vouchiqo_onboarded_${session.user.id}`;
-    const checkOnboarding = async () => {
-      try {
-        const res = await fetch("/api/users");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success) {
-            const profile = json.data?.profile;
-            setUserProfile(profile);
-            const hasGender = !!profile?.gender;
-            const hasInterests = Array.isArray(profile?.interests) && profile.interests.length >= 2;
-            if (profile?.isOnboarded && hasGender && hasInterests) {
-              localStorage.setItem(storageKey, "true");
-            } else {
-              setShowOnboarding(true);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to check onboarding status:", err);
-      }
-    };
-    checkOnboarding();
-  }, [mounted, session, effectiveRole]);
+    const hasGender = !!userProfile?.gender;
+    const hasInterests = Array.isArray(userProfile?.interests) && userProfile.interests.length >= 2;
+    if (userProfile?.isOnboarded && hasGender && hasInterests) {
+      localStorage.setItem(storageKey, "true");
+    } else {
+      setShowOnboarding(true);
+    }
+  }, [userProfile, session?.user]);
 
   useEffect(() => {
     const handler = (e) => {

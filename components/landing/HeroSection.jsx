@@ -4,9 +4,10 @@ import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
+import { usePublicBanners } from "@/hooks/use-coupons";
 
 export function HeroSection({ banners: initialBanners = [] }) {
-  const [banners, setBanners] = useState(initialBanners);
+  const { data: banners = initialBanners } = usePublicBanners(initialBanners);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
   const [dragOffset, setDragOffset] = useState(0);
@@ -21,31 +22,6 @@ export function HeroSection({ banners: initialBanners = [] }) {
   // Bottom logos scroll refs
   const thumbTrackRef = useRef(null);
   const thumbRefs = useRef([]);
-
-  // Sync state if initialBanners updates
-  useEffect(() => {
-    if (initialBanners && initialBanners.length > 0) {
-      setBanners(initialBanners);
-    }
-  }, [initialBanners]);
-
-  // Client-side fetch from /api/banners if no banners provided via SSR props
-  useEffect(() => {
-    if (!initialBanners || initialBanners.length === 0) {
-      fetch("/api/banners")
-        .then((res) => res.json())
-        .then((json) => {
-          if (
-            json.success &&
-            Array.isArray(json.data) &&
-            json.data.length > 0
-          ) {
-            setBanners(json.data);
-          }
-        })
-        .catch((err) => console.error("Failed to fetch hero banners:", err));
-    }
-  }, [initialBanners]);
 
   const slides = useMemo(() => {
     const dbBanners = (banners || []).filter(

@@ -1,12 +1,15 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
+import { apiFetch } from "@/lib/fetcher";
+import { qk } from "@/lib/query-keys";
 import { couponSchema, SECTION_FIELDS } from "../schemas/coupon-schema";
 
 const SECTION_ORDER = ["A", "B", "C", "D", "E"];
@@ -61,15 +64,7 @@ export function useCreateCouponForm() {
     },
   });
 
-  const { data: merchant } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  const { data: merchant } = useMerchantProfile();
 
   // Auto-fill category from merchant's registered profile and keep it locked
   useEffect(() => {
@@ -165,19 +160,13 @@ export function useCreateCouponForm() {
 
   const mutation = useMutation({
     mutationFn: async (payload) => {
-      const res = await fetch("/api/coupons", {
+      return apiFetch("/api/coupons", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.message || "Failed to submit offer.");
-      }
-      return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.coupons.all() });
       queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
       toast.success("Offer submitted for verification! 4-hour SLA active.");
       router.push("/merchant/coupons");

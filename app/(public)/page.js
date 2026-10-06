@@ -3,10 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { redis } from "@/lib/redis";
 import { getPromoBanners } from "@/modules/admin/banner.service";
 import { getPublicAffiliateProducts } from "@/modules/affiliate-product/affiliate-product.service";
-import {
-  getFeaturedCoupons,
-  listCoupons,
-} from "@/modules/coupon/coupon.service";
+import { getFeaturedCoupons } from "@/modules/coupon/coupon.service";
 import Merchant from "@/modules/merchant/merchant.model";
 
 // Force dynamic SSR rendering
@@ -20,7 +17,7 @@ async function fetchHomepageData() {
   // 1. Fast path: Check Redis cache first for instant response (< 2ms)
   try {
     if (redis) {
-      const cached = await redis.get(CACHE_KEY);
+      const cached = await redis.get(CACHE_KEY).catch(() => null);
       if (cached) {
         return JSON.parse(cached);
       }
@@ -33,20 +30,13 @@ async function fetchHomepageData() {
     // 2. Connect DB
     await connectDB();
 
-    const latestParams = new URLSearchParams({
-      limit: "6",
-      sortBy: "createdAt",
-      sortOrder: "desc",
-    });
-
-    // 3. Parallel fetch all 5 data sources concurrently
-    const [rawCoupons, latestResult, rawMerchants, rawBanners, rawProducts] =
+    // 3. Parallel fetch all 4 essential data sources concurrently
+    const [rawCoupons, rawMerchants, rawBanners, rawProducts] =
       await Promise.all([
         getFeaturedCoupons().catch(() => []),
-        listCoupons(latestParams).catch(() => ({ coupons: [] })),
         Merchant.find({ status: "approved" })
           .select(
-            "businessName slug logo banner category maxDiscount shortDescription location totalCoupons totalRedemptions followerCount applicationStatus isVerified status",
+            "businessName slug logo banner shopImage category maxDiscount totalCoupons totalRedemptions isVerified status",
           )
           .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
           .limit(200)
@@ -58,7 +48,6 @@ async function fetchHomepageData() {
 
     const payload = {
       featuredCoupons: JSON.parse(JSON.stringify(rawCoupons || [])),
-      latestCoupons: JSON.parse(JSON.stringify(latestResult?.coupons || [])),
       popularMerchants: JSON.parse(JSON.stringify(rawMerchants || [])),
       banners: JSON.parse(JSON.stringify(rawBanners || [])),
       affiliateProducts: JSON.parse(JSON.stringify(rawProducts || [])),
@@ -78,7 +67,6 @@ async function fetchHomepageData() {
     console.error("fetchHomepageData DB error:", err?.message || err);
     return {
       featuredCoupons: [],
-      latestCoupons: [],
       popularMerchants: [],
       banners: [],
       affiliateProducts: [],
@@ -87,18 +75,12 @@ async function fetchHomepageData() {
 }
 
 export default async function Home() {
-  const {
-    featuredCoupons,
-    latestCoupons,
-    popularMerchants,
-    banners,
-    affiliateProducts,
-  } = await fetchHomepageData();
+  const { featuredCoupons, popularMerchants, banners, affiliateProducts } =
+    await fetchHomepageData();
 
   return (
     <HomeClient
       initialCoupons={featuredCoupons}
-      latestCoupons={latestCoupons}
       popularMerchants={popularMerchants}
       banners={banners}
       affiliateProducts={affiliateProducts}

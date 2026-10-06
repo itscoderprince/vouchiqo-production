@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAdminAnalytics } from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { qk } from "@/lib/query-keys";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -68,15 +69,7 @@ export default function AdminDashboard() {
   });
 
   // Fetch admin analytics
-  const { data: analyticsData, isLoading } = useQuery({
-    queryKey: qk.admin.analytics(),
-    queryFn: async () => {
-      const res = await fetch("/api/admin/analytics");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  const { data: analyticsData, isLoading } = useAdminAnalytics();
 
   const kpis = analyticsData?.kpis ?? {
     totalUsers: 0,

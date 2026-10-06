@@ -16,8 +16,10 @@ import {
   Tag,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
+import { apiFetch } from "@/lib/fetcher";
 
 const SOURCE_PLATFORMS = [
   "Vouchiqo",
@@ -103,22 +105,21 @@ export default function ExpiredCouponRevival() {
     },
   ]);
 
+  const { data: publicSettings } = useQuery({
+    queryKey: ["public-settings"],
+    queryFn: async () => {
+      const json = await apiFetch("/api/admin/settings?public=true");
+      return json.data?.settings || null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
-    async function fetchPlatformSettings() {
-      try {
-        const res = await fetch("/api/admin/settings?public=true");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.data?.settings) {
-            const s = json.data.settings;
-            if (s.revival_stats) setStats(s.revival_stats);
-            if (s.social_proof?.length > 0) setSuccessStories(s.social_proof);
-          }
-        }
-      } catch (_) {}
+    if (publicSettings) {
+      if (publicSettings.revival_stats) setStats(publicSettings.revival_stats);
+      if (publicSettings.social_proof?.length > 0) setSuccessStories(publicSettings.social_proof);
     }
-    fetchPlatformSettings();
-  }, []);
+  }, [publicSettings]);
 
   const nextStep = () => {
     if (step === 1) {

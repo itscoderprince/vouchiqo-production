@@ -18,7 +18,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { adminFetchSettings, adminUpdateSetting } from "@/lib/api-helpers";
+import { useAdminSettings, useUpdateAdminSetting } from "@/hooks/use-admin";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -157,43 +157,39 @@ const ROW_COLOR_THEMES = [
 ];
 
 export default function MerchantPlansEditorPage() {
-  const [loading, setLoading] = useState(true);
+  const {
+    data: settingsData,
+    isLoading: loading,
+    refetch: fetchPlans,
+  } = useAdminSettings();
+  const updateSettingMutation = useUpdateAdminSetting();
+
   const [saving, setSaving] = useState(false);
   const [plans, setPlans] = useState([]);
   const [selectedPlanIdx, setSelectedPlanIdx] = useState(0);
   const [newFeatureText, setNewFeatureText] = useState("");
 
-  const fetchPlans = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await adminFetchSettings();
-      if (
-        data?.merchant_plans &&
-        Array.isArray(data.merchant_plans) &&
-        data.merchant_plans.length > 0
-      ) {
-        setPlans(data.merchant_plans);
-      } else {
-        setPlans(DEFAULT_MERCHANT_PLANS);
-      }
-    } catch (err) {
-      showError("Error fetching merchant plans from database.");
-      setPlans(DEFAULT_MERCHANT_PLANS);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchPlans();
-  }, [fetchPlans]);
+    if (
+      settingsData?.merchant_plans &&
+      Array.isArray(settingsData.merchant_plans) &&
+      settingsData.merchant_plans.length > 0
+    ) {
+      setPlans(settingsData.merchant_plans);
+    } else if (settingsData) {
+      setPlans(DEFAULT_MERCHANT_PLANS);
+    }
+  }, [settingsData]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      await adminUpdateSetting("merchant_plans", plans);
+      await updateSettingMutation.mutateAsync({
+        key: "merchant_plans",
+        value: plans,
+      });
       showSuccess("Merchant Subscription Plans & Pricing saved successfully!");
-    } catch (err) {
+    } catch {
       showError("Failed to save plans to database.");
     } finally {
       setSaving(false);

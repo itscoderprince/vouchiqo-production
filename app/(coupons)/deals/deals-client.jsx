@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/fetcher";
 import { qk } from "@/lib/query-keys";
 import { Search, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -72,9 +73,7 @@ export default function DealsClient() {
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
 
-      const res = await fetch(`/api/coupons?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to load offers");
-      const json = await res.json();
+      const json = await apiFetch(`/api/coupons?${params.toString()}`);
       return json.data?.coupons || [];
     },
     staleTime: 60 * 1000,

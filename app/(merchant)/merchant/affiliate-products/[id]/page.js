@@ -13,7 +13,13 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+  useMerchantProfile,
+  useUpdateMerchantAffiliateProduct,
+} from "@/hooks/use-merchant";
+import { apiFetch } from "@/lib/fetcher";
 import AffiliateProductPreviewCard from "../components/AffiliateProductPreviewCard";
 
 export default function EditAffiliateProductPage() {
@@ -21,8 +27,6 @@ export default function EditAffiliateProductPage() {
   const params = useParams();
   const id = params?.id;
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [merchantCategory, setMerchantCategory] = useState(null);
   const [pricingMode, setPricingMode] = useState("percent");
@@ -40,69 +44,49 @@ export default function EditAffiliateProductPage() {
     status: "active",
   });
 
+  const { data: merchantProfile } = useMerchantProfile();
   useEffect(() => {
-    async function fetchMerchant() {
-      try {
-        const res = await fetch("/api/merchants/me");
-        if (res.ok) {
-          const json = await res.json();
-          const cat = json.data?.category || json.category;
-          if (cat) {
-            setMerchantCategory(cat);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch merchant profile:", err);
-      }
-    }
-    fetchMerchant();
-  }, []);
+    const cat = merchantProfile?.category;
+    if (cat) setMerchantCategory(cat);
+  }, [merchantProfile]);
+
+  const { data: productData, isLoading: fetching } = useQuery({
+    queryKey: ["merchant-affiliate-product", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const json = await apiFetch(`/api/merchant/affiliate-products/${id}`);
+      return json?.data || json || null;
+    },
+  });
 
   useEffect(() => {
-    if (id) fetchProduct();
-  }, [id]);
-
-  async function fetchProduct() {
-    setFetching(true);
-    try {
-      const res = await fetch(`/api/merchant/affiliate-products/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        const p = data.data || data;
-
-        const orig = Number(p.originalPrice) || 0;
-        const disc = Number(p.discountPrice) || 0;
-        if (orig > 0 && disc > 0) {
-          setPricingMode("exact");
-        } else if (disc > 0 && orig === 0) {
-          setPricingMode("fixed");
-        } else {
-          setPricingMode("percent");
-        }
-
-        setForm({
-          title: p.title || "",
-          category: p.category || merchantCategory || "Fashion & Clothing",
-          originalPrice: p.originalPrice || "",
-          discountPrice: p.discountPrice || "",
-          discountPercentage: p.discountPercentage || "",
-          discountText: p.discountText || "",
-          affiliateUrl: p.affiliateUrl || "",
-          imageUrl: p.imageUrl || "",
-          description: p.description || "",
-          status: p.status || "active",
-        });
-      } else {
-        toast.error("Failed to load product details.");
-        router.push("/merchant/affiliate-products");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error fetching product.");
-    } finally {
-      setFetching(false);
+    if (!productData) return;
+    const p = productData;
+    const orig = Number(p.originalPrice) || 0;
+    const disc = Number(p.discountPrice) || 0;
+    if (orig > 0 && disc > 0) {
+      setPricingMode("exact");
+    } else if (disc > 0 && orig === 0) {
+      setPricingMode("fixed");
+    } else {
+      setPricingMode("percent");
     }
-  }
+
+    setForm({
+      title: p.title || "",
+      category: p.category || merchantCategory || "Fashion & Clothing",
+      originalPrice: p.originalPrice ? String(p.originalPrice) : "",
+      discountPrice: p.discountPrice ? String(p.discountPrice) : "",
+      discountPercentage: p.discountPercentage ? String(p.discountPercentage) : "",
+      discountText: p.discountText || "",
+      affiliateUrl: p.affiliateUrl || "",
+      imageUrl: p.imageUrl || "",
+      description: p.description || "",
+      status: p.status || "active",
+    });
+  }, [productData, merchantCategory]);
+
+  const updateProductMutation = useUpdateMerchantAffiliateProduct();
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -190,27 +174,14 @@ export default function EditAffiliateProductPage() {
             : ""),
     };
 
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/merchant/affiliate-products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        toast.success("Affiliate product updated successfully!");
-        router.push("/merchant/affiliate-products");
-      } else {
-        const data = await res.json();
-        toast.error(data.message || "Failed to update product.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    updateProductMutation.mutate(
+      { id, ...payload },
+      {
+        onSuccess: () => {
+          router.push("/merchant/affiliate-products");
+        },
+      },
+    );
   };
 
   if (fetching) {

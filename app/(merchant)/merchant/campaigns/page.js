@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardSkeleton from "@/components/shared/feedback/DashboardSkeleton";
 import DeleteConfirmDialog from "@/components/shared/modals/DeleteConfirmDialog";
+import { useMerchantCampaigns, useMerchantProfile } from "@/hooks/use-merchant";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
 import { showError, showSuccess } from "@/lib/toast";
@@ -30,27 +31,9 @@ export default function MerchantCampaigns() {
   // Flash Sale Purchase Modal State
   const [flashSaleModalOpen, setFlashSaleModalOpen] = useState(false);
 
-  // Fetch merchant profile
-  const { data: merchant, isLoading: loadingProfile } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) throw new Error("Failed to load profile");
-      const json = await res.json();
-      return json.data;
-    },
-  });
-
-  // Fetch real-time merchant campaigns from backend API
-  const { data: dbCampaigns = [], isLoading: loadingCampaigns } = useQuery({
-    queryKey: ["merchant-campaigns"],
-    queryFn: async () => {
-      const res = await fetch("/api/campaigns");
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data || [];
-    },
-  });
+  // Fetch merchant profile & real-time merchant campaigns via cached hooks
+  const { data: merchant, isLoading: loadingProfile } = useMerchantProfile();
+  const { data: dbCampaigns = [], isLoading: loadingCampaigns } = useMerchantCampaigns();
 
   // Check if free / starter merchant
   const isFreeMerchant = useMemo(() => {

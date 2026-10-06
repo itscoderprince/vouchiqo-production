@@ -17,13 +17,20 @@ const MerchantLockContext = createContext({
   isLocked: false,
   health: null,
   isModalOpen: false,
+  isLoading: false,
+  isFetched: false,
   openModal: () => {},
   closeModal: () => {},
   merchant: null,
 });
 
 export function MerchantLockProvider({ children, isMerchant }) {
-  const { data: merchant, refetch: refetchProfile } = useMerchantProfile({
+  const {
+    data: merchant,
+    isLoading,
+    isFetched,
+    refetch: refetchProfile,
+  } = useMerchantProfile({
     enabled: Boolean(isMerchant),
     refetchInterval: (query) => {
       const data = query?.state?.data;
@@ -131,6 +138,8 @@ export function MerchantLockProvider({ children, isMerchant }) {
         openModal,
         closeModal,
         merchant,
+        isLoading,
+        isFetched,
       }}
     >
       {children}

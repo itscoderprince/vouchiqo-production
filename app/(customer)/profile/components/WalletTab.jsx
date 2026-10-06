@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, Info, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,29 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useUserRedemptions } from "@/hooks/use-user";
 
 export default function WalletTab() {
-  const [redemptions, setRedemptions] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch real user redemptions history
-  useEffect(() => {
-    const fetchRedemptions = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/redemptions");
-        if (res.ok) {
-          const json = await res.json();
-          setRedemptions(json.data?.redemptions || []);
-        }
-      } catch (err) {
-        console.error("Error loading wallet transactions:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRedemptions();
-  }, []);
+  const { data: redemptions = [], isLoading: loading } = useUserRedemptions();
 
   // Calculate real balances based on user redemptions:
   // We award a flat 10% extra cashback on all actual validated coupon savings!

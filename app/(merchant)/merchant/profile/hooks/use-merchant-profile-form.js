@@ -1,11 +1,14 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { useUser } from "@/hooks/use-user";
 import { useZodForm } from "@/hooks/use-zod-form";
+import { apiFetch } from "@/lib/fetcher";
+import { qk } from "@/lib/query-keys";
 import { showError, showSuccess } from "@/lib/toast";
 import { normalizeCategory } from "@/utils/constants";
 import {
@@ -125,16 +128,7 @@ export function useMerchantProfileForm() {
     data: merchant,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (res.status === 404) return null; // New merchant user — no profile created yet
-      if (!res.ok) throw new Error("Failed to load profile");
-      const json = await res.json();
-      return json.data || null;
-    },
-  });
+  } = useMerchantProfile();
 
   useEffect(() => {
     if (merchant) {
@@ -294,26 +288,13 @@ export function useMerchantProfileForm() {
     mutationFn: async (payload) => {
       const url = merchant ? "/api/merchants/me" : "/api/merchants";
       const method = merchant ? "PUT" : "POST";
-      const res = await fetch(url, {
+      return apiFetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        const errStr =
-          typeof json.message === "string"
-            ? json.message
-            : typeof json.error === "string"
-              ? json.error
-              : json.error?.message || "Failed to save profile";
-        throw new Error(errStr);
-      }
-      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+      queryClient.invalidateQueries({ queryKey: qk.merchant.profile() });
       queryClient.invalidateQueries({
         queryKey: ["merchant-application-status"],
       });

@@ -1,8 +1,18 @@
 import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
 import Coupon from "@/modules/coupon/coupon.model";
 import Merchant from "@/modules/merchant/merchant.model";
 import { ForbiddenError, NotFoundError } from "@/utils/app-error";
+import { REDIS_KEYS } from "@/utils/constants";
 import AffiliateProduct from "./affiliate-product.model";
+
+async function invalidateHomepageCache() {
+  try {
+    if (redis) {
+      await redis.del(REDIS_KEYS.HOMEPAGE_DATA).catch(() => {});
+    }
+  } catch (_) {}
+}
 
 /**
  * Synchronize merchant's denormalized totalCoupons counter (coupons + affiliate deals)
@@ -60,8 +70,9 @@ export async function createAffiliateProduct(merchantId, data) {
     expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
   });
 
-  // Keep merchant total offers counter synced
+  // Keep merchant total offers counter synced and invalidate homepage cache
   await syncMerchantTotalCoupons(merchantId);
+  await invalidateHomepageCache();
 
   return product;
 }
@@ -167,8 +178,9 @@ export async function updateAffiliateProduct(productId, merchantId, data) {
 
   await product.save();
 
-  // Keep merchant total offers counter synced
+  // Keep merchant total offers counter synced and invalidate homepage cache
   await syncMerchantTotalCoupons(merchantId);
+  await invalidateHomepageCache();
 
   return product;
 }
@@ -191,8 +203,9 @@ export async function deleteAffiliateProduct(productId, merchantId) {
   product.status = "deleted";
   await product.save();
 
-  // Keep merchant total offers counter synced
+  // Keep merchant total offers counter synced and invalidate homepage cache
   await syncMerchantTotalCoupons(merchantId);
+  await invalidateHomepageCache();
 
   return { success: true, message: "Affiliate product deleted" };
 }

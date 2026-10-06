@@ -1,7 +1,7 @@
 "use client";
 
 import dynamicImport from "next/dynamic";
-import { useEffect, useState, Suspense } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 // Core components & layout
@@ -60,7 +60,6 @@ const InterestSheet = dynamicImport(
 
 export function HomeClient({
   initialCoupons = [],
-  latestCoupons = [],
   popularMerchants = [],
   banners = [],
   affiliateProducts = [],
@@ -89,81 +88,119 @@ export function HomeClient({
     }
   }, [isPrefSheetOpen, savedInterests]);
 
-  const handleSaveInterests = async (interestsList) => {
-    try {
-      await saveInterests(interestsList);
-      toast.success("Preferences updated successfully!");
-      setIsPrefSheetOpen(false);
-    } catch (error) {
-      toast.error("Failed to update preferences. Please try again.");
-    }
-  };
+  const handleSaveInterests = useCallback(
+    async (interestsList) => {
+      try {
+        await saveInterests(interestsList);
+        toast.success("Preferences updated successfully!");
+        setIsPrefSheetOpen(false);
+      } catch (error) {
+        toast.error("Failed to update preferences. Please try again.");
+      }
+    },
+    [saveInterests],
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-brand-surface text-brand-text w-full">
       {/* Sticky Navbar */}
       <Navbar />
 
-      {/* Main Container — Full-width Hero with 3-6px spacing */}
-      <main className="w-full px-1 sm:px-1.5 pt-1 sm:pt-1.5 pb-1">
-        <section
-          className="g-main-banner main__banner__div w-full"
-          data-toppicks-show="True"
+      {/* Main Container — Single semantic main for accessibility & SEO */}
+      <main id="main-content" className="w-full flex-1">
+        {/* Full-width Hero with 3-6px spacing */}
+        <div className="w-full px-1 sm:px-1.5 pt-1 sm:pt-1.5 pb-1">
+          <section
+            className="g-main-banner main__banner__div w-full"
+            data-toppicks-show="True"
+          >
+            <HeroSection banners={banners} />
+          </section>
+        </div>
+
+        {/* Decorative tagline bar — spans full screen width naturally */}
+        <LeadingTaglineBar />
+
+        {/* Popular Offers & Popular Stores */}
+        <div className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
+          {/* Popular Offers of the Day */}
+          <Suspense
+            fallback={
+              <div className="w-full h-64 bg-slate-100/60 rounded-2xl animate-pulse" />
+            }
+          >
+            <PopularOffers coupons={initialCoupons} />
+          </Suspense>
+
+          {/* Popular Stores (with Store of the Month) */}
+          <Suspense
+            fallback={
+              <div className="w-full h-80 bg-slate-100/60 rounded-2xl animate-pulse" />
+            }
+          >
+            <PopularStores merchants={popularMerchants} />
+          </Suspense>
+        </div>
+
+        {/* Full-bleed Edge-to-Edge Sections */}
+        <Suspense
+          fallback={
+            <div className="w-full h-48 bg-slate-100/60 animate-pulse" />
+          }
         >
-          <HeroSection banners={banners} />
-        </section>
+          <RevivalPromo />
+        </Suspense>
+
+        {/* Trending Offer, Deals of Day, Latest Articles */}
+        <div className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
+          {/* Trending Offer Banner */}
+          <Suspense
+            fallback={
+              <div className="w-full h-48 bg-slate-100/60 rounded-2xl animate-pulse" />
+            }
+          >
+            <TrendingOffer banners={banners} />
+          </Suspense>
+
+          {/* Deals of the Day / Affiliate Products */}
+          <Suspense
+            fallback={
+              <div className="w-full h-72 bg-slate-100/60 rounded-2xl animate-pulse" />
+            }
+          >
+            <DealsOfTheDay affiliateProducts={affiliateProducts} />
+          </Suspense>
+
+          {/* Latest Articles carousel */}
+          <Suspense
+            fallback={
+              <div className="w-full h-64 bg-slate-100/60 rounded-2xl animate-pulse" />
+            }
+          >
+            <LatestArticles />
+          </Suspense>
+        </div>
+
+        {/* FAQ Section — full width on mobile */}
+        <div className="w-full px-2.5 sm:px-4 md:px-5 py-4 mb-2">
+          <Suspense
+            fallback={
+              <div className="w-full h-48 bg-slate-100/60 rounded-2xl animate-pulse" />
+            }
+          >
+            <FaqSection />
+          </Suspense>
+        </div>
+
+        {/* Subscribe Now — full width, flush to footer */}
+        <Suspense
+          fallback={
+            <div className="w-full h-32 bg-slate-100/60 animate-pulse" />
+          }
+        >
+          <NewsletterSubscription />
+        </Suspense>
       </main>
-
-      {/* Decorative tagline bar — spans full screen width naturally */}
-      <LeadingTaglineBar />
-
-      {/* Main Container */}
-      <main className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
-        {/* Popular Offers of the Day */}
-        <Suspense fallback={<div className="w-full h-64 bg-slate-100/60 rounded-2xl animate-pulse" />}>
-          <PopularOffers coupons={initialCoupons} />
-        </Suspense>
-
-        {/* Popular Stores (with Store of the Month) */}
-        <Suspense fallback={<div className="w-full h-80 bg-slate-100/60 rounded-2xl animate-pulse" />}>
-          <PopularStores merchants={popularMerchants} />
-        </Suspense>
-      </main>
-
-      {/* Full-bleed Edge-to-Edge Sections */}
-      <Suspense fallback={<div className="w-full h-48 bg-slate-100/60 animate-pulse" />}>
-        <RevivalPromo />
-      </Suspense>
-
-      {/* Main Container */}
-      <main className="w-full px-2.5 sm:px-4 md:px-5 py-2 space-y-6 sm:space-y-8">
-        {/* Trending Offer Banner */}
-        <Suspense fallback={<div className="w-full h-48 bg-slate-100/60 rounded-2xl animate-pulse" />}>
-          <TrendingOffer banners={banners} />
-        </Suspense>
-
-        {/* Deals of the Day / Affiliate Products */}
-        <Suspense fallback={<div className="w-full h-72 bg-slate-100/60 rounded-2xl animate-pulse" />}>
-          <DealsOfTheDay affiliateProducts={affiliateProducts} />
-        </Suspense>
-
-        {/* Latest Articles carousel */}
-        <Suspense fallback={<div className="w-full h-64 bg-slate-100/60 rounded-2xl animate-pulse" />}>
-          <LatestArticles />
-        </Suspense>
-      </main>
-
-      {/* FAQ Section — full width on mobile */}
-      <div className="w-full px-2.5 sm:px-4 md:px-5 py-4 mb-2">
-        <Suspense fallback={<div className="w-full h-48 bg-slate-100/60 rounded-2xl animate-pulse" />}>
-          <FaqSection />
-        </Suspense>
-      </div>
-
-      {/* Subscribe Now — full width, flush to footer */}
-      <Suspense fallback={<div className="w-full h-32 bg-slate-100/60 animate-pulse" />}>
-        <NewsletterSubscription />
-      </Suspense>
 
       {/* Footer */}
       <Suspense fallback={<div className="w-full h-64 bg-slate-900/10" />}>

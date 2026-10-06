@@ -1,9 +1,10 @@
 "use client";
 
 import { ArrowUpRight, Flame, ShieldCheck } from "lucide-react";
+import { memo } from "react";
 import SafeImage from "@/components/shared/SafeImage";
 
-export default function ProductOfferCard({ product }) {
+export const ProductOfferCard = memo(function ProductOfferCard({ product }) {
   if (!product) return null;
 
   const {
@@ -198,4 +199,6 @@ export default function ProductOfferCard({ product }) {
       </div>
     </a>
   );
-}
+});
+
+export default ProductOfferCard;

@@ -22,6 +22,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import { showSuccess } from "@/lib/toast";
 
 const NOTIF_ROWS = [
@@ -53,15 +54,7 @@ export default function MerchantAccountSettings() {
   const [isSaving, setIsSaving] = useState(false);
 
   // 1. Fetch live merchant profile from DB
-  const { data: merchant, refetch } = useQuery({
-    queryKey: ["merchant-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/merchants/me");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data;
-    },
-  });
+  const { data: merchant, refetch } = useMerchantProfile();
 
   // State synced with live merchant document from DB
   const [logoUrl, setLogoUrl] = useState("");

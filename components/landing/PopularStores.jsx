@@ -3,7 +3,7 @@
 
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BrandGridItem from "@/components/shared/cards/BrandGridItem";
 import SafeImage from "@/components/shared/SafeImage";
 import TwitterVerifiedBadge from "@/components/shared/TwitterVerifiedBadge";
@@ -86,7 +86,7 @@ export default function PopularStores({ merchants = [] }) {
   const somFallback = CATEGORY_FALLBACK_BANNERS[somCatKey] || DEFAULT_BANNER;
   const somBanner =
     storeOfTheMonth?.banner || storeOfTheMonth?.shopImage || somFallback;
-  const somLogo = storeOfTheMonth?.logo || "/placeholder-brand.png";
+  const somLogo = storeOfTheMonth?.logo || "/placeholder-brand.webp";
   const somHref = storeOfTheMonth ? `/brand/${storeOfTheMonth.slug}` : "/deals";
   const somCoupons = storeOfTheMonth ? storeOfTheMonth.totalCoupons || 0 : 0;
   const somMaxDiscount = storeOfTheMonth?.maxDiscount
@@ -132,12 +132,15 @@ export default function PopularStores({ merchants = [] }) {
     return () => clearInterval(timer);
   }, [totalSlides]);
 
-  const slides = [];
-  for (let i = 0; i < totalSlides; i++) {
-    slides.push(
-      finalStoresList.slice(i * itemsPerPage, (i + 1) * itemsPerPage),
-    );
-  }
+  const slides = useMemo(() => {
+    const list = [];
+    for (let i = 0; i < totalSlides; i++) {
+      list.push(
+        finalStoresList.slice(i * itemsPerPage, (i + 1) * itemsPerPage),
+      );
+    }
+    return list;
+  }, [finalStoresList, itemsPerPage, totalSlides]);
 
   // Swipe/drag gestures
   const dragStart = useRef(0);
@@ -177,15 +180,21 @@ export default function PopularStores({ merchants = [] }) {
     isDragging.current = false;
   };
 
-  const handlePrev = (e) => {
-    e?.preventDefault();
-    setSelectedIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-  };
+  const handlePrev = useCallback(
+    (e) => {
+      e?.preventDefault();
+      setSelectedIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
+    },
+    [totalSlides],
+  );
 
-  const handleNext = (e) => {
-    e?.preventDefault();
-    setSelectedIndex((prev) => (prev + 1) % totalSlides);
-  };
+  const handleNext = useCallback(
+    (e) => {
+      e?.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % totalSlides);
+    },
+    [totalSlides],
+  );
 
   return (
     <section className="g-pop-store w-full select-none text-left overflow-hidden">

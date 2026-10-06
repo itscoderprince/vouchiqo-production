@@ -37,8 +37,11 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/layout/navbar";
 import { useLocation } from "@/hooks/use-location";
+import { apiFetch } from "@/lib/fetcher";
+import { qk } from "@/lib/query-keys";
 
 // ─── Constants & Coordinates ──────────────────────────────────────────────────
 
@@ -579,8 +582,18 @@ export default function NearbyOffers() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [tileLayerType, setTileLayerType] = useState("google_streets");
-  const [rawCoupons, setRawCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: rawCouponsData, isLoading: loading } = useQuery({
+    queryKey: [...qk.coupons.all(), "nearby-map", 250],
+    queryFn: async () => {
+      const d = await apiFetch(
+        "/api/coupons?limit=250&allDates=true&includeAllBrands=true",
+      );
+      return d.data?.coupons || [];
+    },
+    staleTime: 60_000,
+  });
+
+  const rawCoupons = rawCouponsData || [];
   const [gpsLoading, setGpsLoading] = useState(false);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState(null);
@@ -744,32 +757,6 @@ export default function NearbyOffers() {
     };
   }, []);
 
-  // Fetch verified local coupons from API (autofetch all active offers without boundary restrictions)
-  useEffect(() => {
-    let isCancelled = false;
-    async function fetchOffers() {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          "/api/coupons?limit=250&allDates=true&includeAllBrands=true",
-        );
-        if (res.ok) {
-          const d = await res.json();
-          if (!isCancelled) {
-            setRawCoupons(d.data?.coupons || []);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load map offers:", err);
-      } finally {
-        if (!isCancelled) setLoading(false);
-      }
-    }
-    fetchOffers();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
 
   // Enrich coupons with realistic coordinates around current center & distance calculations
   const enrichedCoupons = useMemo(() => {

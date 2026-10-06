@@ -34,11 +34,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  useAdminAffiliateProducts,
   useAdminCoupons,
   useApproveAdminCoupon,
   useDeleteAdminCoupon,
+  useDeleteAffiliateProduct,
   useRejectAdminCoupon,
   useUpdateAdminCoupon,
+  useUpdateAffiliateProduct,
 } from "@/hooks/use-admin";
 import { useRealtime } from "@/hooks/use-realtime";
 import { SOCKET_EVENTS } from "@/lib/socket/events";
@@ -111,13 +114,10 @@ export default function AdminOffersClient() {
   // Delete Modal State
   const [deleteCoupon, setDeleteCoupon] = useState(null);
 
-  // Admin Affiliate Products state
-  const [affiliateProducts, setAffiliateProducts] = useState([]);
-  const [loadingAffiliates, setLoadingAffiliates] = useState(false);
+  // Admin Affiliate Products UI state
   const [copiedId, setCopiedId] = useState(null);
   const [editingAffiliate, setEditingAffiliate] = useState(null);
   const [deleteAffiliateId, setDeleteAffiliateId] = useState(null);
-  const [isDeletingAffiliate, setIsDeletingAffiliate] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -174,34 +174,17 @@ export default function AdminOffersClient() {
     return { total, activeVerified, pending, expiredPaused };
   }, [offers]);
 
-  // Fetch admin affiliate products
-  const fetchAdminAffiliates = useCallback(async () => {
-    setLoadingAffiliates(true);
-    try {
-      const query = new URLSearchParams();
-      if (statusFilter && statusFilter !== "all")
-        query.set("status", statusFilter);
-      if (debouncedSearch) query.set("search", debouncedSearch);
+  // TanStack Query for admin affiliate products
+  const {
+    data: affiliateProducts = [],
+    isLoading: loadingAffiliates,
+  } = useAdminAffiliateProducts({
+    status: statusFilter,
+    search: debouncedSearch,
+  });
 
-      const res = await fetch(
-        `/api/admin/affiliate-products?${query.toString()}`,
-      );
-      if (res.ok) {
-        const json = await res.json();
-        setAffiliateProducts(json.data || json || []);
-      }
-    } catch (err) {
-      console.error("Error fetching admin affiliate products:", err);
-    } finally {
-      setLoadingAffiliates(false);
-    }
-  }, [statusFilter, debouncedSearch]);
-
-  useEffect(() => {
-    if (activeTab === "affiliates") {
-      fetchAdminAffiliates();
-    }
-  }, [activeTab, fetchAdminAffiliates]);
+  const updateAffiliateMutation = useUpdateAffiliateProduct();
+  const deleteAffiliateMutation = useDeleteAffiliateProduct();
 
   const approveMutation = useApproveAdminCoupon();
   const rejectMutation = useRejectAdminCoupon();
@@ -276,48 +259,17 @@ export default function AdminOffersClient() {
     });
   }, [deleteCoupon, deleteMutation]);
 
-  // Affiliate Actions
-  const handleToggleAffiliateStatus = async (product) => {
+  // Affiliate Actions via TanStack Query Mutations
+  const handleToggleAffiliateStatus = (product) => {
     const nextStatus = product.status === "active" ? "paused" : "active";
-    try {
-      const res = await fetch(`/api/admin/affiliate-products/${product._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-      if (res.ok) {
-        toast.success(`Product status updated to ${nextStatus}`);
-        fetchAdminAffiliates();
-      } else {
-        toast.error("Failed to update status.");
-      }
-    } catch {
-      toast.error("Error updating status.");
-    }
+    updateAffiliateMutation.mutate({ id: product._id, status: nextStatus });
   };
 
-  const handleConfirmDeleteAffiliate = async () => {
+  const handleConfirmDeleteAffiliate = () => {
     if (!deleteAffiliateId) return;
-    setIsDeletingAffiliate(true);
-    try {
-      const res = await fetch(
-        `/api/admin/affiliate-products/${deleteAffiliateId}`,
-        {
-          method: "DELETE",
-        },
-      );
-      if (res.ok) {
-        toast.success("Affiliate deal deleted.");
-        setDeleteAffiliateId(null);
-        fetchAdminAffiliates();
-      } else {
-        toast.error("Failed to delete deal.");
-      }
-    } catch {
-      toast.error("Error deleting deal.");
-    } finally {
-      setIsDeletingAffiliate(false);
-    }
+    deleteAffiliateMutation.mutate(deleteAffiliateId, {
+      onSuccess: () => setDeleteAffiliateId(null),
+    });
   };
 
   const columns = useMemo(
@@ -925,7 +877,11 @@ export default function AdminOffersClient() {
             isOpen={!!editingAffiliate}
             onClose={() => setEditingAffiliate(null)}
             initialData={editingAffiliate}
-            onSuccess={() => fetchAdminAffiliates()}
+            onSuccess={() => {
+              queryClient.invalidateQueries({
+                queryKey: ["admin-affiliate-products"],
+              });
+            }}
             isAdmin={true}
           />
         )}
@@ -937,7 +893,7 @@ export default function AdminOffersClient() {
           title="Delete Affiliate Deal"
           description="Are you sure you want to delete this affiliate product / brand deal? It will no longer appear on public brand pages or search results."
           onConfirm={handleConfirmDeleteAffiliate}
-          isPending={isDeletingAffiliate}
+          isPending={deleteAffiliateMutation.isPending}
         />
       </div>
     </TooltipProvider>

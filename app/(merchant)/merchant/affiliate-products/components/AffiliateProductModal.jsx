@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useMerchantProfile } from "@/hooks/use-merchant";
 import AffiliateProductPreviewCard, {
   CATEGORIES,
 } from "./AffiliateProductPreviewCard";
@@ -44,28 +45,19 @@ export default function AffiliateProductModal({
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  const { data: merchantProfile } = useMerchantProfile({
+    enabled: isOpen && !isAdmin,
+  });
+
   useEffect(() => {
-    async function fetchMerchant() {
-      try {
-        const res = await fetch("/api/merchants/me");
-        if (res.ok) {
-          const json = await res.json();
-          const cat = json.data?.category || json.category;
-          if (cat) {
-            setMerchantCategory(cat);
-            if (!isEdit) {
-              setForm((prev) => ({ ...prev, category: cat }));
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch merchant profile:", err);
+    const cat = merchantProfile?.category;
+    if (cat) {
+      setMerchantCategory(cat);
+      if (!isEdit) {
+        setForm((prev) => ({ ...prev, category: cat }));
       }
     }
-    if (isOpen && !isAdmin) {
-      fetchMerchant();
-    }
-  }, [isOpen, isEdit, isAdmin]);
+  }, [merchantProfile, isEdit]);
 
   // Sync pricing mode on initialData change
   useEffect(() => {
