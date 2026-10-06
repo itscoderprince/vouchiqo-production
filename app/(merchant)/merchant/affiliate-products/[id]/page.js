@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Eye,
@@ -13,7 +14,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
   useMerchantProfile,
@@ -77,7 +77,9 @@ export default function EditAffiliateProductPage() {
       category: p.category || merchantCategory || "Fashion & Clothing",
       originalPrice: p.originalPrice ? String(p.originalPrice) : "",
       discountPrice: p.discountPrice ? String(p.discountPrice) : "",
-      discountPercentage: p.discountPercentage ? String(p.discountPercentage) : "",
+      discountPercentage: p.discountPercentage
+        ? String(p.discountPercentage)
+        : "",
       discountText: p.discountText || "",
       affiliateUrl: p.affiliateUrl || "",
       imageUrl: p.imageUrl || "",
@@ -87,6 +89,7 @@ export default function EditAffiliateProductPage() {
   }, [productData, merchantCategory]);
 
   const updateProductMutation = useUpdateMerchantAffiliateProduct();
+  const loading = updateProductMutation.isPending;
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
