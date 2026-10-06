@@ -199,11 +199,8 @@ export default function Step5HoursCommission({
                 checked={formData.commissionAgreed}
                 onCheckedChange={(val) => {
                   setFormData({ ...formData, commissionAgreed: !!val });
-                  if (val && fieldErrors.commissionAgreed) {
-                    setFieldErrors((prev) => ({
-                      ...prev,
-                      commissionAgreed: null,
-                    }));
+                  if (val && fieldErrors?.commissionAgreed) {
+                    clearFieldError?.("commissionAgreed");
                   }
                 }}
                 className={fieldErrors.commissionAgreed ? "border-red-500" : ""}

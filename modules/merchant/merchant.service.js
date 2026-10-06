@@ -10,7 +10,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../utils/app-error.js";
-import { MERCHANT_STATUS, REDIS_KEYS } from "../../utils/constants.js";
+import { MERCHANT_STATUS, REDIS_KEYS, REDIS_TTL } from "../../utils/constants.js";
 import { buildMeta, parsePagination } from "../../utils/pagination.js";
 import UserProfile from "../user/user.model.js";
 import Merchant from "./merchant.model.js";

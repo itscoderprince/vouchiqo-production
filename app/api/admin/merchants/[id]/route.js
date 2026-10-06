@@ -52,7 +52,7 @@ export const GET = asyncHandler(async (request, { params }) => {
   }
 
   // If approved or active, ensure User and Session collections reflect role: "merchant"
-  if (body.status === "approved" || body.status === "active" || merchant.status === "approved" || merchant.status === "active") {
+  if (merchant.status === "approved" || merchant.status === "active") {
     try {
       const mongoose = (await import("mongoose")).default;
       const authIdStr = merchant.authId ? String(merchant.authId) : null;

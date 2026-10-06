@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Ban,
   Building2,
+  Check,
   CheckCircle2,
   Clock,
   Copy,

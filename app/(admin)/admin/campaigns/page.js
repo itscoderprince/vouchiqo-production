@@ -4,8 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
   Layers,
+  ListOrdered,
   Megaphone,
+  PieChart,
   Radio,
+  Rocket,
   TrendingUp,
 } from "lucide-react";
 import { useCallback, useState } from "react";

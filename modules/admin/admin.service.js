@@ -1,6 +1,7 @@
-﻿import { invalidateCouponCaches } from "@/modules/coupon/coupon.service";
+import { invalidateCouponCaches } from "@/modules/coupon/coupon.service";
 import mongoose from "mongoose";
 import { redis } from "@/lib/redis";
+import { escapeRegex } from "@/lib/security";
 import Coupon from "@/modules/coupon/coupon.model";
 import UserProfile from "@/modules/user/user.model";
 import { NotFoundError } from "@/utils/app-error";

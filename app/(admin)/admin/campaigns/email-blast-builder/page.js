@@ -114,8 +114,8 @@ export default function EmailBlastBuilderPage() {
       toast.error("Network error while uploading banner to Cloudinary.");
     } finally {
       setIsUploadingBanner(false);
-      if (bannerFileInputRef.current) {
-        bannerFileInputRef.current.value = "";
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     }
   };
