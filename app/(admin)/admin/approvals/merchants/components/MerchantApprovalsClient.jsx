@@ -87,7 +87,7 @@ export default function MerchantApprovalsClient() {
     data: allMerchants = [],
     isLoading,
     refetch,
-  } = useAdminMerchants({ limit: 100 });
+  } = useAdminMerchants({ limit: 500 });
   const reviewMutation = useReviewMerchant();
 
   const [selectedMerchant, setSelectedMerchant] = useState(null);

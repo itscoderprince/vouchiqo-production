@@ -514,15 +514,30 @@ export async function updateMerchant(
 export async function listMerchants(searchParams) {
   const { page, limit, skip } = parsePagination(searchParams);
   const status = searchParams.get("status");
+  const search = searchParams.get("search");
 
   const filter = {};
   if (status) filter.status = status;
+
+  if (search && search.trim()) {
+    const q = search.trim();
+    filter.$or = [
+      { businessName: { $regex: q, $options: "i" } },
+      { slug: { $regex: q, $options: "i" } },
+      { contactEmail: { $regex: q, $options: "i" } },
+      { category: { $regex: q, $options: "i" } },
+    ];
+  }
+
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? 1 : -1;
+  const sort = { [sortBy]: sortOrder, _id: -1 };
 
   const [merchantsRaw, total] = await Promise.all([
     Merchant.find(filter)
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 })
+      .sort(sort)
       .lean(),
     Merchant.countDocuments(filter),
   ]);

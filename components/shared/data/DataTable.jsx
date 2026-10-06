@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   ArrowUpDown,
@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import MobileTableCard from "./MobileTableCard";
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 150, 200];
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * TableLoadingOverlay — centered spinner shown in the middle of the table body

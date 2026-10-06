@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -168,7 +168,7 @@ export function useDeleteAdminCoupon() {
  * Fetch all registered merchants.
  */
 export function useAdminMerchants(params = {}) {
-  const { status = "", search = "", limit = 100 } = params;
+  const { status = "", search = "", limit = 500 } = params;
   const sp = new URLSearchParams();
   if (status) sp.set("status", status);
   if (search) sp.set("search", search);

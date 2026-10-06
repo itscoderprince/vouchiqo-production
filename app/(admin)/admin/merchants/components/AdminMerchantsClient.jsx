@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -94,7 +94,7 @@ export default function AdminMerchantsClient({
   description = "Overview of all merchant accounts, application approvals, subscription tiers, and activity logs.",
 }) {
   const queryClient = useQueryClient();
-  const { data: merchants = [], isLoading, refetch } = useAdminMerchants();
+  const { data: merchants = [], isLoading, refetch } = useAdminMerchants({ limit: 500 });
   const reviewMutation = useReviewMerchant();
 
   const [searchQuery, setSearchQuery] = useState("");
