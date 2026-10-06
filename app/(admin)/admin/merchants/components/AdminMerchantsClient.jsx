@@ -29,6 +29,7 @@ import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -612,7 +613,7 @@ export default function AdminMerchantsClient({
                   Total Partners
                 </span>
                 <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
-                  {stats.total}
+                  {isLoading ? <Skeleton className="h-4.5 w-10 rounded mt-0.5" /> : stats.total}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
@@ -636,7 +637,7 @@ export default function AdminMerchantsClient({
                   Active Partners
                 </span>
                 <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
-                  {stats.active}
+                  {isLoading ? <Skeleton className="h-4.5 w-10 rounded mt-0.5 bg-emerald-200/60" /> : stats.active}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
@@ -660,7 +661,7 @@ export default function AdminMerchantsClient({
                   Pending Review
                 </span>
                 <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none">
-                  {stats.pending}
+                  {isLoading ? <Skeleton className="h-4.5 w-8 rounded mt-0.5 bg-amber-200/60" /> : stats.pending}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
@@ -684,7 +685,7 @@ export default function AdminMerchantsClient({
                   Suspended
                 </span>
                 <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none">
-                  {stats.suspended}
+                  {isLoading ? <Skeleton className="h-4.5 w-8 rounded mt-0.5 bg-rose-200/60" /> : stats.suspended}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">

@@ -19,6 +19,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
 import { authClient } from "@/lib/auth-client";
+import AdminPageSkeleton from "@/components/shared/skeletons/AdminPageSkeleton";
 
 function MerchantLockModalRenderer() {
   const { isModalOpen, closeModal, merchant } = useMerchantLock();
@@ -396,8 +397,35 @@ export default function DashboardLayout({ title, user, children }) {
 
   if (!mounted || !isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-slate-900 font-sans">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-600" />
+      <div className="min-h-screen flex bg-white text-slate-900 font-sans w-full">
+        {/* Sidebar Skeleton (desktop) */}
+        <div className="w-[250px] bg-slate-50/80 border-r border-slate-200/80 p-3 hidden md:flex flex-col justify-between shrink-0 animate-pulse">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5 px-2 py-1">
+              <div className="w-7 h-7 rounded-lg bg-blue-600/20" />
+              <div className="h-4.5 w-24 rounded bg-slate-200" />
+            </div>
+            <div className="space-y-1.5 pt-2">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="h-8 rounded-lg bg-slate-100/90 w-full" />
+              ))}
+            </div>
+          </div>
+          <div className="h-10 rounded-xl bg-slate-100 w-full" />
+        </div>
+        {/* Main Content Area Skeleton */}
+        <div className="flex-1 flex flex-col min-w-0 bg-white">
+          <div className="h-14 bg-white border-b border-slate-200/80 px-4 flex items-center justify-between">
+            <div className="h-4.5 w-36 rounded bg-slate-200" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-slate-100" />
+              <div className="w-8 h-8 rounded-full bg-slate-100" />
+            </div>
+          </div>
+          <main className="p-[7px] w-full grow bg-white">
+            <AdminPageSkeleton cardsCount={4} rowsCount={6} hasTabs={true} />
+          </main>
+        </div>
       </div>
     );
   }

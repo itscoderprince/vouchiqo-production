@@ -6,7 +6,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Loader2,
   Search,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -34,65 +33,29 @@ import MobileTableCard from "./MobileTableCard";
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 150, 200];
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * TableLoadingOverlay — centered spinner shown in the middle of the table body
- * Used both for the initial load and for background re-fetch states.
- * ───────────────────────────────────────────────────────────────────────────── */
-function TableLoadingOverlay({ colSpan, rows = 5, message = "Loading data…" }) {
-  return (
-    <>
-      {/* Skeleton rows (dim background) */}
-      {Array.from({ length: rows }).map((_, i) => (
-        <TableRow key={`skeleton-${i}`} className="border-brand-border pointer-events-none">
-          {Array.from({ length: colSpan }).map((__, c) => (
-            <TableCell key={c} className="py-3 px-3">
-              <Skeleton className="h-4 w-full rounded animate-pulse" />
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
-      {/* Centered spinner overlay row */}
-      <TableRow className="border-0 pointer-events-none">
-        <TableCell colSpan={colSpan} className="p-0 border-0">
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[1px] z-10 rounded-b-lg"
-            aria-live="polite"
-            aria-label={message}
-          >
-            <Loader2 className="w-7 h-7 text-blue-500 animate-spin" />
-            <p className="text-[11px] font-medium text-slate-500">{message}</p>
-          </div>
-        </TableCell>
-      </TableRow>
-    </>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
- * MobileLoadingCards — card skeletons for mobile view during load
+ * MobileLoadingCards — sleek card skeletons for mobile view during data load
  * ───────────────────────────────────────────────────────────────────────────── */
 function MobileLoadingCards() {
   return (
-    <div className="space-y-2.5">
-      {Array.from({ length: 3 }).map((_, i) => (
+    <div className="space-y-2.5 animate-pulse">
+      {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={`mob-loading-${i}`}
           className="rounded-2xl border border-slate-200/90 p-3.5 space-y-2.5 bg-white shadow-2xs"
         >
           <div className="flex items-center gap-3">
-            <Skeleton className="w-14 h-14 rounded-xl shrink-0" />
+            <Skeleton className="w-12 h-12 rounded-xl shrink-0 bg-slate-200" />
             <div className="space-y-1.5 flex-1 min-w-0">
-              <Skeleton className="h-4 w-3/4 rounded" />
-              <Skeleton className="h-3 w-1/2 rounded" />
+              <Skeleton className="h-4 w-3/4 rounded bg-slate-200" />
+              <Skeleton className="h-3 w-1/2 rounded bg-slate-100" />
             </div>
           </div>
-          <Skeleton className="h-8 w-full rounded-lg" />
+          <div className="flex items-center gap-2 pt-1">
+            <Skeleton className="h-5 w-20 rounded-md bg-slate-100" />
+            <Skeleton className="h-5 w-16 rounded-md bg-slate-100" />
+          </div>
         </div>
       ))}
-      {/* Center spinner over cards */}
-      <div className="flex items-center justify-center gap-2 py-4">
-        <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
-        <span className="text-[11px] font-medium text-slate-400">Loading…</span>
-      </div>
     </div>
   );
 }
@@ -277,39 +240,54 @@ export default function DataTable({
 
             <TableBody>
               {loading ? (
-                /* Full loading state — spinner overlay + skeleton rows */
-                <TableRow className="border-0">
-                  <TableCell colSpan={columns.length} className="p-0 border-0">
-                    {/* Skeleton rows */}
-                    <table className="w-full border-collapse">
-                      <tbody>
-                        {Array.from({ length: Math.min(pageSize, 6) }).map((_, i) => (
-                          <tr key={`sk-${i}`} className="border-b border-brand-border last:border-0">
-                            {columns.map((__, c) => (
-                              <td key={c} className="py-3 px-3">
-                                <Skeleton className="h-4 w-full rounded" />
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {/* Centered spinner on top */}
-                    <div className="flex flex-col items-center justify-center gap-2 py-6">
-                      <Loader2 className="w-7 h-7 text-blue-500 animate-spin" />
-                      <p className="text-[11px] font-medium text-slate-400">{loadingMessage}</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                /* Pure skeleton table rows — no rounded spinners */
+                Array.from({ length: Math.min(pageSize, 8) }).map((_, i) => (
+                  <TableRow key={`sk-${i}`} className="border-b border-slate-100 hover:bg-transparent">
+                    {columns.map((col, c) => (
+                      <TableCell
+                        key={c}
+                        className={cn(
+                          "py-3 px-3",
+                          col.align === "center" && "text-center",
+                          col.align === "right" && "text-right",
+                        )}
+                      >
+                        {c === 0 ? (
+                          <div className="flex items-center gap-2.5">
+                            <Skeleton className="w-7 h-7 rounded-md shrink-0 bg-slate-200" />
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <Skeleton
+                                className={cn(
+                                  "h-3.5 rounded bg-slate-200",
+                                  i % 2 === 0 ? "w-36" : "w-28",
+                                )}
+                              />
+                              <Skeleton className="h-2.5 w-20 rounded bg-slate-100" />
+                            </div>
+                          </div>
+                        ) : c === columns.length - 1 ? (
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <Skeleton className="h-7 w-7 rounded-lg bg-slate-100" />
+                            <Skeleton className="h-7 w-7 rounded-lg bg-slate-100" />
+                          </div>
+                        ) : (
+                          <Skeleton
+                            className={cn(
+                              "h-5 rounded-md bg-slate-100",
+                              c === 1 ? "w-20" : c === 2 ? "w-16" : "w-24",
+                            )}
+                          />
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
               ) : refetching ? (
-                /* Background re-fetch — show old rows dimmed + spinner banner */
+                /* Background re-fetch — subtle top shimmer line without circular spinner */
                 <>
-                  <TableRow className="border-0 bg-blue-50/60">
-                    <TableCell colSpan={columns.length} className="py-1.5 px-3 border-0">
-                      <div className="flex items-center gap-2 text-[10.5px] font-medium text-blue-600">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        Updating results…
-                      </div>
+                  <TableRow className="border-0">
+                    <TableCell colSpan={columns.length} className="p-0 border-0">
+                      <div className="h-0.5 w-full bg-blue-500 animate-pulse" />
                     </TableCell>
                   </TableRow>
                   {paged.map((row, rowIndex) => {
@@ -409,9 +387,8 @@ export default function DataTable({
           <MobileLoadingCards />
         ) : refetching ? (
           <>
-            <div className="flex items-center gap-2 text-[10.5px] font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Updating results…
+            <div className="h-1 w-full bg-blue-600/20 overflow-hidden rounded-full my-1">
+              <div className="h-full bg-blue-600 animate-pulse w-full" />
             </div>
             {paged.map((row, rowIndex) => _renderMobileRow(row, rowIndex, columns, renderMobileCard))}
           </>

@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   });
 
   // Fetch admin analytics
-  const { data: analyticsData } = useQuery({
+  const { data: analyticsData, isLoading } = useQuery({
     queryKey: qk.admin.analytics(),
     queryFn: async () => {
       const res = await fetch("/api/admin/analytics");
@@ -213,6 +213,7 @@ export default function AdminDashboard() {
             subtitle="Platform subscription MRR"
             icon={IndianRupee}
             iconClassName="bg-emerald-50 border-emerald-200/90 text-emerald-600 shadow-2xs"
+            loading={isLoading}
           />
           <KPICard
             variant="blue"
@@ -221,6 +222,7 @@ export default function AdminDashboard() {
             subtitle="Registered user accounts"
             icon={Users}
             iconClassName="bg-blue-50 border-blue-200/90 text-blue-600 shadow-2xs"
+            loading={isLoading}
           />
           <KPICard
             variant="amber"
@@ -233,6 +235,7 @@ export default function AdminDashboard() {
             subtitle="Redeemed coupon orders"
             icon={Tag}
             iconClassName="bg-amber-50 border-amber-200/90 text-amber-600 shadow-2xs"
+            loading={isLoading}
           />
           <KPICard
             variant="purple"
@@ -241,6 +244,7 @@ export default function AdminDashboard() {
             subtitle="Live offer page visits"
             icon={Store}
             iconClassName="bg-purple-50 border-purple-200/90 text-purple-600 shadow-2xs"
+            loading={isLoading}
           />
         </div>
 
@@ -315,6 +319,7 @@ export default function AdminDashboard() {
               <DataTable
                 columns={orderColumns}
                 data={livePendingOrders}
+                loading={isLoading}
                 searchable={false}
                 defaultPageSize={5}
                 emptyState="No pending moderation orders in queue."

@@ -25,6 +25,7 @@ import FormSelect from "@/components/shared/form/FormSelect";
 import ConfirmDeleteModal from "@/components/shared/modals/ConfirmDeleteModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -412,7 +413,7 @@ export default function AdminOffersClient() {
                   Total Listings
                 </span>
                 <span className="text-base font-medium text-slate-900 mt-0.5 block leading-none">
-                  {stats.total}
+                  {isLoading ? <Skeleton className="h-4.5 w-10 rounded mt-0.5" /> : stats.total}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
@@ -436,7 +437,7 @@ export default function AdminOffersClient() {
                   Active &amp; Verified
                 </span>
                 <span className="text-base font-medium text-emerald-700 mt-0.5 block leading-none">
-                  {stats.activeVerified}
+                  {isLoading ? <Skeleton className="h-4.5 w-10 rounded mt-0.5 bg-emerald-200/60" /> : stats.activeVerified}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
@@ -460,7 +461,7 @@ export default function AdminOffersClient() {
                   Pending Audit
                 </span>
                 <span className="text-base font-medium text-amber-700 mt-0.5 block leading-none">
-                  {stats.pending}
+                  {isLoading ? <Skeleton className="h-4.5 w-8 rounded mt-0.5 bg-amber-200/60" /> : stats.pending}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
@@ -484,7 +485,7 @@ export default function AdminOffersClient() {
                   Paused / Expired
                 </span>
                 <span className="text-base font-medium text-rose-700 mt-0.5 block leading-none">
-                  {stats.expiredPaused}
+                  {isLoading ? <Skeleton className="h-4.5 w-8 rounded mt-0.5 bg-rose-200/60" /> : stats.expiredPaused}
                 </span>
               </div>
               <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
@@ -552,9 +553,34 @@ export default function AdminOffersClient() {
             </div>
 
             {loadingAffiliates ? (
-              <div className="py-16 text-center text-xs font-semibold text-slate-500 flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-                Fetching affiliate deals across merchants...
+              <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs divide-y divide-slate-100 animate-pulse">
+                <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-6 flex-1">
+                    <Skeleton className="h-3 w-28 rounded bg-slate-200" />
+                    <Skeleton className="h-3 w-20 rounded bg-slate-200 hidden sm:block" />
+                    <Skeleton className="h-3 w-16 rounded bg-slate-200 hidden md:block" />
+                    <Skeleton className="h-3 w-20 rounded bg-slate-200 hidden lg:block" />
+                  </div>
+                  <Skeleton className="h-3 w-14 rounded bg-slate-200" />
+                </div>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="px-4 py-3 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-[200px]">
+                      <Skeleton className="w-10 h-10 rounded-lg bg-slate-200 shrink-0" />
+                      <div className="space-y-1.5 flex-1">
+                        <Skeleton className="h-3.5 w-36 rounded bg-slate-200" />
+                        <Skeleton className="h-2.5 w-24 rounded bg-slate-100" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-4 w-24 rounded bg-slate-100 hidden sm:block" />
+                    <Skeleton className="h-5 w-20 rounded-md bg-slate-100 hidden md:block" />
+                    <Skeleton className="h-4 w-16 rounded bg-slate-100 hidden lg:block" />
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <Skeleton className="w-7 h-7 rounded-lg bg-slate-100" />
+                      <Skeleton className="w-7 h-7 rounded-lg bg-slate-100" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : affiliateProducts.length === 0 ? (
               <div className="py-16 text-center text-xs font-medium text-slate-400 bg-white border border-slate-200/80 rounded-2xl">
