@@ -25,7 +25,15 @@ export default async function BrandsPage() {
       return (
         <div className="min-h-screen flex flex-col bg-slate-50/50">
           <Navbar />
-          <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading brands...</div>}><BrandsClient brands={JSON.parse(cached)} /></Suspense>
+          <Suspense
+            fallback={
+              <div className="p-8 text-center text-slate-400">
+                Loading brands...
+              </div>
+            }
+          >
+            <BrandsClient brands={JSON.parse(cached)} />
+          </Suspense>
           <Footer />
         </div>
       );
@@ -38,7 +46,9 @@ export default async function BrandsPage() {
     // Parallel database execution (Rule 74 — eliminate request waterfalls)
     const [dbMerchants, couponCounts, affiliateCounts] = await Promise.all([
       Merchant.find({ status: "approved" })
-        .select("businessName slug logo banner shopImage category isVerified status")
+        .select(
+          "businessName slug logo banner shopImage category isVerified status",
+        )
         .sort({ businessName: 1 })
         .lean(),
       Coupon.aggregate([
@@ -98,13 +108,27 @@ export default async function BrandsPage() {
 
     // Cache processed brands list in Redis
     try {
-      redis.setex(REDIS_KEYS.BRANDS_LIST, REDIS_TTL.BRANDS_LIST, JSON.stringify(brandsList)).catch(() => {});
+      redis
+        .setex(
+          REDIS_KEYS.BRANDS_LIST,
+          REDIS_TTL.BRANDS_LIST,
+          JSON.stringify(brandsList),
+        )
+        .catch(() => {});
     } catch (_) {}
 
     return (
       <div className="min-h-screen flex flex-col bg-slate-50/50">
         <Navbar />
-        <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading brands...</div>}><BrandsClient brands={brandsList} /></Suspense>
+        <Suspense
+          fallback={
+            <div className="p-8 text-center text-slate-400">
+              Loading brands...
+            </div>
+          }
+        >
+          <BrandsClient brands={brandsList} />
+        </Suspense>
         <Footer />
       </div>
     );
@@ -113,7 +137,15 @@ export default async function BrandsPage() {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50/50">
         <Navbar />
-        <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading brands...</div>}><BrandsClient brands={[]} /></Suspense>
+        <Suspense
+          fallback={
+            <div className="p-8 text-center text-slate-400">
+              Loading brands...
+            </div>
+          }
+        >
+          <BrandsClient brands={[]} />
+        </Suspense>
         <Footer />
       </div>
     );

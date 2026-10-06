@@ -1,22 +1,20 @@
-import { Geist, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import PublicMobileBottomNav from "@/components/layout/PublicMobileBottomNav";
 import ClientPrompts from "@/components/shared/ClientPrompts";
 import QueryProvider from "@/components/shared/QueryProvider";
 import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 
-const inter = Inter({
+const inter = localFont({
+  src: "../public/fonts/Inter-Variable.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
   display: "swap",
-  preload: true,
 });
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "../public/fonts/Geist-Variable.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
   display: "swap",
-  preload: true,
 });
 
 export const metadata = {
