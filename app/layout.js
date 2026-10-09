@@ -21,7 +21,6 @@ export const metadata = {
   title: "Vouchiqo | Verified Deals. Real Savings.",
   description:
     "Vouchiqo is a trusted offer marketplace and merchant growth platform offering 100% verified deals and analytics.",
-  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

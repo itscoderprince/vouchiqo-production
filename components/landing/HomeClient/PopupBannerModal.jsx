@@ -4,10 +4,8 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
-import { usePublicBanners } from "@/hooks/use-coupons";
 
-export function PopupBannerModal({ banners: initialBanners = [] }) {
-  const { data: banners = initialBanners } = usePublicBanners(initialBanners);
+export function PopupBannerModal({ banners = [] }) {
   const [open, setOpen] = useState(false);
   const [activeBanner, setActiveBanner] = useState(null);
 

@@ -1,12 +1,10 @@
 "use client";
 
 import dynamicImport from "next/dynamic";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { Suspense, useEffect, useState } from "react";
 
 // Core components & layout
 import Navbar from "@/components/layout/navbar";
-import { useInterests } from "@/hooks/use-interests";
 import { useSession } from "@/lib/auth-client";
 import { HeroSection } from "../HeroSection";
 import PopularOffers from "../PopularOffers";
@@ -65,41 +63,14 @@ export function HomeClient({
   affiliateProducts = [],
 }) {
   const [isMounted, setIsMounted] = useState(false);
-
+  const [isPrefSheetOpen, setIsPrefSheetOpen] = useState(false);
   const { data: session } = useSession();
   const user = session?.user;
-  const {
-    interests: savedInterests,
-    saveInterests,
-    syncing: updatingPrefs,
-  } = useInterests();
-  const [selectedInterests, setSelectedInterests] = useState([]);
-  const [isPrefSheetOpen, setIsPrefSheetOpen] = useState(false);
 
   // Mount logic
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  // Sync selectedInterests state with savedInterests when the preferences sheet opens
-  useEffect(() => {
-    if (isPrefSheetOpen) {
-      setSelectedInterests(savedInterests || []);
-    }
-  }, [isPrefSheetOpen, savedInterests]);
-
-  const handleSaveInterests = useCallback(
-    async (interestsList) => {
-      try {
-        await saveInterests(interestsList);
-        toast.success("Preferences updated successfully!");
-        setIsPrefSheetOpen(false);
-      } catch (error) {
-        toast.error("Failed to update preferences. Please try again.");
-      }
-    },
-    [saveInterests],
-  );
 
   return (
     <div className="min-h-screen flex flex-col bg-brand-surface text-brand-text w-full">
@@ -208,14 +179,10 @@ export function HomeClient({
       </Suspense>
 
       {/* Personalisation Preferences slide-in Sheet panel */}
-      {isMounted && user && (
+      {isMounted && user && isPrefSheetOpen && (
         <InterestSheet
           isOpen={isPrefSheetOpen}
           onOpenChange={setIsPrefSheetOpen}
-          updatingPrefs={updatingPrefs}
-          selectedInterests={selectedInterests}
-          setSelectedInterests={setSelectedInterests}
-          handleSaveInterests={handleSaveInterests}
         />
       )}
 

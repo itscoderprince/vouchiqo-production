@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DEFAULT_PLACEHOLDER, getOptimizedImageUrl } from "@/lib/image-utils";
 
 /**
@@ -31,6 +31,12 @@ export default function SafeImage({
   ...rest
 }) {
   const [hasError, setHasError] = useState(false);
+  const [prevSrc, setPrevSrc] = useState(src);
+
+  if (prevSrc !== src) {
+    setPrevSrc(src);
+    setHasError(false);
+  }
 
   // Transform remote Cloudinary/Unsplash image if dimensions provided
   const optimizedSrc = useMemo(() => {
@@ -46,15 +52,7 @@ export default function SafeImage({
     });
   }, [src, width, height, fill, fallbackSrc]);
 
-  const [currentSrc, setCurrentSrc] = useState(optimizedSrc);
-
-  // Sync state if source changes
-  useEffect(() => {
-    setCurrentSrc(optimizedSrc);
-    setHasError(false);
-  }, [optimizedSrc]);
-
-  const finalSrc = hasError || !currentSrc ? fallbackSrc : currentSrc;
+  const finalSrc = hasError ? fallbackSrc : optimizedSrc || fallbackSrc;
 
   // Determine if image should bypass Next.js image optimization (data URI, blob, or svg)
   const isDataOrBlob =
@@ -70,7 +68,9 @@ export default function SafeImage({
   // Default responsive sizes for fill images if not explicitly specified
   const effectiveSizes =
     sizes ||
-    (fill ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" : undefined);
+    (fill
+      ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      : undefined);
 
   return (
     <Image
@@ -80,7 +80,7 @@ export default function SafeImage({
       width={!fill ? width : undefined}
       height={!fill ? height : undefined}
       priority={priority}
-      loading={priority ? "eager" : (loading || "lazy")}
+      loading={priority ? "eager" : loading || "lazy"}
       fetchPriority={fetchPriority || (priority ? "high" : "auto")}
       sizes={effectiveSizes}
       unoptimized={shouldBeUnoptimized}
@@ -90,7 +90,6 @@ export default function SafeImage({
       onError={() => {
         if (!hasError) {
           setHasError(true);
-          setCurrentSrc(fallbackSrc);
         }
       }}
       {...rest}

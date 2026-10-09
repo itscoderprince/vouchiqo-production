@@ -32,14 +32,44 @@ const PLACEHOLDER_PHRASES = [
 const QUICK_CATEGORIES = [
   { name: "Fashion & Clothing", slug: "fashion", type: "Category", emoji: "🛍️" },
   { name: "Food & Dining", slug: "food", type: "Category", emoji: "🍔" },
-  { name: "Electronics & Gadgets", slug: "electronics", type: "Category", emoji: "💻" },
+  {
+    name: "Electronics & Gadgets",
+    slug: "electronics",
+    type: "Category",
+    emoji: "💻",
+  },
   { name: "Beauty & Wellness", slug: "beauty", type: "Category", emoji: "💄" },
-  { name: "Travel & Hospitality", slug: "travel", type: "Category", emoji: "✈️" },
+  {
+    name: "Travel & Hospitality",
+    slug: "travel",
+    type: "Category",
+    emoji: "✈️",
+  },
   { name: "Home & Living", slug: "home", type: "Category", emoji: "🏠" },
-  { name: "Fitness & Healthcare", slug: "fitness", type: "Category", emoji: "💪" },
-  { name: "Gaming & Entertainment", slug: "entertainment", type: "Category", emoji: "🎮" },
-  { name: "Grocery & Essentials", slug: "grocery", type: "Category", emoji: "🛒" },
-  { name: "Finance & Insurance", slug: "finance", type: "Category", emoji: "💳" },
+  {
+    name: "Fitness & Healthcare",
+    slug: "fitness",
+    type: "Category",
+    emoji: "💪",
+  },
+  {
+    name: "Gaming & Entertainment",
+    slug: "entertainment",
+    type: "Category",
+    emoji: "🎮",
+  },
+  {
+    name: "Grocery & Essentials",
+    slug: "grocery",
+    type: "Category",
+    emoji: "🛒",
+  },
+  {
+    name: "Finance & Insurance",
+    slug: "finance",
+    type: "Category",
+    emoji: "💳",
+  },
 ];
 
 export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
@@ -64,42 +94,19 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
     }
   }, [autoFocus]);
 
-  // Typewriter animation states
-  const [placeholderText, setPlaceholderText] = useState("");
+  // Smooth rotating placeholder phrase (updates every 3.5s instead of rapid 35ms re-render ticks)
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Smooth Typewriter Effect for Search Placeholder
   useEffect(() => {
-    const currentPhrase =
-      PLACEHOLDER_PHRASES[phraseIndex % PLACEHOLDER_PHRASES.length] ||
-      "Search brands, deals, coupons...";
-
-    let typingSpeed = isDeleting ? 35 : 70;
-
-    if (!isDeleting && charIndex === currentPhrase.length) {
-      typingSpeed = 1900; // Pause at end of full phrase
-    } else if (isDeleting && charIndex === 0) {
-      setIsDeleting(false);
+    const timer = setInterval(() => {
       setPhraseIndex((prev) => (prev + 1) % PLACEHOLDER_PHRASES.length);
-      typingSpeed = 250;
-    }
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
 
-    const timer = setTimeout(() => {
-      if (!isDeleting && charIndex < currentPhrase.length) {
-        setPlaceholderText(currentPhrase.substring(0, charIndex + 1));
-        setCharIndex((prev) => prev + 1);
-      } else if (isDeleting && charIndex > 0) {
-        setPlaceholderText(currentPhrase.substring(0, charIndex - 1));
-        setCharIndex((prev) => prev - 1);
-      } else if (!isDeleting && charIndex === currentPhrase.length) {
-        setIsDeleting(true);
-      }
-    }, typingSpeed);
-
-    return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, phraseIndex]);
+  const placeholderText =
+    PLACEHOLDER_PHRASES[phraseIndex % PLACEHOLDER_PHRASES.length] ||
+    "Search brands, deals, coupons...";
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -125,8 +132,8 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
     }
 
     // 1. Instant local category match (0ms latency preview)
-    const instantCategories = QUICK_CATEGORIES.filter((c) =>
-      c.name.toLowerCase().includes(q) || c.slug.includes(q)
+    const instantCategories = QUICK_CATEGORIES.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.slug.includes(q),
     ).map((c) => ({
       id: `local_cat_${c.slug}`,
       title: c.name,
@@ -169,8 +176,8 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
           subtitle: c.merchant?.name
             ? `${c.merchant.name}${c.code ? ` • Code: ${c.code}` : " • Offer"}`
             : c.code
-            ? `Code: ${c.code}`
-            : "Special Deal",
+              ? `Code: ${c.code}`
+              : "Special Deal",
           type: "Offer",
           href: c.href || `/deals/${c.id}`,
           logo: c.merchant?.logo,
@@ -194,8 +201,8 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
           subtitle: p.merchant?.name
             ? `${p.merchant.name}${p.discountPrice ? ` • ₹${p.discountPrice}` : ""}`
             : p.discountPrice
-            ? `Special Price: ₹${p.discountPrice}`
-            : "Product Deal",
+              ? `Special Price: ₹${p.discountPrice}`
+              : "Product Deal",
           type: "Product",
           href: p.href || "#",
           logo: p.imageUrl,
@@ -205,7 +212,12 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
 
         // Deduplicate by href
         const hrefMap = new Map();
-        const all = [...brandItems, ...couponItems, ...categoryItems, ...productItems];
+        const all = [
+          ...brandItems,
+          ...couponItems,
+          ...categoryItems,
+          ...productItems,
+        ];
         all.forEach((item) => {
           if (!hrefMap.has(item.href)) {
             hrefMap.set(item.href, item);
@@ -398,10 +410,10 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
                           item.type === "Brand"
                             ? "bg-blue-50 text-blue-700 border-blue-200"
                             : item.type === "Category"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : item.type === "Product"
-                            ? "bg-purple-50 text-purple-700 border-purple-200"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : item.type === "Product"
+                                ? "bg-purple-50 text-purple-700 border-purple-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                       >
                         {item.type}
@@ -439,9 +451,7 @@ export const SearchBar = ({ autoFocus = false, onSelect = null }) => {
               >
                 <span className="flex items-center gap-1.5 truncate">
                   <Search className="w-3.5 h-3.5 shrink-0" />
-                  <span>
-                    View all results for &ldquo;{query.trim()}&rdquo;
-                  </span>
+                  <span>View all results for &ldquo;{query.trim()}&rdquo;</span>
                 </span>
                 <span className="flex items-center gap-1 shrink-0 text-[11px] font-normal">
                   {totalMatches > 0 && (

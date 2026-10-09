@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const LenisContext = createContext(null);
 
@@ -28,55 +28,73 @@ export default function SmoothScrollProvider({ children }) {
     let handleAnchorClick = null;
     let isCancelled = false;
 
-    import("lenis").then(({ default: Lenis }) => {
+    let idleId = null;
+    let timerId = null;
+
+    const startLenis = () => {
       if (isCancelled) return;
+      import("lenis").then(({ default: Lenis }) => {
+        if (isCancelled) return;
 
-      document.documentElement.classList.add("lenis", "lenis-smooth");
+        document.documentElement.classList.add("lenis", "lenis-smooth");
 
-      lenis = new Lenis({
-        duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        orientation: "vertical",
-        gestureOrientation: "vertical",
-        smoothWheel: true,
-        wheelMultiplier: 1.0,
-        touchMultiplier: 1.1,
-        infinite: false,
-        autoRaf: false,
-      });
+        lenis = new Lenis({
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
+          orientation: "vertical",
+          gestureOrientation: "vertical",
+          smoothWheel: true,
+          wheelMultiplier: 1.0,
+          touchMultiplier: 1.1,
+          infinite: false,
+          autoRaf: false,
+        });
 
-      lenisRef.current = lenis;
-      setLenisInstance(lenis);
-      window.lenis = lenis;
+        lenisRef.current = lenis;
+        setLenisInstance(lenis);
+        window.lenis = lenis;
 
-      function raf(time) {
-        lenis.raf(time);
-        rafId = requestAnimationFrame(raf);
-      }
-
-      rafId = requestAnimationFrame(raf);
-
-      handleAnchorClick = (e) => {
-        const target = e.target.closest("a[href*='#']");
-        if (!target) return;
-
-        const href = target.getAttribute("href");
-        if (!href || href === "#") return;
-
-        if (href.startsWith("#")) {
-          const elem = document.querySelector(href);
-          if (elem) {
-            e.preventDefault();
-            lenis.scrollTo(elem, { offset: -90, duration: 1.2 });
-          }
+        function raf(time) {
+          lenis.raf(time);
+          rafId = requestAnimationFrame(raf);
         }
-      };
 
-      document.addEventListener("click", handleAnchorClick);
-    });
+        rafId = requestAnimationFrame(raf);
+
+        handleAnchorClick = (e) => {
+          const target = e.target.closest("a[href*='#']");
+          if (!target) return;
+
+          const href = target.getAttribute("href");
+          if (!href || href === "#") return;
+
+          if (href.startsWith("#")) {
+            const elem = document.querySelector(href);
+            if (elem) {
+              e.preventDefault();
+              lenis.scrollTo(elem, { offset: -90, duration: 1.2 });
+            }
+          }
+        };
+
+        document.addEventListener("click", handleAnchorClick);
+      });
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(startLenis, { timeout: 2000 });
+    } else {
+      timerId = setTimeout(startLenis, 1000);
+    }
 
     return () => {
       isCancelled = true;
+      if (idleId && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timerId) {
+        clearTimeout(timerId);
+      }
       if (handleAnchorClick) {
         document.removeEventListener("click", handleAnchorClick);
       }
@@ -91,6 +109,7 @@ export default function SmoothScrollProvider({ children }) {
     };
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Reset scroll on route change
   useEffect(() => {
     if (lenisRef.current) {
       lenisRef.current.scrollTo(0, { immediate: true });

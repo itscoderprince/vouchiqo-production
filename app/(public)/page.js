@@ -6,8 +6,7 @@ import { getPublicAffiliateProducts } from "@/modules/affiliate-product/affiliat
 import { getFeaturedCoupons } from "@/modules/coupon/coupon.service";
 import Merchant from "@/modules/merchant/merchant.model";
 
-// Force dynamic SSR rendering
-export const dynamic = "force-dynamic";
+// ISR page caching (revalidates every 60 seconds, no no-store headers, enables bfcache)
 export const revalidate = 60;
 
 const CACHE_KEY = "vouchiqo:homepage:data:v3";
@@ -39,7 +38,7 @@ async function fetchHomepageData() {
             "businessName slug logo banner shopImage category maxDiscount totalCoupons totalRedemptions isVerified status",
           )
           .sort({ totalCoupons: -1, totalRedemptions: -1, createdAt: -1 })
-          .limit(200)
+          .limit(36)
           .lean()
           .catch(() => []),
         getPromoBanners().catch(() => []),

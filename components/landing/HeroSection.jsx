@@ -4,10 +4,8 @@ import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
-import { usePublicBanners } from "@/hooks/use-coupons";
 
-export function HeroSection({ banners: initialBanners = [] }) {
-  const { data: banners = initialBanners } = usePublicBanners(initialBanners);
+export function HeroSection({ banners = [] }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
   const [dragOffset, setDragOffset] = useState(0);
@@ -22,6 +20,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
   // Bottom logos scroll refs
   const thumbTrackRef = useRef(null);
   const thumbRefs = useRef([]);
+  const isFirstMount = useRef(true);
 
   const slides = useMemo(() => {
     const dbBanners = (banners || []).filter(
@@ -72,9 +71,16 @@ export function HeroSection({ banners: initialBanners = [] }) {
     });
   }, []);
 
-  // Scroll active logo into view when slide changes
+  // Scroll active logo into view when slide changes (deferred to rAF to avoid forced reflow)
   useEffect(() => {
-    scrollToThumb(currentSlide);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    const rafId = requestAnimationFrame(() => {
+      scrollToThumb(currentSlide);
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [currentSlide, scrollToThumb]);
 
   const handlePrev = useCallback(() => {
@@ -220,7 +226,7 @@ export function HeroSection({ banners: initialBanners = [] }) {
             onMouseLeave={handleMouseLeave}
           >
             <div
-              className={`flex h-full w-full ${
+              className={`flex h-full w-full will-change-transform ${
                 isDragging.current
                   ? "transition-none"
                   : "transition-transform duration-500 ease-in-out"
@@ -387,7 +393,9 @@ export function HeroSection({ banners: initialBanners = [] }) {
               return (
                 <button
                   key={brand.id}
-                  ref={(el) => (thumbRefs.current[idx] = el)}
+                  ref={(el) => {
+                    thumbRefs.current[idx] = el;
+                  }}
                   onClick={() => handleBrandClick(idx)}
                   type="button"
                   className={`relative flex-none shrink-0 inline-flex items-center justify-center cursor-pointer border rounded-md bg-white p-1.5 w-[76px] sm:w-[84px] h-[36px] sm:h-[40px] transition-all duration-200 ${
