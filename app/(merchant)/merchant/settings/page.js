@@ -1,14 +1,12 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   Building,
-  Camera,
   Globe,
   Loader2,
   MessageSquare,
-  Send,
   Share2,
   Store,
   Upload,
@@ -17,6 +15,15 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { FormInput, FormTextarea } from "@/components/shared/form";
+import SafeImage from "@/components/shared/SafeImage";
+import {
+  FacebookIcon,
+  formatSocialUrl,
+  InstagramIcon,
+  LinkedInIcon,
+  normalizeExternalUrl,
+  TwitterIcon,
+} from "@/components/shared/SocialLinks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -86,6 +93,27 @@ export default function MerchantAccountSettings() {
           `${merchant.businessName} partner store on Vouchiqo platform.`,
       );
       setWebsiteUrl(merchant.website || "");
+
+      const merchSocials = merchant.socialLinks || merchant.socials || {};
+      setSocials({
+        instagram:
+          merchSocials.instagram ||
+          merchant.instagram ||
+          merchant.instagramHandle ||
+          "",
+        facebook:
+          merchSocials.facebook ||
+          merchant.facebook ||
+          merchant.facebookUrl ||
+          "",
+        twitter:
+          merchSocials.twitter || merchant.twitter || merchant.twitterUrl || "",
+        linkedin:
+          merchSocials.linkedin ||
+          merchant.linkedin ||
+          merchant.linkedinUrl ||
+          "",
+      });
     }
   }, [merchant]);
 
@@ -94,13 +122,21 @@ export default function MerchantAccountSettings() {
     e.preventDefault();
     try {
       setIsSaving(true);
+      const cleanWebsite = normalizeExternalUrl(websiteUrl);
+
       const res = await fetch("/api/merchants/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           logo: logoUrl,
           description: businessDesc,
-          website: websiteUrl,
+          website: cleanWebsite,
+          socialLinks: {
+            instagram: formatSocialUrl("instagram", socials.instagram),
+            facebook: formatSocialUrl("facebook", socials.facebook),
+            twitter: formatSocialUrl("twitter", socials.twitter),
+            linkedin: formatSocialUrl("linkedin", socials.linkedin),
+          },
         }),
       });
 
@@ -111,6 +147,7 @@ export default function MerchantAccountSettings() {
       toast.success("Business profile saved successfully!");
       await refetch();
       queryClient.invalidateQueries({ queryKey: ["merchant-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["merchant-badges"] });
     } catch (err) {
       toast.error(err.message || "Error saving profile");
     } finally {
@@ -176,16 +213,14 @@ export default function MerchantAccountSettings() {
                   </Label>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="relative w-14 h-14 rounded-full overflow-hidden border border-slate-200/90 shadow-2xs bg-slate-100 flex items-center justify-center shrink-0">
-                      {/* biome-ignore lint/performance/noImgElement: logo preview */}
-                      {logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt="Store Logo"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Store className="w-6 h-6 text-slate-400" />
-                      )}
+                      {logoUrl
+                        ? <SafeImage
+                            src={logoUrl}
+                            alt="Store Logo"
+                            fill
+                            className="object-cover"
+                          />
+                        : <Store className="w-6 h-6 text-slate-400" />}
                     </div>
                     <div className="flex-1 space-y-1.5">
                       <FormInput
@@ -259,9 +294,9 @@ export default function MerchantAccountSettings() {
                     <FormInput
                       name="instagram"
                       label="Instagram Profile"
-                      icon={Camera}
-                      type="url"
-                      placeholder="https://instagram.com/yourstore"
+                      icon={InstagramIcon}
+                      type="text"
+                      placeholder="https://instagram.com/yourstore or @yourstore"
                       value={socials.instagram}
                       onChange={(e) =>
                         setSocials({ ...socials, instagram: e.target.value })
@@ -270,9 +305,9 @@ export default function MerchantAccountSettings() {
                     <FormInput
                       name="facebook"
                       label="Facebook Page"
-                      icon={Share2}
-                      type="url"
-                      placeholder="https://facebook.com/yourstore"
+                      icon={FacebookIcon}
+                      type="text"
+                      placeholder="https://facebook.com/yourstore or page name"
                       value={socials.facebook}
                       onChange={(e) =>
                         setSocials({ ...socials, facebook: e.target.value })
@@ -281,9 +316,9 @@ export default function MerchantAccountSettings() {
                     <FormInput
                       name="twitter"
                       label="Twitter / X Profile"
-                      icon={Send}
-                      type="url"
-                      placeholder="https://x.com/yourstore"
+                      icon={TwitterIcon}
+                      type="text"
+                      placeholder="https://x.com/yourstore or @yourstore"
                       value={socials.twitter}
                       onChange={(e) =>
                         setSocials({ ...socials, twitter: e.target.value })
@@ -292,8 +327,8 @@ export default function MerchantAccountSettings() {
                     <FormInput
                       name="linkedin"
                       label="LinkedIn Company"
-                      icon={Globe}
-                      type="url"
+                      icon={LinkedInIcon}
+                      type="text"
                       placeholder="https://linkedin.com/company/yourstore"
                       value={socials.linkedin}
                       onChange={(e) =>

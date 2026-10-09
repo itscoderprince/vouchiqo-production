@@ -75,6 +75,15 @@ const merchantSchema = new Schema(
     contactEmail: { type: String, lowercase: true, trim: true },
     website: { type: String, trim: true },
 
+    // Official Social Links & External Profiles
+    socialLinks: {
+      instagram: { type: String, trim: true, default: "" },
+      facebook: { type: String, trim: true, default: "" },
+      twitter: { type: String, trim: true, default: "" },
+      linkedin: { type: String, trim: true, default: "" },
+      youtube: { type: String, trim: true, default: "" },
+    },
+
     status: {
       type: String,
       enum: Object.values(MERCHANT_STATUS),
@@ -317,13 +326,19 @@ merchantSchema.pre("save", function () {
 merchantSchema.index({ status: 1, category: 1 });
 merchantSchema.index({ status: 1, businessName: 1 });
 merchantSchema.index({ status: 1, createdAt: -1 });
-merchantSchema.index({ status: 1, totalCoupons: -1, totalRedemptions: -1, createdAt: -1 });
+merchantSchema.index({
+  status: 1,
+  totalCoupons: -1,
+  totalRedemptions: -1,
+  createdAt: -1,
+});
 merchantSchema.index({ "location.city": 1, status: 1 });
 merchantSchema.index({ contactEmail: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ contactPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ liaisonPhone: 1 }, { unique: true, sparse: true });
 merchantSchema.index({ gstin: 1 }, { unique: true, sparse: true });
 
-const Merchant = mongoose.models.Merchant || mongoose.model("Merchant", merchantSchema);
+const Merchant =
+  mongoose.models.Merchant || mongoose.model("Merchant", merchantSchema);
 
 export default Merchant;

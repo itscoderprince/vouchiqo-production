@@ -21,6 +21,7 @@ const MERCHANT_PUBLIC_FIELDS = {
   isVerified: 1,
   plan: 1,
   website: 1,
+  socialLinks: 1,
   totalCoupons: 1,
 };
 

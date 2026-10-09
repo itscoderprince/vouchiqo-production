@@ -5,10 +5,16 @@ import {
   Clock,
   Copy,
   ExternalLink,
+  Globe,
   Mail,
   MapPin,
   Phone,
 } from "lucide-react";
+import {
+  BrandLinksBar,
+  getDisplayDomain,
+  normalizeExternalUrl,
+} from "@/components/shared/SocialLinks";
 import {
   Accordion,
   AccordionContent,
@@ -28,30 +34,45 @@ export default function SidebarSection({
   return (
     <div className="lg:col-span-4 space-y-4 text-left" style={fontStyle}>
       {/* About store */}
-      <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs">
-        <h3 className="text-[10.5px] font-medium uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100 mb-2.5">
-          About {merchant.businessName}
-        </h3>
-        <p className="text-[12.5px] text-slate-600 leading-relaxed font-normal">
-          {(() => {
-            const text = merchant.longDescription || merchant.description;
-            if (text && text.trim().length > 20 && !text.includes("sfsf")) {
-              return text;
-            }
-            return `Welcome to ${merchant.businessName}! Explore the latest verified discount offers, promo codes, and exclusive store deals. Save more on every purchase with real, tested deals curated daily for you.`;
-          })()}
-        </p>
+      <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+        <div>
+          <h3 className="text-[10.5px] font-medium uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100 mb-2.5">
+            About {merchant.businessName}
+          </h3>
+          <p className="text-[12.5px] text-slate-600 leading-relaxed font-normal">
+            {(() => {
+              const text = merchant.longDescription || merchant.description;
+              if (text && text.trim().length > 20 && !text.includes("sfsf")) {
+                return text;
+              }
+              return `Welcome to ${merchant.businessName}! Explore the latest verified discount offers, promo codes, and exclusive store deals. Save more on every purchase with real, tested deals curated daily for you.`;
+            })()}
+          </p>
+        </div>
+
+        {/* Official Store Website Button */}
         {merchant.website && (
           <a
-            href={merchant.website}
+            href={normalizeExternalUrl(merchant.website)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-normal text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+            className="w-full inline-flex items-center justify-between px-3.5 py-2 rounded-xl bg-blue-50/80 hover:bg-blue-100/90 border border-blue-200/80 text-blue-700 text-xs font-semibold transition-all group shadow-2xs cursor-pointer"
           >
-            Visit official website
-            <ExternalLink className="w-3 h-3" />
+            <span className="flex items-center gap-2 truncate">
+              <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span className="truncate">Visit Official Website</span>
+            </span>
+            <ExternalLink className="w-3.5 h-3.5 text-blue-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </a>
         )}
+
+        {/* Official Social Media Channels */}
+        <div className="pt-2 border-t border-slate-100">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+            Official Channels
+          </span>
+          <BrandLinksBar merchant={merchant} showWebsite={false} size="sm" />
+        </div>
       </div>
 
       {/* Operating Hours */}
@@ -137,6 +158,20 @@ export default function SidebarSection({
             <div className="flex items-center gap-2">
               <Mail className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
               <span>{merchant.contactEmail}</span>
+            </div>
+          )}
+
+          {merchant.website && (
+            <div className="flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+              <a
+                href={normalizeExternalUrl(merchant.website)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline truncate font-medium"
+              >
+                {getDisplayDomain(merchant.website) || "Official Website"}
+              </a>
             </div>
           )}
         </div>

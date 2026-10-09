@@ -6,11 +6,17 @@ import {
   ChevronUp,
   Copy,
   ExternalLink,
+  Globe,
   Mail,
   MapPin,
   Phone,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  BrandLinksBar,
+  getDisplayDomain,
+  normalizeExternalUrl,
+} from "@/components/shared/SocialLinks";
 
 /**
  * Brand sidebar: about store, FAQ accordion, contact details, share widget.
@@ -48,15 +54,26 @@ export default function BrandSidebar({ merchant, copiedLink, onShare }) {
         </p>
         {merchant.website && (
           <a
-            href={merchant.website}
+            href={normalizeExternalUrl(merchant.website)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+            className="w-full inline-flex items-center justify-between px-3.5 py-2 rounded-xl bg-blue-50/80 hover:bg-blue-100/90 border border-blue-200/80 text-blue-700 text-xs font-semibold transition-all group shadow-2xs cursor-pointer mt-2"
           >
-            <span>Visit Official Store Website</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-2 truncate">
+              <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span className="truncate">Visit Official Store Website</span>
+            </span>
+            <ExternalLink className="w-3.5 h-3.5 text-blue-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </a>
         )}
+
+        {/* Official Social Media Channels */}
+        <div className="pt-2 border-t border-slate-100">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+            Official Channels
+          </span>
+          <BrandLinksBar merchant={merchant} showWebsite={false} size="sm" />
+        </div>
       </div>
 
       {/* FAQ Accordion */}
@@ -100,6 +117,19 @@ export default function BrandSidebar({ merchant, copiedLink, onShare }) {
               <span className="text-slate-600 font-medium">
                 {merchant.contactEmail}
               </span>
+            </div>
+          )}
+          {merchant.website && (
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <a
+                href={normalizeExternalUrl(merchant.website)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline truncate font-medium"
+              >
+                {getDisplayDomain(merchant.website) || "Official Website"}
+              </a>
             </div>
           )}
         </div>

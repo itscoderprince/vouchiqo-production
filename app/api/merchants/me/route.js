@@ -71,7 +71,7 @@ export const GET = asyncHandler(async (request) => {
   }
 
   // Auto-clean legacy unmeaningful random suffixes (e.g. -g7y6) if present
-  if (merchant && merchant.slug && /-[a-z0-9]{4,6}$/i.test(merchant.slug)) {
+  if (merchant?.slug && /-[a-z0-9]{4,6}$/i.test(merchant.slug)) {
     try {
       const city = merchant.location?.city || merchant.city || "";
       const state = merchant.location?.state || merchant.state || "";
@@ -306,6 +306,7 @@ export const PUT = asyncHandler(async (request) => {
     "logo",
     "banner",
     "operatingHours",
+    "socialLinks",
   ];
 
   await checkMerchantDuplicates(body, merchant._id);
@@ -314,11 +315,62 @@ export const PUT = asyncHandler(async (request) => {
     if (body[field] !== undefined) {
       if (field === "category") {
         if (newCategory) merchant.category = newCategory;
+      } else if (field === "website") {
+        const rawWeb = String(body.website || "").trim();
+        merchant.website =
+          rawWeb && !/^https?:\/\//i.test(rawWeb)
+            ? `https://${rawWeb}`
+            : rawWeb;
       } else {
         merchant[field] = body[field];
       }
     }
   });
+
+  // Handle social media profiles (nested object or flat fields)
+  if (
+    body.socialLinks !== undefined ||
+    body.socials !== undefined ||
+    body.instagram !== undefined ||
+    body.facebook !== undefined ||
+    body.twitter !== undefined ||
+    body.linkedin !== undefined
+  ) {
+    const rawSocials = body.socialLinks || body.socials || {};
+    merchant.socialLinks = {
+      instagram: String(
+        rawSocials.instagram ||
+          body.instagram ||
+          merchant.socialLinks?.instagram ||
+          "",
+      ).trim(),
+      facebook: String(
+        rawSocials.facebook ||
+          body.facebook ||
+          merchant.socialLinks?.facebook ||
+          "",
+      ).trim(),
+      twitter: String(
+        rawSocials.twitter ||
+          body.twitter ||
+          merchant.socialLinks?.twitter ||
+          "",
+      ).trim(),
+      linkedin: String(
+        rawSocials.linkedin ||
+          body.linkedin ||
+          merchant.socialLinks?.linkedin ||
+          "",
+      ).trim(),
+      youtube: String(
+        rawSocials.youtube ||
+          body.youtube ||
+          merchant.socialLinks?.youtube ||
+          "",
+      ).trim(),
+    };
+    merchant.markModified("socialLinks");
+  }
 
   if (body.gstin !== undefined) {
     const cleanGstin = String(body.gstin || "")
@@ -352,9 +404,16 @@ export const PUT = asyncHandler(async (request) => {
 
   await merchant.save();
 
-  // Invalidate Redis merchant profile cache so the next request gets fresh data
+  // Invalidate Redis merchant profile and brand detail cache so changes reflect instantly
   if (authIdStr) {
-    await invalidateMerchantCache(authIdStr).catch(() => {});
+    await invalidateMerchantCache(authIdStr, merchant._id).catch(() => {});
+  }
+  if (merchant.slug) {
+    try {
+      await redis.del(REDIS_KEYS.brandDetail(merchant.slug.toLowerCase()));
+      await redis.del(REDIS_KEYS.BRANDS_LIST);
+      await redis.del(REDIS_KEYS.HOMEPAGE_DATA);
+    } catch (_) {}
   }
 
   // Cascade category change to all listings (coupons) and affiliate products

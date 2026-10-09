@@ -3,6 +3,7 @@
 import { Share2, Star, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import SafeImage from "@/components/shared/SafeImage";
+import { BrandLinksBar } from "@/components/shared/SocialLinks";
 
 function BlueVerifiedTick({ className = "w-4 h-4" }) {
   return (
@@ -159,6 +160,14 @@ export default function MobileBrandHeader({
                 <span className="text-slate-300">•</span>
                 <span className="text-slate-600">Validated on {todayStr}</span>
               </div>
+
+              {/* Brand Links Bar (Website + Socials) */}
+              <BrandLinksBar
+                merchant={merchant}
+                showWebsite={true}
+                className="pt-1.5"
+                size="sm"
+              />
             </div>
           </div>
 

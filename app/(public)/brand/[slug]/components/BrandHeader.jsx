@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
+import { BrandLinksBar } from "@/components/shared/SocialLinks";
 import MobileBrandHeader from "./MobileBrandHeader";
 
 const ShareModal = dynamic(() => import("./ShareModal"), { ssr: false });
@@ -210,6 +211,14 @@ export default function BrandHeader({
                       {todayStr}
                     </span>
                   </p>
+
+                  {/* Brand Official Website & Social Links */}
+                  <BrandLinksBar
+                    merchant={merchant}
+                    showWebsite={true}
+                    className="pt-1"
+                    size="sm"
+                  />
                 </div>
               </div>
 

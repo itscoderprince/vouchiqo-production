@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
@@ -169,7 +169,10 @@ export function MerchantOnboardingWizard() {
         const json = await res.json();
         const merchant = json?.data?.merchant || json?.data;
 
-        if (merchant && (merchant._id || merchant.status || merchant.businessName)) {
+        if (
+          merchant &&
+          (merchant._id || merchant.status || merchant.businessName)
+        ) {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("vouchiqo_is_merchant", "true");
           }
@@ -196,9 +199,7 @@ export function MerchantOnboardingWizard() {
       controller.abort();
       clearTimeout(timeout);
     };
-  // Run once after sessionLoaded becomes true — not on every authUser mutation
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionLoaded, router]);
+  }, [sessionLoaded, router, authUser]);
 
   // File Upload Handler
   const handleFileUpload = async (file, targetField, setUploadingState) => {
@@ -515,7 +516,7 @@ export function MerchantOnboardingWizard() {
 
   // Final Form Submission Handler
   const handleSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
 
     const { isValid, errors, effectiveSignatoryName } =
       validateAgreementsSubmission(formData, commitmentItems, policyItems);
@@ -588,6 +589,16 @@ export function MerchantOnboardingWizard() {
         contactPhone: cleanPhone(formData.mobile || authUser?.phoneNumber),
         whatsappNumber: cleanPhone(formData.whatsapp || formData.mobile),
         website: cleanUrl(formData.websiteUrl),
+        socialLinks: {
+          instagram: formData.instagramHandle
+            ? formData.instagramHandle.startsWith("http")
+              ? formData.instagramHandle
+              : `https://instagram.com/${formData.instagramHandle.replace(/^@/, "")}`
+            : "",
+          facebook: cleanUrl(formData.facebookUrl),
+          twitter: "",
+          linkedin: "",
+        },
         liaisonName: effectiveSignatoryName,
         signatoryName: effectiveSignatoryName,
         liaisonDesignation: formData.designation,

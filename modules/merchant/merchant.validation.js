@@ -48,7 +48,19 @@ export const createMerchantSchema = z.object({
   contactPhone: z.string().optional(),
   whatsappNumber: z.string().optional(),
   website: z.string().optional(),
-  businessType: z.enum(["online", "physical", "both"]).or(z.string()).optional(),
+  socialLinks: z
+    .object({
+      instagram: z.string().optional(),
+      facebook: z.string().optional(),
+      twitter: z.string().optional(),
+      linkedin: z.string().optional(),
+      youtube: z.string().optional(),
+    })
+    .optional(),
+  businessType: z
+    .enum(["online", "physical", "both"])
+    .or(z.string())
+    .optional(),
   operatingHours: z.record(z.any()).optional(),
   logo: z.string().optional(),
   banner: z.string().optional(),
