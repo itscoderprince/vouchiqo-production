@@ -7,6 +7,7 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    qualities: [50, 75, 80, 85, 90, 100],
     minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
@@ -26,8 +27,6 @@ const nextConfig = {
       { protocol: "https", hostname: "commons.wikimedia.org", pathname: "/**" },
       { protocol: "https", hostname: "companieslogo.com", pathname: "/**" },
       { protocol: "https", hostname: "ui-avatars.com", pathname: "/**" },
-      { protocol: "https", hostname: "**" },
-      { protocol: "http", hostname: "**" },
     ],
   },
   experimental: {

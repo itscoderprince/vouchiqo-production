@@ -76,7 +76,12 @@ export function PopupBannerModal({ banners = [] }) {
         style={{ aspectRatio: "600 / 400" }}
       >
         <SafeImage
-          src={activeBanner.image}
+          src={
+            activeBanner.image ||
+            activeBanner.imageUrl ||
+            activeBanner.desktopImage ||
+            ""
+          }
           alt={activeBanner.title || "Promotional Banner"}
           fill
           priority

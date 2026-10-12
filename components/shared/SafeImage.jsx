@@ -62,8 +62,15 @@ export default function SafeImage({
       finalSrc.endsWith(".svg") ||
       finalSrc.includes("data:image"));
 
+  // Cloudinary images already have f_auto, q_auto injected by getOptimizedImageUrl.
+  // Delivering them directly avoids Next.js server Sharp re-encoding overhead and quality 400 errors.
+  const isCloudinary =
+    typeof finalSrc === "string" && finalSrc.includes("res.cloudinary.com");
+
   const shouldBeUnoptimized =
-    typeof unoptimized === "boolean" ? unoptimized : isDataOrBlob;
+    typeof unoptimized === "boolean"
+      ? unoptimized
+      : isDataOrBlob || isCloudinary;
 
   // Default responsive sizes for fill images if not explicitly specified
   const effectiveSizes =
@@ -86,7 +93,7 @@ export default function SafeImage({
       unoptimized={shouldBeUnoptimized}
       className={className}
       style={style}
-      quality={quality || 80}
+      quality={quality || 75}
       onError={() => {
         if (!hasError) {
           setHasError(true);

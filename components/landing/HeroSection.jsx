@@ -256,7 +256,11 @@ export function HeroSection({ banners = [] }) {
                         typeof slide.image === "string" &&
                         slide.image.trim() !== ""
                           ? slide.image
-                          : "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop"
+                          : slide.imageUrl &&
+                              typeof slide.imageUrl === "string" &&
+                              slide.imageUrl.trim() !== ""
+                            ? slide.imageUrl
+                            : "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop"
                       }
                       alt={slide.title || slide.name || "Banner slide"}
                       fill
