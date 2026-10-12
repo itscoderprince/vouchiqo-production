@@ -213,7 +213,7 @@ export function HeroSection({ banners = [] }) {
     <div className="w-full flex flex-col select-none">
       {/* Full Width Banners Section */}
       <section className="select-none w-full text-left">
-        <div className="w-full rounded-md overflow-hidden shadow-sm relative group border border-slate-200/80 bg-slate-950 h-[210px] xs:h-[240px] sm:h-[300px] md:h-[350px] lg:h-[385px] xl:h-[410px] max-h-[420px]">
+        <div className="w-full rounded-xl sm:rounded-2xl overflow-hidden shadow-sm relative group border border-slate-200/80 bg-slate-950 h-[180px] xs:h-[210px] sm:h-[280px] md:h-[360px] lg:h-[425px] xl:h-[465px] 2xl:h-[490px] max-h-[500px]">
           {/* Viewport for horizontal sliding */}
           <div
             className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing touch-pan-y"

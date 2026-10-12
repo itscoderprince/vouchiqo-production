@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import SafeImage from "@/components/shared/SafeImage";
 
 export function PopupBannerModal({ banners = [] }) {
@@ -34,7 +34,7 @@ export function PopupBannerModal({ banners = [] }) {
     }
   }, [banners]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setOpen(false);
     if (activeBanner?._id) {
       sessionStorage.setItem(
@@ -42,7 +42,19 @@ export function PopupBannerModal({ banners = [] }) {
         "true",
       );
     }
-  };
+  }, [activeBanner]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, handleClose]);
+
+  const [imageRatio, setImageRatio] = useState(null);
 
   if (!open || !activeBanner) return null;
 
@@ -54,46 +66,47 @@ export function PopupBannerModal({ banners = [] }) {
       ? activeBanner.link
       : "/deals";
 
-  const modalBody = (
-    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-700/50 group">
-      {/* Close button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleClose();
-        }}
-        className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm border border-white/20"
-        aria-label="Close Popup"
-      >
-        <X className="w-4 h-4" />
-      </button>
+  const posterImageSrc =
+    activeBanner.image ||
+    activeBanner.imageUrl ||
+    activeBanner.desktopImage ||
+    "";
 
+  // Calculate dynamic style based on image's natural aspect ratio:
+  // If natural ratio is known, use it; otherwise default to standard 3:2 (1.5)
+  const currentRatio = imageRatio || 1.5;
+
+  const modalBody = (
+    <div
+      className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-700/50 group transition-transform duration-300 hover:scale-[1.01]"
+      style={{
+        aspectRatio: `${currentRatio}`,
+        maxHeight: "82vh",
+      }}
+    >
       {/* Pure Banner Image */}
-      <div
-        className="relative w-full flex items-center justify-center bg-slate-950"
-        style={{ aspectRatio: "600 / 400" }}
-      >
+      <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
         <SafeImage
-          src={
-            activeBanner.image ||
-            activeBanner.imageUrl ||
-            activeBanner.desktopImage ||
-            ""
-          }
+          src={posterImageSrc}
           alt={activeBanner.title || "Promotional Banner"}
           fill
           priority
-          sizes="(max-width: 640px) 95vw, 520px"
+          sizes="(max-width: 640px) 95vw, (max-width: 1024px) 80vw, 680px"
           className="object-cover cursor-pointer"
+          onLoad={(e) => {
+            const nw = e.target?.naturalWidth;
+            const nh = e.target?.naturalHeight;
+            if (nw && nh && nh > 0) {
+              setImageRatio(nw / nh);
+            }
+          }}
         />
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xs animate-in fade-in duration-300">
       {/* Backdrop click to dismiss */}
       <div
         className="absolute inset-0"
@@ -101,7 +114,29 @@ export function PopupBannerModal({ banners = [] }) {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 w-full max-w-md sm:max-w-lg">
+      {/* Poster Container with responsive max constraints */}
+      <div
+        className="relative z-10 w-full max-w-[92vw] sm:max-w-xl md:max-w-2xl flex flex-col items-center justify-center"
+        style={{
+          maxHeight: "85vh",
+          maxWidth:
+            currentRatio < 1 ? `calc(82vh * ${currentRatio})` : undefined,
+        }}
+      >
+        {/* Elegant Floating Close button (positioned outside top-right to never obscure artwork) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleClose();
+          }}
+          className="absolute -top-3.5 -right-2 sm:-top-4 sm:-right-4 z-40 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-slate-800 hover:bg-slate-100 shadow-xl border border-slate-200/90 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          aria-label="Close Popup"
+        >
+          <X className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5]" />
+        </button>
+
         {isExternal ? (
           <a
             href={targetUrl}
