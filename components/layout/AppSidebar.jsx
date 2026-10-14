@@ -145,8 +145,8 @@ export function AppSidebar({ ...props }) {
     }
   });
 
-  // Live admin pending action badge counts via TanStack Query
-  const { data: adminAnalytics } = useAdminAnalytics();
+  // Live admin pending action badge counts via TanStack Query (only enabled for admin users)
+  const { data: adminAnalytics } = useAdminAnalytics({ enabled: isAdmin });
   const adminBadges = useMemo(
     () => ({
       pendingMerchants: adminAnalytics?.badges?.pendingMerchants || 0,

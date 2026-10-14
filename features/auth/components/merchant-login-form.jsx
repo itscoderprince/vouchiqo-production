@@ -14,6 +14,7 @@ export function MerchantLoginForm() {
     <AuthCard title="Merchant Partner Log In">
       <form
         onSubmit={handleSubmit}
+        method="post"
         className="space-y-4"
         noValidate
       >

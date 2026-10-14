@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProcessFeedback } from "@/hooks/use-process-feedback";
 import { useRealtime } from "@/hooks/use-realtime";
+import { useMerchantCoupons } from "@/hooks/use-coupons";
 import {
   useMerchantAffiliateProducts,
   useMerchantAnalytics,
@@ -67,6 +68,7 @@ export default function MerchantDashboard() {
     );
     queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
     queryClient.invalidateQueries({ queryKey: ["merchant-recent-claims"] });
+    queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
   });
 
   // Listen for real-time customer coupon redemptions
@@ -79,9 +81,26 @@ export default function MerchantDashboard() {
     queryClient.invalidateQueries({
       queryKey: qk.merchant.recentRedemptions(),
     });
+    queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
   });
 
-  // Fetch merchant analytics, profile, redemptions, claims, and affiliate products via cached hooks
+  // Real-time coupon status changes
+  useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, () => {
+    queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
+  });
+
+  useRealtime(SOCKET_EVENTS.COUPON_SUBMITTED_CONFIRMATION, () => {
+    queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
+  });
+
+  useRealtime(SOCKET_EVENTS.COUPON_SUBMITTED, () => {
+    queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
+  });
+
+  // Fetch merchant analytics, profile, redemptions, claims, coupons, and affiliate products via cached hooks
   const { data: analyticsData } = useMerchantAnalytics();
   const { data: merchantProfile } = useMerchantProfile();
   const { data: redemptionsData } = useMerchantRecentRedemptions(5);
@@ -91,6 +110,9 @@ export default function MerchantDashboard() {
   const trendData = analyticsData?.trend ?? [];
   const merchant = { ...merchantProfile, ...analyticsData?.merchant };
   const merchantSlug = merchant?.slug || merchantProfile?.slug || analyticsData?.merchant?.slug;
+
+  // Real coupons belonging to this merchant
+  const { data: couponsData = [] } = useMerchantCoupons(merchant?._id);
 
   const {
     isOpen: isFeedbackOpen,
@@ -102,23 +124,38 @@ export default function MerchantDashboard() {
     hasResponded: hasRespondedFeedback,
   } = useProcessFeedback("profile_completion");
 
-  // Auto-popup timer removed to prevent disrupting merchant workflow.
-  // Merchants can open the Feedback Review Taker at any time via the "Feedback" button.
   const overviewStats = analyticsData?.overview ?? {};
 
-  // KPI computations from real DB
-  const pageViews = Object.values(overviewStats).reduce(
-    (sum, s) => sum + (s.views || 0),
+  // Accurate KPI computations from real DB
+  const storeViews = Number(
+    merchant?.storePageViews ||
+      analyticsData?.merchant?.storePageViews ||
+      analyticsData?.kpi?.storePageViews ||
+      0,
+  );
+  const couponClicks = Object.values(overviewStats).reduce(
+    (sum, s) => sum + (s.clicks || s.views || 0),
     0,
   );
-  const totalClaims = Object.values(overviewStats).reduce(
-    (sum, s) => sum + (s.claims || 0),
+  const affiliateClicks = (affiliateProductsData || []).reduce(
+    (sum, a) => sum + (Number(a.clickCount) || 0),
     0,
   );
-  const totalRedemptions = Object.values(overviewStats).reduce(
-    (sum, s) => sum + (s.redemptions || 0),
-    0,
-  );
+  const pageViews = couponClicks + storeViews + affiliateClicks;
+
+  const totalClaims =
+    Number(analyticsData?.last30Days?.claims) ||
+    Object.values(overviewStats).reduce((sum, s) => sum + (s.claims || 0), 0) ||
+    (claimsData?.claims?.length || 0);
+
+  const totalRedemptions =
+    Number(analyticsData?.last30Days?.redemptions) ||
+    Object.values(overviewStats).reduce(
+      (sum, s) => sum + (s.redemptions || 0),
+      0,
+    ) ||
+    (redemptionsData?.redemptions?.length || 0);
+
   const totalRevenue = trendData.reduce(
     (sum, t) => sum + (Number(t?.revenue) || 0),
     0,
@@ -135,19 +172,25 @@ export default function MerchantDashboard() {
   const revenueMoM = momChange("revenue");
   const ordersMoM = momChange("orders");
 
-  // Plan info
+  // Plan info & active listings check
   const plan = merchantProfile?.plan ?? "starter";
   const planLimit = plan === "starter" ? 3 : plan === "growth" ? 15 : -1;
-  const activeCoupons =
-    merchant?.totalCoupons ?? Object.keys(overviewStats).length;
 
-  // Contextual alerts - only show genuine capacity limit warning
+  const activeCouponsCount = (couponsData || []).filter(
+    (c) => c.status === "active",
+  ).length;
+  const activeAffiliatesCount = (affiliateProductsData || []).filter(
+    (p) => p.status === "active",
+  ).length;
+  const totalActiveListings = activeCouponsCount + activeAffiliatesCount;
+
+  // Contextual alerts - alert when near or exceeding capacity
   const alerts = [];
-  if (planLimit > 0 && activeCoupons >= planLimit * 0.9) {
+  if (planLimit > 0 && totalActiveListings >= planLimit) {
     alerts.push({
       type: "orange",
       icon: Zap,
-      msg: `You're using ${activeCoupons}/${planLimit} listings. Consider upgrading your plan for unlimited active deals.`,
+      msg: `You're using ${totalActiveListings}/${planLimit} active listings. Consider upgrading your plan for unlimited active deals.`,
     });
   }
 
@@ -181,68 +224,65 @@ export default function MerchantDashboard() {
     }));
   }, [affiliateProductsData]);
 
-  const activeAffiliatesCount = (affiliateProductsData || []).filter(
-    (p) => p.status === "active",
-  ).length;
-  const totalActiveListings = (activeCoupons || 0) + activeAffiliatesCount;
+  // Real coupon listings mapped accurately from database
+  const couponListings = useMemo(() => {
+    return (couponsData || []).map((c) => {
+      const val = c.rawDiscountValue || c.discountValue;
+      const isNum =
+        val !== null &&
+        val !== undefined &&
+        val !== "" &&
+        !Number.isNaN(Number(val));
 
-  // Top performing coupons from real API analytics or overview stats fallback
-  const rawTopCoupons = analyticsData?.topCoupons ?? [];
-  const topCoupons =
-    rawTopCoupons.length > 0
-      ? rawTopCoupons.map((c) => ({
-          id: c._id || c.id,
-          title: c.title || "Offer Listing",
-          code: c.code || "N/A",
-          discount:
-            c.discount ||
-            (c.discountValue ? `${c.discountValue}% OFF` : "Deal"),
-          category: c.category || "General",
-          clicks: Number(c.clickCount ?? c.views ?? c.viewCount) || 0,
-          views: Number(c.viewCount) || 0,
-          claims: Number(c.totalClaims) || 0,
-          redemptions: Number(c.totalRedemptions) || 0,
-          successRate:
-            (c.viewCount || c.clickCount) > 0
-              ? Math.round(
-                  ((c.totalRedemptions || 0) /
-                    (c.clickCount || c.viewCount || 1)) *
-                    100,
-                )
-              : 0,
-          conversion:
-            (c.viewCount || c.clickCount) > 0
-              ? Math.round(
-                  ((c.totalRedemptions || 0) /
-                    (c.clickCount || c.viewCount || 1)) *
-                    100,
-                )
-              : 0,
-          status: c.status || "active",
-        }))
-      : Object.entries(overviewStats)
-          .map(([id, stats]) => ({
-            id,
-            title: stats.title || "Offer Listing",
-            code: stats.code || "N/A",
-            discount: stats.discount || "Deal",
-            category: stats.category || "General",
-            views: Number(stats.views) || 0,
-            clicks: Number(stats.clicks ?? stats.views) || 0,
-            claims: Number(stats.claims) || 0,
-            redemptions: Number(stats.redemptions) || 0,
-            conversion:
-              stats.views > 0
-                ? Math.round(((stats.redemptions || 0) / stats.views) * 100)
-                : 0,
-            successRate:
-              stats.views > 0
-                ? Math.round(((stats.redemptions || 0) / stats.views) * 100)
-                : 0,
-            status: stats.isActive !== false ? "Active" : "Paused",
-          }))
-          .sort((a, b) => b.redemptions - a.redemptions)
-          .slice(0, 5);
+      let discountDisplay = "Special Offer";
+      if (c.offerType === "deal" && c.salePrice) {
+        discountDisplay = `₹${c.salePrice} Deal`;
+      } else if (c.discountType === "percentage" && isNum) {
+        discountDisplay = `${val}% OFF`;
+      } else if (c.discountType === "fixed" && isNum) {
+        discountDisplay = `₹${val} OFF`;
+      } else if (c.discountType === "freebie" || c.offerType === "special") {
+        discountDisplay =
+          c.specialOfferType ||
+          (typeof val === "string" && val.trim() ? val : "Freebie / Gift");
+      } else if (val) {
+        discountDisplay = isNum ? `${val}% OFF` : String(val);
+      }
+
+      return {
+        id: String(c._id || c.id),
+        _id: String(c._id || c.id),
+        type: "coupon",
+        title: c.title || "Offer Listing",
+        code: c.code || "N/A",
+        discount: discountDisplay,
+        category: c.category || "General",
+        clicks: Number(c.clickCount || c.viewCount || 0),
+        views: Number(c.viewCount || 0),
+        claims: Number(c.totalClaims || 0),
+        redemptions: Number(c.totalRedemptions || 0),
+        successRate:
+          (c.viewCount || c.clickCount) > 0
+            ? Math.round(
+                ((c.totalRedemptions || 0) /
+                  (c.clickCount || c.viewCount || 1)) *
+                  100,
+              )
+            : 0,
+        conversion:
+          (c.viewCount || c.clickCount) > 0
+            ? Math.round(
+                ((c.totalRedemptions || 0) /
+                  (c.clickCount || c.viewCount || 1)) *
+                  100,
+              )
+            : 0,
+        status: c.status || "active",
+        imageUrl: c.image || c.imageUrl || null,
+        createdAt: c.createdAt,
+      };
+    });
+  }, [couponsData]);
 
   return (
     <DashboardLayout
@@ -438,7 +478,7 @@ export default function MerchantDashboard() {
         {/* Store Listings & Top Offers Table */}
         <div data-tour="top-coupons">
           <TopCouponsTable
-            coupons={topCoupons}
+            coupons={couponListings}
             affiliates={affiliateListings}
           />
         </div>

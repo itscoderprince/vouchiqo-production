@@ -20,7 +20,6 @@ const webhookLogSchema = new mongoose.Schema(
 );
 
 // Indexes
-webhookLogSchema.index({ eventId: 1 }, { unique: true });
 webhookLogSchema.index({ processed: 1 });
 webhookLogSchema.index({ createdAt: -1 });
 

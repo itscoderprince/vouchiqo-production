@@ -21,6 +21,7 @@ export function LoginForm() {
     <AuthCard title="Log In">
       <form
         onSubmit={handleSubmit}
+        method="post"
         className="space-y-3.5"
         noValidate
       >

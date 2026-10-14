@@ -1,71 +1,77 @@
-"use client";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/mongodb";
+import { redis } from "@/lib/redis";
+import Merchant from "@/modules/merchant/merchant.model";
+import { REDIS_KEYS } from "@/utils/constants";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import LoadingSpinner from "@/components/shared/feedback/LoadingSpinner";
-import { useMerchantProfile } from "@/hooks/use-merchant";
-import { useUser } from "@/hooks/use-user";
+export const dynamic = "force-dynamic";
 
-export default function DashboardRootRedirect() {
-  const router = useRouter();
-  const { user, role, isLoaded } = useUser();
+/**
+ * /dashboard — Server-Side Role-Based Redirector (SSR)
+ * Immediately routes authenticated users to their corresponding workspace:
+ *   - Admin -> /admin/dashboard
+ *   - Merchant -> /merchant/dashboard
+ *   - Customer -> /customer/dashboard
+ *   - Unauthenticated -> /login
+ */
+export default async function DashboardRootRedirect() {
+  const reqHeaders = await headers();
+  const session = await auth.api
+    .getSession({
+      headers: reqHeaders,
+    })
+    .catch(() => null);
 
-  const isRegisteredMerchant =
-    typeof window !== "undefined" &&
-    sessionStorage.getItem("vouchiqo_is_merchant") === "true";
+  if (!session?.user) {
+    redirect("/login?callbackUrl=/merchant/dashboard");
+  }
 
-  const shouldCheckMerchant =
-    isLoaded &&
-    Boolean(user) &&
-    role !== "admin" &&
-    role !== "merchant" &&
-    !isRegisteredMerchant;
+  const role = session.user.role || "customer";
 
-  const {
-    data: merchantProfile,
-    isFetched: isMerchantFetched,
-  } = useMerchantProfile({
-    enabled: shouldCheckMerchant,
-  });
+  if (role === "admin") {
+    redirect("/admin/dashboard");
+  }
 
-  useEffect(() => {
-    if (!isLoaded) return;
+  if (role === "merchant") {
+    redirect("/merchant/dashboard");
+  }
 
-    if (!user) {
-      router.replace("/login?callbackUrl=/merchant/dashboard");
-      return;
+  // Check whether the user has a registered merchant business profile
+  const authIdStr = session.user.id ? String(session.user.id) : null;
+  let isMerchant = false;
+
+  if (authIdStr && redis) {
+    try {
+      const cached = await redis.get(REDIS_KEYS.merchantProfile(authIdStr));
+      if (cached && cached !== "__NOT_FOUND__") {
+        isMerchant = true;
+      }
+    } catch (_) {}
+  }
+
+  if (!isMerchant) {
+    await connectDB();
+    const query = [];
+    if (authIdStr) query.push({ authId: authIdStr });
+    if (session.user.email) {
+      query.push({ contactEmail: session.user.email.toLowerCase().trim() });
     }
 
-    if (role === "admin") {
-      router.replace("/admin/dashboard");
-      return;
-    }
-
-    if (role === "merchant" || isRegisteredMerchant) {
-      router.replace("/merchant/dashboard");
-      return;
-    }
-
-    if (shouldCheckMerchant && isMerchantFetched) {
-      if (merchantProfile) {
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("vouchiqo_is_merchant", "true");
-        }
-        router.replace("/merchant/dashboard");
-      } else {
-        router.replace("/customer/dashboard");
+    if (query.length > 0) {
+      const merchant = await Merchant.findOne({ $or: query })
+        .select("_id")
+        .lean();
+      if (merchant) {
+        isMerchant = true;
       }
     }
-  }, [
-    user,
-    role,
-    isLoaded,
-    isRegisteredMerchant,
-    shouldCheckMerchant,
-    isMerchantFetched,
-    merchantProfile,
-    router,
-  ]);
+  }
 
-  return <LoadingSpinner text="Loading dashboard..." center />;
+  if (isMerchant) {
+    redirect("/merchant/dashboard");
+  }
+
+  redirect("/customer/dashboard");
 }

@@ -40,7 +40,6 @@ const paymentIntentSchema = new mongoose.Schema(
 );
 
 // Indexes
-paymentIntentSchema.index({ idempotencyKey: 1 }, { unique: true });
 paymentIntentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const PaymentIntent =

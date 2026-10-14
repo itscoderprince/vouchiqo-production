@@ -13,14 +13,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { DataTable, StatusBadge } from "@/components/shared/data";
 import { ConfirmDeleteModal } from "@/components/shared/modals";
+import { qk } from "@/lib/query-keys";
 import { showError, showSuccess } from "@/lib/toast";
 
 export default function TopCouponsTable({
   coupons: initialCoupons = [],
   affiliates: initialAffiliates = [],
 }) {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("all");
   const [couponsList, setCouponsList] = useState(initialCoupons);
   const [affiliatesList, setAffiliatesList] = useState(initialAffiliates);
@@ -69,6 +72,9 @@ export default function TopCouponsTable({
           showSuccess(
             `Affiliate deal "${target.title}" ${next === "active" ? "resumed" : "paused"} successfully.`,
           );
+          queryClient.invalidateQueries({
+            queryKey: qk.merchant.affiliateProducts(),
+          });
         } else {
           showError("Failed to update affiliate product status.");
         }
@@ -78,18 +84,33 @@ export default function TopCouponsTable({
       return;
     }
 
-    // Coupon status toggle
+    // Real Coupon status toggle via PUT /api/coupons/:id
     const target = couponsList.find((c) => (c.id || c._id) === id);
     if (!target) return;
 
-    const next = target.status === "active" ? "inactive" : "active";
-    setCouponsList((prev) =>
-      prev.map((c) => ((c.id || c._id) === id ? { ...c, status: next } : c)),
-    );
-
-    showSuccess(
-      `Offer "${target.code || target.title}" ${next === "active" ? "resumed" : "paused"} successfully.`,
-    );
+    const next = target.status === "active" ? "paused" : "active";
+    try {
+      const res = await fetch(`/api/coupons/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next }),
+      });
+      if (res.ok) {
+        setCouponsList((prev) =>
+          prev.map((c) => ((c.id || c._id) === id ? { ...c, status: next } : c)),
+        );
+        showSuccess(
+          `Offer "${target.code || target.title}" ${next === "active" ? "resumed" : "paused"} successfully.`,
+        );
+        queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
+        queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showError(errJson.message || "Failed to update offer status.");
+      }
+    } catch (err) {
+      showError("Network error updating status.");
+    }
   };
 
   const confirmDelete = (item) => {
@@ -114,6 +135,9 @@ export default function TopCouponsTable({
             prev.filter((a) => (a.id || a._id) !== targetId),
           );
           showSuccess(`Affiliate product "${itemToDelete.title}" deleted.`);
+          queryClient.invalidateQueries({
+            queryKey: qk.merchant.affiliateProducts(),
+          });
         } else {
           showError("Failed to delete affiliate product.");
         }
@@ -121,12 +145,26 @@ export default function TopCouponsTable({
         showError("Error deleting affiliate product.");
       }
     } else {
-      setCouponsList((prev) =>
-        prev.filter((c) => (c.id || c._id) !== targetId),
-      );
-      showSuccess(
-        `Offer "${itemToDelete.code || itemToDelete.title}" deleted.`,
-      );
+      try {
+        const res = await fetch(`/api/coupons/${targetId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setCouponsList((prev) =>
+            prev.filter((c) => (c.id || c._id) !== targetId),
+          );
+          showSuccess(
+            `Offer "${itemToDelete.code || itemToDelete.title}" deleted.`,
+          );
+          queryClient.invalidateQueries({ queryKey: ["merchant-coupons"] });
+          queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
+        } else {
+          const errJson = await res.json().catch(() => ({}));
+          showError(errJson.message || "Failed to delete offer.");
+        }
+      } catch (err) {
+        showError("Error deleting offer.");
+      }
     }
 
     setItemToDelete(null);

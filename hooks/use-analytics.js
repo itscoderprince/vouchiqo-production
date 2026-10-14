@@ -24,7 +24,7 @@ export function useMerchantAnalytics() {
  * Fetch admin-side analytics (platform-wide KPIs + pending actions).
  * Used by the admin dashboard.
  */
-export function useAdminAnalytics() {
+export function useAdminAnalytics(options = {}) {
   return useQuery({
     queryKey: qk.admin.analytics(),
     staleTime: STALE.analytics,
@@ -32,6 +32,7 @@ export function useAdminAnalytics() {
       const json = await apiFetch("/api/admin/analytics");
       return json.data;
     },
+    ...options,
   });
 }
 

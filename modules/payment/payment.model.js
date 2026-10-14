@@ -54,7 +54,6 @@ const paymentSchema = new mongoose.Schema(
 
 // Indexes
 paymentSchema.index({ merchantId: 1, type: 1 });
-paymentSchema.index({ idempotencyKey: 1 }, { unique: true });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ gatewayOrderId: 1 });
 paymentSchema.index({ createdAt: -1 });

@@ -13,6 +13,7 @@ export function AdminLoginForm() {
     <AuthCard title="Admin Log In">
       <form
         onSubmit={handleSubmit}
+        method="post"
         className="space-y-3.5"
         noValidate
       >

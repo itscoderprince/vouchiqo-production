@@ -17,7 +17,7 @@ import { qk } from "@/lib/query-keys";
 /**
  * Fetch platform-wide admin analytics and KPI metrics.
  */
-export function useAdminAnalytics() {
+export function useAdminAnalytics(options = {}) {
   return useQuery({
     queryKey: qk.admin.analytics(),
     queryFn: async () => {
@@ -25,6 +25,7 @@ export function useAdminAnalytics() {
       return json.data || null;
     },
     staleTime: 30_000,
+    ...options,
   });
 }
 
@@ -50,7 +51,7 @@ export function useAdminCoupons({ status = "", search = "", isVerified } = {}) {
       const json = await apiFetch(`/api/admin/coupons${qs ? `?${qs}` : ""}`);
       return json.data?.coupons || [];
     },
-    staleTime: 30_000,        // socket invalidates on live events
+    staleTime: 30_000, // socket invalidates on live events
     refetchOnWindowFocus: false,
   });
 }
@@ -65,7 +66,7 @@ export function useAdminPendingCoupons() {
       const json = await apiFetch("/api/admin/coupons?status=pending");
       return json.data?.coupons || [];
     },
-    staleTime: 30_000,        // socket invalidates on live events
+    staleTime: 30_000, // socket invalidates on live events
     refetchOnWindowFocus: false,
   });
 }
@@ -199,7 +200,7 @@ export function useAdminMerchants(params = {}) {
       const json = await apiFetch(`/api/admin/merchants${qs ? `?${qs}` : ""}`);
       return json.data?.merchants || json.data || [];
     },
-    staleTime: 30_000,        // invalidated by useRealtime in consuming components
+    staleTime: 30_000, // invalidated by useRealtime in consuming components
     refetchOnWindowFocus: false,
   });
 }
@@ -384,7 +385,9 @@ export function useCreateAdminCampaign() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-campaigns"] });
       queryClient.invalidateQueries({ queryKey: qk.admin.campaignQueue() });
-      toast.success("Platform Multi-Channel Broadcast successfully deployed live!");
+      toast.success(
+        "Platform Multi-Channel Broadcast successfully deployed live!",
+      );
     },
     onError: (err) => {
       toast.error(err.message || "Failed to deploy broadcast.");
@@ -418,7 +421,9 @@ export function useAdminAffiliateProducts({ status = "", search = "" } = {}) {
   return useQuery({
     queryKey: qk.admin.affiliateProducts({ status, search }),
     queryFn: async () => {
-      const json = await apiFetch(`/api/admin/affiliate-products${qs ? `?${qs}` : ""}`);
+      const json = await apiFetch(
+        `/api/admin/affiliate-products${qs ? `?${qs}` : ""}`,
+      );
       return json.data || json || [];
     },
     staleTime: 30_000,
@@ -679,7 +684,9 @@ export function useReviewMerchantRevival() {
         body: {
           revivalId,
           status,
-          reviewNote: reviewNote || (status === "approved" ? "Approved by admin" : "Rejected by admin"),
+          reviewNote:
+            reviewNote ||
+            (status === "approved" ? "Approved by admin" : "Rejected by admin"),
         },
       }),
     onSuccess: (_data, variables) => {
@@ -707,8 +714,6 @@ export function useReviewCustomerRevival() {
     },
   });
 }
-
-
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // User Management
@@ -793,11 +798,12 @@ export function useDeleteAdminUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: qk.admin.analytics() });
-      toast.success("Customer account and all associated records deleted permanently!");
+      toast.success(
+        "Customer account and all associated records deleted permanently!",
+      );
     },
     onError: (err) => {
       toast.error(err.message || "Failed to delete customer user.");
     },
   });
 }
-

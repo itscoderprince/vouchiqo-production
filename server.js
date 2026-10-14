@@ -8,46 +8,14 @@ loadEnvConfig(process.cwd());
 import { logger } from "./lib/logger.js";
 import { initSocketIO } from "./lib/socket/server.js";
 
-import fs from "node:fs";
-import path from "node:path";
-
 const dev = process.env.NODE_ENV !== "production";
-
-if (dev) {
-  const devDir = path.join(process.cwd(), ".next", "dev");
-  const reqFilesPath = path.join(devDir, "required-server-files.json");
-  const buildIdPath = path.join(devDir, "BUILD_ID");
-  try {
-    if (!fs.existsSync(devDir)) {
-      fs.mkdirSync(devDir, { recursive: true });
-    }
-    if (!fs.existsSync(reqFilesPath)) {
-      fs.writeFileSync(
-        reqFilesPath,
-        JSON.stringify({
-          version: 1,
-          config: {},
-          appDir: process.cwd(),
-          files: [],
-          ignore: [],
-        }),
-        "utf8"
-      );
-    }
-    if (!fs.existsSync(buildIdPath)) {
-      fs.writeFileSync(buildIdPath, "development", "utf8");
-    }
-  } catch (e) {
-    // Ignore FS errors
-  }
-}
-
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
+    if (req.url?.startsWith("/socket.io")) return;
     handle(req, res);
   });
 

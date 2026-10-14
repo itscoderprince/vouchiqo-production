@@ -300,17 +300,36 @@ export default function BrandClient({
                   </button>
                 </div>
 
-                {/* Horizontal Scroll Carousel */}
-                <div className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-3 px-3 sm:mx-0 sm:px-0">
-                  {affiliateProducts.map((prod) => (
-                    <div key={prod._id} className="snap-start shrink-0">
-                      <AffiliateProductCard
-                        product={prod}
-                        merchant={merchant}
-                      />
-                    </div>
-                  ))}
-                </div>
+                {/* Featured Deals Grid / Carousel */}
+                {affiliateProducts.length <= 4 ? (
+                  <div className="flex items-stretch gap-3 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory -mx-3 px-3 sm:mx-0 sm:px-0 md:grid md:grid-cols-4 md:gap-3.5 md:overflow-visible md:mx-0 md:px-0 w-full pt-1">
+                    {affiliateProducts.map((prod) => (
+                      <div
+                        key={prod._id}
+                        className="snap-start shrink-0 w-[175px] sm:w-[205px] md:w-full"
+                      >
+                        <AffiliateProductCard
+                          product={prod}
+                          merchant={merchant}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-stretch gap-3 sm:gap-3.5 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-3 px-3 sm:mx-0 sm:px-0">
+                    {affiliateProducts.map((prod) => (
+                      <div
+                        key={prod._id}
+                        className="snap-start shrink-0 w-[180px] sm:w-[210px] md:w-[220px]"
+                      >
+                        <AffiliateProductCard
+                          product={prod}
+                          merchant={merchant}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
 

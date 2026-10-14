@@ -25,6 +25,11 @@ export default function TrafficAndGoals({
     queryClient.invalidateQueries({ queryKey: qk.merchant.dashboard() });
   });
 
+  useRealtime(SOCKET_EVENTS.COUPON_STATUS_CHANGED, () => {
+    queryClient.invalidateQueries({ queryKey: qk.merchant.analytics() });
+    queryClient.invalidateQueries({ queryKey: qk.merchant.dashboard() });
+  });
+
   // Monthly Targets
   const revenueGoal = analyticsData?.goals?.revenueTarget || 100000;
   const revenueActual = Number(totalRevenue) || 0;

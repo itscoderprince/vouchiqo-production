@@ -40,7 +40,8 @@ export const UserMenu = () => {
   const effectiveRole = useMemo(() => {
     if (!session?.user) return null;
     const sessionRole = session.user.role || "customer";
-    if (sessionRole === "admin" || sessionRole === "merchant") return sessionRole;
+    if (sessionRole === "admin" || sessionRole === "merchant")
+      return sessionRole;
     if (merchantProfile) return "merchant";
     return "customer";
   }, [session?.user, merchantProfile]);
@@ -61,7 +62,9 @@ export const UserMenu = () => {
     if (!userProfile || !session?.user) return;
     const storageKey = `vouchiqo_onboarded_${session.user.id}`;
     const hasGender = !!userProfile?.gender;
-    const hasInterests = Array.isArray(userProfile?.interests) && userProfile.interests.length >= 2;
+    const hasInterests =
+      Array.isArray(userProfile?.interests) &&
+      userProfile.interests.length >= 2;
     if (userProfile?.isOnboarded && hasGender && hasInterests) {
       localStorage.setItem(storageKey, "true");
     } else {
@@ -70,12 +73,13 @@ export const UserMenu = () => {
   }, [userProfile, session?.user]);
 
   useEffect(() => {
+    if (!mounted) return;
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [mounted]);
 
   const handleSignOut = async (e) => {
     e.preventDefault();
@@ -87,7 +91,10 @@ export const UserMenu = () => {
       }
       await signOut({
         fetchOptions: {
-          onSuccess: () => { router.replace("/"); router.refresh(); },
+          onSuccess: () => {
+            router.replace("/");
+            router.refresh();
+          },
         },
       });
     } catch (err) {
@@ -95,14 +102,21 @@ export const UserMenu = () => {
     }
   };
 
-  // SSR hydration guard — keep a fixed-size placeholder so layout doesn't shift
+  // SSR hydration guard: During SSR and initial client hydration before mount,
+  // session data may not be available on the server while available on client (or vice versa).
+  // A consistent placeholder prevents React hydration mismatches.
   if (!mounted) {
-    return <div suppressHydrationWarning className="h-9 w-[68px] shrink-0" aria-hidden="true" />;
+    return (
+      <div
+        suppressHydrationWarning
+        className="h-9 w-[76px] shrink-0"
+        aria-hidden="true"
+      />
+    );
   }
 
-  // Show Login during session load (isPending) AND for confirmed guests.
-  // This guarantees the user icon/Login button is ALWAYS visible in the navbar.
-  if (isPending || !session?.user) {
+  // Guest State: If not logged in, render the Login button
+  if (!session?.user) {
     return (
       <Link
         href="/login"
@@ -122,14 +136,30 @@ export const UserMenu = () => {
     switch (role) {
       case "admin":
         return [
-          { icon: LayoutDashboard, label: "Admin Dashboard", href: "/admin/dashboard" },
+          {
+            icon: LayoutDashboard,
+            label: "Admin Dashboard",
+            href: "/admin/dashboard",
+          },
           { icon: Users, label: "Manage Users", href: "/admin/users" },
-          { icon: Store, label: "Manage Merchants", href: "/admin/approvals/merchants" },
+          {
+            icon: Store,
+            label: "Manage Merchants",
+            href: "/admin/approvals/merchants",
+          },
         ];
       case "merchant":
         return [
-          { icon: LayoutDashboard, label: "Merchant Dashboard", href: "/merchant/dashboard" },
-          { icon: Store, label: "Application Status", href: "/merchant/application-status" },
+          {
+            icon: LayoutDashboard,
+            label: "Merchant Dashboard",
+            href: "/merchant/dashboard",
+          },
+          {
+            icon: Store,
+            label: "Application Status",
+            href: "/merchant/application-status",
+          },
           { icon: Ticket, label: "Manage Offers", href: "/merchant/coupons" },
           { icon: User, label: "My Profile", href: "/merchant/profile" },
         ];
@@ -169,7 +199,9 @@ export const UserMenu = () => {
         ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white border-blue-200"
         : "bg-slate-100 text-slate-800 border-slate-200";
     return (
-      <div className={`h-7 w-7 rounded-full font-bold text-[11px] flex items-center justify-center uppercase border shadow-2xs ${avatarClass}`}>
+      <div
+        className={`h-7 w-7 rounded-full font-bold text-[11px] flex items-center justify-center uppercase border shadow-2xs ${avatarClass}`}
+      >
         {initials}
       </div>
     );
@@ -180,7 +212,9 @@ export const UserMenu = () => {
       <button
         onClick={() => setOpen((v) => !v)}
         className={`rounded-full transition-all focus:outline-none cursor-pointer flex items-center justify-center p-0.5 border-2 ${
-          open ? "border-[#2563eb] bg-[#eff6ff]" : "border-transparent hover:border-gray-200"
+          open
+            ? "border-[#2563eb] bg-[#eff6ff]"
+            : "border-transparent hover:border-gray-200"
         }`}
         aria-label="User menu"
         aria-haspopup="true"
@@ -210,7 +244,9 @@ export const UserMenu = () => {
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-slate-400 font-semibold truncate">{session.user.email}</p>
+            <p className="text-[10px] text-slate-400 font-semibold truncate">
+              {session.user.email}
+            </p>
           </div>
 
           {menuItems.map(({ icon: Icon, label, href }) => (
@@ -245,7 +281,10 @@ export const UserMenu = () => {
           onSaveComplete={() => {
             setShowOnboarding(false);
             if (session?.user?.id) {
-              localStorage.setItem(`vouchiqo_onboarded_${session.user.id}`, "true");
+              localStorage.setItem(
+                `vouchiqo_onboarded_${session.user.id}`,
+                "true",
+              );
             }
           }}
         />

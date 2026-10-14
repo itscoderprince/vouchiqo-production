@@ -52,122 +52,133 @@ export default function TrafficSourcesDonutChart({
   analyticsData = {},
   pageViews,
   title = "Traffic Sources",
-  subtitle = "Where your visitors come from (Live DB)",
+  subtitle = "Where your visitors come from (Realtime)",
   badgeLabel,
   showCard = true,
   className = "",
 }) {
   const [hoveredIdx, setHoveredIdx] = useState(null);
 
+  const realSourcesCount = (analyticsData?.trafficSources || []).reduce(
+    (sum, s) => sum + (Number(s.value) || 0),
+    0,
+  );
+  const storeViews = Number(
+    analyticsData?.merchant?.storePageViews ??
+      analyticsData?.kpi?.storePageViews ??
+      0,
+  );
   const totalVisits = Number(
-    analyticsData?.totalVisits ?? pageViews ?? analyticsData?.pageViews ?? 0,
+    analyticsData?.totalVisits ??
+      (realSourcesCount > 0
+        ? realSourcesCount
+        : Math.max(Number(pageViews) || 0, storeViews)),
   );
   const hasRealData = totalVisits > 0;
 
-  // The 4 sources matching reference colors:
-  // 1. Messenger (Purple): 40% -> Upper & Left section
-  // 2. Calls (Pink): 10% -> Top-Right exploded slice
-  // 3. Web (Yellow): 20% -> Lower-Right section
-  // 4. Email (Mint Green): 30% -> Bottom section
-  const sourceDefs = useMemo(
+  const defaultChannels = useMemo(
     () => [
       {
-        id: "messenger",
-        label: "Messenger",
-        dbKey: "Direct",
-        pct: 40,
+        id: "direct",
+        label: "Direct Referral",
         color: "#9A73F7", // Vibrant Purple
       },
       {
-        id: "email",
-        label: "Email",
-        dbKey: "Organic",
-        pct: 30,
+        id: "search",
+        label: "Search & Explore",
         color: "#3AD29F", // Mint / Emerald Green
       },
       {
-        id: "web",
-        label: "Web",
-        dbKey: "Referral",
-        pct: 20,
+        id: "category",
+        label: "Category Pages",
         color: "#FDBA3C", // Warm Amber / Golden Yellow
       },
       {
-        id: "calls",
-        label: "Calls",
-        dbKey: "Social",
-        pct: 10,
-        color: "#FF5B7E", // Coral / Salmon Pink (Exploded in reference image)
+        id: "campaign",
+        label: "Campaign & Alerts",
+        color: "#FF5B7E", // Coral / Salmon Pink
       },
     ],
     [],
   );
 
   const chartItems = useMemo(() => {
+    const formatSourceName = (name) => {
+      if (!name) return "Direct Link";
+      const clean = name.replace(/[_-]/g, " ").trim();
+      return clean.charAt(0).toUpperCase() + clean.slice(1);
+    };
+
     if (hasRealData && analyticsData?.trafficSources?.length > 0) {
       const dbSources = analyticsData.trafficSources;
       const total =
         dbSources.reduce((sum, s) => sum + (Number(s.value) || 0), 0) ||
         totalVisits;
+      const palette = ["#9A73F7", "#3AD29F", "#FDBA3C", "#FF5B7E", "#3B82F6", "#64748B"];
 
-      return sourceDefs.map((def) => {
-        const found = dbSources.find(
-          (s) =>
-            s.label?.toLowerCase() === def.dbKey.toLowerCase() ||
-            s.name?.toLowerCase() === def.dbKey.toLowerCase() ||
-            s.label?.toLowerCase() === def.label.toLowerCase() ||
-            s.name?.toLowerCase() === def.label.toLowerCase(),
-        );
-        const val = found?.value ? Number(found.value) : 0;
-        const calcPct = total > 0 ? Math.round((val / total) * 100) : def.pct;
-
+      return dbSources.map((s, idx) => {
+        const val = Number(s.value) || 0;
+        const pct = total > 0 ? Math.round((val / total) * 100) : 0;
         return {
-          ...def,
-          pct: calcPct > 0 ? calcPct : def.pct,
-          val: val || Math.round(totalVisits * (def.pct / 100)),
+          id: s.name?.toLowerCase().replace(/\s+/g, "-") || `src-${idx}`,
+          label: formatSourceName(s.name) || `Source ${idx + 1}`,
+          pct,
+          val,
+          color: s.color || palette[idx % palette.length],
         };
       });
     }
 
-    // Default reference mockup state: 1,518 visits (40%, 30%, 20%, 10%)
-    return sourceDefs.map((def) => ({
+    if (hasRealData && totalVisits > 0) {
+      return [
+        {
+          id: "direct",
+          label: "Direct Storefront",
+          pct: 100,
+          val: totalVisits,
+          color: "#9A73F7",
+        },
+      ];
+    }
+
+    // Real-time zero/initial state: no fake visits
+    return defaultChannels.map((def) => ({
       ...def,
-      val: Math.round(1518 * (def.pct / 100)),
+      pct: 0,
+      val: 0,
     }));
-  }, [hasRealData, totalVisits, analyticsData?.trafficSources, sourceDefs]);
+  }, [hasRealData, totalVisits, analyticsData?.trafficSources, defaultChannels]);
 
   const displayTotal = hasRealData
     ? totalVisits.toLocaleString("en-IN")
-    : "1,518";
+    : "0";
 
-  // By default, slice index 3 (Calls 10%) is exploded with the dotted leader line
-  const activeExplodedIdx = hoveredIdx !== null ? hoveredIdx : 3;
+  // When real data exists, explode hovered or highest % slice
+  const maxIdx = chartItems.reduce(
+    (maxI, it, i) => (it.pct > (chartItems[maxI]?.pct || 0) ? i : maxI),
+    0,
+  );
+  const activeExplodedIdx =
+    hasRealData && chartItems[maxIdx]?.pct > 0
+      ? hoveredIdx !== null
+        ? hoveredIdx
+        : maxIdx
+      : null;
 
-  // Clockwise slice ordering:
-  // Messenger (40%): starts at -207° (153°) to -63° (mid = -135°, top-left)
-  // Calls (10%): starts at -63° to -27° (mid = -45°, upper-right) -> exploded outwards
-  // Web (20%): starts at -27° to +45° (mid = +9°, lower-right)
-  // Email (30%): starts at +45° to +153° (mid = +99°, bottom)
-  const ringSlices = [
-    chartItems[0], // Messenger
-    chartItems[3], // Calls
-    chartItems[2], // Web
-    chartItems[1], // Email
-  ];
-
+  const ringSlices = chartItems;
   const totalPct =
     ringSlices.reduce((acc, it) => acc + (it.pct || 0), 0) || 100;
   let currentAngle = (-207 * Math.PI) / 180;
 
-  const calculatedSlices = ringSlices.map((item) => {
-    const originalIdx = chartItems.findIndex((c) => c.id === item.id);
+  const calculatedSlices = ringSlices.map((item, idx) => {
+    const originalIdx = idx;
     const spanRad = ((item.pct || 0) / totalPct) * 2 * Math.PI;
     const start = currentAngle;
     const end = currentAngle + spanRad;
     const mid = (start + end) / 2;
     currentAngle = end;
 
-    const isExploded = originalIdx === activeExplodedIdx;
+    const isExploded = activeExplodedIdx !== null && originalIdx === activeExplodedIdx;
     const offsetDist = isExploded ? 11 : 0; // balanced offset distance
     const dx = offsetDist * Math.cos(mid);
     const dy = offsetDist * Math.sin(mid);
@@ -185,27 +196,29 @@ export default function TrafficSourcesDonutChart({
   });
 
   const explodedSlice =
-    calculatedSlices.find((s) => s.originalIdx === activeExplodedIdx) ||
-    calculatedSlices[1]; // Calls
+    hasRealData && activeExplodedIdx !== null
+      ? calculatedSlices.find((s) => s.originalIdx === activeExplodedIdx)
+      : null;
 
   // Balanced UI/UX Dimensions:
-  // Reduced height and adjusted radii for visual hierarchy & sidebar harmony
-  const svgWidth = 320;
+  const svgWidth = 350;
   const svgHeight = 195;
-  const cx = 135;
+  const cx = 130;
   const cy = 98;
-  const rOuter = 78; // reduced from 105px to 78px
-  const rInner = 48; // reduced from 65px to 48px (clean 30px donut band)
+  const rOuter = 78;
+  const rInner = 48;
 
   // Dotted leader line coordinates
-  const dotX =
-    cx + explodedSlice.dx + (rOuter + 3) * Math.cos(explodedSlice.mid);
-  const dotY =
-    cy + explodedSlice.dy + (rOuter + 3) * Math.sin(explodedSlice.mid);
-  const isRightSide = Math.cos(explodedSlice.mid) >= 0;
+  const dotX = explodedSlice
+    ? cx + explodedSlice.dx + (rOuter + 3) * Math.cos(explodedSlice.mid)
+    : 0;
+  const dotY = explodedSlice
+    ? cy + explodedSlice.dy + (rOuter + 3) * Math.sin(explodedSlice.mid)
+    : 0;
+  const isRightSide = explodedSlice ? Math.cos(explodedSlice.mid) >= 0 : true;
   const lineEndX = isRightSide
-    ? Math.min(svgWidth - 65, dotX + 44)
-    : Math.max(65, dotX - 44);
+    ? Math.min(svgWidth - 70, dotX + 36)
+    : Math.max(70, dotX - 36);
 
   const innerContent = (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
@@ -216,9 +229,11 @@ export default function TrafficSourcesDonutChart({
           return (
             <div
               key={src.id}
-              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseEnter={() => hasRealData && setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
-              className={`flex items-center gap-2 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg cursor-pointer transition-all ${
+              className={`flex items-center gap-2 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg transition-all ${
+                hasRealData ? "cursor-pointer" : "cursor-default"
+              } ${
                 isCurrent
                   ? "bg-slate-100 ring-1 ring-slate-200 shadow-2xs translate-x-0.5"
                   : "hover:bg-slate-50 opacity-85 hover:opacity-100"
@@ -244,6 +259,12 @@ export default function TrafficSourcesDonutChart({
             </div>
           );
         })}
+
+        {/* Live Tracking Status Indicator */}
+        <div className="mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/70 border border-emerald-100/80 text-[10px] font-medium text-emerald-700">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Realtime Tracking Active</span>
+        </div>
       </div>
 
       {/* Right Donut Chart Display */}
@@ -271,39 +292,72 @@ export default function TrafficSourcesDonutChart({
           </defs>
 
           {/* Slices Rendering */}
-          <g>
-            {calculatedSlices.map((slice) => {
-              const pathD = createDonutSlicePath(
-                cx,
-                cy,
-                rInner,
-                rOuter,
-                slice.start,
-                slice.end,
-              );
+          {hasRealData ? (
+            <g>
+              {calculatedSlices.map((slice) => {
+                const pathD = createDonutSlicePath(
+                  cx,
+                  cy,
+                  rInner,
+                  rOuter,
+                  slice.start,
+                  slice.end,
+                );
 
-              return (
-                <path
-                  key={slice.id}
-                  d={pathD}
-                  fill={slice.color}
-                  stroke="#FFFFFF"
-                  strokeWidth="3"
-                  strokeLinejoin="round"
-                  transform={`translate(${slice.dx}, ${slice.dy})`}
-                  filter={
-                    slice.isExploded ? "url(#sharedLightSliceGlow)" : undefined
-                  }
-                  className="cursor-pointer transition-all duration-300 ease-out hover:opacity-95"
-                  onMouseEnter={() => setHoveredIdx(slice.originalIdx)}
-                  onMouseLeave={() => setHoveredIdx(null)}
-                  style={{
-                    transformOrigin: `${cx}px ${cy}px`,
-                  }}
-                />
-              );
-            })}
-          </g>
+                if (!pathD) return null;
+
+                return (
+                  <path
+                    key={slice.id}
+                    d={pathD}
+                    fill={slice.color}
+                    stroke="#FFFFFF"
+                    strokeWidth="3"
+                    strokeLinejoin="round"
+                    transform={`translate(${slice.dx}, ${slice.dy})`}
+                    filter={
+                      slice.isExploded ? "url(#sharedLightSliceGlow)" : undefined
+                    }
+                    className="cursor-pointer transition-all duration-300 ease-out hover:opacity-95"
+                    onMouseEnter={() => setHoveredIdx(slice.originalIdx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    style={{
+                      transformOrigin: `${cx}px ${cy}px`,
+                    }}
+                  />
+                );
+              })}
+            </g>
+          ) : (
+            <g>
+              {/* Neutral empty state donut track */}
+              <circle
+                cx={cx}
+                cy={cy}
+                r={(rOuter + rInner) / 2}
+                fill="none"
+                stroke="#f1f5f9"
+                strokeWidth={rOuter - rInner}
+              />
+              <circle
+                cx={cx}
+                cy={cy}
+                r={rOuter}
+                fill="none"
+                stroke="#e2e8f0"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+              />
+              <circle
+                cx={cx}
+                cy={cy}
+                r={rInner}
+                fill="none"
+                stroke="#e2e8f0"
+                strokeWidth="1"
+              />
+            </g>
+          )}
 
           {/* Center Donut Hole Text */}
           <g className="pointer-events-none text-center">
@@ -332,7 +386,7 @@ export default function TrafficSourcesDonutChart({
           </g>
 
           {/* Dotted Leader Line & Label pointing to the Exploded Slice */}
-          {explodedSlice && (
+          {hasRealData && explodedSlice && explodedSlice.pct > 0 && (
             <g className="transition-all duration-300 ease-out">
               {/* Small round anchor dot at slice boundary */}
               <circle

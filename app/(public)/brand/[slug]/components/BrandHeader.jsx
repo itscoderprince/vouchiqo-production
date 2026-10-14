@@ -202,6 +202,12 @@ export default function BrandHeader({
                     </span>
                   </div>
 
+                  {merchant.shortDescription && (
+                    <p className="text-[12px] text-slate-600 font-normal line-clamp-1 max-w-xl pt-0.5">
+                      {merchant.shortDescription}
+                    </p>
+                  )}
+
                   <p className="text-[11px] sm:text-[12px] text-slate-500 font-normal">
                     <span className="font-medium text-slate-800">
                       {totalDeals} active deals

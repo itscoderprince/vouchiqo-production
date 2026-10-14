@@ -56,9 +56,17 @@ export default function AffiliateDealCard({ product, merchant }) {
     : discountPercentage || 0;
 
   // Clean discount pill text (no green badges on image, clean text badge in pricing row)
-  let discountBadge = discountText || null;
+  let discountBadge = discountText?.trim() || null;
+  if (discountBadge && /^B\d+-G\d+%/i.test(discountBadge)) {
+    const percentages = discountBadge.match(/\d+(?=%)/g);
+    if (percentages && percentages.length > 0) {
+      const highest = Math.max(...percentages.map(Number));
+      discountBadge = `Up to ${highest}% OFF`;
+    }
+  }
+
   if (!discountBadge && calculatedPercent > 0) {
-    discountBadge = `${calculatedPercent}% OFF`;
+    discountBadge = `UPTO ${calculatedPercent}% OFF`;
   }
 
   const categoryName =
@@ -97,16 +105,16 @@ export default function AffiliateDealCard({ product, merchant }) {
     <>
       <article
         onClick={() => setIsDetailsOpen(true)}
-        className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-slate-100 shadow-2xs hover:shadow-xs transition-shadow flex items-center gap-3 sm:gap-4 font-sans select-none cursor-pointer group"
+        className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-row items-center gap-3 sm:gap-5 font-sans select-none cursor-pointer group"
       >
-        {/* ── 1. Clean Product Image (No Badge Overlays) ── */}
-        <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden shrink-0 bg-slate-50 border border-slate-100/80 flex items-center justify-center">
+        {/* ── 1. Clean 3:2 Landscape Banner (Zero Cropping) ── */}
+        <div className="relative w-28 sm:w-44 md:w-52 aspect-[3/2] rounded-xl sm:rounded-2xl overflow-hidden shrink-0 bg-slate-50 border border-slate-100 flex items-center justify-center">
           {imageUrl && !imageFailed ? (
             <SafeImage
               src={imageUrl}
               alt={displayTitle}
               fill
-              sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 144px"
+              sizes="(max-width: 640px) 112px, (max-width: 768px) 176px, 208px"
               className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
               onError={() => setImageFailed(true)}
             />
@@ -115,96 +123,104 @@ export default function AffiliateDealCard({ product, merchant }) {
           )}
         </div>
 
-        {/* ── 2. Content Column ── */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-0.5">
-          {/* Top: Category Pill + Wishlist Button (Clean, NO Brand Deal badge) */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-100/80 capitalize truncate max-w-[140px]">
+        {/* ── 2. Middle Content Column: Strict Proximity & Clear Hierarchy ── */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 sm:gap-1.5 py-0.5">
+          {/* Top: Category Pill + Verified Pill */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-100/80 capitalize truncate max-w-[130px]">
               {categoryName}
             </span>
-
-            {/* Minimalist Heart Button */}
-            <button
-              type="button"
-              onClick={toggleWishlist}
-              aria-label={
-                isWishlisted ? "Remove from wishlist" : "Add to wishlist"
-              }
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
-                isWishlisted
-                  ? "bg-rose-50 border-rose-200 text-rose-500"
-                  : "bg-white border-slate-200/80 text-slate-400 hover:text-rose-500 hover:border-rose-200"
-              }`}
-            >
-              <Heart
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                  isWishlisted ? "fill-rose-500 text-rose-500" : ""
-                }`}
-              />
-            </button>
+            <span className="text-[10.5px] sm:text-[11px] text-emerald-600 font-medium hidden sm:inline-flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Verified Deal</span>
+            </span>
           </div>
 
-          {/* Middle: Title & Tagline */}
-          <div className="py-1 min-w-0">
-            <h4 className="text-xs sm:text-sm md:text-base font-extrabold text-slate-900 leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
+          {/* Middle: Title & Description */}
+          <div className="min-w-0">
+            <h4 className="text-xs sm:text-base md:text-lg font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
               {displayTitle}
             </h4>
-            {description && (
-              <p className="text-[11px] sm:text-xs text-slate-500 font-normal line-clamp-1 mt-0.5">
-                {description}
-              </p>
-            )}
+            <p className="text-[11px] sm:text-xs md:text-[13px] text-slate-500 font-normal line-clamp-1 sm:line-clamp-2 mt-0.5 leading-relaxed">
+              {description ||
+                `Exclusive verified promotional offer on ${
+                  merchant?.businessName || "partner store"
+                } products. Limited time savings.`}
+            </p>
           </div>
 
-          {/* Bottom: Pricing & Actions */}
-          <div className="flex items-center justify-between gap-2 pt-1 flex-wrap sm:flex-nowrap">
-            {/* Price & Discount */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              {numDisc > 0 || numOrig > 0 ? (
-                <>
-                  <span className="text-sm sm:text-base md:text-lg font-extrabold text-emerald-600 tracking-tight">
-                    ₹{numDisc > 0 ? numDisc : numOrig}
+          {/* Bottom: Pricing / Deal Badge */}
+          <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+            {numDisc > 0 || numOrig > 0 ? (
+              <>
+                <span className="text-sm sm:text-base md:text-lg font-extrabold text-emerald-600 tracking-tight">
+                  ₹
+                  {numDisc > 0
+                    ? numDisc.toLocaleString()
+                    : numOrig.toLocaleString()}
+                </span>
+                {numOrig > 0 && numOrig > numDisc && (
+                  <span className="text-[11px] sm:text-xs text-slate-400 line-through">
+                    ₹{numOrig.toLocaleString()}
                   </span>
-                  {numOrig > 0 && numOrig > numDisc && (
-                    <span className="text-[11px] sm:text-xs text-slate-400 line-through">
-                      ₹{numOrig}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="text-xs sm:text-sm font-extrabold text-emerald-600">
-                  Special Offer
-                </span>
-              )}
-              {discountBadge && (
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-full border border-emerald-100/80 whitespace-nowrap">
-                  {discountBadge}
-                </span>
-              )}
-            </div>
+                )}
+                {discountBadge && (
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-100/80 whitespace-nowrap">
+                    {discountBadge}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="bg-emerald-50 text-emerald-700 text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-md border border-emerald-200/80 inline-flex items-center gap-1">
+                {discountBadge || "Special Offer"}
+              </span>
+            )}
+          </div>
+        </div>
 
-            {/* Action Column */}
-            <div className="flex flex-col items-end shrink-0 ml-auto">
-              <button
-                type="button"
-                onClick={handleClaimClick}
-                className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-              >
-                <span>Claim Deal</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDetailsOpen(true);
-                }}
-                className="text-[10px] sm:text-[11px] text-slate-500 hover:text-blue-600 font-medium inline-flex items-center gap-0.5 mt-1 transition-colors cursor-pointer bg-transparent border-0 p-0"
-              >
-                <span>View Details</span>
-                <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              </button>
-            </div>
+        {/* ── 3. Dedicated Action Section (Anchored on the right) ── */}
+        <div className="w-[110px] sm:w-[150px] md:w-[165px] shrink-0 flex flex-col justify-between items-end self-stretch pl-2 sm:pl-4 md:pl-5 border-l border-slate-100 py-0.5">
+          {/* Wishlist Heart Button */}
+          <button
+            type="button"
+            onClick={toggleWishlist}
+            aria-label={
+              isWishlisted ? "Remove from wishlist" : "Add to wishlist"
+            }
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+              isWishlisted
+                ? "bg-rose-50 border-rose-200 text-rose-500 shadow-2xs"
+                : "bg-white border-slate-200/80 text-slate-400 hover:text-rose-500 hover:border-rose-200"
+            }`}
+          >
+            <Heart
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                isWishlisted ? "fill-rose-500 text-rose-500" : ""
+              }`}
+            />
+          </button>
+
+          {/* Action CTA & Link */}
+          <div className="flex flex-col items-center sm:items-end gap-1 w-full mt-auto">
+            <button
+              type="button"
+              onClick={handleClaimClick}
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs sm:text-sm py-1.5 sm:py-2.5 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <span>Claim Deal</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDetailsOpen(true);
+              }}
+              className="text-[10px] sm:text-[11px] text-slate-500 hover:text-blue-600 font-medium inline-flex items-center gap-0.5 transition-colors cursor-pointer bg-transparent border-0 p-0"
+            >
+              <span>View Details</span>
+              <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+            </button>
           </div>
         </div>
       </article>
